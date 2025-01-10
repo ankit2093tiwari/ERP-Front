@@ -1,0 +1,59 @@
+.inputs {
+    background: #f9f9f9;
+    padding: 30px;
+    border-radius: 10px;
+    border: 1px solid #ddd;
+}
+
+.inputs h2 {
+    /* background: #8a59ca;
+    margin: 0 -20px;
+    margin-top: -20px; */
+    /* border-radius: 3px; */
+    /* padding: 10px; */
+    /* color: #fff; */
+    font-size: 26px !important;
+}
+
+.form label {
+    display: flex;
+    flex-direction: column;
+    font-weight: 500;
+    margin-top: 25px;
+    font-size: 16px;
+}
+
+.form label input,
+.select {
+    margin-top: 5px;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.buttons {
+    display: flex;
+    justify-content: space-between;
+}
+
+.btnn {
+    padding: 7px 20px;
+    background-color: #8a59ca;
+    color: white;
+    margin-top: 40px;
+    border: none;
+    border-radius: 5px;
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.label1,
+.label2 {
+    width: 50%;
+}
+
+.form label textarea {
+    padding: 18px;
+    border-radius: 5px;
+    border-color: #ccc;
+}

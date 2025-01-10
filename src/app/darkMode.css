@@ -1,0 +1,82 @@
+body.dark-mode {
+    background: #000;
+}
+
+body.dark-mode .header,
+body.dark-mode .sidebar,
+body.dark-mode .sidebar ul li svg,
+body.dark-mode .accordion-item>.accordion-header .accordion-button svg,
+body.dark-mode main {
+    background: #000;
+}
+
+body.dark-mode .sidebar ul,
+body.dark-mode .sidebar ul li,
+body.dark-mode .accordion-button,
+body.dark-mode .studentCardDetails .card,
+body.dark-mode .sidebar ul::-webkit-scrollbar-track,
+body.dark-mode .SubCard,
+body.dark-mode .form-control,
+body.dark-mode .form-select {
+    background: #383838;
+}
+
+body.dark-mode .sidebar ul li a,
+body.dark-mode .rightNavbar .nav-link,
+body.dark-mode .accordion-button,
+body.dark-mode .dashboardCardCard h1,
+body.dark-mode .studentCardTitle,
+body.dark-mode .studentItemList h5,
+body.dark-mode .studentHeading,
+body.dark-mode .SubCard h3,
+body.dark-mode .SubCard p,
+body.dark-mode .form-label,
+body.dark-mode label,
+body.dark-mode .nav-tabs .nav-link,
+body.dark-mode .studentCardCount p,
+body.dark-mode .studentCardCount p span,
+body.dark-mode .studentCardTitle1 h4,
+body.dark-mode .form-select,
+body.dark-mode .form-control,
+body.dark-mode h1, body.dark-mode h2, body.dark-mode h3, body.dark-mode h4, body.dark-mode h5, body.dark-mode h6
+{
+    color: #fff;
+    color: var(--bs-body-bg);
+}
+
+body.dark-mode .studentCardDetails .card {
+    box-shadow: none;
+}
+
+body.dark-mode .studentCardTitle,
+body.dark-mode .sidebar ul::-webkit-scrollbar-thumb,
+body.dark-mode .iconBack {
+    background: #262525;
+}
+
+body.dark-mode .accordion-item>.accordion-header .accordion-button::after
+ {
+    filter: invert(100%);
+}
+
+body.dark-mode .sidebar li,
+body.dark-mode .sidebarAccordion .accordion-item,
+body.dark-mode .form-control,
+body.dark-mode .form-select,
+body.dark-mode .nav-tabs .nav-link:hover
+ {
+    border-color: #000;
+}
+
+body.dark-mode .form-control::placeholder,
+body.dark-mode .form-control:-ms-input-placeholder,
+body.dark-mode .form-control::-ms-input-placeholder
+{
+    color: var(--bs-body-bg);
+}
+body.dark-mode .nav-tabs .nav-link.active
+{
+    color:#000;
+}
+
+
