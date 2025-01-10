@@ -1,0 +1,29 @@
+.tableSection{
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.rec h2{
+    margin-left: 23px;
+}
+
+.add{
+    margin-left: 23px;
+}
+
+.add .btn{
+    padding: 10px 20px;
+    color: #000;
+    margin-top: 40px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 17px;
+    font-weight: 400;
+}
+
+.cg{
+    margin-right: 12px;
+    font-size: 22px;
+}
