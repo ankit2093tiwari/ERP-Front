@@ -6,7 +6,7 @@ import { Container, Row, Col, Breadcrumb } from 'react-bootstrap';
 import styles from "@/app/students/add-new-student/page.module.css";
 import dynamic from 'next/dynamic';
 
-const PurchaseMaster = () => {
+const PurchaseMasterrr = () => {
   const columns = [
     {
       name: '#',
