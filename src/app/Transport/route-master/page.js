@@ -1,204 +1,232 @@
 "use client";
-import React, { useState } from 'react';
-import Table from '@/app/component/DataTable';
-import styles from "@/app/students/add-new-student/page.module.css"
-import { Container, Row, Col, Breadcrumb, Form, FormLabel, FormGroup, FormControl,FormSelect, Button } from 'react-bootstrap';
-import dynamic from 'next/dynamic';
-import { CgAddR } from 'react-icons/cg';
-import { CgAdd } from "react-icons/cg";
-import { FiMinus } from "react-icons/fi";
+import React, { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
+import Table from "@/app/component/DataTable"; // Ensure this path is correct
+import { FaEdit, FaTrashAlt } from "react-icons/fa";
+import {
+  Form,
+  Row,
+  Col,
+  Container,
+  FormLabel,
+  FormControl,
+  Button,
+  Breadcrumb,
+} from "react-bootstrap";
+import axios from "axios";
 
 const RouteMaster = () => {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [route, setRoute] = useState({
+    vehicleNo: "",
+    routeName: "",
+    pickupPoints: [{ point: "", amount: "" }],
+  });
 
-  const columns = [ 
+  const baseUrl = "https://erp-backend-fy3n.onrender.com/api/vehicles";
+
+  const columns = [
     {
-      name: '#',
-      selector: row => row.id,
-      sortable: true,
-      width: '80px',
+      name: "#",
+      selector: (row, index) => index + 1,
+      sortable: false,
+      width: "80px",
     },
     {
-      name: 'Vehicle No',
-      selector: row => row.vehicleNo,
+      name: "Vehicle No",
+      selector: (row) => row.vehicleNo || "N/A",
       sortable: true,
     },
     {
-        name: 'Route',
-        selector: row => row.route,
-        sortable: true,
-      },
-      {
-        name: 'Pickup-Point & Fare',
-        selector: row => row.pickupPointAndFare,
-        sortable: true,
-      },
+      name: "Route",
+      selector: (row) => row.routeName || "N/A",
+      sortable: true,
+    },
     {
-      name: 'Action',
-      cell: row => (
-        <div style={{
-          display: 'flex',
-          // marginLeft: '-30px'
-        }}>
-          <button className='editButton'
-            onClick={() => handleEdit(row.id)}
-          >
-            Edit
+      name: "Pickup Points",
+      selector: (row) =>
+        row.pickupPoints
+          .map((p) => `(${p.point}) Amount: ${p.amount}`)
+          .join(", ") || "N/A",
+      sortable: true,
+    },
+    {
+      name: "Actions",
+      cell: (row) => (
+        <div className="d-flex gap-2">
+          <button className="editButton" onClick={() => handleEdit(row._id)}>
+            <FaEdit />
           </button>
-          <button className="editButton"
-            onClick={() => handleDelete(row.id)}
+          <button
+            className="editButton btn-danger"
+            onClick={() => handleDelete(row._id)}
           >
-            Delete
+            <FaTrashAlt />
           </button>
         </div>
       ),
+    },
+  ];
+
+  const fetchData = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const response = await axios.get(baseUrl);
+      setData(response.data);
+    } catch (err) {
+      console.error("Error fetching data:", err);
+      setError("Failed to fetch data. Please try again later.");
+    } finally {
+      setLoading(false);
     }
-  ];
-
-  const data =[
-    {
-      id: 1,
-      vehicleNo: 'Test_123',
-      route: 'test_route',
-      pickupPointAndFare: '(Test_pick_point)Amount: 500',
-    },
-    {
-       id: 2,
-       vehicleNo: 'UP35BT7060',
-       route: 'kakadev',
-       pickupPointAndFare: '(gurudev) Amount: 400',
-    },
-    {
-      id: 3,
-      vehicleNo: 'UP35BT9261',
-      route: 'kakadev',
-      pickupPointAndFare: '(rawatpur) Amount: 700',
-    },
-    {
-       id: 4,
-       vehicleNo: 'UP35BT4546',
-       route: 'route',
-       pickupPointAndFare: '(new) Amount: 300',
-    },
-  ];
-
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-
-  const togglePopover = () => {
-    setIsPopoverOpen(!isPopoverOpen);
   };
 
-  const [vehicleNo, setVehicleNo] = useState("");
-  const [routeName, setRouteName] = useState("");
-  const [pickupPoint, setPickupPoint] = useState([{ point: "", amount: "" }]);
+  const handleAdd = async () => {
+    try {
+      const response = await axios.post(baseUrl, route);
+      setData([...data, response.data]);
+      setRoute({ vehicleNo: "", routeName: "", pickupPoints: [{ point: "", amount: "" }] });
+      setShowAddForm(false);
+    } catch (err) {
+      console.error("Error adding route:", err);
+      setError("Failed to add route. Please try again later.");
+    }
+  };
+
+  const handleEdit = async (id) => {
+    const item = data.find((row) => row._id === id);
+    const updatedRouteName = prompt("Enter new route name:", item?.routeName || "");
+
+    if (updatedRouteName) {
+      try {
+        await axios.put(`${baseUrl}/${id}`, { routeName: updatedRouteName });
+        setData((prevData) =>
+          prevData.map((row) =>
+            row._id === id ? { ...row, routeName: updatedRouteName } : row
+          )
+        );
+      } catch (err) {
+        console.error("Error updating route:", err);
+        setError("Failed to update route. Please try again later.");
+      }
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (confirm("Are you sure you want to delete this route?")) {
+      try {
+        await axios.delete(`${baseUrl}/${id}`);
+        setData((prevData) => prevData.filter((row) => row._id !== id));
+      } catch (err) {
+        console.error("Error deleting route:", err);
+        setError("Failed to delete route. Please try again later.");
+      }
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   const handlePickupChange = (index, field, value) => {
-    const updatedPoints = [...pickupPoint];
+    const updatedPoints = [...route.pickupPoints];
     updatedPoints[index][field] = value;
-    setPickupPoint(updatedPoints);
+    setRoute({ ...route, pickupPoints: updatedPoints });
   };
 
-  const handleAdd = () =>{
-    setPickupPoint([...pickupPoint, { point: "", amount: "" }]);
-  }
+  const addPickupPoint = () => {
+    setRoute({ ...route, pickupPoints: [...route.pickupPoints, { point: "", amount: "" }] });
+  };
 
   const removePickupPoint = (index) => {
-    const updatedPoints = pickupPoint.filter((_, i) => i !== index);
-    setPickupPoint(updatedPoints);
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const formData = { vehicleNo, routeName, pickupPoint };
-    console.log("Form Data Submitted:", formData);
+    const updatedPoints = route.pickupPoints.filter((_, i) => i !== index);
+    setRoute({ ...route, pickupPoints: updatedPoints });
   };
 
   return (
-     <Container className={styles.vehicle}>
-        <Row className='mt-1 mb-1'>
-          <Col>
-              <Breadcrumb style={{ marginLeft: '20px' }}>
-                  <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-                  <Breadcrumb.Item href="/Transport">
-                      Transport
-                  </Breadcrumb.Item>
-                  <Breadcrumb.Item active>Vehicle Route</Breadcrumb.Item>
-              </Breadcrumb>
-          </Col>
-        </Row>
-        <Row>
-            <Col>
-               <button onClick={togglePopover} id="submit" type='button' style={{ marginLeft: '20px' }}>
-                <CgAddR style={{ fontSize: '27px', marginTop: '-2px', marginRight: '5px' }} /> New Route</button>
-               {isPopoverOpen && (
-                <div className='absolute right-0 mt-3 w-60 p-4' style={{ backgroundColor: '#f8f9fa', border: '1px solid #ddd', borderRadius: '8px', padding: '20px', width: '800px' }}>
-                    <h3>Existing Route Records</h3>
-                <Form onSubmit={handleSubmit}>
-                <Row className="mb-3">
-                <FormGroup as={Col} md="6" controlId="validationCustom01">
-                  <FormLabel>Vehicle No</FormLabel>
-                  <FormSelect value={vehicleNo} onChange={(e) => setVehicleNo(e.target.value)}>
-                      <option>Select</option>
-                      <option value="1">UP35AT7060</option>
-                      <option value="2">UP35AT9261</option>
-                      <option value="3">UP35AT4546</option>
-                      <option value="4">UP35AT6869</option>
-                  </FormSelect>
-                </FormGroup>
-                <FormGroup as={Col} md="6" controlId="validationCustom02">
-                  <FormLabel>Route Name</FormLabel>
-                  <FormControl
-                    required
-                    type="text"
-                    value={routeName}
-                    onChange={(e) => setRouteName(e.target.value)}
-                  />
-                </FormGroup>
-                </Row>
-                <Row className='mb-3'>
-                <FormGroup as={Col} controlId="validationCustom03">
-                  <FormLabel>Pickup Point And Amount</FormLabel>
-                  {pickupPoint.map((pickup, index) => (
-                    <div key={index}>
-                       <FormControl
-                          required
-                          type="text"
-                          placeholder='Pickup Point'
-                          value={pickup.point}
-                          onChange={(e) => handlePickupChange(index, "point", e.target.value )}
-                        />
-                        <FormControl
-                          required
-                          type="text"
-                          placeholder='Amount'
-                          value={pickup.amount}
-                          onChange={(e) => handlePickupChange(index, "amount", e.target.value)}
-                        />
-                       <FiMinus type='button' onClick={() => removePickupPoint(index)} 
-                        style={{ backgroundColor: '#8a59ca', color: '#fff', borderRadius: '50%', float: 'right', marginTop: '20px' }} /> 
-                    </div>
-                  ))}
-                  <CgAdd type='button' onClick={handleAdd}
-                   style={{ backgroundColor: '#8a59ca', marginLeft: '10px', color: '#fff', borderRadius: '50%', float: 'left', marginTop: '20px' }} />
-                </FormGroup>
-                </Row>
-                <Button type="submit" id="submit" onSubmit={handleSubmit}>Submit</Button>
-                </Form>
-              </div>
-               )}
+    <Container>
+      <Breadcrumb>
+        <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
+        <Breadcrumb.Item href="/Transport/all-module">Transport</Breadcrumb.Item>
+        <Breadcrumb.Item active>Route Master</Breadcrumb.Item>
+      </Breadcrumb>
+
+      <Button onClick={() => setShowAddForm(!showAddForm)} className="mt-4 mb-4">
+        Add Route
+      </Button>
+
+      {showAddForm && (
+        <Form>
+          <Row className="mb-3">
+            <Col md={6}>
+              <FormLabel>Vehicle No</FormLabel>
+              <FormControl
+                type="text"
+                placeholder="Enter Vehicle No"
+                value={route.vehicleNo}
+                onChange={(e) => setRoute({ ...route, vehicleNo: e.target.value })}
+              />
             </Col>
-        </Row>
-        <Row>
-        <Col>
-        <h2 style={{ marginLeft: '23px' , fontSize: '25px'}}>Existing Route Records</h2>
+            <Col md={6}>
+              <FormLabel>Route Name</FormLabel>
+              <FormControl
+                type="text"
+                placeholder="Enter Route Name"
+                value={route.routeName}
+                onChange={(e) => setRoute({ ...route, routeName: e.target.value })}
+              />
+            </Col>
+          </Row>
+          <FormLabel>Pickup Points</FormLabel>
+          {route.pickupPoints.map((pickup, index) => (
+            <Row key={index} className="mb-3">
+              <Col md={6}>
+                <FormControl
+                  type="text"
+                  placeholder="Pickup Point"
+                  value={pickup.point}
+                  onChange={(e) => handlePickupChange(index, "point", e.target.value)}
+                />
+              </Col>
+              <Col md={4}>
+                <FormControl
+                  type="text"
+                  placeholder="Amount"
+                  value={pickup.amount}
+                  onChange={(e) => handlePickupChange(index, "amount", e.target.value)}
+                />
+              </Col>
+              <Col md={2}>
+                <Button
+                  variant="danger"
+                  onClick={() => removePickupPoint(index)}
+                >
+                  Remove
+                </Button>
+              </Col>
+            </Row>
+          ))}
+          <Button onClick={addPickupPoint}>Add Pickup Point</Button>
+          <Button onClick={handleAdd} className="mt-3">Save Route</Button>
+        </Form>
+      )}
+
+      <h2>Existing Route Records</h2>
+      {loading ? (
+        <p>Loading...</p>
+      ) : error ? (
+        <p style={{ color: "red" }}>{error}</p>
+      ) : data.length > 0 ? (
         <Table columns={columns} data={data} />
-        <div className={styles.buttons} style={{ float: 'right', marginRight: '10px' }}>
-            <button type="button" className="editButton">Previous</button>
-            <button type="button" className="editButton">Next</button>
-        </div>
-        </Col>
-      </Row>
-     </Container>
+      ) : (
+        <p>No data available.</p>
+      )}
+    </Container>
   );
 };
 
-export default dynamic (() => Promise.resolve(RouteMaster), {ssr: false});
+export default dynamic(() => Promise.resolve(RouteMaster), { ssr: false });

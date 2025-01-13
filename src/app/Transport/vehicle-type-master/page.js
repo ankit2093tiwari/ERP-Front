@@ -2,99 +2,120 @@
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { FaPlus, FaEdit, FaTrashAlt } from "react-icons/fa";
-import { Form, Row, Col, Container, FormLabel, FormControl, Button, Breadcrumb } from "react-bootstrap";
+import {
+  Form,
+  Row,
+  Col,
+  Container,
+  FormLabel,
+  FormControl,
+  Button,
+  Breadcrumb,
+  Alert,
+} from "react-bootstrap";
 import axios from "axios";
 import Table from "@/app/component/DataTable"; // Ensure this path is correct
-import { CgAddR } from 'react-icons/cg'; 
-const VehicleRecords = () => {
-  const [data, setData] = useState([]); // Table data
-  const [loading, setLoading] = useState(false); // Loading state
-  const [error, setError] = useState(""); // Error state
-  const [showAddForm, setShowAddForm] = useState(false); // Toggle Add Form visibility
-  const [newVehicle, setNewVehicle] = useState({
-    vehicle_type: "",
-  }); // New vehicle form
+import { CgAddR } from "react-icons/cg";
 
-  // Fetch data from API
+const VehicleRecords = () => {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newVehicle, setNewVehicle] = useState({
+    type_name: "",
+  });
+
+  // Fetch Data
   const fetchData = async () => {
     setLoading(true);
     setError("");
     try {
       const response = await axios.get(
-        "https://erp-backend-fy3n.onrender.com/api/vehicles"
+        "https://erp-backend-fy3n.onrender.com/api/vehicleTypes"
       );
-      const fetchedData = response.data.data;
-      setData(fetchedData);
+      setData(response.data.data);
     } catch (err) {
-      console.error("Error fetching data:", err);
+      console.error(err);
       setError("Failed to fetch data. Please try again later.");
     } finally {
       setLoading(false);
     }
   };
 
-  // Add a new vehicle
+  // Add New Vehicle
   const handleAdd = async () => {
-    if (newVehicle.vehicle_type.trim()) {
-      try {
-        const response = await axios.post(
-          "https://erp-backend-fy3n.onrender.com/api/vehicles",
-          newVehicle
-        );
-        setData((prevData) => [...prevData, response.data]);
-        setNewVehicle({ vehicle_type: "" });
-        setShowAddForm(false);
-      } catch (error) {
-        console.error("Error adding vehicle:", error);
-        setError("Failed to add vehicle. Please try again later.");
-      }
-    } else {
-      alert("Please fill in the vehicle type.");
+    if (!newVehicle.type_name.trim()) {
+      alert("Please enter a valid vehicle type.");
+      return;
+    }
+    setLoading(true);
+    try {
+      const response = await axios.post(
+        "https://erp-backend-fy3n.onrender.com/api/vehicleType",
+        newVehicle
+      );
+      setData([...data, response.data]);
+      setNewVehicle({ type_name: "" });
+      setShowAddForm(false);
+      setSuccessMessage("Vehicle type added successfully!");
+    } catch (err) {
+      console.error(err);
+      setError("Failed to add vehicle type. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Edit existing vehicle
-  const handleEdit = (id) => {
-    const item = data.find((row) => row._id === id);
-    const updatedVehicleType = prompt(
+  // Update Vehicle
+  const handleEdit = async (id) => {
+    const vehicle = data.find((item) => item._id === id);
+    const updatedType = prompt(
       "Enter new vehicle type:",
-      item?.vehicle_type || ""
+      vehicle?.type_name || ""
     );
+    if (!updatedType) return;
 
-    if (updatedVehicleType) {
-      try {
-        axios.put(
-          `https://erp-backend-fy3n.onrender.com/api/vehicles/${id}`,
-          { vehicle_type: updatedVehicleType }
-        );
-        setData((prevData) =>
-          prevData.map((row) =>
-            row._id === id ? { ...row, vehicle_type: updatedVehicleType } : row
-          )
-        );
-      } catch (error) {
-        console.error("Error updating vehicle:", error);
-        setError("Failed to update vehicle. Please try again later.");
-      }
+    setLoading(true);
+    try {
+      await axios.put(
+        `https://erp-backend-fy3n.onrender.com/api/vehicleType/${id}`,
+        { type_name: updatedType }
+      );
+      setData((prevData) =>
+        prevData.map((item) =>
+          item._id === id ? { ...item, type_name: updatedType } : item
+        )
+      );
+      setSuccessMessage("Vehicle type updated successfully!");
+    } catch (err) {
+      console.error(err);
+      setError("Failed to update vehicle type. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Delete vehicle
+  // Delete Vehicle
   const handleDelete = async (id) => {
-    if (confirm("Are you sure you want to delete this vehicle?")) {
-      try {
-        await axios.delete(
-          `https://erp-backend-fy3n.onrender.com/api/vehicles/${id}`
-        );
-        setData((prevData) => prevData.filter((row) => row._id !== id));
-      } catch (error) {
-        console.error("Error deleting vehicle:", error);
-        setError("Failed to delete vehicle. Please try again later.");
-      }
+    if (!confirm("Are you sure you want to delete this vehicle?")) return;
+
+    setLoading(true);
+    try {
+      await axios.delete(
+        `https://erp-backend-fy3n.onrender.com/api/vehicleType/${id}`
+      );
+      setData((prevData) => prevData.filter((item) => item._id !== id));
+      setSuccessMessage("Vehicle type deleted successfully!");
+    } catch (err) {
+      console.error(err);
+      setError("Failed to delete vehicle type. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Fetch data on component mount
   useEffect(() => {
     fetchData();
   }, []);
@@ -102,13 +123,13 @@ const VehicleRecords = () => {
   const columns = [
     {
       name: "#",
-      selector: (row, index) => index + 1,
+      selector: (_, index) => index + 1,
       sortable: false,
       width: "80px",
     },
     {
       name: "Vehicle Type",
-      selector: (row) => row.vehicle_type || "N/A",
+      selector: (row) => row.type_name || "N/A",
       sortable: true,
     },
     {
@@ -118,13 +139,17 @@ const VehicleRecords = () => {
           <button className="editButton" onClick={() => handleEdit(row._id)}>
             <FaEdit />
           </button>
-          <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
+          <button
+            className="editButton btn-danger"
+            onClick={() => handleDelete(row._id)}
+          >
             <FaTrashAlt />
           </button>
         </div>
       ),
     },
   ];
+
   return (
     <Container>
       <Row className="mt-1 mb-1">
@@ -138,31 +163,44 @@ const VehicleRecords = () => {
           </Breadcrumb>
         </Col>
       </Row>
+
+      {successMessage && <Alert variant="success">{successMessage}</Alert>}
+      {error && <Alert variant="danger">{error}</Alert>}
+
       {/* Add Vehicle Form */}
       <Row>
         <Col>
-          <Button onClick={() => setShowAddForm(!showAddForm)} className="mb-4">
-           <CgAddR /> New Vehicle Type
+          <Button
+            onClick={() => setShowAddForm((prev) => !prev)}
+            className="mb-4"
+          >
+            <CgAddR /> New Vehicle Type
           </Button>
           {showAddForm && (
             <div className="cover-sheet">
-              <div className="studentHeading"><h2>Add Vehicle Type</h2></div>
-              <Form className="formSheet">
+              <h2>Add Vehicle Type</h2>
+              <Form>
                 <Row className="mb-3">
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Vehicle Type</FormLabel>
-                    <FormControl type="text" placeholder="Enter Vehicle Type" value={newVehicle.vehicle_type} onChange={(e) =>
-                      setNewVehicle({
-                        ...newVehicle,
-                        vehicle_type: e.target.value,
-                      })
-                    }
+                    <FormLabel>Vehicle Type</FormLabel>
+                    <FormControl
+                      type="text"
+                      placeholder="Enter Vehicle Type"
+                      value={newVehicle.type_name}
+                      onChange={(e) =>
+                        setNewVehicle({
+                          ...newVehicle,
+                          type_name: e.target.value,
+                        })
+                      }
                     />
                   </Col>
                 </Row>
                 <Row>
                   <Col>
-                    <Button onClick={handleAdd} class="btn btn-primary mt-4" >Add Vehicle Type</Button>
+                    <Button onClick={handleAdd} className="btn btn-primary mt-4">
+                      Add Vehicle Type
+                    </Button>
                   </Col>
                 </Row>
               </Form>
@@ -170,6 +208,7 @@ const VehicleRecords = () => {
           )}
         </Col>
       </Row>
+
       {/* Vehicle List Section */}
       <Row>
         <Col>
@@ -177,8 +216,6 @@ const VehicleRecords = () => {
             <h2>Vehicle Records</h2>
             {loading ? (
               <p>Loading...</p>
-            ) : error ? (
-              <p style={{ color: "red" }}>{error}</p>
             ) : data.length > 0 ? (
               <Table columns={columns} data={data} />
             ) : (

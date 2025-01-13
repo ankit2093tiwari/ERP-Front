@@ -14,7 +14,7 @@ const AddLibraryGroup = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [showAddForm, setShowAddForm] = useState(false);
+  // const [showAddForm, setShowAddForm] = useState(false);
   const [newGroupName, setNewGroupName] = useState("");
 
   const columns = [
@@ -84,7 +84,9 @@ const AddLibraryGroup = () => {
       }
     }
   };
-
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const onOpen = () => setIsPopoverOpen(true);
+  const onClose = () => setIsPopoverOpen(false);
   const handleAdd = async () => {
     if (newGroupName.trim()) {
       try {
@@ -93,7 +95,7 @@ const AddLibraryGroup = () => {
         });
         setData((prevData) => [...prevData, response.data]);
         setNewGroupName("");
-        setShowAddForm(false);
+        setIsPopoverOpen(false);
       } catch (error) {
         setError("Failed to add data.");
       }
@@ -118,13 +120,14 @@ const AddLibraryGroup = () => {
         </Col>
       </Row>
 
-      <Button onClick={() => setShowAddForm(!showAddForm)} className={`mb-4 ${styles.search}`}>
+       <Button onClick={onOpen} className="btn btn-primary">
         <CgAddR /> Add Group
       </Button>
-      {showAddForm && (
+      {isPopoverOpen && (
 
         <div className="cover-sheet">
-          <div className="studentHeading"><h2> Add New Group</h2></div>
+          <div className="studentHeading"><h2> Add New Group</h2>
+          <button className='closeForm' onClick={onClose}> X </button></div>
           <Form className="formSheet">
             <Row>
               <Col lg={6}>

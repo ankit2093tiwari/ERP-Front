@@ -452,8 +452,6 @@ input::-webkit-inner-spin-button
 {
    margin-top: 0px;
 }
-
-
 /* .result
 {
   border: 1px solid #ddd;
@@ -475,12 +473,25 @@ input::-webkit-inner-spin-button
     padding: 10px 20px;
     background-color: #2b6293;
     margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
 }
 .cover-sheet .studentHeading h2
 {
   margin: 0;
   font-size: 18px;
   color: #fff;
+}
+.closeForm
+{
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #ffffff59;
+  color: #ffffff;
+  line-height: 20px;
+  font-size: 13px;
+  border: 2px solid #fff;
 }
 .formSheet
 {

@@ -63,7 +63,7 @@ const ItemMaster = () => {
 
     if (updatedName) {
       try {
-        await axios.put(`https://erp-backend-fy3n.onrender.com/api/itemMasters/${id}`, {
+        await axios.put(`https://erp-backend-fy3n.onrender.com/api/itemMaster/${id}`, {
           itemName: updatedName,
         });
         setData((prevData) =>
@@ -81,7 +81,7 @@ const ItemMaster = () => {
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this entry?")) {
       try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/itemMasters/${id}`);
+        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/itemMaster/${id}`);
         setData((prevData) => prevData.filter((row) => row._id !== id));
       } catch (error) {
         console.error("Error deleting data:", error);

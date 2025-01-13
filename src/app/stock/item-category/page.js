@@ -1,99 +1,111 @@
-// New updated code 
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Table from "@/app/component/DataTable"; // Ensure this path matches your project structure
-import styles from "@/app/students/add-new-student/page.module.css";
-import { Container, Row, Col, Breadcrumb, Form, FormLabel, FormGroup, FormControl, Button } from "react-bootstrap";
-import { CgAddR } from "react-icons/cg";
+import dynamic from "next/dynamic";
+import { FaPlus, FaEdit, FaTrashAlt } from "react-icons/fa";
+import {
+  Container,
+  Row,
+  Col,
+  Breadcrumb,
+  Form,
+  FormLabel,
+  FormControl,
+  Button,
+  Alert,
+} from "react-bootstrap";
 import axios from "axios";
+import Table from "@/app/component/DataTable";
 
 const ItemCategory = () => {
-  const [data, setData] = useState([]); // State to store item categories
-  const [loading, setLoading] = useState(true); // State for loading
-  const [error, setError] = useState(null); // State for errors
-  const [formData, setFormData] = useState({ categoryName: "" }); // Form data state
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false); // Popover state
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [newCategory, setNewCategory] = useState({ categoryName: "" });
 
-  // Handle form data changes
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
-
-  // Fetch data from the API
+  // Fetch item categories
   const fetchData = async () => {
     setLoading(true);
+    setError("");
     try {
       const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/itemCategories");
-      if (response.data && Array.isArray(response.data)) {
-        setData(response.data);
-      } else if (response.data?.data && Array.isArray(response.data.data)) {
-        setData(response.data.data);
-      } else {
-        console.error("Unexpected API response format:", response.data);
-        setError("Unexpected API response format. Please contact support.");
-      }
+      setData(response.data.data || []);
     } catch (err) {
-      console.error("Error fetching data:", err);
-      setError("Failed to fetch data. Please try again later.");
+      console.error(err);
+      setError("Failed to fetch item categories. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  // Edit entry
-  const handleEdit = async (id) => {
-    const item = data.find((row) => row.id === id);
-    const updatedName = prompt("Enter new category name:", item?.categoryName || "");
-
-    if (updatedName) {
-      try {
-        const response = await axios.put(`https://erp-backend-fy3n.onrender.com/api/itemCategories/${id}`, {
-          categoryName: updatedName,
-        });
-        if (response.data) {
-          setData((prevData) =>
-            prevData.map((row) => (row.id === id ? { ...row, categoryName: updatedName } : row))
-          );
-        }
-      } catch (error) {
-        console.error("Error updating data:", error);
-        setError("Failed to update entry. Please try again later.");
-      }
+  // Add new category
+  const handleAdd = async () => {
+    if (!newCategory.categoryName.trim()) {
+      alert("Please enter a category name.");
+      return;
     }
-  };
-
-  // Delete entry
-  const handleDelete = async (id) => {
-    if (confirm("Are you sure you want to delete this category?")) {
-      try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/itemCategories/${id}`);
-        setData((prevData) => prevData.filter((row) => row.id !== id));
-      } catch (error) {
-        console.error("Error deleting data:", error);
-        setError("Failed to delete entry. Please try again later.");
-      }
-    }
-  };
-
-  // Submit new category
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+    setLoading(true);
     try {
-      const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/itemCategories", formData);
-      if (response.data) {
-        setData((prevData) => [...prevData, response.data]);
-        setFormData({ categoryName: "" });
-        setIsPopoverOpen(false);
-      }
-    } catch (error) {
-      console.error("Error adding category:", error);
-      setError("Failed to add category. Please try again later.");
+      const response = await axios.post(
+        "https://erp-backend-fy3n.onrender.com/api/itemCategory",
+        newCategory
+      );
+      setData([...data, response.data]);
+      setNewCategory({ categoryName: "" });
+      setShowAddForm(false);
+      setSuccessMessage("Category added successfully!");
+    } catch (err) {
+      console.error(err);
+      setError("Failed to add category. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Load data on component mount
+  // Edit category
+  const handleEdit = async (id) => {
+    const category = data.find((item) => item._id === id);
+    const updatedName = prompt("Enter new category name:", category?.categoryName || "");
+    if (!updatedName) return;
+
+    setLoading(true);
+    try {
+      await axios.put(`https://erp-backend-fy3n.onrender.com/api/itemCategory/${id}`, {
+        categoryName: updatedName,
+      });
+      setData((prevData) =>
+        prevData.map((item) =>
+          item._id === id ? { ...item, categoryName: updatedName } : item
+        )
+      );
+      setSuccessMessage("Category updated successfully!");
+    } catch (err) {
+      console.error(err);
+      setError("Failed to update category. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Delete category
+  const handleDelete = async (id) => {
+    if (!confirm("Are you sure you want to delete this category?")) return;
+
+    setLoading(true);
+    try {
+      await axios.delete(`https://erp-backend-fy3n.onrender.com/api/itemCategory/${id}`);
+      setData((prevData) => prevData.filter((item) => item._id !== id));
+      setSuccessMessage("Category deleted successfully!");
+    } catch (err) {
+      console.error(err);
+      setError("Failed to delete category. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -101,8 +113,8 @@ const ItemCategory = () => {
   const columns = [
     {
       name: "#",
-      selector: (row, index) => index + 1,
-      sortable: true,
+      selector: (_, index) => index + 1,
+      sortable: false,
       width: "80px",
     },
     {
@@ -111,92 +123,92 @@ const ItemCategory = () => {
       sortable: true,
     },
     {
-      name: "Action",
+      name: "Actions",
       cell: (row) => (
-        <div style={{ display: "flex", gap: "10px" }}>
-          <button className="editButton" onClick={() => handleEdit(row.id)}>Edit</button>
-          <button className="deleteButton" onClick={() => handleDelete(row.id)}>Delete</button>
+        <div className="d-flex gap-2">
+          <button className="editButton" onClick={() => handleEdit(row._id)}>
+            <FaEdit />
+          </button>
+          <button
+            className="editButton btn-danger"
+            onClick={() => handleDelete(row._id)}
+          >
+            <FaTrashAlt />
+          </button>
         </div>
       ),
     },
   ];
 
   return (
-    <Container className={styles.vehicle}>
+    <Container>
       <Row className="mt-1 mb-1">
         <Col>
-          <Breadcrumb style={{ marginLeft: "20px" }}>
+          <Breadcrumb>
             <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
             <Breadcrumb.Item href="/stock/all-module">Stock Module</Breadcrumb.Item>
             <Breadcrumb.Item active>Item Category</Breadcrumb.Item>
           </Breadcrumb>
         </Col>
       </Row>
+
+      {successMessage && <Alert variant="success">{successMessage}</Alert>}
+      {error && <Alert variant="danger">{error}</Alert>}
+
       <Row>
         <Col>
-          <button
-            onClick={() => setIsPopoverOpen(!isPopoverOpen)}
-            id="submit"
-            type="button"
-            style={{ marginLeft: "20px" }}
-          >
-            <CgAddR style={{ fontSize: "27px", marginTop: "-2px", marginRight: "5px" }} /> Add Category
-          </button>
-          {isPopoverOpen && (
-            <div
-              style={{
-                backgroundColor: "#f8f9fa",
-                border: "1px solid #ddd",
-                borderRadius: "8px",
-                padding: "20px",
-                width: "940px",
-              }}
-            >
-              <h3>Add Category</h3>
-              <Form onSubmit={handleSubmit}>
+          <Button onClick={() => setShowAddForm((prev) => !prev)} className="mb-4">
+            <FaPlus /> Add Category
+          </Button>
+          {showAddForm && (
+            <div className="cover-sheet">
+              <h2>Add Category</h2>
+              <Form>
                 <Row className="mb-3">
-                  <FormGroup as={Col} md="6" controlId="validationCustom03">
+                  <Col lg={6}>
                     <FormLabel>Category Name</FormLabel>
                     <FormControl
-                      required
                       type="text"
-                      name="categoryName"
-                      value={formData.categoryName}
-                      onChange={handleChange}
+                      placeholder="Enter Category Name"
+                      value={newCategory.categoryName}
+                      onChange={(e) =>
+                        setNewCategory({
+                          ...newCategory,
+                          categoryName: e.target.value,
+                        })
+                      }
                     />
-                  </FormGroup>
+                  </Col>
                 </Row>
-                <Button type="submit">Add Category</Button>
+                <Row>
+                  <Col>
+                    <Button onClick={handleAdd} className="btn btn-primary mt-4">
+                      Add Category
+                    </Button>
+                  </Col>
+                </Row>
               </Form>
             </div>
           )}
         </Col>
       </Row>
+
       <Row>
         <Col>
-          <h2
-            style={{
-              marginLeft: "23px",
-              marginTop: "15px",
-              marginBottom: "25px",
-              fontSize: "22px",
-            }}
-          >
-            Stock Item Categories
-          </h2>
-          {loading ? (
-            <p>Loading data...</p>
-          ) : error ? (
-            <p style={{ color: "red" }}>{error}</p>
-          ) : data.length > 0 ? (
-            <Table columns={columns} data={data} />
-          ) : (
-            <p>No data available.</p>
-          )}
+          <div className="tableSheet">
+            <h2>Item Categories</h2>
+            {loading ? (
+              <p>Loading...</p>
+            ) : data.length > 0 ? (
+              <Table columns={columns} data={data} />
+            ) : (
+              <p>No categories available.</p>
+            )}
+          </div>
         </Col>
       </Row>
     </Container>
   );
 };
 
-export default ItemCategory;
+export default dynamic(() => Promise.resolve(ItemCategory), { ssr: false });
