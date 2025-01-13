@@ -1,9 +1,9 @@
 import React from 'react'
 
-const bankMaster = () => {
+const BankMaster = () => {
   return (
     <div>bankMaster</div>
   )
 }
 
-export default bankMaster
+export default BankMaster
