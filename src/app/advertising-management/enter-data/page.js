@@ -1,4 +1,3 @@
-// Updated Code for // ADVERTISING RECORDS //ENTER DATA
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -6,7 +5,16 @@ import dynamic from "next/dynamic";
 import styles from "@/app/medical/routine-check-up/page.module.css";
 import Table from "@/app/component/DataTable";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
-import { Form, Row, Col, Container, FormLabel, FormControl, FormSelect, Button } from "react-bootstrap";
+import {
+  Form,
+  Row,
+  Col,
+  Container,
+  FormLabel,
+  FormControl,
+  FormSelect,
+  Button,
+} from "react-bootstrap";
 import axios from "axios";
 import { CgAddR } from "react-icons/cg";
 
