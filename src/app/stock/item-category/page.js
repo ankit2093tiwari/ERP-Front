@@ -56,6 +56,7 @@ const ItemCategory = () => {
       setNewCategory({ categoryName: "" });
       setShowAddForm(false);
       setSuccessMessage("Category added successfully!");
+      fetchData();
     } catch (err) {
       console.error(err);
       setError("Failed to add category. Please try again.");

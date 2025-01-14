@@ -11,26 +11,20 @@ const AddImage = () => {
     groupName: "",
     shortText: "",
   });
-  const [loading, setLoading] = useState(false); // Loading state for submit action
-  const [error, setError] = useState(""); // Error state
-  const [success, setSuccess] = useState(""); // Success message state
-  const [galleryGroups, setGalleryGroups] = useState([]); // State to store fetched gallery groups
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [galleryGroups, setGalleryGroups] = useState([]);
 
   // Fetch gallery groups for the dropdown
   useEffect(() => {
     const fetchGalleryGroups = async () => {
       try {
         const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/galleryGroups");
-        console.log("API Response:", response.data); // Log the full response for inspection
-
-        // Check if the response is an array or contains a nested data field
-        if (Array.isArray(response.data)) {
-          setGalleryGroups(response.data); // Set the fetched gallery groups into state if it's an array
-        } else if (response.data && Array.isArray(response.data.data)) {
-          // If the response has a 'data' field which is an array
+        if (response.data && Array.isArray(response.data.data)) {
           setGalleryGroups(response.data.data);
         } else {
-          throw new Error("Response is not an array or expected structure.");
+          throw new Error("Unexpected response structure.");
         }
       } catch (err) {
         console.error("Error fetching gallery groups:", err);
@@ -61,7 +55,11 @@ const AddImage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!imageData.image) {
-      alert("Please select an image.");
+      setError("Please select an image.");
+      return;
+    }
+    if (!imageData.groupName) {
+      setError("Please select a valid gallery group.");
       return;
     }
 
@@ -72,8 +70,8 @@ const AddImage = () => {
     const formData = new FormData();
     formData.append("date", imageData.date);
     formData.append("image", imageData.image);
-    formData.append("group_name", imageData.groupName);
-    formData.append("short_text", imageData.shortText);
+    formData.append("groupName", imageData.groupName); // Use `groupName` as per backend requirements
+    formData.append("shortText", imageData.shortText);
 
     try {
       const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/images", formData, {
@@ -90,7 +88,9 @@ const AddImage = () => {
       });
     } catch (err) {
       console.error("Error adding image:", err);
-      setError("Failed to add image. Please try again later.");
+      setError(
+        err.response?.data?.message || "Failed to add image. Please try again later."
+      );
     } finally {
       setLoading(false);
     }
@@ -113,7 +113,7 @@ const AddImage = () => {
             />
           </Col>
           <Col lg={6}>
-            <FormLabel>Image (Format Support: jpeg, jpg, png, gif)</FormLabel>
+            <FormLabel>Image (jpeg, jpg, png, gif)</FormLabel>
             <FormControl
               type="file"
               name="image"
@@ -129,17 +129,19 @@ const AddImage = () => {
               name="groupName"
               value={imageData.groupName}
               onChange={handleInputChange}
-              aria-label="Select Group"
+              required
             >
-              <option>Select</option>
-              {Array.isArray(galleryGroups) && galleryGroups.length > 0 ? (
+              <option value="">Select</option>
+              {galleryGroups.length > 0 ? (
                 galleryGroups.map((group) => (
-                  <option key={group._id} value={group.groupName}>
+                  <option key={group._id} value={group._id}>
                     {group.groupName}
                   </option>
                 ))
               ) : (
-                <option>No groups available</option>
+                <option value="" disabled>
+                  No groups available
+                </option>
               )}
             </Form.Select>
           </Col>
@@ -151,6 +153,7 @@ const AddImage = () => {
               rows={1}
               value={imageData.shortText}
               onChange={handleInputChange}
+              required
             />
           </Col>
         </Row>

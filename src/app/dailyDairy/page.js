@@ -13,6 +13,7 @@ import {
   FormLabel,
   FormControl,
   Button,
+  Alert,
 } from "react-bootstrap";
 import axios from "axios";
 
@@ -20,7 +21,9 @@ const DailyDairy = () => {
   const [data, setData] = useState([]); // Table data
   const [loading, setLoading] = useState(false); // Loading state
   const [error, setError] = useState(""); // Error state
+  const [success, setSuccess] = useState(""); // Success state
   const [showAddForm, setShowAddForm] = useState(false); // Toggle Add Form visibility
+  const [teachers, setTeachers] = useState([]); // List of teachers for dropdown
   const [newEntry, setNewEntry] = useState({
     entryDate: "",
     teacherName: "",
@@ -28,6 +31,7 @@ const DailyDairy = () => {
   }); // New entry data
 
   const baseURL = "https://erp-backend-fy3n.onrender.com/api/dailyDairy";
+  const teacherURL = "https://erp-backend-fy3n.onrender.com/api/teachers";
 
   // Table columns configuration
   const columns = [
@@ -67,19 +71,50 @@ const DailyDairy = () => {
     },
   ];
 
+  // Fetch teachers from API
+  const fetchTeachers = async () => {
+    try {
+      const response = await axios.get(teacherURL);
+      setTeachers(response.data.data || []);
+    } catch (err) {
+      console.error("Error fetching teachers:", err);
+    }
+  };
+
   // Fetch data from API
   const fetchData = async () => {
     setLoading(true);
     setError("");
     try {
       const response = await axios.get(baseURL);
-      const fetchedData = response.data.data || [];
-      setData(fetchedData);
+      setData(response.data.data || []);
     } catch (err) {
       console.error("Error fetching data:", err);
       setError("Failed to fetch data. Please try again later.");
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Handle form submission for adding new entries
+  const handleAdd = async () => {
+    const { entryDate, teacherName, workDetails } = newEntry;
+
+    if (!entryDate || !teacherName || !workDetails) {
+      alert("Please fill in all fields.");
+      return;
+    }
+
+    try {
+      const response = await axios.post(baseURL, newEntry);
+      setData((prevData) => [...prevData, response.data.data]);
+      setNewEntry({ entryDate: "", teacherName: "", workDetails: "" });
+      setShowAddForm(false);
+      setSuccess("Entry added successfully.");
+      fetchData();
+    } catch (err) {
+      console.error("Error adding data:", err);
+      setError("Failed to add entry. Please try again later.");
     }
   };
 
@@ -98,9 +133,10 @@ const DailyDairy = () => {
             row._id === id ? { ...row, workDetails: updatedWorkDetails } : row
           )
         );
-      } catch (error) {
-        console.error("Error updating data:", error);
-        setError("Failed to update data. Please try again later.");
+        setSuccess("Entry updated successfully.");
+      } catch (err) {
+        console.error("Error updating data:", err);
+        setError("Failed to update entry. Please try again later.");
       }
     }
   };
@@ -111,37 +147,17 @@ const DailyDairy = () => {
       try {
         await axios.delete(`${baseURL}/${id}`);
         setData((prevData) => prevData.filter((row) => row._id !== id));
-      } catch (error) {
-        console.error("Error deleting data:", error);
-        setError("Failed to delete data. Please try again later.");
+        setSuccess("Entry deleted successfully.");
+      } catch (err) {
+        console.error("Error deleting data:", err);
+        setError("Failed to delete entry. Please try again later.");
       }
     }
   };
 
-  // Add a new entry
-  const handleAdd = async () => {
-    if (
-      newEntry.entryDate.trim() &&
-      newEntry.teacherName.trim() &&
-      newEntry.workDetails.trim()
-    ) {
-      try {
-        const response = await axios.post(baseURL, newEntry);
-        setData((prevData) => [...prevData, response.data.data]);
-        setNewEntry({ entryDate: "", teacherName: "", workDetails: "" });
-        setShowAddForm(false);
-      } catch (error) {
-        console.error("Error adding data:", error);
-        setError("Failed to add data. Please try again later.");
-      }
-    } else {
-      alert("Please fill in all fields before adding.");
-    }
-  };
-
-  // Fetch data on component mount
   useEffect(() => {
     fetchData();
+    fetchTeachers();
   }, []);
 
   return (
@@ -153,6 +169,9 @@ const DailyDairy = () => {
         >
           Add Entry
         </Button>
+
+        {success && <Alert variant="success">{success}</Alert>}
+        {error && <Alert variant="danger">{error}</Alert>}
 
         {/* Add Form */}
         {showAddForm && (
@@ -171,13 +190,19 @@ const DailyDairy = () => {
               <Col lg={4}>
                 <FormLabel>Teacher Name</FormLabel>
                 <FormControl
-                  type="text"
-                  placeholder="Enter Teacher Name"
+                  as="select"
                   value={newEntry.teacherName}
                   onChange={(e) =>
                     setNewEntry({ ...newEntry, teacherName: e.target.value })
                   }
-                />
+                >
+                  <option value="">Select Teacher</option>
+                  {teachers.map((teacher) => (
+                    <option key={teacher._id} value={teacher._id}>
+                      {teacher.first_name} {teacher.last_name}
+                    </option>
+                  ))}
+                </FormControl>
               </Col>
               <Col lg={4}>
                 <FormLabel>Work Details</FormLabel>
@@ -206,8 +231,7 @@ const DailyDairy = () => {
           <Col>
             <h2 style={{ fontSize: "22px" }}>Daily Dairy Records</h2>
             {loading && <p>Loading...</p>}
-            {error && <p style={{ color: "red" }}>{error}</p>}
-            {!loading && !error && <Table columns={columns} data={data} />}
+            {!loading && <Table columns={columns} data={data} />}
           </Col>
         </Row>
       </Form>

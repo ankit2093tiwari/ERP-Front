@@ -59,6 +59,7 @@ const StoreMaster = () => {
       setNewStore({ storeName: "" });
       setShowAddForm(false);
       setSuccessMessage("Store added successfully!");
+      fetchData();
     } catch (err) {
       console.error(err);
       setError("Failed to add store. Please try again.");
