@@ -1,19 +1,19 @@
 'use client';
 
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import dynamic from "next/dynamic";
 import styles from "@/app/medical/routine-check-up/page.module.css";
-import Table from "@/app/component/DataTable"; // Replace with your data table component
+import Table from "@/app/component/DataTable"; 
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import { Form, Row, Col, Container, Button, Breadcrumb, FormLabel } from "react-bootstrap";
-import axios from "axios";
-import { CgAddR } from 'react-icons/cg';
+import { CgAddR } from "react-icons/cg";
 
 const StudentMasterPage = () => {
   const [data, setData] = useState([]); // Table data
-  const [loading, setLoading] = useState(false); // Loading state
-  const [error, setError] = useState(""); // Error state
-  const [showAddForm, setShowAddForm] = useState(false); // Toggle Add Form visibility
+  const [loading, setLoading] = useState(false); 
+  const [error, setError] = useState(""); 
+  const [showAddForm, setShowAddForm] = useState(false); 
   const [student, setStudent] = useState({
     first_name: "",
     last_name: "",
@@ -30,44 +30,19 @@ const StudentMasterPage = () => {
     copy_address: { country: "" },
   });
 
-  const BASE_URL = "https://erp-backend-fy3n.onrender.com/api/students";
-  const TOKEN = "6DJdQZJIv6WpChtccQOceQui2qYoKDWWJik2qTX3";
+  const [studentError, setStudentError] = useState({});
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
-  // Add the token to Axios headers
-  axios.defaults.headers.common['Authorization'] = `Bearer ${TOKEN}`;
+  const TOKEN = "6DJdQZJIv6WpChtccQOceQui2qYoKDWWJik2qTX3";
+  axios.defaults.headers.common["Authorization"] = `Bearer ${TOKEN}`;
 
   const columns = [
-    {
-      name: "#",
-      selector: (row, index) => index + 1,
-      sortable: false,
-      width: "50px",
-    },
-    {
-      name: "First Name",
-      selector: (row) => row.first_name || "N/A",
-      sortable: true,
-    },
-    {
-      name: "Last Name",
-      selector: (row) => row.last_name || "N/A",
-      sortable: true,
-    },
-    {
-      name: "Father's Name",
-      selector: (row) => row.father_name || "N/A",
-      sortable: true,
-    },
-    {
-      name: "Gender",
-      selector: (row) => row.gender || "N/A",
-      sortable: true,
-    },
-    {
-      name: "Phone No",
-      selector: (row) => row.phone_no || "N/A",
-      sortable: true,
-    },
+    { name: "#", selector: (row, index) => index + 1, sortable: false, width: "50px" },
+    { name: "First Name", selector: (row) => row.first_name || "N/A", sortable: true },
+    { name: "Last Name", selector: (row) => row.last_name || "N/A", sortable: true },
+    { name: "Father's Name", selector: (row) => row.father_name || "N/A", sortable: true },
+    { name: "Gender", selector: (row) => row.gender || "N/A", sortable: true },
+    { name: "Phone No", selector: (row) => row.phone_no || "N/A", sortable: true },
     {
       name: "Residence Country",
       selector: (row) => row.residence_address?.country || "N/A",
@@ -85,10 +60,7 @@ const StudentMasterPage = () => {
           <button className="editButton" onClick={() => handleEdit(row._id)}>
             <FaEdit />
           </button>
-          <button
-            className="editButton btn-danger"
-            onClick={() => handleDelete(row._id)}
-          >
+          <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
             <FaTrashAlt />
           </button>
         </div>
@@ -100,8 +72,8 @@ const StudentMasterPage = () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get(BASE_URL);
-      setData(response.data || []);
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_SITE_URL}/api/students`);
+      setData(response?.data || []);
     } catch (err) {
       console.error("Error fetching data:", err.response || err.message);
       setError("Failed to fetch data. Please check the API endpoint.");
@@ -110,34 +82,53 @@ const StudentMasterPage = () => {
     }
   };
 
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setStudent((prev) => ({ ...prev, [name]: value }));
+    setStudentError((prev) => ({ ...prev, [`${name}_error`]: "" }));
+  };
+
+  const validateForm = () => {
+    const errors = {};
+    Object.entries(student).forEach(([key, value]) => {
+      if (!value || (typeof value === "object" && !Object.values(value).some(Boolean))) {
+        errors[`${key}_error`] = `${key.replace(/_/g, " ")} is required`;
+      }
+    });
+    setStudentError(errors);
+    return Object.keys(errors).length === 0;
+  };
+
   const handleSubmit = async () => {
-    const endpoint = student._id ? `${BASE_URL}/${student._id}` : BASE_URL;
+    if (!validateForm()) return;
+
+    const endpoint = student._id
+      ? `${process.env.NEXT_PUBLIC_SITE_URL}/api/students/${student._id}`
+      : `${process.env.NEXT_PUBLIC_SITE_URL}/api/students`;
     const method = student._id ? "put" : "post";
 
     try {
       const response = await axios[method](endpoint, student);
-      if (student._id) {
-        setData((prevData) =>
-          prevData.map((row) =>
-            row._id === student._id ? { ...row, ...student } : row
-          )
-        );
-      } else {
-        setData((prevData) => [...prevData, response.data]);
-      }
+      setData((prev) =>
+        student._id
+          ? prev.map((row) => (row._id === student._id ? { ...row, ...student } : row))
+          : [...prev, response.data]
+      );
       setShowAddForm(false);
       resetStudentForm();
-    } catch (error) {
-      console.error("Error submitting data:", error.response || error.message);
+      onClose();
+    } catch (err) {
+      console.error("Error submitting data:", err.response || err.message);
       setError("Failed to submit data. Please check the API endpoint.");
     }
   };
 
   const handleEdit = async (id) => {
     try {
-      const response = await axios.get(`${BASE_URL}/${id}`);
-      setStudent(response.data || {});
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_SITE_URL}/api/students/${id}`);
+      setStudent(response?.data || {});
       setShowAddForm(true);
+      onOpen();
     } catch (err) {
       console.error("Error fetching student by ID:", err.response || err.message);
       setError("Failed to fetch student details. Please check the API endpoint.");
@@ -147,17 +138,15 @@ const StudentMasterPage = () => {
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this entry?")) {
       try {
-        await axios.delete(`${BASE_URL}/${id}`);
-        setData((prevData) => prevData.filter((row) => row._id !== id));
-      } catch (error) {
-        console.error("Error deleting data:", error.response || error.message);
+        await axios.delete(`${process.env.NEXT_PUBLIC_SITE_URL}/api/students/${id}`);
+        setData((prev) => prev.filter((row) => row._id !== id));
+      } catch (err) {
+        console.error("Error deleting data:", err.response || err.message);
         setError("Failed to delete data. Please check the API endpoint.");
       }
     }
   };
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const onOpen = () => setIsPopoverOpen(true);
-  const onClose = () => setIsPopoverOpen(false)
+
   const resetStudentForm = () => {
     setStudent({
       first_name: "",
@@ -175,6 +164,9 @@ const StudentMasterPage = () => {
       copy_address: { country: "" },
     });
   };
+
+  const onOpen = () => setIsPopoverOpen(true);
+  const onClose = () => setIsPopoverOpen(false);
 
   useEffect(() => {
     fetchData();
@@ -209,41 +201,42 @@ const StudentMasterPage = () => {
               <FormLabel className="labelForm">First Name</FormLabel>
               <Form.Control
                 type="text"
-                value={student.first_name}
-                onChange={(e) =>
-                  setStudent({ ...student, first_name: e.target.value })
-                }
-              />
+                value={student?.first_name}
+                name="first_name"
+                onChange={handleChange}
+                />
+                {studentError.first_name_error}
             </Form.Group>
             <Form.Group as={Col} lg="3" controlId="last_name">
               <FormLabel className="labelForm">Last Name</FormLabel>
               <Form.Control
                 type="text"
                 value={student.last_name}
-                onChange={(e) =>
-                  setStudent({ ...student, last_name: e.target.value })
-                }
-              />
+                name="last_name"
+                  onChange={handleChange}
+                />
+                {studentError.last_name_error}
             </Form.Group>
             <Form.Group as={Col} lg="3" controlId="father_name">
               <FormLabel className="labelForm">Father&apos;s Name</FormLabel>
               <Form.Control
                 type="text"
                 value={student?.father_name}
-                onChange={(e) =>
-                  setStudent({ ...student, father_name: e.target.value })
-                }
+                name="father_name"
+                onChange={handleChange}
               />
+              {studentError.father_name_error}
+              
             </Form.Group>
             <Form.Group as={Col} lg="3" controlId="mother_name">
               <FormLabel className="labelForm">Mother&apos;s Name</FormLabel>
               <Form.Control
                 type="text"
                 value={student.mother_name}
-                onChange={(e) =>
-                  setStudent({ ...student, mother_name: e.target.value })
-                }
-              />
+                name="mother_name"
+                onChange={handleChange}
+                />
+                {studentError.mother_name_error}
             </Form.Group>
             </Row>
             <Row className="mb-3">
@@ -252,30 +245,31 @@ const StudentMasterPage = () => {
               <Form.Control
                 type="text"
                 value={student.father_mobile_no}
-                onChange={(e) =>
-                  setStudent({ ...student, father_mobile_no: e.target.value })
-                }
-              />
+                name="father_mobile_no"
+                onChange={handleChange}
+                />
+                {studentError.father_mobile_no_error}
             </Form.Group>
             <Form.Group as={Col} lg="3" controlId="phone_no">
               <FormLabel className="labelForm">Phone No</FormLabel>
               <Form.Control
                 type="text"
                 value={student.phone_no}
-                onChange={(e) =>
-                  setStudent({ ...student, phone_no: e.target.value })
-                }
-              />
+                name="phone_no"
+                onChange={handleChange}
+                />
+                {studentError.phone_no_error}
+              
             </Form.Group>
             <Form.Group as={Col} lg="3" controlId="date_of_birth">
               <FormLabel className="labelForm">Date of Birth</FormLabel>
               <Form.Control
                 type="date"
                 value={student.date_of_birth}
-                onChange={(e) =>
-                  setStudent({ ...student, date_of_birth: e.target.value })
-                }
-              />
+                name="date_of_birth"
+                onChange={handleChange}
+                />
+                {studentError.date_of_birth_error}
             </Form.Group>
             <Form.Group as={Col} lg="3" controlId="gender">
               <FormLabel className="labelForm">Gender</FormLabel>
@@ -298,30 +292,30 @@ const StudentMasterPage = () => {
               <Form.Control
                 type="text"
                 value={student.religion}
-                onChange={(e) =>
-                  setStudent({ ...student, religion: e.target.value })
-                }
-              />
+                name="religion"
+                onChange={handleChange}
+                />
+                {studentError.religion_error}
             </Form.Group>
             <Form.Group as={Col} lg="3" controlId="aadhar_card_no">
               <FormLabel className="labelForm">Aadhar Card No</FormLabel>
               <Form.Control
                 type="text"
                 value={student.aadhar_card_no}
-                onChange={(e) =>
-                  setStudent({ ...student, aadhar_card_no: e.target.value })
-                }
-              />
+                name="aadhar_card_no"
+                onChange={handleChange}
+                />
+                {studentError.aadhar_card_no_error}
             </Form.Group>
             <Form.Group as={Col} lg="3" controlId="last_school_attended">
               <FormLabel className="labelForm">Last School Attended</FormLabel>
               <Form.Control
                 type="text"
                 value={student.last_school_attended}
-                onChange={(e) =>
-                  setStudent({ ...student, last_school_attended: e.target.value })
-                }
-              />
+                name="last_school_attended"
+                onChange={handleChange}
+                />
+                {studentError.last_school_attended_error}
             </Form.Group>
             <Form.Group as={Col} lg="3" controlId="residence_country">
               <FormLabel className="labelForm">Residence Country</FormLabel>
@@ -377,5 +371,3 @@ const StudentMasterPage = () => {
 };
 
 export default StudentMasterPage;
-
-

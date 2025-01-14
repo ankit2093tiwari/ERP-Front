@@ -28,7 +28,7 @@ const AddImage = () => {
         }
       } catch (err) {
         console.error("Error fetching gallery groups:", err);
-        setError("Failed to fetch gallery groups.");
+        setError("Failed to fetch gallery groups. Please try again later.");
       }
     };
 
@@ -54,12 +54,14 @@ const AddImage = () => {
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validate required fields
     if (!imageData.image) {
-      setError("Please select an image.");
+      setError("Please select an image file.");
       return;
     }
     if (!imageData.groupName) {
-      setError("Please select a valid gallery group.");
+      setError("Please select a gallery group.");
       return;
     }
 
@@ -70,15 +72,16 @@ const AddImage = () => {
     const formData = new FormData();
     formData.append("date", imageData.date);
     formData.append("image", imageData.image);
-    formData.append("groupName", imageData.groupName); // Use `groupName` as per backend requirements
+    formData.append("groupName", imageData.groupName);
     formData.append("shortText", imageData.shortText);
 
     try {
-      const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/images", formData, {
+      const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/images/add", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
       });
+
       setSuccess("Image added successfully!");
       setImageData({
         date: "",
@@ -117,6 +120,7 @@ const AddImage = () => {
             <FormControl
               type="file"
               name="image"
+              accept="image/*"
               onChange={handleFileChange}
               required
             />
@@ -131,7 +135,7 @@ const AddImage = () => {
               onChange={handleInputChange}
               required
             >
-              <option value="">Select</option>
+              <option value="">Select a group</option>
               {galleryGroups.length > 0 ? (
                 galleryGroups.map((group) => (
                   <option key={group._id} value={group._id}>
