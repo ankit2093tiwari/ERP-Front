@@ -7,30 +7,43 @@ import { Form, Row, Col, Container, FormLabel, FormControl, Button } from "react
 import axios from "axios";
 
 const AddNotice = () => {
-  const [newNotice, setNewNotice] = useState({ date: "", shortText: "", image: null });
+  const [newNotice, setNewNotice] = useState({ date: "", short_text: "", image: null });
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
   const handleAdd = async () => {
-    if (newNotice.date && newNotice.shortText && newNotice.image) {
-      const formData = new FormData();
-      formData.append("date", newNotice.date);
-      formData.append("shortText", newNotice.shortText);
-      formData.append("image", newNotice.image);
+    // Validation for all fields
+    if (!newNotice.date) {
+      setError("Date field is required.");
+      setSuccessMessage("");
+      return;
+    }
+    if (!newNotice.short_text) {
+      setError("Short text field is required.");
+      setSuccessMessage("");
+      return;
+    }
+    if (!newNotice.image) {
+      setError("Image field is required.");
+      setSuccessMessage("");
+      return;
+    }
 
-      try {
-        await axios.post("https://erp-backend-fy3n.onrender.com/api/notices", formData, {
-          headers: { "Content-Type": "multipart/form-data" },
-        });
-        setNewNotice({ date: "", shortText: "", image: null });
-        setSuccessMessage("Notice added successfully!");
-        setError("");
-      } catch {
-        setError("Failed to add notice.");
-        setSuccessMessage("");
-      }
-    } else {
-      setError("Please fill out all fields.");
+    const formData = new FormData();
+    formData.append("date", newNotice.date);
+    formData.append("short_text", newNotice.short_text);
+    formData.append("image", newNotice.image);
+
+    try {
+      await axios.post("https://erp-backend-fy3n.onrender.com/api/notices", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      setNewNotice({ date: "", short_text: "", image: null });
+      setSuccessMessage("Notice added successfully!");
+      setError("");
+    } catch (error) {
+      console.error("Error adding notice:", error);
+      setError("Failed to add notice.");
       setSuccessMessage("");
     }
   };
@@ -55,8 +68,8 @@ const AddNotice = () => {
               as="textarea"
               rows={1}
               required
-              value={newNotice.shortText}
-              onChange={(e) => setNewNotice({ ...newNotice, shortText: e.target.value })}
+              value={newNotice.short_text}
+              onChange={(e) => setNewNotice({ ...newNotice, short_text: e.target.value })}
             />
           </Col>
         </Row>

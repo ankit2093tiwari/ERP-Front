@@ -22,6 +22,7 @@ const AdvertisementPage = () => {
   const [data, setData] = useState([]); // Table data
   const [loading, setLoading] = useState(false); // Loading state
   const [error, setError] = useState(""); // Error state
+  const [advertisementTypes, setAdvertisementTypes] = useState([]); // Advertisement types for dropdown
   const [showAddForm, setShowAddForm] = useState(false); // Toggle Add Form visibility
   const [formData, setFormData] = useState({
     advertisement_type: "",
@@ -76,6 +77,18 @@ const AdvertisementPage = () => {
     }
   };
 
+  // Fetch advertisement types from API
+  const fetchAdvertisementTypes = async () => {
+    try {
+      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/advertisings");
+      const fetchedTypes = response.data.data || [];
+      setAdvertisementTypes(fetchedTypes);
+    } catch (err) {
+      console.error("Error fetching advertisement types:", err);
+      setError("Failed to fetch advertisement types. Please try again later.");
+    }
+  };
+
   // Handle form input changes
   const handleChange = (e) => {
     const { name, value, files } = e.target;
@@ -86,12 +99,43 @@ const AdvertisementPage = () => {
   };
 
   // Add a new advertisement
+  // const handleAdd = async () => {
+  //   try {
+  //     const form = new FormData();
+  //     Object.entries(formData).forEach(([key, value]) => form.append(key, value));
+  //     const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/advertisements", form);
+  //     setData((prevData) => [...prevData, response.data]);
+  //     setFormData({
+  //       advertisement_type: "",
+  //       advertisement_name: "",
+  //       page_no: "",
+  //       size: "",
+  //       amount: "",
+  //       remark: "",
+  //       file: null,
+  //       publish_date: "",
+  //     });
+  //     setShowAddForm(false);
+  //   } catch (error) {
+  //     console.error("Error adding advertisement:", error);
+  //     setError("Failed to add advertisement. Please try again later.");
+  //   }
+  // };
   const handleAdd = async () => {
+    setError(""); // Clear previous errors
     try {
       const form = new FormData();
       Object.entries(formData).forEach(([key, value]) => form.append(key, value));
-      const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/advertisements", form);
-      setData((prevData) => [...prevData, response.data]);
+  
+      const response = await axios.post(
+        "https://erp-backend-fy3n.onrender.com/api/advertisements",
+        form,
+        {
+          headers: { "Content-Type": "multipart/form-data" }, // Set headers explicitly
+        }
+      );
+  
+      setData((prevData) => [...prevData, response.data]); // Update table data
       setFormData({
         advertisement_type: "",
         advertisement_name: "",
@@ -102,12 +146,15 @@ const AdvertisementPage = () => {
         file: null,
         publish_date: "",
       });
-      setShowAddForm(false);
+      setShowAddForm(false); // Hide form after successful submission
     } catch (error) {
-      console.error("Error adding advertisement:", error);
-      setError("Failed to add advertisement. Please try again later.");
+      console.error("Error adding advertisement:", error.response || error.message);
+      setError(
+        error.response?.data?.message || "Failed to add advertisement. Please try again."
+      );
     }
   };
+  
 
   // Edit an advertisement
   const handleEdit = async (id) => {
@@ -131,14 +178,27 @@ const AdvertisementPage = () => {
   };
 
   // Delete an advertisement
+  // const handleDelete = async (id) => {
+  //   if (confirm("Are you sure you want to delete this advertisement?")) {
+  //     try {
+  //       await axios.delete(`https://erp-backend-fy3n.onrender.com//api/advertisements/${id}`);
+  //       setData((prevData) => prevData.filter((row) => row._id !== id));
+  //     } catch (error) {
+  //       console.error("Error deleting advertisement:", error);
+  //       setError("Failed to delete advertisement. Please try again later.");
+  //     }
+  //   }
+  // };
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this advertisement?")) {
       try {
         await axios.delete(`https://erp-backend-fy3n.onrender.com/api/advertisements/${id}`);
-        setData((prevData) => prevData.filter((row) => row._id !== id));
+        setData((prevData) => prevData.filter((row) => row._id !== id)); // Remove deleted item
       } catch (error) {
-        console.error("Error deleting advertisement:", error);
-        setError("Failed to delete advertisement. Please try again later.");
+        console.error("Error deleting advertisement:", error.response || error.message);
+        setError(
+          error.response?.data?.message || "Failed to delete advertisement. Please try again."
+        );
       }
     }
   };
@@ -146,11 +206,12 @@ const AdvertisementPage = () => {
   // Fetch data on component mount
   useEffect(() => {
     fetchData();
+    fetchAdvertisementTypes();
   }, []);
 
   return (
     <Container className={styles.formContainer}>
-      <Form className={styles.form}>
+      <Form action="/upload" encType="multipart/form-data" method="POST" className={styles.form}>
         <Button onClick={() => setShowAddForm(!showAddForm)} className={`mb-4 ${styles.search}`}>
           <CgAddR /> Add New Advertisement
         </Button>
@@ -160,12 +221,18 @@ const AdvertisementPage = () => {
             <Row className="mb-3">
               <Col lg={6}>
                 <FormLabel>Advertisement Type</FormLabel>
-                <FormControl
-                  type="text"
+                <FormSelect
                   name="advertisement_type"
                   value={formData.advertisement_type}
                   onChange={handleChange}
-                />
+                >
+                  <option value="">Select Advertisement Type</option>
+                  {advertisementTypes.map((type) => (
+                    <option key={type._id} value={type._id}>
+                      {type.type_name}
+                    </option>
+                  ))}
+                </FormSelect>
               </Col>
               <Col lg={6}>
                 <FormLabel>Publish Date</FormLabel>
