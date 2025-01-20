@@ -6,15 +6,16 @@ import axios from "axios";
 import Table from "@/app/component/DataTable";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import styles from "@/app/medical/routine-check-up/page.module.css"; // Assuming shared styles
-import { CgAddR } from 'react-icons/cg';
+import { CgAddR } from "react-icons/cg";
 
 const ClassMasterPage = () => {
   const [data, setData] = useState([]); // State for class data
   const [newClassName, setNewClassName] = useState(""); // New class name state
-  const [newSection, setNewSection] = useState(""); // New section state
+  const [newSectionName, setNewSectionName] = useState(""); // New section name state
   const [showAddForm, setShowAddForm] = useState(false); // Toggle add form visibility
   const [loading, setLoading] = useState(false); // Loading state
   const [error, setError] = useState(""); // Error state
+  const [formErrors, setFormErrors] = useState({}); // Field-specific errors
 
   // Table columns configuration
   const columns = [
@@ -26,12 +27,12 @@ const ClassMasterPage = () => {
     },
     {
       name: "Class Name",
-      selector: (row) => row.className || "N/A",
+      selector: (row) => row.class_name || "N/A",
       sortable: true,
     },
     {
-      name: "Section",
-      selector: (row) => row.section || "N/A",
+      name: "Section Name",
+      selector: (row) => row.section_name || "N/A",
       sortable: true,
     },
     {
@@ -72,43 +73,52 @@ const ClassMasterPage = () => {
 
   // Handle adding a new class
   const handleAddClass = async () => {
-    if (newClassName.trim() && newSection.trim()) {
-      try {
-        const response = await axios.post(
-          "https://erp-backend-fy3n.onrender.com/api/classes",
-          {
-            className: newClassName,
-            section: newSection,
-          }
-        );
+    const errors = {};
+    if (!newClassName.trim()) {
+      errors.class_name = "Class name is required.";
+    }
+    if (!newSectionName.trim()) {
+      errors.section_name = "Section name is required.";
+    }
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
+    }
 
-        // Append the new class to the state array
-        setData((prevData) => [...prevData, response.data]);
-        setNewClassName(""); // Reset class name input
-        setNewSection(""); // Reset section input
-        setShowAddForm(false); // Hide the form
-      } catch (err) {
-        console.error("Error adding class:", err);
-        setError("Failed to add class. Please try again later.");
-      }
-    } else {
-      alert("Please enter valid class name and section.");
+    try {
+      const response = await axios.post(
+        "https://erp-backend-fy3n.onrender.com/api/classes",
+        {
+          class_name: newClassName,
+          section_name: newSectionName,
+        }
+      );
+
+      // Append the new class to the state array
+      setData((prevData) => [...prevData, response.data]);
+      setNewClassName(""); // Reset class name input
+      setNewSectionName(""); // Reset section name input
+      setShowAddForm(false); // Hide the form
+      setFormErrors({}); // Clear errors
+    } catch (err) {
+      console.error("Error adding class:", err);
+      setError("Failed to add class. Please try again later.");
     }
   };
 
   // Handle editing a class
   const handleEdit = async (id) => {
     const item = data.find((row) => row.id === id);
-    const updatedClassName = prompt("Enter new class name:", item?.className || "");
-    const updatedSection = prompt("Enter new section:", item?.section || "");
+    const updatedClassName = prompt("Enter new class name:", item?.class_name || "");
+    const updatedSectionName = prompt("Enter new section name:", item?.section_name || "");
 
-    if (updatedClassName && updatedSection) {
+    if (updatedClassName && updatedSectionName) {
       try {
         await axios.put(
           `https://erp-backend-fy3n.onrender.com/api/classes/${id}`,
           {
-            className: updatedClassName,
-            section: updatedSection,
+            class_name: updatedClassName,
+            section_name: updatedSectionName,
           }
         );
 
@@ -116,7 +126,7 @@ const ClassMasterPage = () => {
         setData((prevData) =>
           prevData.map((row) =>
             row.id === id
-              ? { ...row, className: updatedClassName, section: updatedSection }
+              ? { ...row, class_name: updatedClassName, section_name: updatedSectionName }
               : row
           )
         );
@@ -157,31 +167,30 @@ const ClassMasterPage = () => {
 
   return (
     <Container>
-      <Row className='mt-1 mb-1'>
-            <Col>
-              <Breadcrumb>
-                <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-                <Breadcrumb.Item href="/master-entry/all-module">
-                  Master Entry
-                </Breadcrumb.Item>
-                <Breadcrumb.Item active>Class Master</Breadcrumb.Item>
-              </Breadcrumb>
-            </Col>
-          </Row>
-          <Button
-          onClick={() => setShowAddForm(!showAddForm)}
-          className={`mb-4 ${styles.search}`}
-        >
-          <CgAddR/> Add Class
-        </Button>
+      <Row className="mt-1 mb-1">
+        <Col>
+          <Breadcrumb>
+            <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
+            <Breadcrumb.Item href="/master-entry/all-module">
+              Master Entry
+            </Breadcrumb.Item>
+            <Breadcrumb.Item active>Class Master</Breadcrumb.Item>
+          </Breadcrumb>
+        </Col>
+      </Row>
+      <Button
+        onClick={() => setShowAddForm(!showAddForm)}
+        className={`mb-4 ${styles.search}`}
+      >
+        <CgAddR /> Add Class
+      </Button>
 
-        {showAddForm && (
-
-      <div className="cover-sheet">
-                <div className="studentHeading"><h2>  Add Class</h2></div>
-                <Form className="formSheet">
-       
-        
+      {showAddForm && (
+        <div className="cover-sheet">
+          <div className="studentHeading">
+            <h2>Add Class</h2>
+          </div>
+          <Form className="formSheet">
             <Row className="mb-3">
               <Col lg={6}>
                 <FormLabel className="labelForm">Class Name</FormLabel>
@@ -192,19 +201,25 @@ const ClassMasterPage = () => {
                   value={newClassName}
                   onChange={(e) => setNewClassName(e.target.value)}
                 />
+                {formErrors.class_name && (
+                  <div className="text-danger">{formErrors.class_name}</div>
+                )}
               </Col>
               <Col lg={6}>
-                <FormLabel className="labelForm">Section</FormLabel>
+                <FormLabel className="labelForm">Section Name</FormLabel>
                 <FormControl
                   required
                   type="text"
-                  placeholder="Enter Section"
-                  value={newSection}
-                  onChange={(e) => setNewSection(e.target.value)}
+                  placeholder="Enter Section Name"
+                  value={newSectionName}
+                  onChange={(e) => setNewSectionName(e.target.value)}
                 />
+                {formErrors.section_name && (
+                  <div className="text-danger">{formErrors.section_name}</div>
+                )}
               </Col>
             </Row>
-            
+
             <Row className="mb-3">
               <Col>
                 <Button onClick={handleAddClass} className="btn btn-primary mt-4">
@@ -212,20 +227,19 @@ const ClassMasterPage = () => {
                 </Button>
               </Col>
             </Row>
-            </Form>
-          </div>
-        )}
-        <Row>
-          <Col>
+          </Form>
+        </div>
+      )}
+      <Row>
+        <Col>
           <div className="tableSheet">
             <h2>Class & Section Records</h2>
             {loading && <p>Loading...</p>}
             {error && <p style={{ color: "red" }}>{error}</p>}
             {!loading && !error && <Table columns={columns} data={data} />}
-            </div>
-          </Col>
-        </Row>
-     
+          </div>
+        </Col>
+      </Row>
     </Container>
   );
 };

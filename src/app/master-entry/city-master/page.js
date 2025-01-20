@@ -95,6 +95,7 @@ const CityMasterPage = () => {
         setNewStateName(""); // Reset input fields
         setNewCityName("");
         setShowAddForm(false); // Hide the form
+        fetchCities();
       } catch (err) {
         console.error("Error adding city:", err);
         setError("Failed to add city. Please try again later.");

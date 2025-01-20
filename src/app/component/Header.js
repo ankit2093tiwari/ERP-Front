@@ -33,17 +33,9 @@ export default function Header() {
                         size={20} />
                     </Nav.Link>
                     <NavDropdown title={<span><img src="/user.png" alt="dropdown icon" style={{ marginRight: "8px" }} />  User Name </span>} id="basic-nav-dropdown">
-                      <NavDropdown.Item href="#">Action</NavDropdown.Item>
+                      <NavDropdown.Item href="#">Change Password</NavDropdown.Item>
                       <NavDropdown.Divider />
-                      <NavDropdown.Item href="#">
-                        Another action
-                      </NavDropdown.Item>
-                      <NavDropdown.Divider />
-                      <NavDropdown.Item href="#">Something</NavDropdown.Item>
-                      <NavDropdown.Divider />
-                      <NavDropdown.Item href="#">
-                        Separated link
-                      </NavDropdown.Item>
+                      <NavDropdown.Item href="#">Log out</NavDropdown.Item>
                     </NavDropdown>
                   </Nav>
                 </Navbar.Collapse>

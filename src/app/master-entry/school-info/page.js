@@ -1,12 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import axios from "axios";
-import Preview from "@/app/component/Preview";
-import styles from "../school-info/page.module.css";
-import { Form, Row, Col, Container, FormLabel, FormControl, Button, Breadcrumb } from "react-bootstrap";
-import { CgAddR } from 'react-icons/cg';
-// export default function Farm() {
+import { Form, Row, Col, Button } from "react-bootstrap";
 
 const SchoolInfo = ({ onClose, setData }) => {
   const [schoolInfo, setSchoolInfo] = useState({
@@ -32,8 +28,6 @@ const SchoolInfo = ({ onClose, setData }) => {
     return Object.keys(errors).length === 0;
   };
 
-
-  
   // Form submit handler
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -45,7 +39,11 @@ const SchoolInfo = ({ onClose, setData }) => {
     const method = schoolInfo._id ? "put" : "post";
 
     try {
-      const response = await axios[method](endpoint, schoolInfo);
+      const response = await axios({
+        method,
+        url: endpoint,
+        data: schoolInfo,
+      });
       setData((prev) =>
         schoolInfo._id
           ? prev.map((item) =>

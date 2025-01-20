@@ -31,12 +31,57 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
         { title: "Update Student Data", href: "/students/update-student", icon: <FaUserGraduate /> },
         { title: "Assign RollNo", href: "/students/assign-roll-no", icon: <FaSchool /> },
         { title: "Promote Student", href: "/students/promote-student", icon: <FaFileAlt /> },
+        { title: "Student Bulk Update", href: "/students/student-bulk-update", icon: <FaFileAlt /> },
         { title: "Transfer Certificate", href: "/students/transfer-certificate", icon: <FaFileAlt /> },
         { title: "Id Card", href: "/students/id-card", icon: <FaFileAlt /> },
-        // { title: "Religion Master", href: "/master-entry/religion-master", icon: <FaFileAlt /> },
-        // { title: "Subject Master", href: "/master-entry/subject-master", icon: <FaFileAlt /> },
-        // { title: "Caste Master", href: "/master-entry/caste-master", icon: <FaFileAlt /> },
+        { title: "All Reports", href: "/students/reports/all-reports", icon: <FaFileAlt /> },
+        { title: "Student List Wizard", href: "/students/reports/student-list-wizard", icon: <FaFileAlt /> },
+        { title: "School Overview", href: "/students/reports/school-overview", icon: <FaFileAlt /> },
+        { title: "Certificate Wizard", href: "/students/reports/certificate-wizard", icon: <FaFileAlt /> },
     ];
+    // const studentItems = [
+    //     { title: "All Modules", href: "/students/all-module", icon: <FaCog /> },
+    //     { title: "Add New Student", href: "/students/add-new-student", icon: <FaSchool /> },
+    //     { title: "Update Student Data", href: "/students/update-student", icon: <FaUserGraduate /> },
+    //     { title: "Assign RollNo", href: "/students/assign-roll-no", icon: <FaSchool /> },
+    //     { title: "Promote Student", href: "/students/promote-student", icon: <FaFileAlt /> },
+    //     { title: "Student Bulk Update", href: "/students/student-bulk-update", icon: <FaFileAlt /> },
+    //     { title: "Transfer Certificate", href: "/students/transfer-certificate", icon: <FaFileAlt /> },
+    //     { title: "Id Card", href: "/students/id-card", icon: <FaFileAlt /> },
+    //     {
+    //         title: "Reports",
+    //         href: "/students/reports",
+    //         icon: <FaFileAlt />,
+    //         isOpen: true, // Automatically open the folder
+    //         children: [
+    //             {
+    //                 title: "All Reports",
+    //                 href: "/students/reports/all-reports",
+    //                 icon: <FaFileAlt />,
+    //                 children: [
+    //                     {
+    //                         title: "Student List Wizard",
+    //                         href: "/students/reports/student-list-wizard",
+    //                         icon: <FaFileAlt />,
+    //                     },
+    //                     {
+    //                         title: "School Overview",
+    //                         href: "/students/reports/school-overview",
+    //                         icon: <FaFileAlt />,
+    //                     },
+    //                     {
+    //                         title: "Certificate Wizard",
+    //                         href: "/students/reports/certificate-wizard",
+    //                         icon: <FaFileAlt />,
+    //                     },
+    //                 ],
+    //             },
+    //         ],
+    //     },
+    // ];
+    
+    
+    
     const transportItems = [
         { title: "All Modules", href: "/Transport/all-module", icon: <FaCog /> },
         { title: "Vehicle Type Master", href: "/Transport/vehicle-type-master", icon: <FaSchool /> },
