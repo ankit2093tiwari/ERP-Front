@@ -34,11 +34,37 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
         { title: "Student Bulk Update", href: "/students/student-bulk-update", icon: <FaFileAlt /> },
         { title: "Transfer Certificate", href: "/students/transfer-certificate", icon: <FaFileAlt /> },
         { title: "Id Card", href: "/students/id-card", icon: <FaFileAlt /> },
-        { title: "All Reports", href: "/students/reports/all-reports", icon: <FaFileAlt /> },
-        { title: "Student List Wizard", href: "/students/reports/student-list-wizard", icon: <FaFileAlt /> },
-        { title: "School Overview", href: "/students/reports/school-overview", icon: <FaFileAlt /> },
-        { title: "Certificate Wizard", href: "/students/reports/certificate-wizard", icon: <FaFileAlt /> },
+        {
+            title: "Reports",
+            href: "/students/reports",
+            icon: <FaFileAlt />,
+            isOpen: true,
+            children: [
+                {
+                    title: "All Reports",
+                    href: "/students/reports/all-reports",
+                    icon: <FaFileAlt />,
+                },
+                {
+                    title: "Student List Wizard",
+                    href: "/students/reports/student-list-wizard",
+                    icon: <FaFileAlt />,
+                },
+                {
+                    title: "School Overview",
+                    href: "/students/reports/school-overview",
+                    icon: <FaFileAlt />,
+                },
+                {
+                    title: "Certificate Wizard",
+                    href: "/students/reports/certificate-wizard",
+                    icon: <FaFileAlt />,
+                },
+            ],
+        },
     ];
+
+
     // const studentItems = [
     //     { title: "All Modules", href: "/students/all-module", icon: <FaCog /> },
     //     { title: "Add New Student", href: "/students/add-new-student", icon: <FaSchool /> },
@@ -48,40 +74,12 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
     //     { title: "Student Bulk Update", href: "/students/student-bulk-update", icon: <FaFileAlt /> },
     //     { title: "Transfer Certificate", href: "/students/transfer-certificate", icon: <FaFileAlt /> },
     //     { title: "Id Card", href: "/students/id-card", icon: <FaFileAlt /> },
-    //     {
-    //         title: "Reports",
-    //         href: "/students/reports",
-    //         icon: <FaFileAlt />,
-    //         isOpen: true, // Automatically open the folder
-    //         children: [
-    //             {
-    //                 title: "All Reports",
-    //                 href: "/students/reports/all-reports",
-    //                 icon: <FaFileAlt />,
-    //                 children: [
-    //                     {
-    //                         title: "Student List Wizard",
-    //                         href: "/students/reports/student-list-wizard",
-    //                         icon: <FaFileAlt />,
-    //                     },
-    //                     {
-    //                         title: "School Overview",
-    //                         href: "/students/reports/school-overview",
-    //                         icon: <FaFileAlt />,
-    //                     },
-    //                     {
-    //                         title: "Certificate Wizard",
-    //                         href: "/students/reports/certificate-wizard",
-    //                         icon: <FaFileAlt />,
-    //                     },
-    //                 ],
-    //             },
-    //         ],
-    //     },
-    // ];
-    
-    
-    
+    //     { title: "All Reports", href: "/students/reports/all-reports", icon: <FaFileAlt /> },
+    //     { title: "Student List Wizard", href: "/students/reports/student-list-wizard", icon: <FaFileAlt /> },
+    //     { title: "School Overview", href: "/students/reports/school-overview", icon: <FaFileAlt /> },
+    //     { title: "Certificate Wizard", href: "/students/reports/certificate-wizard", icon: <FaFileAlt /> },
+    // ];   
+
     const transportItems = [
         { title: "All Modules", href: "/Transport/all-module", icon: <FaCog /> },
         { title: "Vehicle Type Master", href: "/Transport/vehicle-type-master", icon: <FaSchool /> },
@@ -204,11 +202,11 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
     ];
     return (
         <div>
-           <div
-            className={`sidebar ${isOpen || activeKey ? "open" : "closed"}`}
-            onMouseEnter={() => setActiveKey(true)}
-            onMouseLeave={() => setActiveKey(false)}
-        >
+            <div
+                className={`sidebar ${isOpen || activeKey ? "open" : "closed"}`}
+                onMouseEnter={() => setActiveKey(true)}
+                onMouseLeave={() => setActiveKey(false)}
+            >
                 <button className="hamburger" onClick={toggleSidebar} >
                     <GiHamburgerMenu />
                 </button>
@@ -236,7 +234,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
                                     {masterEntryItems.map((item, index) => (
                                         <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
                                             {item.icon}
-                                            <span style={{display: isOpen || activeKey ? "inline" : "none" }}>
+                                            <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>
                                                 <Link href={item.href}>
                                                     {item.title}
                                                 </Link>
@@ -246,7 +244,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
                                 </ul>
                             </Accordion.Body>
                         </Accordion.Item>
-                        <Accordion.Item eventKey="students">
+                        {/* <Accordion.Item eventKey="students">
                             <Accordion.Header>
                                 <span style={{ display: "flex", alignItems: "center" }}>
                                     <FaCog style={{ marginRight: isOpen || activeKey ? "10px" : "0" }} />
@@ -267,7 +265,42 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
                                     ))}
                                 </ul>
                             </Accordion.Body>
+                        </Accordion.Item> */}
+                        <Accordion.Item eventKey="students">
+                            <Accordion.Header>
+                                <span style={{ display: "flex", alignItems: "center" }}>
+                                    <FaCog style={{ marginRight: isOpen || activeKey ? "10px" : "0" }} />
+                                    {(isOpen || activeKey) && "Students"}
+                                </span>
+                            </Accordion.Header>
+                            <Accordion.Body>
+                                <ul style={{ listStyle: "none", paddingLeft: isOpen || activeKey ? "20px" : "0" }}>
+                                    {studentItems.map((item, index) => (
+                                        <li key={index} style={{ padding: "5px 0" }}>
+                                            <div style={{ display: "flex", alignItems: "center" }}>
+                                                {item.icon}
+                                                <span style={{ marginLeft: "10px", display: isOpen || activeKey ? "inline" : "none" }}>
+                                                    <Link href={item.href}>{item.title}</Link>
+                                                </span>
+                                            </div>
+                                            {item.children && item.isOpen && (
+                                                <ul style={{ listStyle: "none", paddingLeft: "20px" }}>
+                                                    {item.children.map((child, childIndex) => (
+                                                        <li key={childIndex} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
+                                                            {child.icon}
+                                                            <span style={{ marginLeft: "10px" }}>
+                                                                <Link href={child.href}>{child.title}</Link>
+                                                            </span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            )}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </Accordion.Body>
                         </Accordion.Item>
+
                         <Accordion.Item eventKey="transport">
                             <Accordion.Header>
                                 <span style={{ display: "flex", alignItems: "center" }}>
@@ -280,7 +313,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
                                     {transportItems.map((item, index) => (
                                         <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
                                             {item.icon}
-                                            <span style={{display: isOpen || activeKey ? "inline" : "none" }}>
+                                            <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>
                                                 <Link href={item.href}>
                                                     {item.title}
                                                 </Link>
@@ -346,7 +379,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
                                     {stockItems.map((item, index) => (
                                         <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
                                             {item.icon}
-                                            <span style={{display: isOpen || activeKey ? "inline" : "none" }}>
+                                            <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>
                                                 <Link href={item.href}>
                                                     {item.title}
                                                 </Link>
@@ -412,7 +445,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
                                     {galleryItems.map((item, index) => (
                                         <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
                                             {item.icon}
-                                            <span style={{display: isOpen || activeKey ? "inline" : "none" }}>
+                                            <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>
                                                 <Link href={item.href}>
                                                     {item.title}
                                                 </Link>
@@ -434,7 +467,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
                                     {advertisingItems.map((item, index) => (
                                         <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
                                             {item.icon}
-                                            <span style={{display: isOpen || activeKey ? "inline" : "none" }}>
+                                            <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>
                                                 <Link href={item.href}>
                                                     {item.title}
                                                 </Link>
@@ -456,7 +489,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
                                     {examItems.map((item, index) => (
                                         <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
                                             {item.icon}
-                                            <span style={{display: isOpen || activeKey ? "inline" : "none" }}>
+                                            <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>
                                                 <Link href={item.href}>
                                                     {item.title}
                                                 </Link>
@@ -478,7 +511,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
                                     {noticeItems.map((item, index) => (
                                         <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
                                             {item.icon}
-                                            <span style={{display: isOpen || activeKey ? "inline" : "none" }}>
+                                            <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>
                                                 <Link href={item.href}>
                                                     {item.title}
                                                 </Link>
@@ -500,7 +533,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
                                     {hrdItems.map((item, index) => (
                                         <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
                                             {item.icon}
-                                            <span style={{display: isOpen || activeKey ? "inline" : "none" }}>
+                                            <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>
                                                 <Link href={item.href}>
                                                     {item.title}
                                                 </Link>
@@ -522,7 +555,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
                                     {libraryItems.map((item, index) => (
                                         <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
                                             {item.icon}
-                                            <span style={{display: isOpen || activeKey ? "inline" : "none" }}>
+                                            <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>
                                                 <Link href={item.href}>
                                                     {item.title}
                                                 </Link>
@@ -544,7 +577,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
                                     {dailydairyItems.map((item, index) => (
                                         <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
                                             {item.icon}
-                                            <span style={{display: isOpen || activeKey ? "inline" : "none" }}>
+                                            <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>
                                                 <Link href={item.href}>
                                                     {item.title}
                                                 </Link>
@@ -566,7 +599,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
                                     {thoughtItems.map((item, index) => (
                                         <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
                                             {item.icon}
-                                            <span style={{display: isOpen || activeKey ? "inline" : "none" }}>
+                                            <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>
                                                 <Link href={item.href}>
                                                     {item.title}
                                                 </Link>
@@ -588,7 +621,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
                                     {complaintItems.map((item, index) => (
                                         <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
                                             {item.icon}
-                                            <span style={{display: isOpen || activeKey ? "inline" : "none" }}>
+                                            <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>
                                                 <Link href={item.href}>
                                                     {item.title}
                                                 </Link>
@@ -610,7 +643,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
                                     {appointmentItems.map((item, index) => (
                                         <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
                                             {item.icon}
-                                            <span style={{display: isOpen || activeKey ? "inline" : "none" }}>
+                                            <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>
                                                 <Link href={item.href}>
                                                     {item.title}
                                                 </Link>
@@ -632,7 +665,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
                                     {importantSMSItems.map((item, index) => (
                                         <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
                                             {item.icon}
-                                            <span style={{display: isOpen || activeKey ? "inline" : "none" }}>
+                                            <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>
                                                 <Link href={item.href}>
                                                     {item.title}
                                                 </Link>
@@ -654,7 +687,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
                                     {userItems.map((item, index) => (
                                         <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
                                             {item.icon}
-                                            <span style={{display: isOpen || activeKey ? "inline" : "none" }}>
+                                            <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>
                                                 <Link href={item.href}>
                                                     {item.title}
                                                 </Link>
