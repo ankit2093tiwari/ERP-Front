@@ -99,7 +99,8 @@ const ClassMasterPage = () => {
       setNewClassName(""); // Reset class name input
       setNewSectionName(""); // Reset section name input
       setShowAddForm(false); // Hide the form
-      setFormErrors({}); // Clear errors
+      setFormErrors({});
+      fetchData();
     } catch (err) {
       console.error("Error adding class:", err);
       setError("Failed to add class. Please try again later.");
@@ -160,7 +161,6 @@ const ClassMasterPage = () => {
     }
   };
 
-  // Fetch data on component mount
   useEffect(() => {
     fetchData();
   }, []);
@@ -234,7 +234,7 @@ const ClassMasterPage = () => {
         <Col>
           <div className="tableSheet">
             <h2>Class & Section Records</h2>
-            {loading && <p>Loading...</p>}
+            {/* {loading && <p>Loading...</p>} */}
             {error && <p style={{ color: "red" }}>{error}</p>}
             {!loading && !error && <Table columns={columns} data={data} />}
           </div>

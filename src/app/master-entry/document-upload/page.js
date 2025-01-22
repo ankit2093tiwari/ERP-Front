@@ -91,6 +91,7 @@ const DocumentMasterPage = () => {
         setData((prevData) => [...prevData, response.data]);
         setNewDocumentName("");
         setShowAddForm(false);
+        fetchData();
       } catch (err) {
         console.error("Error adding document:", err);
         setError("Failed to add document. Please try again later.");
@@ -211,7 +212,6 @@ const DocumentMasterPage = () => {
           <Col>
           <div className="tableSheet">
             <h2>Document Records</h2>
-            {loading && <p>Loading...</p>}
             {error && <p style={{ color: "red" }}>{error}</p>}
             {!loading && !error && <Table columns={columns} data={data} />}
             </div>
