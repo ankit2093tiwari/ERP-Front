@@ -12,15 +12,19 @@ import {
   FormLabel,
   FormControl,
   Button,
+  FormSelect,
 } from "react-bootstrap";
 import axios from "axios";
 
-const BankMaster = () => {
+const HeadMasterPage = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
-  const [newBank, setNewBank] = useState({ bank_name: "" });
+  const [newHeadMaster, setNewHeadMaster] = useState({
+    head_name: "",
+    head_type: "", // Default is empty, can be set to 'Installment Type' or 'Lifetime'
+  });
 
   const columns = [
     {
@@ -30,8 +34,13 @@ const BankMaster = () => {
       width: "80px",
     },
     {
-      name: "Bank Name",
-      selector: (row) => row.bank_name || "N/A",
+      name: "Head Name",
+      selector: (row) => row.head_name || "N/A",
+      sortable: true,
+    },
+    {
+      name: "Head Type",
+      selector: (row) => row.head_type || "N/A",
       sortable: true,
     },
     {
@@ -52,81 +61,87 @@ const BankMaster = () => {
     },
   ];
 
-  // Fetch banks data
   const fetchData = async () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/banks");
-      if (response.data && response.data.data && response.data.data.length > 0) {
-        setData(response.data.data);
+      const response = await axios.get(
+        "https://erp-backend-fy3n.onrender.com/api/headMasters"
+      );
+      if (response.data && response.data.headMasters && response.data.headMasters.length > 0) {
+        setData(response.data.headMasters);
       } else {
         setData([]); // Set empty array if no records are found
         setError("No records found.");
       }
     } catch (err) {
       setData([]); // Set empty array if there's an error fetching data
-      setError("Failed to fetch banks.");
+      setError("Failed to fetch HeadMasters.");
     } finally {
       setLoading(false);
     }
   };
 
-  // Add new bank
   const handleAdd = async () => {
-    if (newBank.bank_name.trim()) {
+    if (newHeadMaster.head_name.trim() && newHeadMaster.head_type.trim()) {
       try {
         const response = await axios.post(
-          "https://erp-backend-fy3n.onrender.com/api/banks",
-          newBank
+          "https://erp-backend-fy3n.onrender.com/api/headMaster",
+          newHeadMaster
         );
-        setData((prevData) => [...prevData, response.data]);
-        setNewBank({ bank_name: "" });
+        setData((prevData) => [...prevData, response.data.headMaster]);
+        setNewHeadMaster({ head_name: "", head_type: "" });
         setShowAddForm(false);
-        fetchData(); // Fetch data again after adding new bank
+        fetchData(); // Fetch data again after adding new headMaster
       } catch (err) {
-        setError("Failed to add bank.");
+        setError("Failed to add HeadMaster.");
       }
     } else {
-      alert("Bank Name is required.");
+      alert("Both Head Name and Head Type are required.");
     }
   };
 
-  // Edit bank
   const handleEdit = async (id) => {
-    const bank = data.find((row) => row._id === id);
-    const updatedName = prompt("Enter new bank name:", bank?.bank_name || "");
+    const headMaster = data.find((row) => row._id === id);
+    const updatedName = prompt(
+      "Enter new head name:",
+      headMaster?.head_name || ""
+    );
+    const updatedType = prompt(
+      "Enter new head type (Installment Type or Lifetime):",
+      headMaster?.head_type || ""
+    );
 
-    if (updatedName) {
+    if (updatedName && updatedType) {
       try {
         await axios.put(
-          `https://erp-backend-fy3n.onrender.com/api/banks/${id}`,
-          { bank_name: updatedName }
+          `https://erp-backend-fy3n.onrender.com/api/headMaster/${id}`,
+          { head_name: updatedName, head_type: updatedType }
         );
         setData((prevData) =>
           prevData.map((row) =>
-            row._id === id ? { ...row, bank_name: updatedName } : row
+            row._id === id ? { ...row, head_name: updatedName, head_type: updatedType } : row
           )
         );
       } catch (err) {
-        setError("Failed to update bank.");
+        setError("Failed to update HeadMaster.");
       }
     }
   };
 
-  // Delete bank
   const handleDelete = async (id) => {
-    if (confirm("Are you sure you want to delete this bank?")) {
+    if (confirm("Are you sure you want to delete this HeadMaster?")) {
       try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/banks/${id}`);
+        await axios.delete(
+          `https://erp-backend-fy3n.onrender.com/api/headMaster/${id}`
+        );
         setData((prevData) => prevData.filter((row) => row._id !== id));
       } catch (err) {
-        setError("Failed to delete bank.");
+        setError("Failed to delete HeadMaster.");
       }
     }
   };
 
-  // Fetch data on component mount
   useEffect(() => {
     fetchData();
   }, []);
@@ -138,28 +153,41 @@ const BankMaster = () => {
           onClick={() => setShowAddForm(!showAddForm)}
           className={`mb-4 ${styles.search}`}
         >
-          Add Bank
+          Add HeadMaster
         </Button>
         {showAddForm && (
           <div className="mb-4">
             <Row>
               <Col lg={6}>
-                <FormLabel>Bank Name</FormLabel>
+                <FormLabel>Head Name</FormLabel>
                 <FormControl
                   type="text"
-                  value={newBank.bank_name}
+                  value={newHeadMaster.head_name}
                   onChange={(e) =>
-                    setNewBank({ bank_name: e.target.value })
+                    setNewHeadMaster({ ...newHeadMaster, head_name: e.target.value })
                   }
                 />
               </Col>
+              <Col lg={6}>
+                <FormLabel>Head Type</FormLabel>
+                <FormSelect
+                  value={newHeadMaster.head_type}
+                  onChange={(e) =>
+                    setNewHeadMaster({ ...newHeadMaster, head_type: e.target.value })
+                  }
+                >
+                  <option value="">Select Head Type</option>
+                  <option value="Installment Type">Installment Type</option>
+                  <option value="Lifetime">Lifetime</option>
+                </FormSelect>
+              </Col>
             </Row>
             <Button onClick={handleAdd} className={styles.search}>
-              Add Bank
+              Add HeadMaster
             </Button>
           </div>
         )}
-        <h2>Bank Records</h2>
+        <h2>HeadMaster Records</h2>
         {loading && <p>Loading...</p>}
         {error && <p>{error}</p>}
         {!loading && !error && data.length === 0 && <p>No records found.</p>}
@@ -171,4 +199,4 @@ const BankMaster = () => {
   );
 };
 
-export default dynamic(() => Promise.resolve(BankMaster), { ssr: false });
+export default dynamic(() => Promise.resolve(HeadMasterPage), { ssr: false });

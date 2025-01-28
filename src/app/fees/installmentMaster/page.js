@@ -15,12 +15,12 @@ import {
 } from "react-bootstrap";
 import axios from "axios";
 
-const BankMaster = () => {
+const InstallmentMaster = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
-  const [newBank, setNewBank] = useState({ bank_name: "" });
+  const [newInstallment, setNewInstallment] = useState({ installment_name: "" });
 
   const columns = [
     {
@@ -30,8 +30,8 @@ const BankMaster = () => {
       width: "80px",
     },
     {
-      name: "Bank Name",
-      selector: (row) => row.bank_name || "N/A",
+      name: "Installment Name",
+      selector: (row) => row.installment_name || "N/A",
       sortable: true,
     },
     {
@@ -41,10 +41,7 @@ const BankMaster = () => {
           <button className="editButton" onClick={() => handleEdit(row._id)}>
             <FaEdit />
           </button>
-          <button
-            className="editButton btn-danger"
-            onClick={() => handleDelete(row._id)}
-          >
+          <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
             <FaTrashAlt />
           </button>
         </div>
@@ -52,12 +49,12 @@ const BankMaster = () => {
     },
   ];
 
-  // Fetch banks data
+  // Fetch installments
   const fetchData = async () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/banks");
+      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/installments");
       if (response.data && response.data.data && response.data.data.length > 0) {
         setData(response.data.data);
       } else {
@@ -66,62 +63,67 @@ const BankMaster = () => {
       }
     } catch (err) {
       setData([]); // Set empty array if there's an error fetching data
-      setError("Failed to fetch banks.");
+      setError("Failed to fetch installments.");
     } finally {
       setLoading(false);
     }
   };
 
-  // Add new bank
+  // Add new installment
   const handleAdd = async () => {
-    if (newBank.bank_name.trim()) {
+    if (newInstallment.installment_name.trim()) {
       try {
         const response = await axios.post(
-          "https://erp-backend-fy3n.onrender.com/api/banks",
-          newBank
+          "https://erp-backend-fy3n.onrender.com/api/installments/create",
+          newInstallment
         );
         setData((prevData) => [...prevData, response.data]);
-        setNewBank({ bank_name: "" });
+        setNewInstallment({ installment_name: "" });
         setShowAddForm(false);
-        fetchData(); // Fetch data again after adding new bank
+        fetchData(); // Fetch data again after adding new installment
       } catch (err) {
-        setError("Failed to add bank.");
+        setError("Failed to add installment.");
       }
     } else {
-      alert("Bank Name is required.");
+      alert("Installment Name is required.");
     }
   };
 
-  // Edit bank
+  // Edit installment
   const handleEdit = async (id) => {
-    const bank = data.find((row) => row._id === id);
-    const updatedName = prompt("Enter new bank name:", bank?.bank_name || "");
+    const installment = data.find((row) => row._id === id);
+    const updatedName = prompt(
+      "Enter new installment name:",
+      installment?.installment_name || ""
+    );
 
     if (updatedName) {
       try {
         await axios.put(
-          `https://erp-backend-fy3n.onrender.com/api/banks/${id}`,
-          { bank_name: updatedName }
+          `https://erp-backend-fy3n.onrender.com/api/installments/${id}`,
+          { installment_name: updatedName }
         );
         setData((prevData) =>
           prevData.map((row) =>
-            row._id === id ? { ...row, bank_name: updatedName } : row
+            row._id === id ? { ...row, installment_name: updatedName } : row
           )
         );
       } catch (err) {
-        setError("Failed to update bank.");
+        setError("Failed to update installment.");
       }
     }
   };
 
-  // Delete bank
+  // Delete installment
   const handleDelete = async (id) => {
-    if (confirm("Are you sure you want to delete this bank?")) {
+    if (confirm("Are you sure you want to delete this installment?")) {
       try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/banks/${id}`);
+        await axios.delete(
+          `https://erp-backend-fy3n.onrender.com/api/installments/${id}`
+        );
         setData((prevData) => prevData.filter((row) => row._id !== id));
       } catch (err) {
-        setError("Failed to delete bank.");
+        setError("Failed to delete installment.");
       }
     }
   };
@@ -138,28 +140,28 @@ const BankMaster = () => {
           onClick={() => setShowAddForm(!showAddForm)}
           className={`mb-4 ${styles.search}`}
         >
-          Add Bank
+          Add Installment
         </Button>
         {showAddForm && (
           <div className="mb-4">
             <Row>
               <Col lg={6}>
-                <FormLabel>Bank Name</FormLabel>
+                <FormLabel>Installment Name</FormLabel>
                 <FormControl
                   type="text"
-                  value={newBank.bank_name}
+                  value={newInstallment.installment_name}
                   onChange={(e) =>
-                    setNewBank({ bank_name: e.target.value })
+                    setNewInstallment({ installment_name: e.target.value })
                   }
                 />
               </Col>
             </Row>
             <Button onClick={handleAdd} className={styles.search}>
-              Add Bank
+              Add Installment
             </Button>
           </div>
         )}
-        <h2>Bank Records</h2>
+        <h2>Installment Records</h2>
         {loading && <p>Loading...</p>}
         {error && <p>{error}</p>}
         {!loading && !error && data.length === 0 && <p>No records found.</p>}
@@ -171,4 +173,4 @@ const BankMaster = () => {
   );
 };
 
-export default dynamic(() => Promise.resolve(BankMaster), { ssr: false });
+export default dynamic(() => Promise.resolve(InstallmentMaster), { ssr: false });
