@@ -39,7 +39,7 @@ const Page = () => {
       description: "Add Basic Details of Head Master",
     },
     {
-      href: "/fees/fee-group",
+      href: "/fees/feeGroup",
       icon: <HiOutlineDocumentPlus className="studentIcon" />,
       title: "Fee Group",
       description: "Add Basic Details of Fee Group",

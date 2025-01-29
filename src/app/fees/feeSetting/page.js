@@ -199,7 +199,7 @@ const FeeSetting = () => {
           </div>
         )}
         <h2>Fee Setting Records</h2>
-        {loading && <p>Loading...</p>}
+        {/* {loading && <p>Loading...</p>} */}
         {error && <p>{error}</p>}
         {!loading && !error && data.length === 0 && <p>No records found.</p>}
         {!loading && !error && data.length > 0 && (

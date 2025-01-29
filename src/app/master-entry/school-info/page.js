@@ -2,174 +2,253 @@
 
 import { useState } from "react";
 import axios from "axios";
-import { Form, Row, Col, Button } from "react-bootstrap";
+import styles from "../school-info/page.module.css";
+import { Form, Row, Col, Container, FormLabel, FormControl, Button, Breadcrumb } from "react-bootstrap";
 
-const SchoolInfo = ({ onClose, setData }) => {
-  const [schoolInfo, setSchoolInfo] = useState({
+const SchoolInfo = () => {
+  const [school, setSchool] = useState({
     school_name: "",
-    address: "",
-    contact_number: "",
-    principal_name: "",
-    email: "",
+    phone_no: "",
+    email_name: "",
+    web_address: "",
+    address_name: "",
+    account_no: "",
+    ifsc_code: "",
+    bank_name: "",
+    branch_name: "",
+    logo_name: null,
   });
 
-  const [schoolError, setSchoolError] = useState({});
-  const [error, setError] = useState("");
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [responseMessage, setResponseMessage] = useState(""); // Define the state for response message
 
-  // Validation function
+
   const validateForm = () => {
-    const errors = {};
-    Object.entries(schoolInfo).forEach(([key, value]) => {
-      if (!value.trim()) {
-        errors[`${key}_error`] = `${key.replace(/_/g, " ")} is required`;
+    const validationErrors = {};
+    Object.entries(school).forEach(([key, value]) => {
+      if (
+        key === "school_name" ||
+        key === "phone_no" ||
+        key === "email_name" ||
+        key === "web_address" ||
+        key === "address_name" ||
+        key === "account_no" ||
+        key === "ifsc_code" ||
+        key === "bank_name" ||
+        key === "branch_name"
+      ) {
+        if (!value || (typeof value === "object" && !Object.values(value).some(Boolean))) {
+          const formattedKey = key
+            .replace(/_/g, " ")
+            .split(" ")
+            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(" ");
+          validationErrors[`${key}_error`] = `${formattedKey} is required`;
+        }
       }
     });
-    setSchoolError(errors);
-    return Object.keys(errors).length === 0;
+
+    setErrors(validationErrors);
+    return Object.keys(validationErrors).length === 0;
   };
 
-  // Form submit handler
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setSchool((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [`${name}_error`]: "" }));
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    setSchool((prev) => ({ ...prev, logo_name: file }));
+    setErrors((prev) => ({ ...prev, logo_name_error: "" }));
+  };
+
   const handleSubmit = async (e) => {
-    e.preventDefault();
+    e.preventDefault(); // Prevent page reload
     if (!validateForm()) return;
 
-    const endpoint = schoolInfo._id
-      ? `${process.env.NEXT_PUBLIC_SITE_URL}/api/school/${schoolInfo._id}`
-      : `${process.env.NEXT_PUBLIC_SITE_URL}/api/school`;
-    const method = schoolInfo._id ? "put" : "post";
+    const endpoint = school._id
+      ? `${process.env.NEXT_PUBLIC_SITE_URL}/schools/${school._id}`
+      : `${process.env.NEXT_PUBLIC_SITE_URL}/schools`;
+    const method = school._id ? "put" : "post";
 
+    setLoading(true);
     try {
-      const response = await axios({
-        method,
-        url: endpoint,
-        data: schoolInfo,
+      const formData = new FormData();
+      Object.entries(school).forEach(([key, value]) => {
+        if (key === "logo_name" && value) {
+          formData.append(key, value);
+        } else {
+          formData.append(key, value);
+        }
       });
-      setData((prev) =>
-        schoolInfo._id
-          ? prev.map((item) =>
-              item._id === schoolInfo._id
-                ? { ...item, ...schoolInfo }
-                : item
-            )
-          : [...prev, response.data]
-      );
-      setSchoolInfo({
-        school_name: "",
-        address: "",
-        contact_number: "",
-        principal_name: "",
-        email: "",
+
+      const response = await axios[method](endpoint, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
       });
-      onClose(); // Close the form if provided
-    } catch (err) {
-      console.error("Error submitting form:", err.response || err.message);
-      setError("Failed to submit data. Please check the API endpoint.");
+
+      if (response?.data?.status) {
+        setData((prev) =>
+          school._id
+            ? prev.map((row) => (row._id === school._id ? { ...row, ...school } : row))
+            : [...prev, response.data]
+        );
+
+        setSchool({
+          school_name: "",
+          phone_no: "",
+          email_name: "",
+          web_address: "",
+          address_name: "",
+          account_no: "",
+          ifsc_code: "",
+          bank_name: "",
+          branch_name: "",
+          logo_name: null,
+        });
+        setErrors({});
+        setResponseMessage("Form submitted successfully!");
+      } else {
+        setResponseMessage(response.data.message || "Failed to submit the form.");
+      }
+    } catch (error) {
+      console.error("Error submitting data:", error.response || error?.data?.message);
+      setResponseMessage("Failed to submit data. Please check the API endpoint.");
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Handle input change
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setSchoolInfo((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-    setSchoolError((prev) => ({
-      ...prev,
-      [`${name}_error`]: value ? "" : prev[`${name}_error`],
-    }));
-  };
-
+  
   return (
-    <div className="container mt-4">
-      <h2>School Information Form</h2>
-      {error && <div className="alert alert-danger">{error}</div>}
-      <Form onSubmit={handleSubmit}>
-        <Row>
-          <Col md={6}>
-            <Form.Group>
-              <Form.Label>School Name</Form.Label>
-              <Form.Control
+    <Container>
+      <Row className="mt-1 mb-1">
+        <Col>
+          <Breadcrumb>
+            <Breadcrumb.Item href="/">Home</Breadcrumb.Item>
+            <Breadcrumb.Item href="/master-entry/all-module">Master Entry</Breadcrumb.Item>
+            <Breadcrumb.Item active>School Info</Breadcrumb.Item>
+          </Breadcrumb>
+        </Col>
+      </Row>
+      <div className="cover-sheet">
+        <div className="studentHeading">
+          <h2>School Info</h2>
+        </div>
+        <Form onSubmit={handleSubmit} className={styles.formSheet}>
+          <Row>
+            <Col lg={6}>
+              <FormLabel className="labelForm">School Name:</FormLabel>
+              <FormControl
                 type="text"
                 name="school_name"
-                value={schoolInfo.school_name}
+                value={school.school_name}
                 onChange={handleChange}
               />
-              {schoolError.school_name_error && (
-                <div className="text-danger">{schoolError.school_name_error}</div>
-              )}
-            </Form.Group>
-          </Col>
-          <Col md={6}>
-            <Form.Group>
-              <Form.Label>Address</Form.Label>
-              <Form.Control
-                type="text"
-                name="address"
-                value={schoolInfo.address}
+              <p className="error">{errors.school_name_error}</p>
+            </Col>
+            <Col lg={6}>
+              <FormLabel className="labelForm">Phone No:</FormLabel>
+              <FormControl
+                type="tel"
+                name="phone_no"
+                value={school.phone_no}
                 onChange={handleChange}
               />
-              {schoolError.address_error && (
-                <div className="text-danger">{schoolError.address_error}</div>
-              )}
-            </Form.Group>
-          </Col>
-        </Row>
-        <Row>
-          <Col md={6}>
-            <Form.Group>
-              <Form.Label>Contact Number</Form.Label>
-              <Form.Control
-                type="text"
-                name="contact_number"
-                value={schoolInfo.contact_number}
-                onChange={handleChange}
-              />
-              {schoolError.contact_number_error && (
-                <div className="text-danger">
-                  {schoolError.contact_number_error}
-                </div>
-              )}
-            </Form.Group>
-          </Col>
-          <Col md={6}>
-            <Form.Group>
-              <Form.Label>Principal Name</Form.Label>
-              <Form.Control
-                type="text"
-                name="principal_name"
-                value={schoolInfo.principal_name}
-                onChange={handleChange}
-              />
-              {schoolError.principal_name_error && (
-                <div className="text-danger">
-                  {schoolError.principal_name_error}
-                </div>
-              )}
-            </Form.Group>
-          </Col>
-        </Row>
-        <Row>
-          <Col md={6}>
-            <Form.Group>
-              <Form.Label>Email</Form.Label>
-              <Form.Control
+              <p className="error">{errors.phone_no_error}</p>
+            </Col>
+          </Row>
+          <Row>
+            <Col lg={6}>
+              <FormLabel className="labelForm">Email:</FormLabel>
+              <FormControl
                 type="email"
-                name="email"
-                value={schoolInfo.email}
+                name="email_name"
+                value={school.email_name}
                 onChange={handleChange}
               />
-              {schoolError.email_error && (
-                <div className="text-danger">{schoolError.email_error}</div>
-              )}
-            </Form.Group>
-          </Col>
-        </Row>
-        <Button type="submit" className="mt-3">
-          Submit
-        </Button>
-      </Form>
-    </div>
+              <p className="error">{errors.email_name_error}</p>
+            </Col>
+            <Col lg={6}>
+              <FormLabel className="labelForm">Web Address:</FormLabel>
+              <FormControl
+                type="text"
+                name="web_address"
+                value={school.web_address}
+                onChange={handleChange}
+              />
+              <p className="error">{errors.web_address_error}</p>
+            </Col>
+          </Row>
+          <Row>
+            <Col lg={6}>
+              <FormLabel className="labelForm">Address:</FormLabel>
+              <FormControl
+                type="text"
+                name="address_name"
+                value={school.address_name}
+                onChange={handleChange}
+              />
+              <p className="error">{errors.address_name_error}</p>
+            </Col>
+            <Col lg={6}>
+              <FormLabel className="labelForm">Account No:</FormLabel>
+              <FormControl
+                type="text"
+                name="account_no"
+                value={school.account_no}
+                onChange={handleChange}
+              />
+              <p className="error">{errors.account_no_error}</p>
+            </Col>
+          </Row>
+          <Row>
+            <Col lg={6}>
+              <FormLabel className="labelForm">IFSC Code:</FormLabel>
+              <FormControl
+                type="text"
+                name="ifsc_code"
+                value={school.ifsc_code}
+                onChange={handleChange}
+              />
+              <p className="error">{errors.ifsc_code_error}</p>
+            </Col>
+            <Col lg={6}>
+              <FormLabel className="labelForm">Bank Name:</FormLabel>
+              <FormControl
+                type="text"
+                name="bank_name"
+                value={school.bank_name}
+                onChange={handleChange}
+              />
+              <p className="error">{errors.bank_name_error}</p>
+            </Col>
+          </Row>
+          <Row>
+            <Col lg={6}>
+              <FormLabel className="labelForm">Branch Name:</FormLabel>
+              <FormControl
+                type="text"
+                name="branch_name"
+                value={school.branch_name}
+                onChange={handleChange}
+              />
+              <p className="error">{errors.branch_name_error}</p>
+            </Col>
+            <Col lg={6}>
+              <FormLabel className="labelForm">Logo:</FormLabel>
+              <FormControl type="file" name="logo_name" onChange={handleFileChange} />
+              {/* {/ <p className="error">{errors.logo_name_error}</p> /} */}
+            </Col>
+          </Row>
+          <Button type="submit" className="btn btn-primary mt-4" disabled={loading}>
+            {loading ? "Submitting..." : "Submit"}
+          </Button>
+        </Form>
+      </div>
+    </Container>
   );
 };
 

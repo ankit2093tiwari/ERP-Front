@@ -27,6 +27,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
 
     const studentItems = [
         { title: "All Modules", href: "/students/all-module", icon: <FaCog /> },
+        { title: "Student List", href: "/students/studentList", icon: <FaSchool /> },
         { title: "Add New Student", href: "/students/add-new-student", icon: <FaSchool /> },
         { title: "Update Student Data", href: "/students/update-student", icon: <FaUserGraduate /> },
         { title: "Assign RollNo", href: "/students/assign-roll-no", icon: <FaSchool /> },
@@ -94,7 +95,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
         { title: "School Accounts", href: "/fees/school-account", icon: <FaUserGraduate /> },
         { title: "Installment Master", href: "/fees/installmentMaster", icon: <FaSchool /> },
         { title: "Head Master", href: "/fees/headMaster", icon: <FaFileAlt /> },
-        { title: "Fee Group", href: "/fees/fee-group", icon: <FaFileAlt /> },
+        { title: "Fee Group", href: "/fees/feeGroup", icon: <FaFileAlt /> },
         { title: "Fee Setting", href: "/fees/feeSetting", icon: <FaFileAlt /> },
         { title: "Bank Master", href: "/fees/bank-master", icon: <FaFileAlt /> },
         { title: "Petty Head", href: "/fees/pettyHeadMaster", icon: <FaFileAlt /> },
