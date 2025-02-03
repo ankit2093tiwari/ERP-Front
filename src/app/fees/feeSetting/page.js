@@ -68,7 +68,7 @@ const FeeSetting = () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/fee-settings");
+      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/fee-settings/fetch");
       if (response.data && response.data.length > 0) {
         setData(response.data);
       } else {
@@ -117,7 +117,7 @@ const FeeSetting = () => {
     if (updatedCreditCardCharge && updatedDebitCardCharge && updatedAmexCharge) {
       try {
         await axios.put(
-          `https://erp-backend-fy3n.onrender.com/api/fee-settings/${id}`,
+          `https://erp-backend-fy3n.onrender.com/api/fee-settings/update/${id}`,
           { credit_card_charge: updatedCreditCardCharge, debit_card_charge: updatedDebitCardCharge, amex_charge: updatedAmexCharge }
         );
         setData((prevData) =>
@@ -136,7 +136,7 @@ const FeeSetting = () => {
     if (confirm("Are you sure you want to delete this fee setting?")) {
       try {
         await axios.delete(
-          `https://erp-backend-fy3n.onrender.com/api/fee-settings/${id}`
+          `https://erp-backend-fy3n.onrender.com/api/fee-settings/delete/${id}`
         );
         setData((prevData) => prevData.filter((row) => row._id !== id));
       } catch (err) {

@@ -13,6 +13,7 @@ import {
   FormLabel,
   FormControl,
   Button,
+  FormSelect,
 } from "react-bootstrap";
 import axios from "axios";
 
@@ -75,49 +76,47 @@ const FeeGroup = () => {
     },
   ];
 
-  // Fetch all fee groups
   const fetchData = async () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/fee-groups");
+      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/fee-groups/fetch");
       if (response.data && response.data.feeGroups.length > 0) {
         setData(response.data.feeGroups);
       } else {
-        setData([]); // Set empty array if no records are found
+        setData([]); 
         setError("No fee groups found.");
       }
     } catch (err) {
-      setData([]); // Set empty array if there's an error fetching data
+      setData([]); 
       setError("Failed to fetch fee groups.");
     } finally {
       setLoading(false);
     }
   };
 
-  // Fetch all classes (for class dropdown)
   const fetchClasses = async () => {
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/classesAdd");
-      setClassList(response.data.classes || []);
+      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/class/fetch");
+      const resp = response.data;
+      setClassList(resp.data || []);
+    
     } catch (err) {
       setError("Failed to fetch classes.");
     }
   };
 
-  // Fetch sections by selected class (for section dropdown)
   const fetchSections = async (classId) => {
     try {
-      const response = await axios.get(
-        `https://erp-backend-fy3n.onrender.com/api/sections/${classId}`
-      );
-      setSectionList(response.data.sections || []);
+      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/sections/class/${classId}`);
+
+      setSectionList(response.data || []);
+      console.log('testddddddddd',response.data)
     } catch (err) {
       setError("Failed to fetch sections.");
     }
   };
 
-  // Add new fee group
   const handleAdd = async () => {
     if (
       newFeeGroup.group_name.trim() &&
@@ -126,10 +125,7 @@ const FeeGroup = () => {
       newFeeGroup.late_fine_per_day.trim()
     ) {
       try {
-        const response = await axios.post(
-          "https://erp-backend-fy3n.onrender.com/api/fee-groups",
-          newFeeGroup
-        );
+        const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/fee-groups/create", newFeeGroup);
         setData((prevData) => [...prevData, response.data.feeGroup]);
         setNewFeeGroup({
           group_name: "",
@@ -138,7 +134,7 @@ const FeeGroup = () => {
           late_fine_per_day: "",
         });
         setShowAddForm(false);
-        fetchData(); // Fetch data again after adding new fee group
+        fetchData(); 
       } catch (err) {
         setError("Failed to add fee group.");
       }
@@ -147,7 +143,6 @@ const FeeGroup = () => {
     }
   };
 
-  // Edit fee group
   const handleEdit = async (id) => {
     const feeGroup = data.find((row) => row._id === id);
     const updatedGroupName = prompt("Enter new Group Name:", feeGroup?.group_name || "");
@@ -158,7 +153,7 @@ const FeeGroup = () => {
     if (updatedGroupName && updatedClassName && updatedSectionName && updatedLateFine) {
       try {
         await axios.put(
-          `https://erp-backend-fy3n.onrender.com/api/fee-groups/${id}`,
+          `https://erp-backend-fy3n.onrender.com/api/fee-groups/update/${id}`,
           { group_name: updatedGroupName, class_name: updatedClassName, section_name: updatedSectionName, late_fine_per_day: updatedLateFine }
         );
         setData((prevData) =>
@@ -172,13 +167,10 @@ const FeeGroup = () => {
     }
   };
 
-  // Delete fee group
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this fee group?")) {
       try {
-        await axios.delete(
-          `https://erp-backend-fy3n.onrender.com/api/fee-groups/${id}`
-        );
+        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/fee-groups/delete/${id}`);
         setData((prevData) => prevData.filter((row) => row._id !== id));
       } catch (err) {
         setError("Failed to delete fee group.");
@@ -186,7 +178,6 @@ const FeeGroup = () => {
     }
   };
 
-  // Fetch data on component mount
   useEffect(() => {
     fetchData();
     fetchClasses();
@@ -216,8 +207,7 @@ const FeeGroup = () => {
               </Col>
               <Col lg={6}>
                 <FormLabel>Class Name</FormLabel>
-                <FormControl
-                  as="select"
+                <FormSelect
                   value={newFeeGroup.class_name}
                   onChange={(e) => {
                     setNewFeeGroup({ ...newFeeGroup, class_name: e.target.value });
@@ -230,24 +220,23 @@ const FeeGroup = () => {
                       {classItem.class_name}
                     </option>
                   ))}
-                </FormControl>
+                </FormSelect>
               </Col>
               <Col lg={6}>
                 <FormLabel>Section Name</FormLabel>
-                <FormControl
-                  as="select"
+                <FormSelect
                   value={newFeeGroup.section_name}
                   onChange={(e) =>
                     setNewFeeGroup({ ...newFeeGroup, section_name: e.target.value })
                   }
                 >
                   <option value="">Select Section</option>
-                  {sectionList.length > 0 && sectionList.map((sectionItem) => (
+                  {sectionList?.sections?.length > 0 && sectionList?.sections?.map((sectionItem) => (
                     <option key={sectionItem._id} value={sectionItem._id}>
                       {sectionItem.section_name}
                     </option>
                   ))}
-                </FormControl>
+                </FormSelect>
               </Col>
               <Col lg={6}>
                 <FormLabel>Late Fine Per Day</FormLabel>

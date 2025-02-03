@@ -67,7 +67,7 @@ const PettyHeadMaster = () => {
     setError("");
     try {
       const response = await axios.get(
-        "https://erp-backend-fy3n.onrender.com/api/petty-heads"
+        "https://erp-backend-fy3n.onrender.com/api/petty-heads/fetch"
       );
       if (response.data && response.data.pettyHeads && response.data.pettyHeads.length > 0) {
         setData(response.data.pettyHeads);
@@ -88,7 +88,7 @@ const PettyHeadMaster = () => {
     if (newPettyHead.petty_name.trim() && newPettyHead.head_type.trim()) {
       try {
         const response = await axios.post(
-          "https://erp-backend-fy3n.onrender.com/api/petty-heads",
+          "https://erp-backend-fy3n.onrender.com/api/petty-heads/create",
           newPettyHead
         );
         setData((prevData) => [...prevData, response.data.pettyHead]);
@@ -118,7 +118,7 @@ const PettyHeadMaster = () => {
     if (updatedName && updatedType) {
       try {
         await axios.put(
-          `https://erp-backend-fy3n.onrender.com/api/petty-heads/${id}`,
+          `https://erp-backend-fy3n.onrender.com/api/petty-heads/update/${id}`,
           { petty_name: updatedName, head_type: updatedType }
         );
         setData((prevData) =>
@@ -137,7 +137,7 @@ const PettyHeadMaster = () => {
     if (confirm("Are you sure you want to delete this petty head?")) {
       try {
         await axios.delete(
-          `https://erp-backend-fy3n.onrender.com/api/petty-heads/${id}`
+          `https://erp-backend-fy3n.onrender.com/api/petty-heads/delete/${id}`
         );
         setData((prevData) => prevData.filter((row) => row._id !== id));
       } catch (err) {
@@ -193,7 +193,7 @@ const PettyHeadMaster = () => {
           </div>
         )}
         <h2>Petty Head Records</h2>
-        {loading && <p>Loading...</p>}
+        {/* {loading && <p>Loading...</p>} */}
         {error && <p>{error}</p>}
         {!loading && !error && data.length === 0 && <p>No records found.</p>}
         {!loading && !error && data.length > 0 && (

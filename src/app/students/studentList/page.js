@@ -1,20 +1,60 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import styles from "@/app/medical/routine-check-up/page.module.css";
 import Table from "@/app/component/DataTable";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
-import { Container, Row, Col, Breadcrumb, Form, FormLabel, FormGroup, FormControl, FormSelect, Button } from 'react-bootstrap';
+import { Container, Row, Col, Breadcrumb, Button } from "react-bootstrap";
 import axios from "axios";
-import { CgAddR } from 'react-icons/cg';
-
+import { CgAddR } from "react-icons/cg";
 
 const Studentlist = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const router = useRouter();
   const BASE_URL = "https://erp-backend-fy3n.onrender.com/api/";
+
+  // Fetch student data
+  const fetchData = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const response = await axios.get(`${BASE_URL}students`);
+      setData(response.data.data || []);
+    } catch (err) {
+      console.error("Error fetching data:", err);
+      setError("Failed to fetch data. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle Edit (Redirect to update page)
+  const handleEdit = (id) => {
+    router.push(`/students/update-student?id=${id}`);
+  };
+
+  // Handle Delete Operation
+  const handleDelete = async (id) => {
+    const confirmDelete = confirm("Are you sure you want to delete this student?");
+    if (confirmDelete) {
+      try {
+        await axios.delete(`${BASE_URL}students/${id}`);
+        setData((prevData) => prevData.filter((row) => row._id !== id));
+        alert("Student deleted successfully!");
+      } catch (error) {
+        console.error("Error deleting student:", error);
+        alert("Failed to delete student.");
+      }
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   const columns = [
     { name: "#", selector: (row, index) => index + 1, width: "50px" },
@@ -44,69 +84,36 @@ const Studentlist = () => {
     },
   ];
 
-  const fetchData = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const response = await axios.get(`${BASE_URL}students`);
-      setData(response.data.data || []);
-    } catch (err) {
-      console.error("Error fetching data:", err);
-      setError("Failed to fetch data. Please try again later.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleEdit = async (id) => {
-    console.log("Edit student:", id);
-  };
-
-  const handleDelete = async (id) => {
-    if (confirm("Are you sure you want to delete this entry?")) {
-      try {
-        await axios.delete(`${BASE_URL}deleteStudent?id=${id}`);
-        setData((prevData) => prevData.filter((row) => row._id !== id));
-      } catch (error) {
-        console.error("Error deleting data:", error);
-        setError("Failed to delete data.");
-      }
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
   return (
     <Container className={styles.vehicle}>
-      <Row className='mt-1 mb-1'>
+      <Row className="mt-1 mb-1">
         <Col>
           <Breadcrumb>
             <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-            <Breadcrumb.Item href="/transport/all-module">
-              Students
-            </Breadcrumb.Item>
+            <Breadcrumb.Item href="/students">Students</Breadcrumb.Item>
             <Breadcrumb.Item active>Student List</Breadcrumb.Item>
           </Breadcrumb>
         </Col>
       </Row>
-    <a href="/students/add-new-student" id="submit" type='button'>
-    <CgAddR/> Add New Student
-  </a>
-  <a href="/students/update-student" id="submit" type='button'>
-    <CgAddR/> Update Student
-  </a>
-<Row>
-  <Col lg={12}>
-    <div className="tableSheet">
-      <h2>Student Records</h2>
-      {/* {loading && <p>Loading...</p>} */}
-      {error && <p style={{ color: "red" }}>{error}</p>}
-      {!loading && !error && <Table columns={columns} data={data} />}
-    </div>
-    </Col>
-    </Row>
+
+      <div className="d-flex justify-content-between mb-3">
+        <Button href="/students/add-new-student" className="btn-primary">
+          <CgAddR /> Add New Student
+        </Button>
+        <Button href="/students/update-student" className="btn-secondary">
+          <CgAddR /> Update Student
+        </Button>
+      </div>
+
+      <Row>
+        <Col lg={12}>
+          <div className="tableSheet">
+            <h2>Student Records</h2>
+            {error && <p style={{ color: "red" }}>{error}</p>}
+            {!loading && !error && <Table columns={columns} data={data} />}
+          </div>
+        </Col>
+      </Row>
     </Container>
   );
 };

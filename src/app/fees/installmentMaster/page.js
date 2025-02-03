@@ -54,7 +54,7 @@ const InstallmentMaster = () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/installments");
+      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/installments/fetch");
       if (response.data && response.data.data && response.data.data.length > 0) {
         setData(response.data.data);
       } else {
@@ -100,7 +100,7 @@ const InstallmentMaster = () => {
     if (updatedName) {
       try {
         await axios.put(
-          `https://erp-backend-fy3n.onrender.com/api/installments/${id}`,
+          `https://erp-backend-fy3n.onrender.com/api/installments/update/${id}`,
           { installment_name: updatedName }
         );
         setData((prevData) =>
@@ -119,7 +119,7 @@ const InstallmentMaster = () => {
     if (confirm("Are you sure you want to delete this installment?")) {
       try {
         await axios.delete(
-          `https://erp-backend-fy3n.onrender.com/api/installments/${id}`
+          `https://erp-backend-fy3n.onrender.com/api/installments/delete/${id}`
         );
         setData((prevData) => prevData.filter((row) => row._id !== id));
       } catch (err) {
@@ -162,7 +162,7 @@ const InstallmentMaster = () => {
           </div>
         )}
         <h2>Installment Records</h2>
-        {loading && <p>Loading...</p>}
+        {/* {loading && <p>Loading...</p>} */}
         {error && <p>{error}</p>}
         {!loading && !error && data.length === 0 && <p>No records found.</p>}
         {!loading && !error && data.length > 0 && (

@@ -57,7 +57,7 @@ const BankMaster = () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/banks");
+      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/banks/fetch");
       if (response.data && response.data.data && response.data.data.length > 0) {
         setData(response.data.data);
       } else {
@@ -77,7 +77,7 @@ const BankMaster = () => {
     if (newBank.bank_name.trim()) {
       try {
         const response = await axios.post(
-          "https://erp-backend-fy3n.onrender.com/api/banks",
+          "https://erp-backend-fy3n.onrender.com/api/banks/create",
           newBank
         );
         setData((prevData) => [...prevData, response.data]);
@@ -100,7 +100,7 @@ const BankMaster = () => {
     if (updatedName) {
       try {
         await axios.put(
-          `https://erp-backend-fy3n.onrender.com/api/banks/${id}`,
+          `https://erp-backend-fy3n.onrender.com/api/banks/update/${id}`,
           { bank_name: updatedName }
         );
         setData((prevData) =>
@@ -118,7 +118,7 @@ const BankMaster = () => {
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this bank?")) {
       try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/banks/${id}`);
+        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/banks/delete/${id}`);
         setData((prevData) => prevData.filter((row) => row._id !== id));
       } catch (err) {
         setError("Failed to delete bank.");
@@ -160,7 +160,7 @@ const BankMaster = () => {
           </div>
         )}
         <h2>Bank Records</h2>
-        {loading && <p>Loading...</p>}
+        {/* {loading && <p>Loading...</p>} */}
         {error && <p>{error}</p>}
         {!loading && !error && data.length === 0 && <p>No records found.</p>}
         {!loading && !error && data.length > 0 && (
