@@ -80,7 +80,7 @@ const FeeGroup = () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/fee-groups/fetch");
+      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-fee-groups");
       if (response.data && response.data.feeGroups.length > 0) {
         setData(response.data.feeGroups);
       } else {
@@ -97,7 +97,7 @@ const FeeGroup = () => {
 
   const fetchClasses = async () => {
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/class/fetch");
+      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-classes");
       const resp = response.data;
       setClassList(resp.data || []);
     
@@ -125,7 +125,7 @@ const FeeGroup = () => {
       newFeeGroup.late_fine_per_day.trim()
     ) {
       try {
-        const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/fee-groups/create", newFeeGroup);
+        const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/add-fee-groups", newFeeGroup);
         setData((prevData) => [...prevData, response.data.feeGroup]);
         setNewFeeGroup({
           group_name: "",
@@ -153,7 +153,7 @@ const FeeGroup = () => {
     if (updatedGroupName && updatedClassName && updatedSectionName && updatedLateFine) {
       try {
         await axios.put(
-          `https://erp-backend-fy3n.onrender.com/api/fee-groups/update/${id}`,
+          `https://erp-backend-fy3n.onrender.com/api/update-fee-groups/${id}`,
           { group_name: updatedGroupName, class_name: updatedClassName, section_name: updatedSectionName, late_fine_per_day: updatedLateFine }
         );
         setData((prevData) =>
@@ -170,7 +170,7 @@ const FeeGroup = () => {
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this fee group?")) {
       try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/fee-groups/delete/${id}`);
+        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-fee-groups/${id}`);
         setData((prevData) => prevData.filter((row) => row._id !== id));
       } catch (err) {
         setError("Failed to delete fee group.");

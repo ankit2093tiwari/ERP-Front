@@ -76,9 +76,7 @@ const StudentMasterPage = () => {
   axios.defaults.headers.common["Authorization"] = `Bearer ${TOKEN}`;
 
   useEffect(() => {
-    // fetchData();
     fetchClasses();
-
     fetchReligion();
     fetchCategory();
     fetchCaste();
@@ -153,16 +151,6 @@ const StudentMasterPage = () => {
       setError("Failed to fetch sections.");
     }
   };
-
-  // const fetchSections = async (classId) => {
-  //   try {
-  //     const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/sections/class/${classId}`);
-  //     setSectionList(response.data || []);
-  //     // console.log('test',response.data)
-  //   } catch (err) {
-  //     setError("Failed to fetch sections.");
-  //   }
-  // };
 
   const columns = [
     { name: "#", selector: (row, index) => index + 1, sortable: false, width: "50px" },
@@ -269,7 +257,7 @@ const StudentMasterPage = () => {
 
 
   const handleSubmit = async (e) => {
-    e.preventDefault(); // Prevent page reload
+    e.preventDefault(); 
     if (!validateForm()) return;
 
     const endpoint = student._id
@@ -501,8 +489,6 @@ const StudentMasterPage = () => {
                     </FormGroup>
                     <FormGroup as={Col} md="3" controlId="validationCustom09">
                       <FormLabel className="labelForm">Select Section</FormLabel>
-
-                      {/* <p className="error">{studentError.section_name_error}</p> */}
                       <FormSelect
                         value={student.section_name}
                         onChange={(e) =>
@@ -554,17 +540,6 @@ const StudentMasterPage = () => {
                     </FormGroup>
                   </Row>
                   <Row className='mb-3'>
-                    {/* <FormGroup as={Col} md="3" controlId="validationCustom12">
-                      <FormLabel className="labelForm">Religion</FormLabel>
-                      <FormSelect>
-                        <option>Select</option>
-                        <option value="1">Hindu</option>
-                        <option value="2">Muslim</option>
-                        <option value="3">Christian</option>
-                        <option value="4">Buddhist</option>
-                        <option value="5">Jainism</option>
-                      </FormSelect>
-                    </FormGroup> */}
                     <FormGroup as={Col} md="3" controlId="validationCustom08">
                       <FormLabel className="labelForm">Select Religion</FormLabel>
                       <FormSelect
@@ -581,17 +556,6 @@ const StudentMasterPage = () => {
                       </FormSelect>
                       <p className="error">{studentError.religion_name_error}</p>
                     </FormGroup>
-                    {/* <FormGroup as={Col} md="3" controlId="validationCustom13">
-                      <FormLabel className="labelForm">Category</FormLabel>
-                      <FormSelect>
-                        <option>Select</option>
-                        <option value="1">GENERAL</option>
-                        <option value="2">OBC</option>
-                        <option value="3">SC/ST</option>
-                        <option value="4">MINORITY</option>
-                        <option value="5">OTHERS</option>
-                      </FormSelect>
-                    </FormGroup> */}
                     <FormGroup as={Col} md="3" controlId="validationCustom08">
                       <FormLabel className="labelForm">Select Category</FormLabel>
                       <FormSelect
@@ -667,19 +631,6 @@ const StudentMasterPage = () => {
                         placeholder="Fee Book No."
                       />
                     </FormGroup>
-                    {/* <FormGroup as={Col} md="3" controlId="validationCustom19">
-                      <FormLabel className="labelForm">Caste</FormLabel>
-                      <FormSelect>
-                        <option>Select</option>
-                        <option value="1">Brahmins</option>
-                        <option value="2">Kshatriyas</option>
-                        <option value="3">Vaishyas</option>
-                        <option value="4">Shudras</option>
-                        <option value="5">Dalits</option>
-                        <option value="5">Ansaris</option>
-                        <option value="5">Other Muslims</option>
-                      </FormSelect>
-                    </FormGroup> */}
                     <FormGroup as={Col} md="3" controlId="validationCustom08">
                       <FormLabel className="labelForm">Select Caste</FormLabel>
                       <FormSelect
@@ -853,21 +804,6 @@ const StudentMasterPage = () => {
                         <option value="4">Brazil</option>
                       </FormSelect>
                     </FormGroup>
-                    {/* <FormGroup as={Col} md="6" controlId="validationCustom36">
-                      <FormLabel className="labelForm">State</FormLabel>
-                      <FormSelect>
-                        <option>State</option>
-                        <option value="1">Andhra Pradesh</option>
-                        <option value="2">Arunachal Pradesh</option>
-                        <option value="3">Bihar</option>
-                        <option value="4">Chhattisgarh</option>
-                        <option value="5">Chandigarh</option>
-                        <option value="6">Goa</option>
-                        <option value="7">Himachal Pradesh</option>
-                        <option value="8">Kerala</option>
-                        <option value="9">Uttar Pradesh</option>
-                      </FormSelect>
-                    </FormGroup> */}
                     <FormGroup as={Col} md="6" controlId="validationCustom08">
                       <FormLabel className="labelForm">Select State</FormLabel>
                       <FormSelect

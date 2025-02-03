@@ -54,7 +54,7 @@ const InstallmentMaster = () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/installments/fetch");
+      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-installments");
       if (response.data && response.data.data && response.data.data.length > 0) {
         setData(response.data.data);
       } else {
@@ -74,7 +74,7 @@ const InstallmentMaster = () => {
     if (newInstallment.installment_name.trim()) {
       try {
         const response = await axios.post(
-          "https://erp-backend-fy3n.onrender.com/api/installments/create",
+          "https://erp-backend-fy3n.onrender.com/api/add-installments",
           newInstallment
         );
         setData((prevData) => [...prevData, response.data]);
@@ -100,7 +100,7 @@ const InstallmentMaster = () => {
     if (updatedName) {
       try {
         await axios.put(
-          `https://erp-backend-fy3n.onrender.com/api/installments/update/${id}`,
+          `https://erp-backend-fy3n.onrender.com/api/update-installments/${id}`,
           { installment_name: updatedName }
         );
         setData((prevData) =>
@@ -119,7 +119,7 @@ const InstallmentMaster = () => {
     if (confirm("Are you sure you want to delete this installment?")) {
       try {
         await axios.delete(
-          `https://erp-backend-fy3n.onrender.com/api/installments/delete/${id}`
+          `https://erp-backend-fy3n.onrender.com/api/delete-installments/${id}`
         );
         setData((prevData) => prevData.filter((row) => row._id !== id));
       } catch (err) {

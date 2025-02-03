@@ -65,9 +65,9 @@ const Studentlist = () => {
     { name: "Gender", selector: (row) => row.gender || "N/A" },
     { name: "Phone No", selector: (row) => row.phone_no || "N/A" },
     { name: "Date of Birth", selector: (row) => new Date(row.date_of_birth).toLocaleDateString() || "N/A" },
-    { name: "Religion", selector: (row) => row.religion || "N/A" },
+    // { name: "Religion", selector: (row) => row.religion_name || "N/A" },
     { name: "Aadhar No", selector: (row) => row.aadhar_card_no || "N/A" },
-    { name: "Last School", selector: (row) => row.last_school_attended || "N/A" },
+    // { name: "Last School", selector: (row) => row.last_school_attended || "N/A" },
     { name: "Country", selector: (row) => row.residence_address?.country || "N/A" },
     {
       name: "Actions",

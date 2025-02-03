@@ -24,7 +24,7 @@ const ClassMasterPage = () => {
   const fetchClasses = async () => {
     setLoading(true);
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/class/fetch");
+      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-classes");
       setClasses(response.data.data || []);
       console.log('teste',response.data )
     } catch (err) {
@@ -37,7 +37,7 @@ const ClassMasterPage = () => {
   const fetchSections = async () => {
     setLoading(true);
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/sections/fetch");
+      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-sections");
       setSections(response.data.data || []);
     } catch (err) {
       setError("Failed to fetch section data.");
@@ -58,7 +58,7 @@ const ClassMasterPage = () => {
     }
 
     try {
-      await axios.post("https://erp-backend-fy3n.onrender.com/api/class/create", {
+      await axios.post("https://erp-backend-fy3n.onrender.com/api/add-class", {
         class_name: newClassName,
         class_code: newClassCode,
       });
@@ -77,7 +77,7 @@ const ClassMasterPage = () => {
     }
 
     try {
-      await axios.post("https://erp-backend-fy3n.onrender.com/api/sections/create", {
+      await axios.post("https://erp-backend-fy3n.onrender.com/api/add-sections", {
         class_id: selectedClass,
         section_name: newSectionName,
         section_code: newSectionCode,
@@ -111,7 +111,7 @@ const ClassMasterPage = () => {
     }
 
     try {
-      await axios.put(`https://erp-backend-fy3n.onrender.com/api/class/update/${id}`, {
+      await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-class/${id}`, {
         class_name: newClassName,
         class_code: newClassCode,
       });
@@ -131,7 +131,7 @@ const ClassMasterPage = () => {
     }
 
     try {
-      await axios.put(`https://erp-backend-fy3n.onrender.com/api/sections/update/${id}`, {
+      await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-sections/${id}`, {
         class_id: selectedClass,
         section_name: newSectionName,
         section_code: newSectionCode,
@@ -148,7 +148,7 @@ const ClassMasterPage = () => {
 
   const handleDeleteClass = async (classId) => {
     try {
-      await axios.delete(`https://erp-backend-fy3n.onrender.com/api/class/delete/${id}`);
+      await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-class/${id}`);
       fetchClasses();
     } catch (err) {
       setError("Failed to delete class.");
@@ -157,7 +157,7 @@ const ClassMasterPage = () => {
 
   const handleDeleteSection = async (sectionId) => {
     try {
-      await axios.delete(`https://erp-backend-fy3n.onrender.com/api/sections/delete/${id}`);
+      await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-sections/${id}`);
       fetchSections();
     } catch (err) {
       setError("Failed to delete section.");

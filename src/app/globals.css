@@ -5,6 +5,11 @@ body {
   max-width: 100% !important;
   width: 100% !important;
 }
+.error
+{
+  color: #F00;
+  font-size: 13px;
+}
 .layout {
   display: flex;
   height: 100vh;

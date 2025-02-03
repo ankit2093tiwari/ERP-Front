@@ -66,7 +66,7 @@ const HeadMasterPage = () => {
     setError("");
     try {
       const response = await axios.get(
-        "https://erp-backend-fy3n.onrender.com/api/fee-type/fetch"
+        "https://erp-backend-fy3n.onrender.com/api/all-fee-type"
       );
       if (response.data && response.data.headMasters && response.data.headMasters.length > 0) {
         setData(response.data.headMasters);
@@ -86,7 +86,7 @@ const HeadMasterPage = () => {
     if (newHeadMaster.head_name.trim() && newHeadMaster.head_type.trim()) {
       try {
         const response = await axios.post(
-          "https://erp-backend-fy3n.onrender.com/api/fee-type/create",
+          "https://erp-backend-fy3n.onrender.com/api/add-fee-type",
           newHeadMaster
         );
         setData((prevData) => [...prevData, response.data.headMaster]);
@@ -115,7 +115,7 @@ const HeadMasterPage = () => {
     if (updatedName && updatedType) {
       try {
         await axios.put(
-          `https://erp-backend-fy3n.onrender.com/api/fee-type/update/${id}`,
+          `https://erp-backend-fy3n.onrender.com/api/update-fee-type/${id}`,
           { head_name: updatedName, head_type: updatedType }
         );
         setData((prevData) =>
@@ -133,7 +133,7 @@ const HeadMasterPage = () => {
     if (confirm("Are you sure you want to delete this HeadMaster?")) {
       try {
         await axios.delete(
-          `https://erp-backend-fy3n.onrender.com/api/fee-type/delete/${id}`
+          `https://erp-backend-fy3n.onrender.com/api/delete-fee-type/${id}`
         );
         setData((prevData) => prevData.filter((row) => row._id !== id));
       } catch (err) {

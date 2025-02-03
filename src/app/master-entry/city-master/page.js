@@ -22,7 +22,7 @@ const StateCityMasterPage = () => {
   const fetchStates = async () => {
     setLoading(true);
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/states/fetch");
+      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-states");
       setStates(response.data.data || []);
       console.log('States fetched', response.data);
     } catch (err) {
@@ -35,7 +35,7 @@ const StateCityMasterPage = () => {
   const fetchCities = async () => {
     setLoading(true);
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/cities/fetch");
+      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-cities");
       setCities(response.data.data || []);
     } catch (err) {
       setError("Failed to fetch city data.");
@@ -56,7 +56,7 @@ const StateCityMasterPage = () => {
     }
 
     try {
-      await axios.post("https://erp-backend-fy3n.onrender.com/api/states/create", {
+      await axios.post("https://erp-backend-fy3n.onrender.com/api/add-states", {
         state_name: newStateName,
       });
       fetchStates();
@@ -73,7 +73,7 @@ const StateCityMasterPage = () => {
     }
 
     try {
-      await axios.post("https://erp-backend-fy3n.onrender.com/api/cities/create", {
+      await axios.post("https://erp-backend-fy3n.onrender.com/api/add-cities", {
         state_id: selectedState,
         city_name: newCityName,
       });
@@ -103,7 +103,7 @@ const StateCityMasterPage = () => {
     }
 
     try {
-      await axios.put(`https://erp-backend-fy3n.onrender.com/api/states/update/${editState._id}`, {
+      await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-states/${id}`, {
         state_name: newStateName,
       });
       fetchStates();
@@ -121,7 +121,7 @@ const StateCityMasterPage = () => {
     }
 
     try {
-      await axios.put(`https://erp-backend-fy3n.onrender.com/api/cities/update/${editCity._id}`, {
+      await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-cities/${id}`, {
         state_id: selectedState,
         city_name: newCityName,
       });
@@ -136,7 +136,7 @@ const StateCityMasterPage = () => {
 
   const handleDeleteState = async (stateId) => {
     try {
-      await axios.delete(`https://erp-backend-fy3n.onrender.com/api/states/delete/${stateId}`);
+      await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-states/${id}`);
       fetchStates();
     } catch (err) {
       setError("Failed to delete state.");
@@ -145,7 +145,7 @@ const StateCityMasterPage = () => {
 
   const handleDeleteCity = async (cityId) => {
     try {
-      await axios.delete(`https://erp-backend-fy3n.onrender.com/api/cities/delete/${cityId}`);
+      await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-cities/${id}`);
       fetchCities();
     } catch (err) {
       setError("Failed to delete city.");
