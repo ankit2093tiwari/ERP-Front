@@ -1,10 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import dynamic from "next/dynamic";
-import Table from "@/app/component/DataTable";
 import axios from "axios";
 import { Form, Row, Col, Container, FormLabel, Button, Breadcrumb, FormSelect } from "react-bootstrap";
+import Table from "@/app/component/DataTable";
 import styles from "@/app/students/assign-roll-no/page.module.css";
 
 const StudentBulkUpdate = () => {
@@ -13,7 +12,8 @@ const StudentBulkUpdate = () => {
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedSection, setSelectedSection] = useState("");
   const [students, setStudents] = useState([]);
-  const [selectedStudents, setSelectedStudents] = useState([]);
+  const [updatedStudents, setUpdatedStudents] = useState([]);
+  const [showUpdateButton, setShowUpdateButton] = useState(false);
 
   useEffect(() => {
     fetchClasses();
@@ -46,7 +46,11 @@ const StudentBulkUpdate = () => {
       const response = await axios.get(
         `https://erp-backend-fy3n.onrender.com/api/students/search?class_name=${selectedClass}&section_name=${selectedSection}`
       );
-      setStudents(response.data.students || []);
+
+      console.log("API Response:", response.data);
+      setStudents(response.data.data || []);
+      setUpdatedStudents(response.data.data || []);
+      setShowUpdateButton(true);
     } catch (error) {
       console.error("Failed to fetch students", error);
     }
@@ -55,65 +59,136 @@ const StudentBulkUpdate = () => {
   const handleClassChange = (event) => {
     const classId = event.target.value;
     setSelectedClass(classId);
+    setSelectedSection("");
     fetchSections(classId);
   };
 
-  const handleSelectAll = (event) => {
-    if (event.target.checked) {
-      setSelectedStudents(students.map((student) => student.registrationId));
-    } else {
-      setSelectedStudents([]);
+  const handleSectionChange = (event) => {
+    setSelectedSection(event.target.value);
+  };
+
+  // Handle updates to student fields
+  const handleFieldChange = (index, field, value) => {
+    const updatedList = [...updatedStudents];
+    updatedList[index][field] = value;
+    setUpdatedStudents(updatedList);
+  };
+
+  // Handle student update API call
+  const handleUpdateStudents = async () => {
+    try {
+      await axios.post("https://erp-backend-fy3n.onrender.com/api/students/update", { students: updatedStudents });
+      alert("Students updated successfully!");
+    } catch (error) {
+      console.error("Failed to update students", error);
+      alert("Error updating students.");
     }
   };
 
-  const handleStudentSelect = (registrationId) => {
-    setSelectedStudents((prevSelected) =>
-      prevSelected.includes(registrationId)
-        ? prevSelected.filter((id) => id !== registrationId)
-        : [...prevSelected, registrationId]
-    );
-  };
-
   const columns = [
+    { name: "Adm No", selector: (row) => row.registration_id || "N/A", sortable: true },
     {
-      name: (
+      name: "First Name",
+      cell: (row, index) => (
         <input
-          type="checkbox"
-          onChange={handleSelectAll}
-          checked={students.length > 0 && selectedStudents.length === students.length}
+          type="text"
+          value={updatedStudents[index]?.first_name || ""}
+          onChange={(e) => handleFieldChange(index, "first_name", e.target.value)}
         />
       ),
-      selector: (row) => (
-        <input
-          type="checkbox"
-          checked={selectedStudents.includes(row.registrationId)}
-          onChange={() => handleStudentSelect(row.registrationId)}
-        />
-      ),
-      width: "80px",
     },
-    { name: "Student Name", selector: (row) => `${row.firstName} ${row.middleName || ""} ${row.lastName}`, sortable: true },
-    { name: "Father Name", selector: (row) => row.fatherName, sortable: true },
-    { name: "Registration ID", selector: (row) => row.registrationId, sortable: true },
-    { name: "Roll No", selector: (row) => row.rollNo, sortable: true },
-    { name: "Gender", selector: (row) => row.gender, sortable: true },
+    {
+      name: "Middle Name",
+      cell: (row, index) => (
+        <input
+          type="text"
+          value={updatedStudents[index]?.middle_name || ""}
+          onChange={(e) => handleFieldChange(index, "middle_name", e.target.value)}
+        />
+      ),
+    },
+    {
+      name: "Last Name",
+      cell: (row, index) => (
+        <input
+          type="text"
+          value={updatedStudents[index]?.last_name || ""}
+          onChange={(e) => handleFieldChange(index, "last_name", e.target.value)}
+        />
+      ),
+    },
+    {
+      name: "Father Name",
+      cell: (row, index) => (
+        <input
+          type="text"
+          value={updatedStudents[index]?.father_name || ""}
+          onChange={(e) => handleFieldChange(index, "father_name", e.target.value)}
+        />
+      ),
+    },
+    {
+      name: "Mother Name",
+      cell: (row, index) => (
+        <input
+          type="text"
+          value={updatedStudents[index]?.mother_name || ""}
+          onChange={(e) => handleFieldChange(index, "mother_name", e.target.value)}
+        />
+      ),
+    },
+    {
+      name: "Mobile No",
+      cell: (row, index) => (
+        <input
+          type="text"
+          value={updatedStudents[index]?.phone_no || ""}
+          onChange={(e) => handleFieldChange(index, "phone_no", e.target.value)}
+        />
+      ),
+    },
+    {
+      name: "Gender",
+      cell: (row, index) => (
+        <select value={updatedStudents[index]?.gender || ""} onChange={(e) => handleFieldChange(index, "gender", e.target.value)}>
+          <option value="">Select</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+        </select>
+      ),
+    },
+    {
+      name: "Roll No",
+      cell: (row, index) => (
+        <input
+          type="text"
+          value={updatedStudents[index]?.rollNo || ""}
+          onChange={(e) => handleFieldChange(index, "rollNo", e.target.value)}
+        />
+      ),
+    },
   ];
 
   return (
     <Container>
+      {/* Breadcrumb Navigation */}
       <Row className="mt-1 mb-1">
         <Col>
           <Breadcrumb>
             <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-            <Breadcrumb.Item href="/students/all-module">Student Bulk Update</Breadcrumb.Item>
-            <Breadcrumb.Item active>Bulk Update Students</Breadcrumb.Item>
+            <Breadcrumb.Item href="/students/all-module">Student</Breadcrumb.Item>
+            <Breadcrumb.Item active>Student Bulk Update</Breadcrumb.Item>
           </Breadcrumb>
         </Col>
       </Row>
+
+      {/* Page Heading */}
       <div className="cover-sheet">
         <div className="studentHeading">
-          <h2>Bulk Update Students</h2>
+          <h2>Search Students</h2>
         </div>
+
+        {/* Class and Section Selection Form */}
         <Form className="formSheet">
           <Row>
             <Col>
@@ -129,7 +204,7 @@ const StudentBulkUpdate = () => {
             </Col>
             <Col>
               <FormLabel className="labelForm">Select Section</FormLabel>
-              <FormSelect value={selectedSection} onChange={(e) => setSelectedSection(e.target.value)}>
+              <FormSelect value={selectedSection} onChange={handleSectionChange}>
                 <option value="">Select Section</option>
                 {sectionList.map((sec) => (
                   <option key={sec._id} value={sec._id}>
@@ -145,23 +220,28 @@ const StudentBulkUpdate = () => {
               <Button className="btn btn-primary" onClick={fetchStudents}>
                 Search Students
               </Button>
+              {showUpdateButton && (
+                  <Button className="btn btn-success mt-3" onClick={handleUpdateStudents}>
+                    Update Students
+                  </Button>
+                )}
             </Col>
           </Row>
         </Form>
       </div>
+
+      {/* Students Data Table */}
       <Row>
         <Col>
           <div className="tableSheet">
-            <h2>Students Bulk Update Records</h2>
-            <Table columns={columns} data={students} />
-            <div className={styles.buttons}>
-              <button type="button" className="editButton">
-                Previous
-              </button>
-              <button type="button" className="editButton">
-                Next
-              </button>
-            </div>
+            <h2>Students Records</h2>
+            {students.length > 0 ? (
+              <>
+                <Table columns={columns} data={students} />
+              </>
+            ) : (
+              <p className="text-center">No students found for the selected class and section.</p>
+            )}
           </div>
         </Col>
       </Row>
@@ -169,4 +249,4 @@ const StudentBulkUpdate = () => {
   );
 };
 
-export default dynamic(() => Promise.resolve(StudentBulkUpdate), { ssr: false });
+export default StudentBulkUpdate;

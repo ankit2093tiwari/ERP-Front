@@ -12,6 +12,63 @@ const Table = ({ columns, data }) => {
     setRecords(newData)
   }
 
+  function handlePrint() {
+    // Create a printable table
+    const tableHeaders = columns
+      .map((col) => `<th>${col.name}</th>`)
+      .join("");
+    const tableRows = records
+      .map(
+        (row) =>
+          `<tr>${columns
+            .map((col) => `<td>${row[col.selector]}</td>`)
+            .join("")}</tr>`
+      )
+      .join("");
+
+    const tableHTML = `
+      <table border="1" style="border-collapse: collapse; width: 100%; text-align: left;">
+        <thead style="background-color: #f2f2f2;">
+          <tr>${tableHeaders}</tr>
+        </thead>
+        <tbody>${tableRows}</tbody>
+      </table>
+    `;
+
+    // Open a new window and print
+    const printWindow = window.open("", "_blank");
+    printWindow.document.open();
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Print Table</title>
+          <style>
+            table {
+              font-family: Arial, sans-serif;
+              font-size: 14px;
+              margin: 20px 0;
+              border: 1px solid #ddd;
+              width: 100%;
+            }
+            th, td {
+              padding: 8px;
+              border: 1px solid #ddd;
+            }
+            th {
+              background-color: #f2f2f2;
+            }
+          </style>
+        </head>
+        <body>
+          ${tableHTML}
+        </body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.print();
+    printWindow.close();
+  }
+
   const customStyles = {
     headRow: {
       style: {
@@ -19,7 +76,7 @@ const Table = ({ columns, data }) => {
         borderTopWidth: '1px',
         borderTopColor: defaultThemes.default.divider.default,
         fontSize: '14px',
-        width: '900px',
+        // width: '900px',
       },
     },
     headCells: {
@@ -28,7 +85,7 @@ const Table = ({ columns, data }) => {
           borderRightStyle: 'solid',
           borderRightWidth: '1px',
           borderRightColor: defaultThemes.default.divider.default,
-          width: '900px',
+          // width: '900px',
         },
       },
     },
@@ -45,7 +102,9 @@ const Table = ({ columns, data }) => {
   };
 
   return (
-    <div style={{  border: '1px solid #ddd', borderRadius: '8px', padding: '20px', boxShadow: '2px 2px 2px 2px rgba(0, 0, 0, 0.3)' }}>
+
+    <div className='dataTableCover'>
+    <div className="searchBar">
       <input
         type="text"
         placeholder="Search..."
@@ -60,10 +119,14 @@ const Table = ({ columns, data }) => {
           marginRight: "5px"
         }}
       />
-      <div style={{ float: "right", marginTop: "-12px" }}>
+     
       <button className="editButton">Copy</button>
       <button className="editButton">Paste</button>
+      <button className="printButton" onClick={handlePrint}>
+          Print
+      </button>
       </div>
+      <div id="printableTable">
       <DataTable
         columns={columns}
         data={records}
@@ -74,6 +137,8 @@ const Table = ({ columns, data }) => {
         customStyles={customStyles}
       />
     </div>
+    </div>
+
   );
 };
 

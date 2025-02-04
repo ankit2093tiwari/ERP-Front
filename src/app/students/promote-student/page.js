@@ -1,11 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import dynamic from "next/dynamic";
-import Table from "@/app/component/DataTable";
 import axios from "axios";
 import { Form, Row, Col, Container, FormLabel, Button, Breadcrumb, FormSelect } from "react-bootstrap";
-import styles from "@/app/students/assign-roll-no/page.module.css";
+import Table from "@/app/component/DataTable";
+import styles from "@/app/medical/routine-check-up/page.module.css";
 
 const PromoteStudentPage = () => {
   const [classList, setClassList] = useState([]);
@@ -14,6 +13,8 @@ const PromoteStudentPage = () => {
   const [selectedSection, setSelectedSection] = useState("");
   const [students, setStudents] = useState([]);
   const [selectedStudents, setSelectedStudents] = useState([]);
+  const [promotedClass, setPromotedClass] = useState("");
+  const [promotedSection, setPromotedSection] = useState("");
 
   useEffect(() => {
     fetchClasses();
@@ -46,57 +47,55 @@ const PromoteStudentPage = () => {
       const response = await axios.get(
         `https://erp-backend-fy3n.onrender.com/api/students/search?class_name=${selectedClass}&section_name=${selectedSection}`
       );
-      setStudents(response.data.students || []);
+      setStudents(response.data.data || []);
+      setSelectedStudents([]);
     } catch (error) {
       console.error("Failed to fetch students", error);
     }
   };
 
-  const handleClassChange = (event) => {
-    const classId = event.target.value;
-    setSelectedClass(classId);
-    fetchSections(classId);
-  };
-
-  const handleSelectAll = (event) => {
-    if (event.target.checked) {
-      setSelectedStudents(students.map((student) => student.registrationId));
-    } else {
-      setSelectedStudents([]);
+  const handlePromote = async () => {
+    if (!promotedClass || !promotedSection || selectedStudents.length === 0) {
+      alert("Please select students, promoted class, and promoted section");
+      return;
     }
-  };
-
-  const handleStudentSelect = (registrationId) => {
-    setSelectedStudents((prevSelected) =>
-      prevSelected.includes(registrationId)
-        ? prevSelected.filter((id) => id !== registrationId)
-        : [...prevSelected, registrationId]
-    );
+    try {
+      await axios.post("https://erp-backend-fy3n.onrender.com/api/students/promote", {
+        student_ids: selectedStudents,
+        new_class_id: promotedClass,
+        new_section_id: promotedSection,
+      });
+      alert("Students promoted successfully");
+      setStudents([]);
+      setSelectedStudents([]);
+    } catch (error) {
+      console.error("Failed to promote students", error);
+      alert("Failed to promote students");
+    }
   };
 
   const columns = [
     {
-      name: (
+      name: "Select",
+      cell: (row) => (
         <input
           type="checkbox"
-          onChange={handleSelectAll}
-          checked={students.length > 0 && selectedStudents.length === students.length}
+          checked={selectedStudents.includes(row._id)}
+          onChange={() =>
+            setSelectedStudents((prevSelected) =>
+              prevSelected.includes(row._id)
+                ? prevSelected.filter((id) => id !== row._id)
+                : [...prevSelected, row._id]
+            )
+          }
         />
       ),
-      selector: (row) => (
-        <input
-          type="checkbox"
-          checked={selectedStudents.includes(row.registrationId)}
-          onChange={() => handleStudentSelect(row.registrationId)}
-        />
-      ),
-      width: "80px",
     },
-    { name: "Student Name", selector: (row) => `${row.firstName} ${row.middleName || ""} ${row.lastName}`, sortable: true },
-    { name: "Father Name", selector: (row) => row.fatherName, sortable: true },
-    { name: "Registration ID", selector: (row) => row.registrationId, sortable: true },
-    { name: "Roll No", selector: (row) => row.rollNo, sortable: true },
-    { name: "Gender", selector: (row) => row.gender, sortable: true },
+    { name: "Student Name", selector: (row) => `${row.first_name} ${row.middle_name || ""} ${row.last_name}`.trim(), sortable: true },
+    { name: "Father Name", selector: (row) => row.father_name || "N/A", sortable: true },
+    { name: "Adm No", selector: (row) => row.registration_id || "N/A", sortable: true },
+    { name: "Gender", selector: (row) => row.gender || "N/A", sortable: true },
+    { name: "Roll No", selector: (row) => row.rollNo || "N/A", sortable: true },
   ];
 
   return (
@@ -110,58 +109,64 @@ const PromoteStudentPage = () => {
           </Breadcrumb>
         </Col>
       </Row>
-      <div className="cover-sheet">
-        <div className="studentHeading">
-          <h2>Promote Students</h2>
-        </div>
-        <Form className="formSheet">
+
+      <div className="cover-sheet2">
+        <h2>Promote Students</h2>
+        <Form>
           <Row>
             <Col>
-              <FormLabel className="labelForm">Select Class</FormLabel>
-              <FormSelect value={selectedClass} onChange={handleClassChange}>
+              <FormLabel>Select Class</FormLabel>
+              <FormSelect value={selectedClass} onChange={(e) => { setSelectedClass(e.target.value); fetchSections(e.target.value); }}>
                 <option value="">Select Class</option>
-                {classList.map((cls) => (
-                  <option key={cls._id} value={cls._id}>
-                    {cls.class_name}
-                  </option>
-                ))}
+                {classList.map((cls) => <option key={cls._id} value={cls._id}>{cls.class_name}</option>)}
               </FormSelect>
             </Col>
             <Col>
-              <FormLabel className="labelForm">Select Section</FormLabel>
+              <FormLabel>Select Section</FormLabel>
               <FormSelect value={selectedSection} onChange={(e) => setSelectedSection(e.target.value)}>
                 <option value="">Select Section</option>
-                {sectionList.map((sec) => (
-                  <option key={sec._id} value={sec._id}>
-                    {sec.section_name}
-                  </option>
-                ))}
+                {sectionList.map((sec) => <option key={sec._id} value={sec._id}>{sec.section_name}</option>)}
               </FormSelect>
             </Col>
           </Row>
           <br />
           <Row>
             <Col>
-              <Button className="btn btn-primary" onClick={fetchStudents}>
-                Search Students
-              </Button>
+              <Button onClick={fetchStudents}>Search Students</Button>
             </Col>
+          </Row>
+          <br />
+          <Row>
+            <Col>
+              <FormLabel>Select Promoted Class</FormLabel>
+              <FormSelect value={promotedClass} onChange={(e) => { setPromotedClass(e.target.value); fetchSections(e.target.value); }}>
+                <option value="">Select Class</option>
+                {classList.map((cls) => <option key={cls._id} value={cls._id}>{cls.class_name}</option>)}
+              </FormSelect>
+            </Col>
+            <Col>
+              <FormLabel>Select Promoted Section</FormLabel>
+              <FormSelect value={promotedSection} onChange={(e) => setPromotedSection(e.target.value)}>
+                <option value="">Select Section</option>
+                {sectionList.map((sec) => <option key={sec._id} value={sec._id}>{sec.section_name}</option>)}
+              </FormSelect>
+            </Col>
+            <Row>
+              <Col>
+                {/* <Button onClick={fetchStudents}>Search Students</Button> */}
+                <Button onClick={handlePromote} disabled={!selectedStudents.length || !promotedClass || !promotedSection}>Promote Students</Button>
+              </Col>
+            </Row>
           </Row>
         </Form>
       </div>
+
       <Row>
         <Col>
           <div className="tableSheet">
             <h2>Students Records</h2>
-            <Table columns={columns} data={students} />
-            <div className={styles.buttons}>
-              <button type="button" className="editButton">
-                Previous
-              </button>
-              <button type="button" className="editButton">
-                Next
-              </button>
-            </div>
+            {students.length > 0 ? <Table columns={columns} data={students} /> : <p className="text-center">No students found.</p>}
+
           </div>
         </Col>
       </Row>
@@ -169,4 +174,4 @@ const PromoteStudentPage = () => {
   );
 };
 
-export default dynamic(() => Promise.resolve(PromoteStudentPage), { ssr: false });
+export default PromoteStudentPage;

@@ -463,10 +463,24 @@ input::-webkit-inner-spin-button
   padding: 20px;
   border-radius: 20px;
 } */
+
+.cover-sheet2 
+{
+  background: rgb(249, 249, 249);
+  padding: 25px;
+  border-radius: 20px;
+  /* box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); */
+  border: 1px solid #ddd;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+.cover-sheet2 h2{
+  font-size: 20px;
+}
 .cover-sheet 
 {
   background: rgb(249, 249, 249);
-  padding: 0px;
+  /* padding: 25px; */
   border-radius: 20px;
   /* box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); */
   border: 1px solid #ddd;

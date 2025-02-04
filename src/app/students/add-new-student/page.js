@@ -86,7 +86,7 @@ const StudentMasterPage = () => {
 
   const fetchClasses = async () => {
     try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_SITE_URL}/api/class/fetch`);
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_SITE_URL}/api/all-classes`);
       const resp = response.data;
 
       setClassList(resp?.data || []);
@@ -132,7 +132,7 @@ const StudentMasterPage = () => {
 
   const fetchState = async () => {
     try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_SITE_URL}/api/states/fetch`);
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_SITE_URL}/api/all-states`);
       const resp = response.data;
       setStateList(resp.data || []);
 
@@ -521,18 +521,18 @@ const StudentMasterPage = () => {
                       <FormCheck
                         type="radio"
                         name="gender_name"
-                        value="Boy"
-                        label="Boy"
-                        checked={student.gender_name === "Boy"}
+                        value="Male"
+                        label="Male"
+                        checked={student.gender_name === "Male"}
                         onChange={handleRadioChange}
                         inline
                       />
                       <FormCheck
                         type="radio"
                         name="gender_name"
-                        value="Girl"
-                        label="Girl"
-                        checked={student.gender_name === "Girl"}
+                        value="Female"
+                        label="Female"
+                        checked={student.gender_name === "Female"}
                         onChange={handleRadioChange}
                         inline
                       />
