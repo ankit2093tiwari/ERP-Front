@@ -1,9 +1,8 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import styles from "@/app/medical/routine-check-up/page.module.css";
-import Table from "@/app/component/DataTable";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
+import { CgAddR } from 'react-icons/cg';
 import {
   Form,
   Row,
@@ -12,15 +11,18 @@ import {
   FormLabel,
   FormControl,
   Button,
+  Breadcrumb
 } from "react-bootstrap";
 import axios from "axios";
+import Table from "@/app/component/DataTable";
+import styles from "@/app/medical/routine-check-up/page.module.css";
 
 const BankMaster = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [newBank, setNewBank] = useState({ bank_name: "" });
+  const [newBank, setNewBank] = useState("");
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
   const columns = [
     {
@@ -52,51 +54,31 @@ const BankMaster = () => {
     },
   ];
 
-  // Fetch banks data
   const fetchData = async () => {
     setLoading(true);
     setError("");
     try {
       const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-banks");
-      if (response.data && response.data.data && response.data.data.length > 0) {
+      if (response.data && response.data.data) {
         setData(response.data.data);
       } else {
-        setData([]); // Set empty array if no records are found
+        setData([]);
         setError("No records found.");
       }
     } catch (err) {
-      setData([]); // Set empty array if there's an error fetching data
+      setData([]);
       setError("Failed to fetch banks.");
     } finally {
       setLoading(false);
     }
   };
 
-  // Add new bank
-  const handleAdd = async () => {
-    if (newBank.bank_name.trim()) {
-      try {
-        const response = await axios.post(
-          "https://erp-backend-fy3n.onrender.com/api/add-banks",
-          newBank
-        );
-        setData((prevData) => [...prevData, response.data]);
-        setNewBank({ bank_name: "" });
-        setShowAddForm(false);
-        fetchData(); // Fetch data again after adding new bank
-      } catch (err) {
-        setError("Failed to add bank.");
-      }
-    } else {
-      alert("Bank Name is required.");
-    }
-  };
-
-  // Edit bank
   const handleEdit = async (id) => {
     const bank = data.find((row) => row._id === id);
-    const updatedName = prompt("Enter new bank name:", bank?.bank_name || "");
-
+    const updatedName = prompt(
+      "Enter new bank name:",
+      bank?.bank_name || ""
+    );
     if (updatedName) {
       try {
         await axios.put(
@@ -114,7 +96,6 @@ const BankMaster = () => {
     }
   };
 
-  // Delete bank
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this bank?")) {
       try {
@@ -126,47 +107,76 @@ const BankMaster = () => {
     }
   };
 
-  // Fetch data on component mount
+  const handleAdd = async () => {
+    if (newBank.trim()) {
+      try {
+        const response = await axios.post(
+          "https://erp-backend-fy3n.onrender.com/api/add-banks",
+          { bank_name: newBank }
+        );
+        setData((prevData) => [...prevData, response.data]);
+        setNewBank("");
+        setIsPopoverOpen(false);
+        fetchData();
+      } catch (err) {
+        setError("Failed to add bank.");
+      }
+    }
+  };
+
   useEffect(() => {
     fetchData();
   }, []);
 
   return (
-    <Container className={styles.formContainer}>
-      <Form className={styles.form}>
-        <Button
-          onClick={() => setShowAddForm(!showAddForm)}
-          className={`mb-4 ${styles.search}`}
-        >
-          Add Bank
-        </Button>
-        {showAddForm && (
-          <div className="mb-4">
+    <Container className="">
+      <Row className="mt-1 mb-1">
+        <Col>
+          <Breadcrumb>
+            <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
+            <Breadcrumb.Item href="/banks">Banks</Breadcrumb.Item>
+            <Breadcrumb.Item active>Manage Banks</Breadcrumb.Item>
+          </Breadcrumb>
+        </Col>
+      </Row>
+
+      <Button onClick={() => setIsPopoverOpen(true)} className="btn btn-primary">
+        <CgAddR /> Add Bank
+      </Button>
+
+      {isPopoverOpen && (
+        <div className="cover-sheet">
+          <div className="studentHeading">
+            <h2>Add New Bank</h2>
+            <button className="closeForm" onClick={() => setIsPopoverOpen(false)}>
+              X
+            </button>
+          </div>
+          <Form className="formSheet">
             <Row>
               <Col lg={6}>
                 <FormLabel>Bank Name</FormLabel>
                 <FormControl
                   type="text"
-                  value={newBank.bank_name}
-                  onChange={(e) =>
-                    setNewBank({ bank_name: e.target.value })
-                  }
+                  placeholder="Enter Bank Name"
+                  value={newBank}
+                  onChange={(e) => setNewBank(e.target.value)}
                 />
               </Col>
             </Row>
-            <Button onClick={handleAdd} className={styles.search}>
+            <Button onClick={handleAdd} className="btn btn-primary">
               Add Bank
             </Button>
-          </div>
-        )}
+          </Form>
+        </div>
+      )}
+
+      <div className="tableSheet">
         <h2>Bank Records</h2>
-        {/* {loading && <p>Loading...</p>} */}
+        {loading && <p>Loading...</p>}
         {error && <p>{error}</p>}
-        {!loading && !error && data.length === 0 && <p>No records found.</p>}
-        {!loading && !error && data.length > 0 && (
-          <Table columns={columns} data={data} />
-        )}
-      </Form>
+        {!loading && !error && <Table columns={columns} data={data} />}
+      </div>
     </Container>
   );
 };

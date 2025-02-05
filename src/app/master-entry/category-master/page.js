@@ -2,12 +2,12 @@
 
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import styles from "@/app/medical/routine-check-up/page.module.css";
-import Table from "@/app/component/DataTable";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
+import { CgAddR } from 'react-icons/cg';
 import { Form, Row, Col, Container, FormLabel, FormControl, Button, Breadcrumb } from "react-bootstrap";
 import axios from "axios";
-import { CgAddR } from 'react-icons/cg';
+import Table from "@/app/component/DataTable";
+import styles from "@/app/medical/routine-check-up/page.module.css";  // You may need to adjust your CSS paths accordingly
 
 const CategoryMasterPage = () => {
   const [categories, setCategories] = useState([]); // State for categories
@@ -32,14 +32,11 @@ const CategoryMasterPage = () => {
     {
       name: "Actions",
       cell: (row) => (
-        <div className="twobuttons d-flex">
+        <div className="d-flex gap-2">
           <button className="editButton" onClick={() => handleEdit(row._id)}>
             <FaEdit />
           </button>
-          <button
-            className="editButton btn-danger"
-            onClick={() => handleDelete(row._id)}
-          >
+          <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
             <FaTrashAlt />
           </button>
         </div>
@@ -56,7 +53,6 @@ const CategoryMasterPage = () => {
         "https://erp-backend-fy3n.onrender.com/api/categories"
       );
 
-      // Ensure the response data is an array
       const fetchedCategories = Array.isArray(response.data)
         ? response.data
         : Array.isArray(response.data?.data)
@@ -87,6 +83,7 @@ const CategoryMasterPage = () => {
         setCategories((prevCategories) => [...prevCategories, response.data]);
         setNewCategoryName(""); // Reset input field
         setShowAddForm(false); // Hide the form
+        fetchCategories();
       } catch (err) {
         console.error("Error adding category:", err);
         setError("Failed to add category. Please try again later.");
@@ -166,21 +163,24 @@ const CategoryMasterPage = () => {
           </Breadcrumb>
         </Col>
       </Row>
+      
       <Button
-          onClick={() => setShowAddForm(!showAddForm)}
-          className={`mb-4 ${styles.search}`}
-        >
-         <CgAddR/> Add Category
-        </Button>
+        onClick={() => setShowAddForm(!showAddForm)}
+        className="btn btn-primary mb-4"
+      >
+        <CgAddR /> Add Category
+      </Button>
 
-        {showAddForm && (
-      <div className="cover-sheet">
-                    <div className="studentHeading"><h2>  Add Document</h2></div>
-                      <Form className="formSheet">
-         
+      {showAddForm && (
+        <div className="cover-sheet">
+          <div className="studentHeading">
+            <h2>Add New Category</h2>
+            <button className="closeForm" onClick={() => setShowAddForm(false)}>X</button>
+          </div>
+          <Form className="formSheet">
             <Row className="mb-3">
               <Col lg={6}>
-                <FormLabel className="labelForm">Category Name</FormLabel>
+                <FormLabel>Category Name</FormLabel>
                 <FormControl
                   required
                   type="text"
@@ -190,30 +190,19 @@ const CategoryMasterPage = () => {
                 />
               </Col>
             </Row>
-            <Row className="mb-3">
-              <Col>
-                <Button onClick={handleAddCategory} className={styles.search}>
-                  Add Category
-                </Button>
-              </Col>
-            </Row>
-            </Form>
-          </div>
-        )}
+            <Button onClick={handleAddCategory} className="btn btn-primary">
+              Add Category
+            </Button>
+          </Form>
+        </div>
+      )}
 
-        <Row>
-          <Col>
-          <div className="tableSheet">
-            <h2>Category Records</h2>
-            {loading && <p>Loading...</p>}
-            {error && <p style={{ color: "red" }}>{error}</p>}
-            {!loading && !error && (
-              <Table columns={columns} data={categories} />
-            )}
-            </div>
-          </Col>
-        </Row>
-     
+      <div className="tableSheet">
+        <h2>Category Records</h2>
+        {loading && <p>Loading...</p>}
+        {error && <p style={{ color: "red" }}>{error}</p>}
+        {!loading && !error && <Table columns={columns} data={categories} />}
+      </div>
     </Container>
   );
 };

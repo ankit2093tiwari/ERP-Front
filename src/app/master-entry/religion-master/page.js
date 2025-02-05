@@ -4,9 +4,8 @@ import React, { useState, useEffect } from "react";
 import { Form, Row, Col, Container, FormLabel, FormControl, Button, Breadcrumb } from "react-bootstrap";
 import Table from "@/app/component/DataTable";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
-import axios from "axios";
 import { CgAddR } from 'react-icons/cg';
-
+import axios from "axios";
 
 const ReligionMasterPage = () => {
   const [data, setData] = useState([]); // Table data
@@ -102,6 +101,7 @@ const ReligionMasterPage = () => {
         setData((prevData) => [...prevData, response.data]);
         setNewReligionName("");
         setShowAddForm(false);
+        fetchData();
       } catch (error) {
         console.error("Error adding data:", error);
         setError("Failed to add data. Please try again later.");
@@ -130,12 +130,14 @@ const ReligionMasterPage = () => {
         </Col>
       </Row>
       <Button onClick={() => setShowAddForm(!showAddForm)} className="mb-4">
-      <CgAddR/> {showAddForm ? "Close Form" : "Add Religion"}
+        <CgAddR /> {showAddForm ? "Close Form" : "Add Religion"}
       </Button>
       {showAddForm && (
-
         <div className="cover-sheet">
-          <div className="studentHeading"><h2>  Add Document</h2></div>
+          <div className="studentHeading">
+            <h2>Add Document</h2>
+            <button className="closeForm" onClick={() => setShowAddForm(false)}>X</button>
+          </div>
           <Form className="formSheet">
             <Row className="mb-3">
               <Col lg={6}>
@@ -156,20 +158,20 @@ const ReligionMasterPage = () => {
           </Form>
         </div>
       )}
-  <Row>
-    <Col>
-      <div className="tableSheet">
-          <h2>Religion Master</h2>
-          {loading ? (
-            <p>Loading...</p>
-          ) : error ? (
-            <p style={{ color: "red" }}>{error}</p>
-          ) : (
-            <Table columns={columns} data={data} />
-          )}
-      </div>
-    </Col>
-  </Row>
+      <Row>
+        <Col>
+          <div className="tableSheet">
+            <h2>Religion Master</h2>
+            {loading ? (
+              <p>Loading...</p>
+            ) : error ? (
+              <p style={{ color: "red" }}>{error}</p>
+            ) : (
+              <Table columns={columns} data={data} />
+            )}
+          </div>
+        </Col>
+      </Row>
     </Container>
   );
 };

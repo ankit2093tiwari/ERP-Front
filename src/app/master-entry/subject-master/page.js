@@ -8,12 +8,15 @@ import Table from "@/app/component/DataTable";
 import axios from "axios";
 import styles from "@/app/medical/routine-check-up/page.module.css"; // Use the same styles as in the Category page
 import { CgAddR } from 'react-icons/cg';
+
 const SubjectMasterPage = () => {
   const [subjects, setSubjects] = useState([]); // State for subjects
   const [newSubject, setNewSubject] = useState({ subject_name: "", teacher_in_charge: "", class_name: "", section_name: "" }); // New subject state
   const [showAddForm, setShowAddForm] = useState(false); // Toggle for add form
   const [loading, setLoading] = useState(false); // Loading state
   const [error, setError] = useState(""); // Error state
+  const [classes, setClasses] = useState([]); // State for classes
+  const [sections, setSections] = useState([]); // State for sections
 
   // Table columns configuration
   const columns = [
@@ -69,6 +72,38 @@ const SubjectMasterPage = () => {
     } catch (err) {
       console.error("Error fetching subjects:", err);
       setError("Failed to fetch subjects. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch classes from API
+  const fetchClasses = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-classes");
+      const fetchedClasses = Array.isArray(response.data) ? response.data : [];
+      setClasses(fetchedClasses);
+    } catch (err) {
+      console.error("Error fetching classes:", err);
+      setError("Failed to fetch classes. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch sections based on selected class
+  const fetchSections = async (classId) => {
+    setLoading(true);
+    setError("");
+    try {
+      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/sections?classId=${classId}`);
+      const fetchedSections = Array.isArray(response.data) ? response.data : [];
+      setSections(fetchedSections);
+    } catch (err) {
+      console.error("Error fetching sections:", err);
+      setError("Failed to fetch sections. Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -135,31 +170,41 @@ const SubjectMasterPage = () => {
     }
   };
 
-  // Fetch subjects on component mount
+  // Fetch subjects and classes on component mount
   useEffect(() => {
     fetchSubjects();
+    fetchClasses();
   }, []);
+
+  // Handle class change and fetch sections based on selected class
+  const handleClassChange = (e) => {
+    const selectedClass = e.target.value;
+    setNewSubject({ ...newSubject, class_name: selectedClass, section_name: "" }); // Reset section
+    fetchSections(selectedClass);
+  };
 
   return (
     <Container>
-      <Row className='mt-1 mb-1'>
+      <Row className="mt-1 mb-1">
         <Col>
           <Breadcrumb>
             <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-            <Breadcrumb.Item href="/master-entry/all-module">
-              Master Entry
-            </Breadcrumb.Item>
+            <Breadcrumb.Item href="/master-entry/all-module">Master Entry</Breadcrumb.Item>
             <Breadcrumb.Item active>Subject Master</Breadcrumb.Item>
           </Breadcrumb>
         </Col>
       </Row>
 
       <Button onClick={() => setShowAddForm(!showAddForm)} className={`mb-4 ${styles.search}`}>
-      <CgAddR/> Add Subject
+        <CgAddR /> Add Subject
       </Button>
+
       {showAddForm && (
         <div className="cover-sheet">
-          <div className="studentHeading"><h2>  Add Document</h2></div>
+          <div className="studentHeading">
+            <h2>Add Subject</h2>
+            <button className="closeForm" onClick={() => setShowAddForm(false)} style={{ fontSize: "24px", border: "none", background: "transparent", cursor: "pointer" }}>X</button>
+          </div>
           <Form className="formSheet">
             <Row className="mb-3">
               <Col lg={6}>
@@ -187,22 +232,30 @@ const SubjectMasterPage = () => {
               <Col lg={6}>
                 <FormLabel className="labelForm">Class Name</FormLabel>
                 <FormControl
+                  as="select"
                   required
-                  type="text"
-                  placeholder="Enter Class Name"
                   value={newSubject.class_name}
-                  onChange={(e) => setNewSubject({ ...newSubject, class_name: e.target.value })}
-                />
+                  onChange={handleClassChange}
+                >
+                  <option value="">Select Class</option>
+                  {classes.map((cls) => (
+                    <option key={cls._id} value={cls._id}>{cls.name}</option>
+                  ))}
+                </FormControl>
               </Col>
               <Col lg={6}>
                 <FormLabel className="labelForm">Section Name</FormLabel>
                 <FormControl
+                  as="select"
                   required
-                  type="text"
-                  placeholder="Enter Section Name"
                   value={newSubject.section_name}
                   onChange={(e) => setNewSubject({ ...newSubject, section_name: e.target.value })}
-                />
+                >
+                  <option value="">Select Section</option>
+                  {sections.map((sec) => (
+                    <option key={sec._id} value={sec._id}>{sec.name}</option>
+                  ))}
+                </FormControl>
               </Col>
             </Row>
             <Row className="mb-3">
@@ -215,6 +268,7 @@ const SubjectMasterPage = () => {
           </Form>
         </div>
       )}
+
       <Row>
         <Col>
           <div className="tableSheet">

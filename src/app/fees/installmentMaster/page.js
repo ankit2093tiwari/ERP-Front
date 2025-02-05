@@ -1,9 +1,9 @@
 "use client";
+
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import styles from "@/app/medical/routine-check-up/page.module.css";
-import Table from "@/app/component/DataTable";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
+import { CgAddR } from 'react-icons/cg';
 import {
   Form,
   Row,
@@ -12,15 +12,18 @@ import {
   FormLabel,
   FormControl,
   Button,
+  Breadcrumb
 } from "react-bootstrap";
 import axios from "axios";
+import Table from "@/app/component/DataTable";
+import styles from "@/app/medical/routine-check-up/page.module.css";
 
 const InstallmentMaster = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [newInstallment, setNewInstallment] = useState({ installment_name: "" });
+  const [newInstallment, setNewInstallment] = useState("");
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
   const columns = [
     {
@@ -49,64 +52,38 @@ const InstallmentMaster = () => {
     },
   ];
 
-  // Fetch installments
   const fetchData = async () => {
     setLoading(true);
     setError("");
     try {
       const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-installments");
-      if (response.data && response.data.data && response.data.data.length > 0) {
+      if (response.data && response.data.data) {
         setData(response.data.data);
       } else {
-        setData([]); // Set empty array if no records are found
+        setData([]);
         setError("No records found.");
       }
     } catch (err) {
-      setData([]); // Set empty array if there's an error fetching data
+      setData([]);
       setError("Failed to fetch installments.");
     } finally {
       setLoading(false);
     }
   };
 
-  // Add new installment
-  const handleAdd = async () => {
-    if (newInstallment.installment_name.trim()) {
-      try {
-        const response = await axios.post(
-          "https://erp-backend-fy3n.onrender.com/api/add-installments",
-          newInstallment
-        );
-        setData((prevData) => [...prevData, response.data]);
-        setNewInstallment({ installment_name: "" });
-        setShowAddForm(false);
-        fetchData(); // Fetch data again after adding new installment
-      } catch (err) {
-        setError("Failed to add installment.");
-      }
-    } else {
-      alert("Installment Name is required.");
-    }
-  };
-
-  // Edit installment
   const handleEdit = async (id) => {
     const installment = data.find((row) => row._id === id);
     const updatedName = prompt(
       "Enter new installment name:",
       installment?.installment_name || ""
     );
-
     if (updatedName) {
       try {
-        await axios.put(
-          `https://erp-backend-fy3n.onrender.com/api/update-installments/${id}`,
-          { installment_name: updatedName }
-        );
+        await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-installments/${id}`, {
+          installment_name: updatedName
+        });
         setData((prevData) =>
-          prevData.map((row) =>
-            row._id === id ? { ...row, installment_name: updatedName } : row
-          )
+          prevData.map((row) => (row._id === id ? { ...row, installment_name: updatedName } : row))
         );
       } catch (err) {
         setError("Failed to update installment.");
@@ -114,13 +91,10 @@ const InstallmentMaster = () => {
     }
   };
 
-  // Delete installment
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this installment?")) {
       try {
-        await axios.delete(
-          `https://erp-backend-fy3n.onrender.com/api/delete-installments/${id}`
-        );
+        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-installments/${id}`);
         setData((prevData) => prevData.filter((row) => row._id !== id));
       } catch (err) {
         setError("Failed to delete installment.");
@@ -128,47 +102,73 @@ const InstallmentMaster = () => {
     }
   };
 
-  // Fetch data on component mount
+  const handleAdd = async () => {
+    if (newInstallment.trim()) {
+      try {
+        const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/add-installments", {
+          installment_name: newInstallment
+        });
+        setData((prevData) => [...prevData, response.data]);
+        setNewInstallment("");
+        setIsPopoverOpen(false);
+        fetchData();
+      } catch (err) {
+        setError("Failed to add installment.");
+      }
+    }
+  };
+
   useEffect(() => {
     fetchData();
   }, []);
 
   return (
-    <Container className={styles.formContainer}>
-      <Form className={styles.form}>
-        <Button
-          onClick={() => setShowAddForm(!showAddForm)}
-          className={`mb-4 ${styles.search}`}
-        >
-          Add Installment
-        </Button>
-        {showAddForm && (
-          <div className="mb-4">
+    <Container className="">
+      <Row className='mt-1 mb-1'>
+        <Col>
+          <Breadcrumb>
+            <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
+            <Breadcrumb.Item href="/installments">Installments</Breadcrumb.Item>
+            <Breadcrumb.Item active>Manage Installments</Breadcrumb.Item>
+          </Breadcrumb>
+        </Col>
+      </Row>
+
+      <Button onClick={() => setIsPopoverOpen(true)} className="btn btn-primary">
+        <CgAddR /> Add Installment
+      </Button>
+
+      {isPopoverOpen && (
+        <div className="cover-sheet">
+          <div className="studentHeading">
+            <h2>Add New Installment</h2>
+            <button className="closeForm" onClick={() => setIsPopoverOpen(false)}>X</button>
+          </div>
+          <Form className="formSheet">
             <Row>
               <Col lg={6}>
                 <FormLabel>Installment Name</FormLabel>
                 <FormControl
                   type="text"
-                  value={newInstallment.installment_name}
-                  onChange={(e) =>
-                    setNewInstallment({ installment_name: e.target.value })
-                  }
+                  placeholder="Enter Installment Name"
+                  value={newInstallment}
+                  onChange={(e) => setNewInstallment(e.target.value)}
                 />
               </Col>
             </Row>
-            <Button onClick={handleAdd} className={styles.search}>
+            <Button onClick={handleAdd} className="btn btn-primary">
               Add Installment
             </Button>
-          </div>
-        )}
+          </Form>
+        </div>
+      )}
+
+      <div className="tableSheet">
         <h2>Installment Records</h2>
-        {/* {loading && <p>Loading...</p>} */}
+        {loading && <p>Loading...</p>}
         {error && <p>{error}</p>}
-        {!loading && !error && data.length === 0 && <p>No records found.</p>}
-        {!loading && !error && data.length > 0 && (
-          <Table columns={columns} data={data} />
-        )}
-      </Form>
+        {!loading && !error && <Table columns={columns} data={data} />}
+      </div>
     </Container>
   );
 };

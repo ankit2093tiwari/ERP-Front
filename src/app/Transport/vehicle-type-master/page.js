@@ -16,6 +16,7 @@ import {
 import axios from "axios";
 import Table from "@/app/component/DataTable"; // Ensure this path is correct
 import { CgAddR } from "react-icons/cg";
+// import styles from "@/app/medical/routine-check-up/page.module.css";
 
 const VehicleRecords = () => {
   const [data, setData] = useState([]);

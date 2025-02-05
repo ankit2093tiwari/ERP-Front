@@ -47,7 +47,6 @@ const StudentBulkUpdate = () => {
         `https://erp-backend-fy3n.onrender.com/api/students/search?class_name=${selectedClass}&section_name=${selectedSection}`
       );
 
-      console.log("API Response:", response.data);
       setStudents(response.data.data || []);
       setUpdatedStudents(response.data.data || []);
       setShowUpdateButton(true);
@@ -67,18 +66,18 @@ const StudentBulkUpdate = () => {
     setSelectedSection(event.target.value);
   };
 
-  // Handle updates to student fields
   const handleFieldChange = (index, field, value) => {
     const updatedList = [...updatedStudents];
     updatedList[index][field] = value;
     setUpdatedStudents(updatedList);
   };
 
-  // Handle student update API call
   const handleUpdateStudents = async () => {
     try {
-      await axios.post("https://erp-backend-fy3n.onrender.com/api/students/update", { students: updatedStudents });
-      alert("Students updated successfully!");
+      const response = await axios.put("https://erp-backend-fy3n.onrender.com/api/students/bulk-update", { students: updatedStudents });
+      if (response.data.success) {
+        alert("Students updated successfully!");
+      }
     } catch (error) {
       console.error("Failed to update students", error);
       alert("Error updating students.");
@@ -171,7 +170,6 @@ const StudentBulkUpdate = () => {
 
   return (
     <Container>
-      {/* Breadcrumb Navigation */}
       <Row className="mt-1 mb-1">
         <Col>
           <Breadcrumb>
@@ -182,13 +180,11 @@ const StudentBulkUpdate = () => {
         </Col>
       </Row>
 
-      {/* Page Heading */}
       <div className="cover-sheet">
         <div className="studentHeading">
           <h2>Search Students</h2>
         </div>
 
-        {/* Class and Section Selection Form */}
         <Form className="formSheet">
           <Row>
             <Col>
@@ -221,24 +217,21 @@ const StudentBulkUpdate = () => {
                 Search Students
               </Button>
               {showUpdateButton && (
-                  <Button className="btn btn-success mt-3" onClick={handleUpdateStudents}>
-                    Update Students
-                  </Button>
-                )}
+                <Button className="btn btn-success mt-3" onClick={handleUpdateStudents}>
+                  Update Students
+                </Button>
+              )}
             </Col>
           </Row>
         </Form>
       </div>
 
-      {/* Students Data Table */}
       <Row>
         <Col>
           <div className="tableSheet">
             <h2>Students Records</h2>
             {students.length > 0 ? (
-              <>
-                <Table columns={columns} data={students} />
-              </>
+              <Table columns={columns} data={students} />
             ) : (
               <p className="text-center">No students found for the selected class and section.</p>
             )}

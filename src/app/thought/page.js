@@ -2,18 +2,19 @@
 
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import styles from "@/app/medical/routine-check-up/page.module.css";
-import Table from "@/app/component/DataTable";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
-import { Form, Row, Col, Container, FormLabel, FormControl, Button } from "react-bootstrap";
+import { CgAddR } from 'react-icons/cg';
+import { Form, Row, Col, Container, FormLabel, FormControl, Button, Breadcrumb } from "react-bootstrap";
 import axios from "axios";
+import Table from "@/app/component/DataTable";
+import styles from "@/app/medical/routine-check-up/page.module.css";
 
 const Thought = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
-  const [newThought, setNewThought] = useState({ date: "", name: "" });
+  const [newThought, setNewThought] = useState({ date: "", thought_name: "" });
 
   const columns = [
     { name: "#", selector: (row, index) => index + 1, sortable: false, width: "80px" },
@@ -54,6 +55,7 @@ const Thought = () => {
         setData((prevData) => [...prevData, response.data]);
         setNewThought({ date: "", thought_name: "" });
         setShowAddForm(false);
+        fetchData();
       } catch {
         setError("Failed to add thought.");
       }
@@ -96,14 +98,29 @@ const Thought = () => {
   }, []);
 
   return (
-    <Container className={styles.formContainer}>
-      <Form className={styles.form}>
-        <Button onClick={() => setShowAddForm(!showAddForm)} className={`mb-4 ${styles.search}`}>
-          Add Thought
-        </Button>
-        {showAddForm && (
-          <div className="mb-4">
-            <Row>
+    <Container>
+      <Row className='mt-1 mb-1'>
+        <Col>
+          <Breadcrumb>
+            <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
+            <Breadcrumb.Item href="/master-entry/all-module">Master Entry</Breadcrumb.Item>
+            <Breadcrumb.Item active>Thought Records</Breadcrumb.Item>
+          </Breadcrumb>
+        </Col>
+      </Row>
+      
+      <Button onClick={() => setShowAddForm(true)} className="btn btn-primary mb-4">
+        <CgAddR /> Add Thought
+      </Button>
+
+      {showAddForm && (
+        <div className="cover-sheet">
+          <div className="studentHeading">
+            <h2>Add New Thought</h2>
+            <button className="closeForm" onClick={() => setShowAddForm(false)}>X</button>
+          </div>
+          <Form className="formSheet">
+            <Row className="mb-3">
               <Col lg={6}>
                 <FormLabel>Date</FormLabel>
                 <FormControl
@@ -122,16 +139,17 @@ const Thought = () => {
                 />
               </Col>
             </Row>
-            <Button onClick={handleAdd} className={styles.search}>
-              Add Thought
-            </Button>
-          </div>
-        )}
+            <Button onClick={handleAdd} className="btn btn-primary">Add Thought</Button>
+          </Form>
+        </div>
+      )}
+
+      <div className="tableSheet">
         <h2>Thought Records</h2>
         {loading && <p>Loading...</p>}
-        {error && <p>{error}</p>}
+        {error && <p style={{ color: "red" }}>{error}</p>}
         {!loading && !error && <Table columns={columns} data={data} />}
-      </Form>
+      </div>
     </Container>
   );
 };

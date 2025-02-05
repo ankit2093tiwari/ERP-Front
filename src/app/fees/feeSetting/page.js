@@ -1,9 +1,8 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import styles from "@/app/medical/routine-check-up/page.module.css";
-import Table from "@/app/component/DataTable";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
+import { CgAddR } from "react-icons/cg";
 import {
   Form,
   Row,
@@ -12,19 +11,22 @@ import {
   FormLabel,
   FormControl,
   Button,
+  Breadcrumb,
 } from "react-bootstrap";
 import axios from "axios";
+import Table from "@/app/component/DataTable";
+import styles from "@/app/medical/routine-check-up/page.module.css";
 
 const FeeSetting = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [showAddForm, setShowAddForm] = useState(false);
   const [newFeeSetting, setNewFeeSetting] = useState({
     credit_card_charge: "",
     debit_card_charge: "",
     amex_charge: "",
   });
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
   const columns = [
     {
@@ -55,7 +57,10 @@ const FeeSetting = () => {
           <button className="editButton" onClick={() => handleEdit(row._id)}>
             <FaEdit />
           </button>
-          <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
+          <button
+            className="editButton btn-danger"
+            onClick={() => handleDelete(row._id)}
+          >
             <FaTrashAlt />
           </button>
         </div>
@@ -63,27 +68,27 @@ const FeeSetting = () => {
     },
   ];
 
-  // Fetch fee settings
   const fetchData = async () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-fee-settings");
+      const response = await axios.get(
+        "https://erp-backend-fy3n.onrender.com/api/all-fee-settings"
+      );
       if (response.data && response.data.length > 0) {
         setData(response.data);
       } else {
-        setData([]); // Set empty array if no records are found
+        setData([]);
         setError("No records found.");
       }
     } catch (err) {
-      setData([]); // Set empty array if there's an error fetching data
+      setData([]);
       setError("Failed to fetch fee settings.");
     } finally {
       setLoading(false);
     }
   };
 
-  // Add new fee setting
   const handleAdd = async () => {
     if (
       newFeeSetting.credit_card_charge.trim() &&
@@ -96,9 +101,13 @@ const FeeSetting = () => {
           newFeeSetting
         );
         setData((prevData) => [...prevData, response.data]);
-        setNewFeeSetting({ credit_card_charge: "", debit_card_charge: "", amex_charge: "" });
-        setShowAddForm(false);
-        fetchData(); // Fetch data again after adding new fee setting
+        setNewFeeSetting({
+          credit_card_charge: "",
+          debit_card_charge: "",
+          amex_charge: "",
+        });
+        setIsPopoverOpen(false);
+        fetchData();
       } catch (err) {
         setError("Failed to add fee setting.");
       }
@@ -107,22 +116,41 @@ const FeeSetting = () => {
     }
   };
 
-  // Edit fee setting
   const handleEdit = async (id) => {
     const feeSetting = data.find((row) => row._id === id);
-    const updatedCreditCardCharge = prompt("Enter new Credit Card Charge:", feeSetting?.credit_card_charge || "");
-    const updatedDebitCardCharge = prompt("Enter new Debit Card Charge:", feeSetting?.debit_card_charge || "");
-    const updatedAmexCharge = prompt("Enter new AMEX Charge:", feeSetting?.amex_charge || "");
+    const updatedCreditCardCharge = prompt(
+      "Enter new Credit Card Charge:",
+      feeSetting?.credit_card_charge || ""
+    );
+    const updatedDebitCardCharge = prompt(
+      "Enter new Debit Card Charge:",
+      feeSetting?.debit_card_charge || ""
+    );
+    const updatedAmexCharge = prompt(
+      "Enter new AMEX Charge:",
+      feeSetting?.amex_charge || ""
+    );
 
     if (updatedCreditCardCharge && updatedDebitCardCharge && updatedAmexCharge) {
       try {
         await axios.put(
           `https://erp-backend-fy3n.onrender.com/api/update-fee-settings/${id}`,
-          { credit_card_charge: updatedCreditCardCharge, debit_card_charge: updatedDebitCardCharge, amex_charge: updatedAmexCharge }
+          {
+            credit_card_charge: updatedCreditCardCharge,
+            debit_card_charge: updatedDebitCardCharge,
+            amex_charge: updatedAmexCharge,
+          }
         );
         setData((prevData) =>
           prevData.map((row) =>
-            row._id === id ? { ...row, credit_card_charge: updatedCreditCardCharge, debit_card_charge: updatedDebitCardCharge, amex_charge: updatedAmexCharge } : row
+            row._id === id
+              ? {
+                  ...row,
+                  credit_card_charge: updatedCreditCardCharge,
+                  debit_card_charge: updatedDebitCardCharge,
+                  amex_charge: updatedAmexCharge,
+                }
+              : row
           )
         );
       } catch (err) {
@@ -131,7 +159,6 @@ const FeeSetting = () => {
     }
   };
 
-  // Delete fee setting
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this fee setting?")) {
       try {
@@ -145,22 +172,41 @@ const FeeSetting = () => {
     }
   };
 
-  // Fetch data on component mount
   useEffect(() => {
     fetchData();
   }, []);
 
   return (
-    <Container className={styles.formContainer}>
-      <Form className={styles.form}>
-        <Button
-          onClick={() => setShowAddForm(!showAddForm)}
-          className={`mb-4 ${styles.search}`}
-        >
-          Add Fee Setting
-        </Button>
-        {showAddForm && (
-          <div className="mb-4">
+    <Container className="mt-3">
+      <Row className="mt-1 mb-3">
+        <Col>
+          <Breadcrumb>
+            <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
+            <Breadcrumb.Item href="/fee-settings">Fee Settings</Breadcrumb.Item>
+            <Breadcrumb.Item active>Manage Fee Settings</Breadcrumb.Item>
+          </Breadcrumb>
+        </Col>
+      </Row>
+
+      <Button
+        onClick={() => setIsPopoverOpen(true)}
+        className="btn btn-primary mb-4"
+      >
+        <CgAddR /> Add Fee Setting
+      </Button>
+
+      {isPopoverOpen && (
+        <div className="cover-sheet">
+          <div className="studentHeading">
+            <h2>Add New Fee Setting</h2>
+            <button
+              className="closeForm"
+              onClick={() => setIsPopoverOpen(false)}
+            >
+              X
+            </button>
+          </div>
+          <Form className="formSheet">
             <Row>
               <Col lg={6}>
                 <FormLabel>Credit Card Charge</FormLabel>
@@ -168,7 +214,10 @@ const FeeSetting = () => {
                   type="text"
                   value={newFeeSetting.credit_card_charge}
                   onChange={(e) =>
-                    setNewFeeSetting({ ...newFeeSetting, credit_card_charge: e.target.value })
+                    setNewFeeSetting({
+                      ...newFeeSetting,
+                      credit_card_charge: e.target.value,
+                    })
                   }
                 />
               </Col>
@@ -178,7 +227,10 @@ const FeeSetting = () => {
                   type="text"
                   value={newFeeSetting.debit_card_charge}
                   onChange={(e) =>
-                    setNewFeeSetting({ ...newFeeSetting, debit_card_charge: e.target.value })
+                    setNewFeeSetting({
+                      ...newFeeSetting,
+                      debit_card_charge: e.target.value,
+                    })
                   }
                 />
               </Col>
@@ -188,24 +240,27 @@ const FeeSetting = () => {
                   type="text"
                   value={newFeeSetting.amex_charge}
                   onChange={(e) =>
-                    setNewFeeSetting({ ...newFeeSetting, amex_charge: e.target.value })
+                    setNewFeeSetting({
+                      ...newFeeSetting,
+                      amex_charge: e.target.value,
+                    })
                   }
                 />
               </Col>
             </Row>
-            <Button onClick={handleAdd} className={styles.search}>
+            <Button onClick={handleAdd} className="btn btn-primary mt-3">
               Add Fee Setting
             </Button>
-          </div>
-        )}
+          </Form>
+        </div>
+      )}
+
+      <div className="tableSheet">
         <h2>Fee Setting Records</h2>
-        {/* {loading && <p>Loading...</p>} */}
+        {loading && <p>Loading...</p>}
         {error && <p>{error}</p>}
-        {!loading && !error && data.length === 0 && <p>No records found.</p>}
-        {!loading && !error && data.length > 0 && (
-          <Table columns={columns} data={data} />
-        )}
-      </Form>
+        {!loading && !error && <Table columns={columns} data={data} />}
+      </div>
     </Container>
   );
 };

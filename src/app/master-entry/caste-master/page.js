@@ -2,21 +2,29 @@
 
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import styles from "@/app/medical/routine-check-up/page.module.css";
-import Table from "@/app/component/DataTable";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
-import { Form, Row, Col, Container, FormLabel, FormControl, Button, Breadcrumb } from "react-bootstrap";
-import axios from "axios";
 import { CgAddR } from 'react-icons/cg';
+import {
+  Form,
+  Row,
+  Col,
+  Container,
+  FormLabel,
+  FormControl,
+  Button,
+  Breadcrumb
+} from "react-bootstrap";
+import axios from "axios";
+import Table from "@/app/component/DataTable";
+import styles from "@/app/medical/routine-check-up/page.module.css";
 
 const CasteMasterPage = () => {
-  const [data, setData] = useState([]); // Table data
-  const [loading, setLoading] = useState(false); // Loading state
-  const [error, setError] = useState(""); // Error state
-  const [showAddForm, setShowAddForm] = useState(false); // Toggle Add Form visibility
-  const [newCasteName, setNewCasteName] = useState(""); // New caste name
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [newCasteName, setNewCasteName] = useState("");
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
-  // Table columns configuration
   const columns = [
     {
       name: "#",
@@ -26,7 +34,7 @@ const CasteMasterPage = () => {
     },
     {
       name: "Name",
-      selector: (row) => row.caste_name || "N/A", // Default to "N/A" if `casteName` is missing
+      selector: (row) => row.caste_name || "N/A",
       sortable: true,
     },
     {
@@ -44,7 +52,6 @@ const CasteMasterPage = () => {
     },
   ];
 
-  // Fetch data from API
   const fetchData = async () => {
     setLoading(true);
     setError("");
@@ -53,7 +60,7 @@ const CasteMasterPage = () => {
       const fetchedData = response.data.data || [];
       const normalizedData = fetchedData.map((item) => ({
         ...item,
-        caste_name: item.caste_name || "N/A", // Ensure `casteName` always exists
+        caste_name: item.caste_name || "N/A",
       }));
       setData(normalizedData);
     } catch (err) {
@@ -64,7 +71,6 @@ const CasteMasterPage = () => {
     }
   };
 
-  // Edit existing entry
   const handleEdit = async (id) => {
     const item = data.find((row) => row._id === id);
     const updatedName = prompt("Enter new name:", item?.caste_name || "");
@@ -85,7 +91,6 @@ const CasteMasterPage = () => {
     }
   };
 
-  // Delete an entry
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this entry?")) {
       try {
@@ -98,7 +103,6 @@ const CasteMasterPage = () => {
     }
   };
 
-  // Add a new entry
   const handleAdd = async () => {
     if (newCasteName.trim()) {
       try {
@@ -107,7 +111,8 @@ const CasteMasterPage = () => {
         });
         setData((prevData) => [...prevData, response.data]);
         setNewCasteName("");
-        setShowAddForm(false);
+        setIsPopoverOpen(false);
+        fetchData();
       } catch (error) {
         console.error("Error adding data:", error);
         setError("Failed to add data. Please try again later.");
@@ -117,7 +122,6 @@ const CasteMasterPage = () => {
     }
   };
 
-  // Fetch data on component mount
   useEffect(() => {
     fetchData();
   }, []);
@@ -135,16 +139,20 @@ const CasteMasterPage = () => {
           </Breadcrumb>
         </Col>
       </Row>
-      <Button onClick={() => setShowAddForm(!showAddForm)} className={`mb-4 ${styles.search}`}>
-      <CgAddR/> Add Caste
+      <Button onClick={() => setIsPopoverOpen(true)} className="btn btn-primary mb-4">
+        <CgAddR /> Add Caste
       </Button>
-      {showAddForm && (
+
+      {isPopoverOpen && (
         <div className="cover-sheet">
-          <div className="studentHeading"><h2>  Add Document</h2></div>
+          <div className="studentHeading">
+            <h2>Add New Caste</h2>
+            <button className="closeForm" onClick={() => setIsPopoverOpen(false)}>X</button>
+          </div>
           <Form className="formSheet">
             <Row className="mb-3">
               <Col lg={6}>
-                <FormLabel className="labelForm">Caste Name</FormLabel>
+                <FormLabel>Caste Name</FormLabel>
                 <FormControl
                   type="text"
                   placeholder="Enter Caste Name"
@@ -153,28 +161,20 @@ const CasteMasterPage = () => {
                 />
               </Col>
             </Row>
-            <Row>
-              <Col>
-                <Button onClick={handleAdd} className={styles.search}>
-                  Add Caste
-                </Button>
-              </Col>
-            </Row>
+            <Button onClick={handleAdd} className="btn btn-primary">
+              Add Caste
+            </Button>
           </Form>
         </div>
       )}
-      <Row>
-        <Col>
-          <div className="tableSheet">
-            <h2>Caste Records</h2> 
-          {loading && <p>Loading...</p>}
-          {error && <p style={{ color: "red" }}>{error}</p>}
-          {!loading && !error && <Table columns={columns} data={data} />}
-          </div>
-        </Col>
-      </Row>
-    
-    </Container >
+
+      <div className="tableSheet">
+        <h2>Caste Records</h2>
+        {loading && <p>Loading...</p>}
+        {error && <p style={{ color: "red" }}>{error}</p>}
+        {!loading && !error && <Table columns={columns} data={data} />}
+      </div>
+    </Container>
   );
 };
 

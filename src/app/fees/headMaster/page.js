@@ -1,9 +1,8 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import styles from "@/app/medical/routine-check-up/page.module.css";
-import Table from "@/app/component/DataTable";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
+import { CgAddR } from 'react-icons/cg';
 import {
   Form,
   Row,
@@ -12,19 +11,21 @@ import {
   FormLabel,
   FormControl,
   Button,
-  FormSelect,
+  Breadcrumb
 } from "react-bootstrap";
 import axios from "axios";
+import Table from "@/app/component/DataTable";
+import styles from "@/app/medical/routine-check-up/page.module.css";
 
 const HeadMasterPage = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [showAddForm, setShowAddForm] = useState(false);
   const [newHeadMaster, setNewHeadMaster] = useState({
     head_name: "",
     head_type: "", // Default is empty, can be set to 'Installment Type' or 'Lifetime'
   });
+  const [showAddForm, setShowAddForm] = useState(false);
 
   const columns = [
     {
@@ -147,16 +148,31 @@ const HeadMasterPage = () => {
   }, []);
 
   return (
-    <Container className={styles.formContainer}>
-      <Form className={styles.form}>
-        <Button
-          onClick={() => setShowAddForm(!showAddForm)}
-          className={`mb-4 ${styles.search}`}
-        >
-          Add HeadMaster
-        </Button>
-        {showAddForm && (
-          <div className="mb-4">
+    <Container className="">
+      <Row className="mt-1 mb-1">
+        <Col>
+          <Breadcrumb>
+            <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
+            <Breadcrumb.Item href="/headmasters">HeadMasters</Breadcrumb.Item>
+            <Breadcrumb.Item active>Manage HeadMasters</Breadcrumb.Item>
+          </Breadcrumb>
+        </Col>
+      </Row>
+      
+      <Button
+        onClick={() => setShowAddForm(!showAddForm)}
+        className="btn btn-primary mb-4"
+      >
+        <CgAddR /> Add HeadMaster
+      </Button>
+
+      {showAddForm && (
+        <div className="cover-sheet">
+          <div className="studentHeading">
+            <h2>Add New HeadMaster</h2>
+            <button className="closeForm" onClick={() => setShowAddForm(false)}>X</button>
+          </div>
+          <Form className="formSheet">
             <Row>
               <Col lg={6}>
                 <FormLabel>Head Name</FormLabel>
@@ -170,7 +186,8 @@ const HeadMasterPage = () => {
               </Col>
               <Col lg={6}>
                 <FormLabel>Head Type</FormLabel>
-                <FormSelect
+                <FormControl
+                  as="select"
                   value={newHeadMaster.head_type}
                   onChange={(e) =>
                     setNewHeadMaster({ ...newHeadMaster, head_type: e.target.value })
@@ -179,22 +196,22 @@ const HeadMasterPage = () => {
                   <option value="">Select Head Type</option>
                   <option value="Installment Type">Installment Type</option>
                   <option value="Lifetime">Lifetime</option>
-                </FormSelect>
+                </FormControl>
               </Col>
             </Row>
-            <Button onClick={handleAdd} className={styles.search}>
+            <Button onClick={handleAdd} className="btn btn-primary">
               Add HeadMaster
             </Button>
-          </div>
-        )}
+          </Form>
+        </div>
+      )}
+
+      <div className="tableSheet">
         <h2>HeadMaster Records</h2>
-        {/* {loading && <p>Loading...</p>} */}
+        {loading && <p>Loading...</p>}
         {error && <p>{error}</p>}
-        {!loading && !error && data.length === 0 && <p>No records found.</p>}
-        {!loading && !error && data.length > 0 && (
-          <Table columns={columns} data={data} />
-        )}
-      </Form>
+        {!loading && !error && <Table columns={columns} data={data} />}
+      </div>
     </Container>
   );
 };
