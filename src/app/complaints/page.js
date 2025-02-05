@@ -5,7 +5,7 @@ import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import { CgAddR } from 'react-icons/cg';
 import { Form, Row, Col, Container, FormLabel, FormControl, Button, Breadcrumb } from "react-bootstrap";
 import Table from "@/app/component/DataTable";
-import styles from "@/app/medical/routine-check-up/page.module.css";
+import styles from "@/app/medical/routine-check-up/page.module.css"; // Make sure the styles are consistent
 
 const Complaint = () => {
   const [showAddForm, setShowAddForm] = useState(false);
@@ -57,7 +57,6 @@ const Complaint = () => {
   const handleEdit = (id) => {
     const item = data.find((row) => row.id === id);
     const updatedName = prompt("Enter new name:", item.name);
-
     // Updating logic (for static data in this case, you can directly modify the state if needed)
   };
 
@@ -68,7 +67,7 @@ const Complaint = () => {
   };
 
   return (
-    <Container className={styles.formContainer}>
+    <Container className={`${styles.formContainer} ${styles.complaintBackground}`}>
       <Breadcrumb>
         <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
         <Breadcrumb.Item href="/complaints">Complaints</Breadcrumb.Item>
