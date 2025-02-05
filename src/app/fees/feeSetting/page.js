@@ -57,19 +57,18 @@ const FeeSetting = () => {
         <div className="d-flex gap-2">
         {
           newFeeSetting?.editStatus ? 
-        <button className="editButton" onClick={() => handleUpdate(row._id)}>
+          <button className="editButton" onClick={() => handleUpdate(row._id)}>
             <FaSave />
           </button>
           :
+          <>
           <button className="editButton" onClick={() => handleEdit(row._id)}>
             <FaEdit />
           </button>
-          <button
-            className="editButton btn-danger"
-            onClick={() => handleDelete(row._id)}
-          >
+          <button className="editButton btn-danger" onClick={() => handleDelete(row._id)} >
             <FaTrashAlt />
           </button>
+         </>
         </div>
       ),
     },
