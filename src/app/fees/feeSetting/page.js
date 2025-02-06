@@ -69,6 +69,7 @@ const FeeSetting = () => {
             <FaTrashAlt />
           </button>
          </>
+         }
         </div>
       ),
     },
