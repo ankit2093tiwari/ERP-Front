@@ -57,7 +57,7 @@ const Page = () => {
           <div className="subCard1" key={index}>
             <Link href={card.href} className="SubCardLink">
               <SubCard
-                icon={card.icon}
+               icon={<div className="iconBack"> {card.icon} </div>}
                 title={<h3>{card.title}</h3>}
                 description={<p>{card.description}</p>}
               />

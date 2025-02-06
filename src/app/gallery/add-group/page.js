@@ -16,14 +16,19 @@ import {
 } from "react-bootstrap";
 import axios from "axios";
 import Table from "@/app/component/DataTable";
+import { CgAddR } from 'react-icons/cg';
 
 const AddGalleryGroup = () => {
   const [data, setData] = useState([]); // Gallery group data
   const [loading, setLoading] = useState(false); // Loading state
   const [error, setError] = useState(""); // Error state
   const [successMessage, setSuccessMessage] = useState(""); // Success message state
-  const [showAddForm, setShowAddForm] = useState(false); // Toggle add form visibility
+  // const [showAddForm, setShowAddForm] = useState(false); 
   const [newGroup, setNewGroup] = useState({ groupName: "" }); // Form values
+
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+    const onOpen = () => setIsPopoverOpen(true);
+    const onClose = () => setIsPopoverOpen(false);
 
   // Fetch gallery groups
   const fetchData = async () => {
@@ -148,33 +153,35 @@ const AddGalleryGroup = () => {
 
   return (
     <Container>
-      <Row className="mt-1 mb-1">
-        <Col>
-          <Breadcrumb>
-            <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-            <Breadcrumb.Item active>Gallery Groups</Breadcrumb.Item>
-          </Breadcrumb>
-        </Col>
-      </Row>
+      <Row className='mt-1 mb-1'>
+              <Col>
+                <Breadcrumb>
+                  <Breadcrumb.Item href="/">Home</Breadcrumb.Item>
+                  <Breadcrumb.Item href="/gallery/all-module">
+                    Gallery
+                  </Breadcrumb.Item>
+                  <Breadcrumb.Item active>Add Group</Breadcrumb.Item>
+                </Breadcrumb>
+              </Col>
+            </Row>
 
       {successMessage && <Alert variant="success">{successMessage}</Alert>}
       {error && <Alert variant="danger">{error}</Alert>}
 
       <Row>
         <Col>
-          <Button
-            onClick={() => setShowAddForm((prev) => !prev)}
-            className="mb-4"
-          >
-            <FaPlus /> Add Group
+        <Button onClick={onOpen} className="btn btn-primary">
+        <CgAddR />  Add Group
           </Button>
-          {showAddForm && (
+          {isPopoverOpen && (
             <div className="cover-sheet">
-              <h2>Add Gallery Group</h2>
-              <Form>
+              <div className="studentHeading"><h2>Add Gallery Group</h2> 
+              <button className='closeForm' onClick={onClose}> X </button>
+              </div>
+              <Form className="formSheet">
                 <Row className="mb-3">
                   <Col lg={6}>
-                    <FormLabel>Group Name</FormLabel>
+                    <FormLabel className="labelForm">Group Name</FormLabel>
                     <FormControl
                       type="text"
                       placeholder="Enter Group Name"

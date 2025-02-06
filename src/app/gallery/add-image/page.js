@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import axios from "axios";
 import styles from "../add-image/page.module.css";
-import { Form, Row, Col, Container, FormLabel, FormControl, Button } from "react-bootstrap";
+import { Form, Row, Col, Container, FormLabel, FormControl, Button, Breadcrumb } from "react-bootstrap";
 
 const AddImage = () => {
   const [imageData, setImageData] = useState({
@@ -100,75 +100,87 @@ const AddImage = () => {
   };
 
   return (
-    <Container className={styles.inputs} style={{ maxWidth: "1200px" }}>
-      <h2>Add Image</h2>
-
-      <Form onSubmit={handleSubmit} className={styles.form}>
-        <Row className="mb-3">
-          <Col lg={6}>
-            <FormLabel>Date</FormLabel>
-            <FormControl
-              type="date"
-              name="date"
-              value={imageData.date}
-              onChange={handleInputChange}
-              required
-            />
-          </Col>
-          <Col lg={6}>
-            <FormLabel>Image (jpeg, jpg, png, gif)</FormLabel>
-            <FormControl
-              type="file"
-              name="image"
-              accept="image/*"
-              onChange={handleFileChange}
-              required
-            />
-          </Col>
-        </Row>
-        <Row className="mb-3">
-          <Col lg={6}>
-            <FormLabel>Group Name</FormLabel>
-            <Form.Select
-              name="groupName"
-              value={imageData.groupName}
-              onChange={handleInputChange}
-              required
-            >
-              <option value="">Select a group</option>
-              {galleryGroups.length > 0 ? (
-                galleryGroups.map((group) => (
-                  <option key={group._id} value={group._id}>
-                    {group.groupName}
+    <Container>
+      <Row className='mt-1 mb-1'>
+        <Col>
+          <Breadcrumb>
+            <Breadcrumb.Item href="/">Home</Breadcrumb.Item>
+            <Breadcrumb.Item href="/gallery/all-module">
+              Gallery
+            </Breadcrumb.Item>
+            <Breadcrumb.Item active>Add Image</Breadcrumb.Item>
+          </Breadcrumb>
+        </Col>
+      </Row>
+      <div className="cover-sheet">
+        <div className="studentHeading"><h2>Add Image</h2> </div>
+        <Form onSubmit={handleSubmit} className="formSheet">
+          <Row className="mb-3">
+            <Col lg={6}>
+              <FormLabel className="labelForm">Date</FormLabel>
+              <FormControl
+                type="date"
+                name="date"
+                value={imageData.date}
+                onChange={handleInputChange}
+                required
+              />
+            </Col>
+            <Col lg={6}>
+              <FormLabel className="labelForm">Image (jpeg, jpg, png, gif)</FormLabel>
+              <FormControl
+                type="file"
+                name="image"
+                accept="image/*"
+                onChange={handleFileChange}
+                required
+              />
+            </Col>
+          </Row>
+          <Row className="mb-3">
+            <Col lg={6}>
+              <FormLabel className="labelForm">Group Name</FormLabel>
+              <Form.Select
+                name="groupName"
+                value={imageData.groupName}
+                onChange={handleInputChange}
+                required
+              >
+                <option value="">Select a group</option>
+                {galleryGroups.length > 0 ? (
+                  galleryGroups.map((group) => (
+                    <option key={group._id} value={group._id}>
+                      {group.groupName}
+                    </option>
+                  ))
+                ) : (
+                  <option value="" disabled>
+                    No groups available
                   </option>
-                ))
-              ) : (
-                <option value="" disabled>
-                  No groups available
-                </option>
-              )}
-            </Form.Select>
-          </Col>
-          <Col lg={6}>
-            <FormLabel>Short Text</FormLabel>
-            <FormControl
-              as="textarea"
-              name="shortText"
-              rows={1}
-              value={imageData.shortText}
-              onChange={handleInputChange}
-              required
-            />
-          </Col>
-        </Row>
-        {error && <p style={{ color: "red" }}>{error}</p>}
-        {success && <p style={{ color: "green" }}>{success}</p>}
-        <div className={styles.buttons}>
-          <Button type="submit" disabled={loading} className={styles.btnn}>
-            {loading ? "Adding..." : "Add Image"}
-          </Button>
-        </div>
-      </Form>
+                )}
+              </Form.Select>
+            </Col>
+            <Col lg={6}>
+              <FormLabel className="labelForm">Short Text</FormLabel>
+              <FormControl
+                as="textarea"
+                name="shortText"
+                rows={1}
+                value={imageData.shortText}
+                onChange={handleInputChange}
+                required
+              />
+            </Col>
+          </Row>
+          {error && <p style={{ color: "red" }}>{error}</p>}
+          {success && <p style={{ color: "green" }}>{success}</p>}
+          <div className={styles.buttons}>
+            <Button type="submit" disabled={loading} className="btn btn-primary mt-4">
+              {loading ? "Adding..." : "Add Image"}
+            </Button>
+          </div>
+        </Form>
+      </div>
     </Container>
   );
 };

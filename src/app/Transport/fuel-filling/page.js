@@ -7,8 +7,7 @@ import { Container, Row, Col, Breadcrumb, Form, FormLabel, FormGroup, FormContro
 import dynamic from 'next/dynamic';
 import { CgAddR } from 'react-icons/cg';
 
-const FuelFilling = () => {
-
+const FuelFilling = () => {    
   const columns = [
     {
       name: '#',
@@ -147,11 +146,10 @@ const FuelFilling = () => {
     date: '',
   });
 
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
-  const togglePopover = () => {
-    setIsPopoverOpen(!isPopoverOpen);
-  };
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const onOpen = () => setIsPopoverOpen(true);
+  const onClose = () => setIsPopoverOpen(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -178,12 +176,14 @@ const FuelFilling = () => {
       </Row>
       <Row>
         <Col>
-          <Button onClick={togglePopover} id="submit" type='button'>
+        <Button onClick={onOpen} className="btn btn-primary">
             <CgAddR/> New Expenses 
           </Button>
           {isPopoverOpen && (
             <div className="cover-sheet">
-              <div className="studentHeading"><h2>Add Expenses</h2></div>
+              <div className="studentHeading"><h2>Add Expenses</h2>
+              <button className='closeForm' onClick={onClose}> X </button>
+              </div>
               <Form onSubmit={handleSubmit} className='formSheet'>
                 <Row className="mb-3">
                   <FormGroup as={Col} lg="4" controlId="validationCustom01">

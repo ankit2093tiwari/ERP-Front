@@ -54,13 +54,11 @@ const StudentVehicle = () => {
           // marginLeft: '-30px'
         }}>
           <button className='editButton'
-            onClick={() => handleEdit(row.id)}
-          >
+            onClick={() => handleEdit(row.id)}>
              <FaEdit />
           </button>
           <button className="editButton btn-danger"
-            onClick={() => handleDelete(row.id)}
-          >
+            onClick={() => handleDelete(row.id)} >
             <FaTrashAlt />
           </button>
         </div>
@@ -135,10 +133,9 @@ const StudentVehicle = () => {
   });
 
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const onOpen = () => setIsPopoverOpen(true);
+  const onClose = () => setIsPopoverOpen(false);
 
-  const togglePopover = () => {
-    setIsPopoverOpen(!isPopoverOpen);
-  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -165,12 +162,14 @@ const StudentVehicle = () => {
       </Row>
       <Row>
         <Col>
-          <Button onClick={togglePopover} id="submit" type='button'>
+        <Button onClick={onOpen} className="btn btn-primary">
             <CgAddR /> New Transport</Button>
           {isPopoverOpen && (
 
             <div className="cover-sheet">
-              <div className="studentHeading"><h2>Add Expenses</h2></div>
+              <div className="studentHeading"><h2>Add Expenses</h2>
+              <button className='closeForm' onClick={onClose}> X </button>
+              </div>
               <Form onSubmit={handleSubmit} className='formSheet'>
                 <Row className="mb-3">
                   <FormGroup as={Col} lg="4" controlId="validationCustom01">

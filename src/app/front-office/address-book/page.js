@@ -211,10 +211,7 @@ const AddressBook = () => {
                       required
                       type="number"
                     />
-                  </FormGroup>
-                
-                
-                 
+                  </FormGroup>                
                   <FormGroup as={Col} md="4" controlId="validationCustom06">
                     <FormLabel value={formData.faxNo} onChange={handleChange} required>Fax No</FormLabel>
                     <FormControl

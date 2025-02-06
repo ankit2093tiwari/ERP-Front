@@ -14,6 +14,7 @@ import {
   Breadcrumb,
 } from "react-bootstrap";
 import axios from "axios";
+import { CgAddR } from "react-icons/cg";
 
 const VehicleRecords = () => {
   const [data, setData] = useState([]); // Table data
@@ -116,7 +117,6 @@ const VehicleRecords = () => {
       alert("Please fill in all fields.");
     }
   };
-
   // Edit existing vehicle
   const handleEdit = async (id) => {
     const item = data.find((row) => row._id === id);
@@ -178,17 +178,15 @@ const VehicleRecords = () => {
             </Breadcrumb.Item>
             <Breadcrumb.Item active>Vehicle Master</Breadcrumb.Item>
         </Breadcrumb>
-       
-
       {/* Add Vehicle Form */}
-          <Button onClick={() => setShowAddForm(!showAddForm)} className="mb-4">
-            Add Vehicle
+           <Button onClick={() => setShowAddForm(true)} className="btn btn-primary mb-4">
+             <CgAddR /> Add Vehicle
           </Button>
-
           {showAddForm && (
-            
             <div className="cover-sheet">
-                <div className="studentHeading"><h2>Add Vehicle Type</h2></div>
+                <div className="studentHeading"><h2>Add Vehicle Type</h2>
+                  <button className="closeForm" onClick={() => setShowAddForm(false)}>X</button>
+                </div>
                   <Form className="formSheet">
                     <Row className="mb-3">
                         <Col lg={4}>
@@ -244,9 +242,6 @@ const VehicleRecords = () => {
                     </Row>
                   </Form>
               </div>
-         
-              
-           
           )}
       
 

@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import styles from "@/app/medical/routine-check-up/page.module.css";
 import Table from "@/app/component/DataTable";
 import { FaTrashAlt } from "react-icons/fa";
-import { Form, Row, Col, Container, Button } from "react-bootstrap";
+import { Form, Row, Col, Container, Button, Breadcrumb } from "react-bootstrap";
 import axios from "axios";
 
 const ImageRecord = () => {
@@ -98,13 +98,27 @@ const ImageRecord = () => {
   }, []);
 
   return (
-    <Container className={styles.formContainer}>
+    <Container>
+       <Row className='mt-1 mb-1'>
+              <Col>
+                <Breadcrumb>
+                  <Breadcrumb.Item href="/">Home</Breadcrumb.Item>
+                  <Breadcrumb.Item href="/gallery/all-module">
+                    Gallery
+                  </Breadcrumb.Item>
+                  <Breadcrumb.Item active>Images Records</Breadcrumb.Item>
+                </Breadcrumb>
+              </Col>
+            </Row>
       <Row>
         <Col>
-          <h2 style={{ fontSize: "22px" }}>Images Records</h2>
+        <div className="tableSheet">
+          <h2>Images Records</h2>
           {loading && <p>Loading...</p>}
           {error && <p style={{ color: "red" }}>{error}</p>}
           {!loading && !error && <Table columns={columns} data={data} />}
+
+          </div>
         </Col>
       </Row>
     </Container>

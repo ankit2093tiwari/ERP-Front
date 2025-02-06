@@ -14,6 +14,7 @@ import {
   Breadcrumb,
 } from "react-bootstrap";
 import axios from "axios";
+import { CgAddR } from "react-icons/cg";
 
 const RouteMaster = () => {
   const [data, setData] = useState([]);
@@ -62,15 +63,13 @@ const RouteMaster = () => {
           </button>
           <button
             className="editButton btn-danger"
-            onClick={() => handleDelete(row._id)}
-          >
+            onClick={() => handleDelete(row._id)}>
             <FaTrashAlt />
           </button>
         </div>
       ),
     },
   ];
-
   const fetchData = async () => {
     setLoading(true);
     setError("");
@@ -96,7 +95,6 @@ const RouteMaster = () => {
       setError("Failed to add route. Please try again later.");
     }
   };
-
   const handleEdit = async (id) => {
     const item = data.find((row) => row._id === id);
     const updatedRouteName = prompt("Enter new route name:", item?.routeName || "");
@@ -115,7 +113,6 @@ const RouteMaster = () => {
       }
     }
   };
-
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this route?")) {
       try {
@@ -155,76 +152,83 @@ const RouteMaster = () => {
         <Breadcrumb.Item active>Route Master</Breadcrumb.Item>
       </Breadcrumb>
 
-      <Button onClick={() => setShowAddForm(!showAddForm)} className="mt-4 mb-4">
-        Add Route
+      <Button onClick={() => setShowAddForm(true)} className="btn btn-primary mb-4">
+        <CgAddR />  Add Route
       </Button>
-
       {showAddForm && (
-        <Form>
-          <Row className="mb-3">
-            <Col md={6}>
-              <FormLabel>Vehicle No</FormLabel>
-              <FormControl
-                type="text"
-                placeholder="Enter Vehicle No"
-                value={route.vehicleNo}
-                onChange={(e) => setRoute({ ...route, vehicleNo: e.target.value })}
-              />
-            </Col>
-            <Col md={6}>
-              <FormLabel>Route Name</FormLabel>
-              <FormControl
-                type="text"
-                placeholder="Enter Route Name"
-                value={route.routeName}
-                onChange={(e) => setRoute({ ...route, routeName: e.target.value })}
-              />
-            </Col>
-          </Row>
-          <FormLabel>Pickup Points</FormLabel>
-          {route.pickupPoints.map((pickup, index) => (
-            <Row key={index} className="mb-3">
+        <div className="cover-sheet">
+          <div className="studentHeading"><h2>Existing Route Records</h2>
+            <button className="closeForm" onClick={() => setShowAddForm(false)}>X</button>
+          </div>
+          <Form className="formSheet">
+            <Row className="mb-3">
               <Col md={6}>
+                <FormLabel className="labelForm">Vehicle No</FormLabel>
                 <FormControl
                   type="text"
-                  placeholder="Pickup Point"
-                  value={pickup.point}
-                  onChange={(e) => handlePickupChange(index, "point", e.target.value)}
+                  placeholder="Enter Vehicle No"
+                  value={route.vehicleNo}
+                  onChange={(e) => setRoute({ ...route, vehicleNo: e.target.value })}
                 />
               </Col>
-              <Col md={4}>
+              <Col md={6}>
+                <FormLabel>Route Name</FormLabel>
                 <FormControl
                   type="text"
-                  placeholder="Amount"
-                  value={pickup.amount}
-                  onChange={(e) => handlePickupChange(index, "amount", e.target.value)}
+                  placeholder="Enter Route Name"
+                  value={route.routeName}
+                  onChange={(e) => setRoute({ ...route, routeName: e.target.value })}
                 />
-              </Col>
-              <Col md={2}>
-                <Button
-                  variant="danger"
-                  onClick={() => removePickupPoint(index)}
-                >
-                  Remove
-                </Button>
               </Col>
             </Row>
-          ))}
-          <Button onClick={addPickupPoint}>Add Pickup Point</Button>
-          <Button onClick={handleAdd} className="mt-3">Save Route</Button>
-        </Form>
+            <FormLabel>Pickup Points</FormLabel>
+            {route.pickupPoints.map((pickup, index) => (
+              <Row key={index} className="mb-3">
+                <Col md={6}>
+                  <FormControl
+                    type="text"
+                    placeholder="Pickup Point"
+                    value={pickup.point}
+                    onChange={(e) => handlePickupChange(index, "point", e.target.value)}
+                  />
+                </Col>
+                <Col md={4}>
+                  <FormControl
+                    type="text"
+                    placeholder="Amount"
+                    value={pickup.amount}
+                    onChange={(e) => handlePickupChange(index, "amount", e.target.value)}
+                  />
+                </Col>
+                <Col md={2}>
+                  <Button variant="danger" onClick={() => removePickupPoint(index)} >
+                    Remove
+                  </Button>
+                </Col>
+              </Row>
+            ))}
+            <Button onClick={addPickupPoint}>Add Pickup Point</Button>
+            <Button onClick={handleAdd} className="mt-3">Save Route</Button>
+          </Form>
+        </div>
       )}
+      <Row>
+        <Col>
+          <div className="tableSheet">
+            <h2>Existing Route Records</h2>
+            {loading ? (
+              <p>Loading...</p>
+            ) : error ? (
+              <p style={{ color: "red" }}>{error}</p>
+            ) : data.length > 0 ? (
+              <Table columns={columns} data={data} />
+            ) : (
+              <p>No data available.</p>
+            )}
 
-      <h2>Existing Route Records</h2>
-      {loading ? (
-        <p>Loading...</p>
-      ) : error ? (
-        <p style={{ color: "red" }}>{error}</p>
-      ) : data.length > 0 ? (
-        <Table columns={columns} data={data} />
-      ) : (
-        <p>No data available.</p>
-      )}
+          </div>
+        </Col>
+      </Row>
     </Container>
   );
 };

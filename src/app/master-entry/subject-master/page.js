@@ -203,7 +203,7 @@ const SubjectMasterPage = () => {
         <div className="cover-sheet">
           <div className="studentHeading">
             <h2>Add Subject</h2>
-            <button className="closeForm" onClick={() => setShowAddForm(false)} style={{ fontSize: "24px", border: "none", background: "transparent", cursor: "pointer" }}>X</button>
+            <button className="closeForm" onClick={() => setShowAddForm(false)} >X</button>
           </div>
           <Form className="formSheet">
             <Row className="mb-3">

@@ -29,10 +29,20 @@ const PromoteStudentPage = () => {
     }
   };
 
+  // const fetchSections = async (classId) => {
+  //   try {
+  //     const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/sections/class/${classId}`);
+  //     setSectionList(response.data.sections || []);
+  //   } catch (error) {
+  //     console.error("Failed to fetch sections", error);
+  //   }
+  // };
   const fetchSections = async (classId) => {
     try {
       const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/sections/class/${classId}`);
-      setSectionList(response.data.sections || []);
+      console.log('testttttnnn', response)
+      setSectionList(Array.isArray(response.data.data) ? response.data.data : []);
+      console.log('testttttnnn', response.data)
     } catch (error) {
       console.error("Failed to fetch sections", error);
     }

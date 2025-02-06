@@ -5,14 +5,15 @@ import dynamic from "next/dynamic";
 import styles from "@/app/medical/routine-check-up/page.module.css";
 import Table from "@/app/component/DataTable";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
-import { Form, Row, Col, Container, FormLabel, FormControl, Button, FormSelect } from "react-bootstrap";
+import { Form, Row, Col, Container, FormLabel, FormControl, Button, FormSelect, Breadcrumb } from "react-bootstrap";
 import axios from "axios";
+import { CgAddR } from 'react-icons/cg';
 
 const AddDoctorProfile = () => {
   const [data, setData] = useState([]); // Table data
   const [loading, setLoading] = useState(false); // Loading state
   const [error, setError] = useState(""); // Error state
-  const [showAddForm, setShowAddForm] = useState(false); // Toggle Add Form visibility
+  // const [showAddForm, setShowAddForm] = useState(false);
   const [specialistOptions, setSpecialistOptions] = useState([]); // Specialist dropdown options
   const [formValues, setFormValues] = useState({
     doctor_name: "",
@@ -46,6 +47,11 @@ const AddDoctorProfile = () => {
       ),
     },
   ];
+
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const onOpen = () => setIsPopoverOpen(true);
+  const onClose = () => setIsPopoverOpen(false);
+
 
   // Fetch data from API
   const fetchData = async () => {
@@ -142,17 +148,32 @@ const AddDoctorProfile = () => {
   }, []);
 
   return (
-    <Container className={styles.formContainer}>
-      <Form className={styles.form}>
-        <Button onClick={() => setShowAddForm(!showAddForm)} className={`mb-4 ${styles.search}`}>
-          {showAddForm ? "Close Form" : "Add Doctor Profile"}
-        </Button>
+    <Container>
+      <Row className='mt-1 mb-1'>
+        <Col>
+          <Breadcrumb>
+            <Breadcrumb.Item href="/">Home</Breadcrumb.Item>
+            <Breadcrumb.Item href="/medical/all-module">
+              Medical
+            </Breadcrumb.Item>
+            <Breadcrumb.Item active>Add Doctor Profile</Breadcrumb.Item>
+          </Breadcrumb>
+        </Col>
+      </Row>
+      <Button onClick={onOpen} className="btn btn-primary">
+         <CgAddR /> Add Doctor Profile
+      </Button>
 
-        {showAddForm && (
-          <div className="mb-4">
+      {isPopoverOpen && (
+
+<div className="cover-sheet">
+  <div className="studentHeading"><h2>Add Doctor Profile</h2>
+  <button className='closeForm' onClick={onClose}> X </button>
+  </div>
+  <Form className="formSheet">
             <Row className="mb-3">
               <Col lg={6}>
-                <FormLabel>Doctor Name</FormLabel>
+                <FormLabel className="labelForm">Doctor Name</FormLabel>
                 <FormControl
                   type="text"
                   placeholder="Enter Doctor Name"
@@ -161,7 +182,7 @@ const AddDoctorProfile = () => {
                 />
               </Col>
               <Col lg={6}>
-                <FormLabel>Mobile No</FormLabel>
+                <FormLabel className="labelForm">Mobile No</FormLabel>
                 <FormControl
                   type="text"
                   placeholder="Enter Mobile Number"
@@ -172,7 +193,7 @@ const AddDoctorProfile = () => {
             </Row>
             <Row className="mb-3">
               <Col lg={6}>
-                <FormLabel>Email ID</FormLabel>
+                <FormLabel className="labelForm">Email ID</FormLabel>
                 <FormControl
                   type="email"
                   placeholder="Enter Email ID"
@@ -181,7 +202,7 @@ const AddDoctorProfile = () => {
                 />
               </Col>
               <Col lg={6}>
-                <FormLabel>Address</FormLabel>
+                <FormLabel className="labelForm">Address</FormLabel>
                 <FormControl
                   type="text"
                   placeholder="Enter Address"
@@ -192,7 +213,7 @@ const AddDoctorProfile = () => {
             </Row>
             <Row className="mb-3">
               <Col lg={6}>
-                <FormLabel>Specialist</FormLabel>
+                <FormLabel className="labelForm">Specialist</FormLabel>
                 <FormSelect
                   value={formValues.specialist}
                   onChange={(e) => setFormValues({ ...formValues, specialist: e.target.value })}
@@ -206,7 +227,7 @@ const AddDoctorProfile = () => {
                 </FormSelect>
               </Col>
               <Col lg={6}>
-                <FormLabel>Description</FormLabel>
+                <FormLabel className="labelForm">Description</FormLabel>
                 <FormControl
                   as="textarea"
                   placeholder="Enter Description"
@@ -215,22 +236,26 @@ const AddDoctorProfile = () => {
                 />
               </Col>
             </Row>
-            <Button className="mt-3" onClick={handleAdd}>
+            <Button className="btn btn-primary mt-4" onClick={handleAdd}>
               Submit
             </Button>
+            </Form>
           </div>
         )}
 
         {/* Table Section */}
         <Row>
           <Col>
+          <div className="tableSheet">
             <h2>Doctor Profile Records</h2>
             {loading && <p>Loading...</p>}
             {error && <p style={{ color: "red" }}>{error}</p>}
             {!loading && !error && <Table columns={columns} data={data} />}
+
+            </div>
           </Col>
         </Row>
-      </Form>
+     
     </Container>
   );
 };

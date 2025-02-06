@@ -5,14 +5,15 @@ import dynamic from "next/dynamic";
 import styles from "@/app/medical/routine-check-up/page.module.css";
 import Table from "@/app/component/DataTable";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
-import { Form, Row, Col, Container, FormLabel, FormControl, Button, FormSelect } from "react-bootstrap";
+import { Form, Row, Col, Container, FormLabel, FormSelect, FormControl, Button, Breadcrumb } from "react-bootstrap";
+import { CgAddR } from 'react-icons/cg';
 import axios from "axios";
 
 const RoutineCheckUp = () => {
   const [data, setData] = useState([]); // Routine Checkup Records
   const [loading, setLoading] = useState(false); // Loading state
   const [error, setError] = useState(""); // Error state
-  const [showAddForm, setShowAddForm] = useState(false); // Toggle Add Form visibility
+  // const [showAddForm, setShowAddForm] = useState(false); 
   const [formValues, setFormValues] = useState({}); // Form values for adding/editing
   const [editMode, setEditMode] = useState(false); // Toggle edit mode
   const [doctors, setDoctors] = useState([]); // Doctors list for dropdown
@@ -116,6 +117,10 @@ const RoutineCheckUp = () => {
     }
   };
 
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const onOpen = () => setIsPopoverOpen(true);
+  const onClose = () => setIsPopoverOpen(false);
+
   // Fetch data on component mount
   useEffect(() => {
     fetchData();
@@ -123,18 +128,31 @@ const RoutineCheckUp = () => {
   }, []);
 
   return (
-    <Container className={styles.formContainer}>
-      <Form className={styles.form}>
-        <Button onClick={() => setShowAddForm(!showAddForm)} className={`mb-4 ${styles.search}`}>
-          {showAddForm ? "Close Form" : "Add Routine Checkup"}
-        </Button>
+    <Container>
+      <Row className='mt-1 mb-1'>
+        <Col>
+          <Breadcrumb>
+            <Breadcrumb.Item href="/">Home</Breadcrumb.Item>
+            <Breadcrumb.Item href="/medical/all-module">
+              Medical
+            </Breadcrumb.Item>
+            <Breadcrumb.Item active> Routine Check up </Breadcrumb.Item>
+          </Breadcrumb>
+        </Col>
+      </Row>
 
-        {/* Add/Edit Form */}
-        {showAddForm && (
-          <div className="mb-4">
+
+
+      
+      <Button onClick={onOpen} className="btn btn-primary mb-4"> <CgAddR /> Add Routine Check up  </Button>
+      {isPopoverOpen ?
+         <div className="cover-sheet">
+         <div className="studentHeading"><h2>Add Routine Check up</h2> 
+         <button className='closeForm' onClick={onClose}> X </button></div>
+           <Form className="formSheet">
             <Row className="mb-3">
               <Col lg={6}>
-                <FormLabel>Today Date</FormLabel>
+                <FormLabel className="labelForm">Today Date</FormLabel>
                 <FormControl
                   type="date"
                   value={formValues.date || ""}
@@ -142,7 +160,7 @@ const RoutineCheckUp = () => {
                 />
               </Col>
               <Col lg={6}>
-                <FormLabel>Doctor Name</FormLabel>
+                <FormLabel className="labelForm">Doctor Name</FormLabel>
                 <FormSelect
                   value={formValues.doctor?._id || ""}
                   onChange={(e) =>
@@ -163,18 +181,17 @@ const RoutineCheckUp = () => {
             </Row>
             <Row className="mb-3">
               <Col lg={6}>
-                <FormLabel>Checkup For</FormLabel>
+                <FormLabel className="labelForm">Checkup For</FormLabel>
                 <FormSelect
                   value={formValues.check_up_for || ""}
-                  onChange={(e) => setFormValues({ ...formValues, check_up_for: e.target.value })}
-                >
+                  onChange={(e) => setFormValues({ ...formValues, check_up_for: e.target.value })}>
                   <option value="">Select</option>
                   <option value="Staff">Staff</option>
                   <option value="Student">Student</option>
                 </FormSelect>
               </Col>
               <Col lg={6}>
-                <FormLabel>Remarks</FormLabel>
+                <FormLabel className="labelForm">Remarks</FormLabel>
                 <FormControl
                   type="text"
                   placeholder="Enter Remarks"
@@ -183,22 +200,26 @@ const RoutineCheckUp = () => {
                 />
               </Col>
             </Row>
-            <Button className="mt-3" onClick={handleSubmit}>
+            <Button className="btn btn-primary mt-4" onClick={handleSubmit}>
               {editMode ? "Update" : "Submit"}
             </Button>
+            </Form>
           </div>
-        )}
+        : null }
 
         {/* Table Section */}
         <Row>
           <Col>
+          <div className="tableSheet">
             <h2>Routine Checkup Records</h2>
             {loading && <p>Loading...</p>}
             {error && <p style={{ color: "red" }}>{error}</p>}
             {!loading && !error && <Table columns={columns} data={data} />}
+
+            </div>
           </Col>
         </Row>
-      </Form>
+    
     </Container>
   );
 };

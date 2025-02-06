@@ -141,14 +141,25 @@ const StudentMasterPage = () => {
     }
   };
 
+  // const fetchSections = async (classId) => {
+  //   try {
+  //     console.log('testinggg', classId)
+  //     const response = await axios.get(`${process.env.NEXT_PUBLIC_SITE_URL}/api/sections/class/${classId} `);
+  //     setSectionList(response.data || []);
+  //     console.log('testingg', response.data);
+  //   } catch (err) {
+  //     setError("Failed to fetch sections.");
+  //   }
+  // };
+
   const fetchSections = async (classId) => {
     try {
-      console.log('testinggg', classId)
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_SITE_URL}/api/sections/class/${classId} `);
-      setSectionList(response.data || []);
-      console.log('testingg', response.data);
-    } catch (err) {
-      setError("Failed to fetch sections.");
+      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/sections/class/${classId}`);
+      console.log('testttttnnn', response)
+      setSectionList(Array.isArray(response.data.data) ? response.data.data : []);
+      console.log('testttttnnn', response.data)
+    } catch (error) {
+      console.error("Failed to fetch sections", error);
     }
   };
 

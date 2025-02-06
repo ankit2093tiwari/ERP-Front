@@ -31,7 +31,9 @@ const StudentBulkUpdate = () => {
   const fetchSections = async (classId) => {
     try {
       const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/sections/class/${classId}`);
-      setSectionList(response.data.sections || []);
+      console.log('testttttnnn', response)
+      setSectionList(Array.isArray(response.data.data) ? response.data.data : []);
+      console.log('testttttnnn', response.data)
     } catch (error) {
       console.error("Failed to fetch sections", error);
     }
@@ -74,7 +76,7 @@ const StudentBulkUpdate = () => {
 
   const handleUpdateStudents = async () => {
     try {
-      const response = await axios.put("https://erp-backend-fy3n.onrender.com/api/students/bulk-update", { students: updatedStudents });
+      const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/students/bulkUpdate", { students: updatedStudents });
       if (response.data.success) {
         alert("Students updated successfully!");
       }
@@ -202,7 +204,7 @@ const StudentBulkUpdate = () => {
               <FormLabel className="labelForm">Select Section</FormLabel>
               <FormSelect value={selectedSection} onChange={handleSectionChange}>
                 <option value="">Select Section</option>
-                {sectionList.map((sec) => (
+                {Array.isArray(sectionList) && sectionList.map((sec) => (
                   <option key={sec._id} value={sec._id}>
                     {sec.section_name}
                   </option>
