@@ -25,6 +25,7 @@ const FeeSetting = () => {
     credit_card_charge: "",
     debit_card_charge: "",
     amex_charge: "",
+    editStatus:false
   });
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
@@ -54,15 +55,20 @@ const FeeSetting = () => {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
+        {
+          newFeeSetting?.editStatus ? 
+          <button className="editButton" onClick={() => handleUpdate(row._id)}>
+            <FaSave />
+          </button>
+          :
+          <>
           <button className="editButton" onClick={() => handleEdit(row._id)}>
             <FaEdit />
           </button>
-          <button
-            className="editButton btn-danger"
-            onClick={() => handleDelete(row._id)}
-          >
+          <button className="editButton btn-danger" onClick={() => handleDelete(row._id)} >
             <FaTrashAlt />
           </button>
+         </>
         </div>
       ),
     },
@@ -116,20 +122,14 @@ const FeeSetting = () => {
     }
   };
 
-  const handleEdit = async (id) => {
+ const handleEdit = () => {
+    setNewFeeSetting({... newFeeSetting, editStatus:true})
+ }
+
+  const handleUpdate = async (id) => {
+    setNewFeeSetting({... newFeeSetting, editStatus:true})
     const feeSetting = data.find((row) => row._id === id);
-    const updatedCreditCardCharge = prompt(
-      "Enter new Credit Card Charge:",
-      feeSetting?.credit_card_charge || ""
-    );
-    const updatedDebitCardCharge = prompt(
-      "Enter new Debit Card Charge:",
-      feeSetting?.debit_card_charge || ""
-    );
-    const updatedAmexCharge = prompt(
-      "Enter new AMEX Charge:",
-      feeSetting?.amex_charge || ""
-    );
+   
 
     if (updatedCreditCardCharge && updatedDebitCardCharge && updatedAmexCharge) {
       try {
