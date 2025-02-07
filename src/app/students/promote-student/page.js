@@ -105,7 +105,7 @@ const PromoteStudentPage = () => {
     { name: "Father Name", selector: (row) => row.father_name || "N/A", sortable: true },
     { name: "Adm No", selector: (row) => row.registration_id || "N/A", sortable: true },
     { name: "Gender", selector: (row) => row.gender || "N/A", sortable: true },
-    { name: "Roll No", selector: (row) => row.rollNo || "N/A", sortable: true },
+    { name: "Roll No", selector: (row) => row.roll_no || "N/A", sortable: true },
   ];
 
   return (

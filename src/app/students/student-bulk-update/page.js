@@ -163,8 +163,8 @@ const StudentBulkUpdate = () => {
       cell: (row, index) => (
         <input
           type="text"
-          value={updatedStudents[index]?.rollNo || ""}
-          onChange={(e) => handleFieldChange(index, "rollNo", e.target.value)}
+          value={updatedStudents[index]?.roll_no || ""}
+          onChange={(e) => handleFieldChange(index, "roll_no", e.target.value)}
         />
       ),
     },

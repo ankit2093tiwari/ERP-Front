@@ -14,6 +14,8 @@ const AssignRollNo = () => {
   const [students, setStudents] = useState([]);
   const [showButtons, setShowButtons] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [prefixKey, setPrefixKey] = useState(""); // New state for prefix key
+  const [loading, setLoading] = useState(false); // New state for loading
 
   useEffect(() => {
     fetchClasses();
@@ -31,7 +33,6 @@ const AssignRollNo = () => {
   const fetchSections = async (classId) => {
     try {
       const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/sections/class/${classId}`);
-      console.log('testingfff', response.data.data)
       setSectionList(Array.isArray(response.data.data) ? response.data.data : []);
     } catch (error) {
       console.error("Failed to fetch sections", error);
@@ -43,23 +44,19 @@ const AssignRollNo = () => {
       alert("Please select both class and section");
       return;
     }
+    setLoading(true);
     try {
       const response = await axios.get(
         `https://erp-backend-fy3n.onrender.com/api/students/search?class_name=${selectedClass}&section_name=${selectedSection}`
       );
       const studentData = response.data.data || [];
 
-      // Ensure roll numbers exist (if not already set)
-      const updatedStudents = studentData.map((student, index) => ({
-        ...student,
-        roll_no: student.roll_no || null, // Initialize rollNo if missing
-      }));
-
-      setStudents(updatedStudents);
-      setShowButtons(updatedStudents.length > 0);
+      setStudents(studentData);
+      setShowButtons(studentData.length > 0);
     } catch (error) {
       console.error("Failed to fetch students", error);
     }
+    setLoading(false);
   };
 
   const handleClassChange = (event) => {
@@ -89,18 +86,43 @@ const AssignRollNo = () => {
       return;
     }
 
-    // Assign sequential roll numbers (starting from 1)
     const updatedStudents = students.map((student, index) => ({
       ...student,
-      roll_no: index + 1, // Roll No starts from 1
+      roll_no: prefixKey ? `${prefixKey}-${index + 1}` : (index + 1).toString(),
     }));
 
-    setStudents([...updatedStudents]); // Ensure state updates correctly
+    setStudents([...updatedStudents]);
   };
 
-  const handleSaveRollNo = () => {
-    alert("Roll numbers saved successfully!");
-    setIsEditing(false);
+  const handleSaveRollNo = async () => {
+    if (!selectedClass || !selectedSection) {
+      alert("Please select both class and section");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await axios.post(
+        "https://erp-backend-fy3n.onrender.com/api/students/roll-number-assigned-Students",
+        {
+          class_name: selectedClass,
+          section_name: selectedSection,
+          ["prefix-key"]: prefixKey, // Using the prefixKey state
+        }
+      );
+
+      if (response.data.success) {
+        alert("Roll numbers assigned successfully!");
+        setStudents(response.data.data); // Update student list with new roll numbers
+        setIsEditing(false);
+      } else {
+        alert("Failed to assign roll numbers.");
+      }
+    } catch (error) {
+      console.error("Error assigning roll numbers:", error);
+      alert("Something went wrong. Please try again.");
+    }
+    setLoading(false);
   };
 
   return (
@@ -145,11 +167,25 @@ const AssignRollNo = () => {
               </FormSelect>
             </Col>
           </Row>
+
+          <Row className="mt-3">
+            <Col>
+              <FormLabel className="labelForm">Prefix Key (Optional)</FormLabel>
+              <input
+                type="text"
+                className="form-control"
+                value={prefixKey}
+                onChange={(e) => setPrefixKey(e.target.value)}
+                placeholder="Enter Prefix (e.g., A)"
+              />
+            </Col>
+          </Row>
+
           <br />
           <Row>
             <Col>
-              <Button className="btn btn-primary" onClick={fetchStudents}>
-                Search Students
+              <Button className="btn btn-primary" onClick={fetchStudents} disabled={loading}>
+                {loading ? "Loading..." : "Search Students"}
               </Button>
               {showButtons && !isEditing && (
                 <Button className="btn btn-warning mt-3 ms-2" onClick={handleEditRollNo}>
@@ -161,8 +197,8 @@ const AssignRollNo = () => {
                   <Button className="btn btn-secondary mt-3 ms-2" onClick={handleAutoFillRollNo}>
                     AutoFill RollNo
                   </Button>
-                  <Button className="btn btn-success mt-3 ms-2" onClick={handleSaveRollNo}>
-                    Save RollNo
+                  <Button className="btn btn-success mt-3 ms-2" onClick={handleSaveRollNo} disabled={loading}>
+                    {loading ? "Saving..." : "Save RollNo"}
                   </Button>
                 </>
               )}
@@ -186,9 +222,9 @@ const AssignRollNo = () => {
                     cell: (row, index) =>
                       isEditing ? (
                         <input
-                          type="number"
+                          type="text"
                           value={row.roll_no || ""}
-                          onChange={(e) => handleRollNoChange(index, parseInt(e.target.value, 10) || 0)}
+                          onChange={(e) => handleRollNoChange(index, e.target.value)}
                           style={{ width: "60px" }}
                         />
                       ) : (
@@ -200,7 +236,7 @@ const AssignRollNo = () => {
                 data={students}
               />
             ) : (
-              <p className="text-center">No students found for the selected class and section.</p>
+              <p className="text-center">No students found.</p>
             )}
           </div>
         </Col>
