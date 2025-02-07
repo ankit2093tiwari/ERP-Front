@@ -28,20 +28,11 @@ const AssignRollNo = () => {
     }
   };
 
-  // const fetchSections = async (classId) => {
-  //   try {
-  //     const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/sections/class/${classId}`);
-  //     setSectionList(response.data.sections || []);
-  //   } catch (error) {
-  //     console.error("Failed to fetch sections", error);
-  //   }
-  // };
   const fetchSections = async (classId) => {
     try {
       const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/sections/class/${classId}`);
-      console.log('testttttnnn', response)
+      console.log('testingfff', response.data.data)
       setSectionList(Array.isArray(response.data.data) ? response.data.data : []);
-      console.log('testttttnnn', response.data)
     } catch (error) {
       console.error("Failed to fetch sections", error);
     }
@@ -56,8 +47,16 @@ const AssignRollNo = () => {
       const response = await axios.get(
         `https://erp-backend-fy3n.onrender.com/api/students/search?class_name=${selectedClass}&section_name=${selectedSection}`
       );
-      setStudents(response.data.data || []);
-      setShowButtons(true);
+      const studentData = response.data.data || [];
+
+      // Ensure roll numbers exist (if not already set)
+      const updatedStudents = studentData.map((student, index) => ({
+        ...student,
+        roll_no: student.roll_no || null, // Initialize rollNo if missing
+      }));
+
+      setStudents(updatedStudents);
+      setShowButtons(updatedStudents.length > 0);
     } catch (error) {
       console.error("Failed to fetch students", error);
     }
@@ -80,16 +79,23 @@ const AssignRollNo = () => {
 
   const handleRollNoChange = (index, newRollNo) => {
     const updatedStudents = [...students];
-    updatedStudents[index].rollNo = newRollNo;
+    updatedStudents[index].roll_no = newRollNo;
     setStudents(updatedStudents);
   };
 
   const handleAutoFillRollNo = () => {
+    if (students.length === 0) {
+      alert("No students found to assign roll numbers.");
+      return;
+    }
+
+    // Assign sequential roll numbers (starting from 1)
     const updatedStudents = students.map((student, index) => ({
       ...student,
-      rollNo: index + 1,
+      roll_no: index + 1, // Roll No starts from 1
     }));
-    setStudents(updatedStudents);
+
+    setStudents([...updatedStudents]); // Ensure state updates correctly
   };
 
   const handleSaveRollNo = () => {
@@ -181,12 +187,12 @@ const AssignRollNo = () => {
                       isEditing ? (
                         <input
                           type="number"
-                          value={row.rollNo || ""}
-                          onChange={(e) => handleRollNoChange(index, e.target.value)}
+                          value={row.roll_no || ""}
+                          onChange={(e) => handleRollNoChange(index, parseInt(e.target.value, 10) || 0)}
                           style={{ width: "60px" }}
                         />
                       ) : (
-                        row.rollNo || "N/A"
+                        row.roll_no || "N/A"
                       ),
                     sortable: true,
                   },

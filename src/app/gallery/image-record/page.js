@@ -6,6 +6,7 @@ import styles from "@/app/medical/routine-check-up/page.module.css";
 import Table from "@/app/component/DataTable";
 import { FaTrashAlt } from "react-icons/fa";
 import { Form, Row, Col, Container, Button, Breadcrumb } from "react-bootstrap";
+import Image from "next/image";
 import axios from "axios";
 
 const ImageRecord = () => {
@@ -27,7 +28,7 @@ const ImageRecord = () => {
     },
     {
       name: "Image",
-      selector: (row) => <img src={row.image} alt="Gallery" width="100" />,
+      selector: (row) => <Image src={row.image} alt="Gallery" width={25} height={25} />,
       sortable: false,
     },
     {
@@ -126,3 +127,5 @@ const ImageRecord = () => {
 };
 
 export default dynamic(() => Promise.resolve(ImageRecord), { ssr: false });
+
+

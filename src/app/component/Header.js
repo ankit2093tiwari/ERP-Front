@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import { Row, Col, Container, Nav, Navbar, NavDropdown } from "react-bootstrap";
 import { DarkModeSwitch } from 'react-toggle-dark-mode';
+import Image from "next/image";
+
 export default function Header() {
   const [isDarkMode, setDarkMode] = React.useState(false);
   const toggleDarkMode = (checked, boolean) => {
@@ -32,7 +34,7 @@ export default function Header() {
                         onChange={toggleDarkMode}
                         size={20} />
                     </Nav.Link>
-                    <NavDropdown title={<span><img src="/user.png" alt="dropdown icon" style={{ marginRight: "8px" }} />  User Name </span>} id="basic-nav-dropdown">
+                    <NavDropdown title={<span><Image src="/user.png" alt="dropdown icon" style={{ marginRight: "8px" }} width={25} height={25} />  User Name </span>} id="basic-nav-dropdown">
                       <NavDropdown.Item href="#">Change Password</NavDropdown.Item>
                       <NavDropdown.Divider />
                       <NavDropdown.Item href="#">Log out</NavDropdown.Item>

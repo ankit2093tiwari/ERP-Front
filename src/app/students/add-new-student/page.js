@@ -152,16 +152,30 @@ const StudentMasterPage = () => {
   //   }
   // };
 
+  // const fetchSections = async (classId) => {
+  //   try {
+  //     const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/sections/class/${classId}`);
+  //     console.log('testttttnnn', response)
+  //     setSectionList(Array.isArray(response.data.data) ? response.data.data : []);
+  //     console.log('testttttnnn', response.data)
+  //   } catch (error) {
+  //     console.error("Failed to fetch sections", error);
+  //   }
+  // };
+
   const fetchSections = async (classId) => {
     try {
-      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/sections/class/${classId}`);
-      console.log('testttttnnn', response)
-      setSectionList(Array.isArray(response.data.data) ? response.data.data : []);
-      console.log('testttttnnn', response.data)
+      console.log('classId', classId)
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_SITE_URL}/api/sections/class/${classId}`);
+      console.log('testttttnnn', response.data.data[0].section_name);
+      console.log('testdata', response.data.data);
+      setSectionList(Array.isArray(response.data.data) ? response.data.data[0] : []);
     } catch (error) {
       console.error("Failed to fetch sections", error);
     }
   };
+
+
 
   const columns = [
     { name: "#", selector: (row, index) => index + 1, sortable: false, width: "50px" },
