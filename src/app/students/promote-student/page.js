@@ -9,6 +9,7 @@ import styles from "@/app/medical/routine-check-up/page.module.css";
 const PromoteStudentPage = () => {
   const [classList, setClassList] = useState([]);
   const [sectionList, setSectionList] = useState([]);
+  const [promotedSectionList, setPromotedSectionList] = useState([]);
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedSection, setSelectedSection] = useState("");
   const [students, setStudents] = useState([]);
@@ -29,20 +30,10 @@ const PromoteStudentPage = () => {
     }
   };
 
-  // const fetchSections = async (classId) => {
-  //   try {
-  //     const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/sections/class/${classId}`);
-  //     setSectionList(response.data.sections || []);
-  //   } catch (error) {
-  //     console.error("Failed to fetch sections", error);
-  //   }
-  // };
-  const fetchSections = async (classId) => {
+  const fetchSections = async (classId, setSectionState) => {
     try {
       const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/sections/class/${classId}`);
-      console.log('testttttnnn', response)
-      setSectionList(Array.isArray(response.data.data) ? response.data.data : []);
-      console.log('testttttnnn', response.data)
+      setSectionState(Array.isArray(response.data.data) ? response.data.data : []);
     } catch (error) {
       console.error("Failed to fetch sections", error);
     }
@@ -53,12 +44,13 @@ const PromoteStudentPage = () => {
       alert("Please select both class and section");
       return;
     }
+    setStudents([]); // Clear previous students before fetching
+    setSelectedStudents([]);
     try {
       const response = await axios.get(
         `https://erp-backend-fy3n.onrender.com/api/students/search?class_name=${selectedClass}&section_name=${selectedSection}`
       );
       setStudents(response.data.data || []);
-      setSelectedStudents([]);
     } catch (error) {
       console.error("Failed to fetch students", error);
     }
@@ -76,8 +68,7 @@ const PromoteStudentPage = () => {
         new_section_id: promotedSection,
       });
       alert("Students promoted successfully");
-      setStudents([]);
-      setSelectedStudents([]);
+      fetchStudents();
     } catch (error) {
       console.error("Failed to promote students", error);
       alert("Failed to promote students");
@@ -126,7 +117,7 @@ const PromoteStudentPage = () => {
           <Row>
             <Col>
               <FormLabel>Select Class</FormLabel>
-              <FormSelect value={selectedClass} onChange={(e) => { setSelectedClass(e.target.value); fetchSections(e.target.value); }}>
+              <FormSelect value={selectedClass} onChange={(e) => { setSelectedClass(e.target.value); fetchSections(e.target.value, setSectionList); }}>
                 <option value="">Select Class</option>
                 {classList.map((cls) => <option key={cls._id} value={cls._id}>{cls.class_name}</option>)}
               </FormSelect>
@@ -149,7 +140,7 @@ const PromoteStudentPage = () => {
           <Row>
             <Col>
               <FormLabel>Select Promoted Class</FormLabel>
-              <FormSelect value={promotedClass} onChange={(e) => { setPromotedClass(e.target.value); fetchSections(e.target.value); }}>
+              <FormSelect value={promotedClass} onChange={(e) => { setPromotedClass(e.target.value); fetchSections(e.target.value, setPromotedSectionList); }}>
                 <option value="">Select Class</option>
                 {classList.map((cls) => <option key={cls._id} value={cls._id}>{cls.class_name}</option>)}
               </FormSelect>
@@ -158,12 +149,11 @@ const PromoteStudentPage = () => {
               <FormLabel>Select Promoted Section</FormLabel>
               <FormSelect value={promotedSection} onChange={(e) => setPromotedSection(e.target.value)}>
                 <option value="">Select Section</option>
-                {sectionList.map((sec) => <option key={sec._id} value={sec._id}>{sec.section_name}</option>)}
+                {promotedSectionList.map((sec) => <option key={sec._id} value={sec._id}>{sec.section_name}</option>)}
               </FormSelect>
             </Col>
             <Row>
               <Col>
-                {/* <Button onClick={fetchStudents}>Search Students</Button> */}
                 <Button onClick={handlePromote} disabled={!selectedStudents.length || !promotedClass || !promotedSection}>Promote Students</Button>
               </Col>
             </Row>
@@ -176,7 +166,6 @@ const PromoteStudentPage = () => {
           <div className="tableSheet">
             <h2>Students Records</h2>
             {students.length > 0 ? <Table columns={columns} data={students} /> : <p className="text-center">No students found.</p>}
-
           </div>
         </Col>
       </Row>
