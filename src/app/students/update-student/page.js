@@ -273,7 +273,7 @@ const UpdatePage = () => {
     if (!validateForm()) return;
 console.log('student._id', student._id)
     const endpoint = student._id
-      ? `${process.env.NEXT_PUBLIC_SITE_URL}/students/${id}`
+      ? `${process.env.NEXT_PUBLIC_SITE_URL}/students/${student._id}`
       : `${process.env.NEXT_PUBLIC_SITE_URL}/api/students`;
     const method = student._id ? "put" : "post";
 
