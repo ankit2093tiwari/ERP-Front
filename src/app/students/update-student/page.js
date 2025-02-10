@@ -271,7 +271,7 @@ const UpdatePage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault(); // Prevent page reload
     if (!validateForm()) return;
-
+console.log('student._id', student._id)
     const endpoint = student._id
       ? `${process.env.NEXT_PUBLIC_SITE_URL}/students/${id}`
       : `${process.env.NEXT_PUBLIC_SITE_URL}/api/students`;
