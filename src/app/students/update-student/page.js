@@ -280,7 +280,7 @@ console.log('student._id', student._id)
     try {
       const response = await axios[method](endpoint, student);
       console.log('response', response);
-      if (response?.data?.status) {
+      if (response?.data?.success) {
         setData((prev) =>
           student._id
             ? prev.map((row) => (row._id === student._id ? { ...row, ...student } : row))
@@ -290,7 +290,7 @@ console.log('student._id', student._id)
         setShowAddForm(false);
         resetStudentForm();
       } else {
-        setError(response.message);
+        setError(response?.data?.message ? response?.data?.message : response?.data?.error);
       }
 
       onClose();
