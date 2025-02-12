@@ -3,7 +3,7 @@ import React, { useState } from "react";
 // import Table from "@/app/component/DataTable";
 import styles from "@/app/master-entry/school-info/page.module.css";
 import Preview from "@/app/component/Preview";
-import { Container, Row, Col, Breadcrumb, Form, FormLabel, FormGroup, FormControl, Button} from "react-bootstrap";
+import { Container, Row, Col, Breadcrumb, Form, FormLabel, FormGroup, FormControl, Button } from "react-bootstrap";
 
 const GatePassEntry = () => {
   const [showPreview, setShowPreview] = useState(false);
@@ -37,113 +37,110 @@ const GatePassEntry = () => {
   };
   return (
     <>
-      <Container className="pt-5 pb-5">
+      <Container>
         <Row>
           <Col>
-            <Breadcrumb style={{ marginLeft: "20px" }}>
+            <Breadcrumb>
               <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
               <Breadcrumb.Item href="/transport">Stock Module</Breadcrumb.Item>
               <Breadcrumb.Item active>Gate Pass Entry</Breadcrumb.Item>
             </Breadcrumb>
           </Col>
         </Row>
-        <Row className="mt-2">
-          <Col style={{ padding: '30px' }}>
-            <h2>Gate Pass Entry</h2>
-            {!showPreview ? (
-              <Form onSubmit={handleSubmit} className="pb-5 pt-5">
-                <Row className="mb-3">
-                  <FormGroup as={Col} md="6" controlId="validationCustom01">
-                    <FormLabel>Today Date </FormLabel>
-                    <FormControl
+        <Row>
+          <Col>
+
+            
+              <div className="cover-sheet">
+                <div className="studentHeading"><h2>Gate Pass Entry</h2>  </div>
+                <Form className="formSheet" onSubmit={handleSubmit}>
+                  <Row className="mb-3">
+                    <FormGroup as={Col} md="6" controlId="validationCustom01">
+                      <FormLabel className="labelForm">Today Date </FormLabel>
+                      <FormControl
                         required
                         type="date"
                         value={formData.todayDate}
                         onChange={handleChange}
-                    />
-                  </FormGroup>
-                  <FormGroup as={Col} md="6" controlId="validationCustom02">
-                  <FormLabel>Purpose *</FormLabel>
-                    <FormControl
+                      />
+                    </FormGroup>
+                    <FormGroup as={Col} md="6" controlId="validationCustom02">
+                      <FormLabel className="labelForm">Purpose *</FormLabel>
+                      <FormControl
                         required
                         as="textarea"
                         value={formData.purpose}
                         onChange={handleChange}
-                        rows={6} style={{ height: '80px' }}
-                    />
-                  </FormGroup>
-                </Row>
-                <Row className="mb-3">
-                  <FormGroup as={Col} md="6" controlId="validationCustom01">
-                    <FormLabel>Form No.</FormLabel>
-                    <FormControl
+                        rows={1}
+                      />
+                    </FormGroup>
+                  </Row>
+                  <Row className="mb-3">
+                    <FormGroup as={Col} md="6" controlId="validationCustom01">
+                      <FormLabel className="labelForm">Form No.</FormLabel>
+                      <FormControl
                         required
                         type="text"
                         value={formData.formNo}
                         onChange={handleChange}
-                    />
-                  </FormGroup>
-                  <FormGroup as={Col} md="6" controlId="validationCustom02">
-                  <FormLabel>Address *</FormLabel>
-                    <FormControl
+                      />
+                    </FormGroup>
+                    <FormGroup as={Col} md="6" controlId="validationCustom02">
+                      <FormLabel className="labelForm">Address *</FormLabel>
+                      <FormControl
                         required
                         as="textarea"
                         value={formData.address}
                         onChange={handleChange}
-                        rows={6} style={{ height: '80px' }}
-                    />
-                  </FormGroup>
-                </Row>
-                <Row className="mb-3">
-                  <FormGroup as={Col} md="6" controlId="validationCustom01">
-                    <FormLabel>Company Details *</FormLabel>
-                    <FormControl
+                        rows={1}
+                      />
+                    </FormGroup>
+                  </Row>
+                  <Row className="mb-3">
+                    <FormGroup as={Col} md="6" controlId="validationCustom01">
+                      <FormLabel className="labelForm">Company Details *</FormLabel>
+                      <FormControl
                         required
                         type="text"
                         value={formData.companyDetails}
-                        onChange={handleChange}
-                    />
-                  </FormGroup>
-                  <FormGroup as={Col} md="6" controlId="validationCustom02">
-                  <FormLabel>Item In Details *</FormLabel>
-                    <FormControl
+                        onChange={handleChange}  />
+                    </FormGroup>
+                    <FormGroup as={Col} md="6" controlId="validationCustom02">
+                      <FormLabel className="labelForm">Item In Details *</FormLabel>
+                      <FormControl
                         required
                         as="textarea"
                         value={formData.itemDetails}
                         onChange={handleChange}
-                        rows={6} style={{ height: '80px' }}
-                    />
-                  </FormGroup>
-                </Row>
-                <Row className="mb-3">
-                <FormGroup as={Col} md="6" controlId="validationCustom02">
-                  <FormLabel>Email Id *</FormLabel>
-                    <FormControl
+                        rows={1} />
+                    </FormGroup>
+                  </Row>
+                  <Row className="mb-3">
+                    <FormGroup as={Col} md="6" controlId="validationCustom02">
+                      <FormLabel className="labelForm">Email Id *</FormLabel>
+                      <FormControl
                         required
                         type="text"
                         value={formData.emailId}
-                        onChange={handleChange}
-                    />
-                  </FormGroup> 
-                </Row>
-                <Row className="mb-3">
-                <FormGroup as={Col} md="6" controlId="validationCustom02">
-                  <FormLabel>MobileNo *</FormLabel>
-                    <FormControl
+                        onChange={handleChange}/>
+                    </FormGroup>
+                  </Row>
+                  <Row className="mb-3">
+                    <FormGroup as={Col} md="6" controlId="validationCustom02">
+                      <FormLabel className="labelForm">MobileNo *</FormLabel>
+                      <FormControl
                         required
                         type="text"
                         value={formData.mobileNo}
-                        onChange={handleChange}
-                    />
-                  </FormGroup> 
-                </Row>
-              </Form>
-            ) : (
-              <Preview />
-            )}
+                        onChange={handleChange} />
+                    </FormGroup>
+                  </Row>
+                </Form>
+              </div>
+
             <div className={styles.buttons}>
-             <Button className={styles.btnn} type="button" onClick={togglePreview}>Preview</Button>
-             <Button className={styles.btnn} type="submit">Submit</Button>
+              <Button className={styles.btnn} type="button" onClick={togglePreview}>Preview</Button>
+              <Button className={styles.btnn} type="submit">Submit</Button>
             </div>
           </Col>
         </Row>

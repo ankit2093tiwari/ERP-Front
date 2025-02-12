@@ -4,17 +4,18 @@ import Link from "next/link";
 import { RiSchoolLine } from "react-icons/ri";
 import { SiGoogleclassroom } from "react-icons/si";
 import SubCard from "@/app/component/SubCard";
+import Image from "next/image";
 const Page = () => {
   const cardData = [
     {
       href: "/notice/add-notice",
-      icon: <RiSchoolLine className="studentIcon" />,
+      icon: <Image src="/module/notice/notice.png" className="studentIcon" width={100} height={100} alt=""/>,
       title: "Add Notice",
       description: "Add Basic Details Of Notice",
     },
     {
       href: "/notice/notice-records",
-      icon: <SiGoogleclassroom className="studentIcon" />,
+      icon: <Image src="/module/notice/record.png" className="studentIcon" width={100} height={100} alt="" />,
       title: "Notice Records",
       description: "Check Basic Details Of Notice",
     },

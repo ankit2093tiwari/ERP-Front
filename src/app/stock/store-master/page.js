@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { FaPlus, FaEdit, FaTrashAlt } from "react-icons/fa";
+import { CgAddR } from 'react-icons/cg';
 import {
   Container,
   Row,
@@ -22,7 +23,7 @@ const StoreMaster = () => {
   const [loading, setLoading] = useState(false); // Loading state
   const [error, setError] = useState(""); // Error message
   const [successMessage, setSuccessMessage] = useState(""); // Success message
-  const [showAddForm, setShowAddForm] = useState(false); // Form visibility toggle
+  // const [showAddForm, setShowAddForm] = useState(false); 
   const [newStore, setNewStore] = useState({ storeName: "" }); // New store form state
 
   // Fetch data from API
@@ -57,7 +58,7 @@ const StoreMaster = () => {
       const addedStore = response.data;
       setData((prevData) => [...prevData, addedStore]);
       setNewStore({ storeName: "" });
-      setShowAddForm(false);
+      setIsPopoverOpen(false);
       setSuccessMessage("Store added successfully!");
       fetchData();
     } catch (err) {
@@ -67,6 +68,30 @@ const StoreMaster = () => {
       setLoading(false);
     }
   };
+  // const handleAdd = async () => {
+  //   if (newStoreName.trim()) {
+  //     try {
+  //       const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/store", {
+  //         storeName: newStoreName,
+  //       });
+  //       setData((prevData) => [...prevData, response.data]);
+  //       setNewStoreName("");
+  //       setShowAddForm(false);
+  //       setSuccessMessage("Store added successfully!");
+  //       fetchData();
+  //     } catch (error) {
+  //       console.error("Error adding data:", error);
+  //       setError("Failed to add data. Please try again later.");
+  //     }
+  //   } else {
+  //     alert("Please enter a valid store name.");
+  //   }
+  // };
+
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const onOpen = () => setIsPopoverOpen(true);
+  const onClose = () => setIsPopoverOpen(false);
+
 
   // Edit store
   const handleEdit = async (id) => {
@@ -92,11 +117,9 @@ const StoreMaster = () => {
       setLoading(false);
     }
   };
-
   // Delete store
   const handleDelete = async (id) => {
     if (!confirm("Are you sure you want to delete this store?")) return;
-
     setLoading(true);
     try {
       await axios.delete(`https://erp-backend-fy3n.onrender.com/api/store/${id}`);
@@ -109,11 +132,9 @@ const StoreMaster = () => {
       setLoading(false);
     }
   };
-
   useEffect(() => {
     fetchData();
   }, []);
-
   const columns = [
     {
       name: "#",
@@ -143,7 +164,6 @@ const StoreMaster = () => {
       ),
     },
   ];
-
   return (
     <Container>
       <Row className="mt-1 mb-1">
@@ -155,22 +175,23 @@ const StoreMaster = () => {
           </Breadcrumb>
         </Col>
       </Row>
-
       {successMessage && <Alert variant="success">{successMessage}</Alert>}
       {error && <Alert variant="danger">{error}</Alert>}
-
       <Row>
         <Col>
-          <Button onClick={() => setShowAddForm((prev) => !prev)} className="mb-4">
-            <FaPlus /> Add Store
+          <Button onClick={onOpen} className="btn btn-primary">
+            <CgAddR /> Add Store
           </Button>
-          {showAddForm && (
+          {isPopoverOpen && (
             <div className="cover-sheet">
-              <h2>Add Store</h2>
-              <Form>
+              <div className="studentHeading"><h2>Add Store</h2> 
+              <button className='closeForm' onClick={onClose}> X </button>
+              </div>
+
+               <Form className="formSheet">
                 <Row className="mb-3">
                   <Col lg={6}>
-                    <FormLabel>Store Name</FormLabel>
+                    <FormLabel className="labelForm">Store Name</FormLabel>
                     <FormControl
                       type="text"
                       placeholder="Enter Store Name"
@@ -196,7 +217,6 @@ const StoreMaster = () => {
           )}
         </Col>
       </Row>
-
       <Row>
         <Col>
           <div className="tableSheet">

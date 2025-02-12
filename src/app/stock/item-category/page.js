@@ -16,13 +16,14 @@ import {
 } from "react-bootstrap";
 import axios from "axios";
 import Table from "@/app/component/DataTable";
+import { CgAddR } from 'react-icons/cg';
 
 const ItemCategory = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
-  const [showAddForm, setShowAddForm] = useState(false);
+  // const [showAddForm, setShowAddForm] = useState(false);
   const [newCategory, setNewCategory] = useState({ categoryName: "" });
 
   // Fetch item categories
@@ -40,6 +41,11 @@ const ItemCategory = () => {
     }
   };
 
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const onOpen = () => setIsPopoverOpen(true);
+  const onClose = () => setIsPopoverOpen(false);
+
+
   // Add new category
   const handleAdd = async () => {
     if (!newCategory.categoryName.trim()) {
@@ -54,7 +60,7 @@ const ItemCategory = () => {
       );
       setData([...data, response.data]);
       setNewCategory({ categoryName: "" });
-      setShowAddForm(false);
+      setIsPopoverOpen(false);
       setSuccessMessage("Category added successfully!");
       fetchData();
     } catch (err) {
@@ -152,22 +158,22 @@ const ItemCategory = () => {
           </Breadcrumb>
         </Col>
       </Row>
-
       {successMessage && <Alert variant="success">{successMessage}</Alert>}
       {error && <Alert variant="danger">{error}</Alert>}
-
       <Row>
         <Col>
-          <Button onClick={() => setShowAddForm((prev) => !prev)} className="mb-4">
-            <FaPlus /> Add Category
+         <Button onClick={onOpen} className="btn btn-primary">
+           <CgAddR /> Add Category
           </Button>
-          {showAddForm && (
+          {isPopoverOpen && (
             <div className="cover-sheet">
-              <h2>Add Category</h2>
-              <Form>
+               <div className="studentHeading"><h2>Add Category</h2>
+                <button className='closeForm' onClick={onClose}> X </button>
+                </div>
+                <Form className="formSheet">
                 <Row className="mb-3">
                   <Col lg={6}>
-                    <FormLabel>Category Name</FormLabel>
+                    <FormLabel className="labelForm">Category Name</FormLabel>
                     <FormControl
                       type="text"
                       placeholder="Enter Category Name"

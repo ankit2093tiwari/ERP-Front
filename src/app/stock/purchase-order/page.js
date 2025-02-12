@@ -6,7 +6,7 @@ import { Container, Row, Col, Breadcrumb } from 'react-bootstrap';
 import styles from "@/app/students/add-new-student/page.module.css";
 import dynamic from 'next/dynamic';
 
-const PurchaseMasterrr = () => {
+const PurchaseMaster = () => {
   const columns = [
     {
       name: '#',
@@ -118,9 +118,9 @@ const PurchaseMasterrr = () => {
 
   return (
     <Container>
-      <Row className="mt-5 mb-3">
+      <Row>
         <Col>
-          <Breadcrumb style={{ marginLeft: '20px' }}>
+          <Breadcrumb>
             <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
             <Breadcrumb.Item href="/transport">Stock Module</Breadcrumb.Item>
             <Breadcrumb.Item active>Purchase Master</Breadcrumb.Item>
@@ -130,11 +130,13 @@ const PurchaseMasterrr = () => {
 
       <Row>
         <Col>
-          <h2 style={{ marginLeft: '23px' }}>Purchase List</h2>
+        <div className="tableSheet">
+          <h2>Purchase List</h2>
           <Table columns={columns} data={data} />
           <div className={styles.buttons} style={{ float: 'right', marginRight: '10px' }}>
             <button type="button" className="editButton">Previous</button>
             <button type="button" className="editButton">Next</button>
+          </div>
           </div>
         </Col>
       </Row>

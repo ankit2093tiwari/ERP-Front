@@ -11,80 +11,87 @@ import { PiTreeStructureLight } from "react-icons/pi";
 import { MdOutlineSubject } from "react-icons/md";
 import { FaChromecast } from "react-icons/fa6";
 import SubCard from "@/app/component/SubCard";
+import Image from "next/image"; 
 
 const Page = () => {
   const cardData = [
     {
       href: "/stock/store-master",
-      icon: <RiSchoolLine className="studentIcon" />,
+      icon: <Image src="/module/stock/storeMaster.png" className="studentIcon" width={100} height={100} alt="" />,
       title: "Store Master",
-      description: "Add Basic Details Of School",
+      description: "Add Basic Details Of Store",
     },
     {
       href: "/stock/item-category",
-      icon: <SiGoogleclassroom className="studentIcon" />,
+      icon: <Image src="/module/stock/Categoryitem.png" className="studentIcon" width={100} height={100} alt="" />,
       title: "Item Category",
-      description: "Add Basic Details Of Class",
+      description: "Add Basic Details Of Category",
     },
     {
       href: "/stock/item-master",
-      icon: <LiaCitySolid className="studentIcon" />,
+      icon: <Image src="/module/stock/itemMaster.png" className="studentIcon" width={100} height={100} alt="" />,
       title: "Item Master",
-      description: "Add Basic Details of City Master",
+      description: "Add Basic Details of Item Master",
     },
     {
       href: "/stock/vendor-master",
-      icon: <SlCalender className="studentIcon" />,
+      icon: <Image src="/module/stock/vendor.png" className="studentIcon" width={100} height={100} alt="" />,
       title: "Vendor Master",
-      description: "Add Basic Details of Year",
+      description: "Add Basic Details of Vendor",
     },
     {
       href: "/stock/quotation-master",
-      icon: <HiOutlineDocumentPlus className="studentIcon" />,
+      icon: <Image src="/module/stock/quotation.png" className="studentIcon" width={100} height={100} alt="" />,
       title: "Quotation Master",
-      description: "Upload Basic Details of Document",
+      description: "Add Basic Details of Quotation",
     },
     {
       href: "/stock/purchase-order",
-      icon: <TbCategoryPlus className="studentIcon" />,
+      icon: <Image src="/module/stock/purchaseOrder.png" className="studentIcon" width={100} height={100} alt="" />,
       title: "Purchase Order",
-      description: "Add Basic Details of Category",
+      description: "Add Basic Details of Purchase Order",
     },
     {
       href: "/stock/stock-available",
-      icon: <PiTreeStructureLight className="studentIcon" />,
+      icon: <Image src="/module/stock/ItemAvailable.png" className="studentIcon" width={100} height={100} alt="" />,
       title: "Stock Available",
-      description: "Add Basic Details of Religion",
+      description: "Add Basic Details of Stock Available",
     },
     {
       href: "/stock/issue-item",
-      icon: <MdOutlineSubject className="studentIcon" />,
+      icon: <Image src="/module/stock/issueItem.png" className="studentIcon" width={100} height={100} alt="" />,
       title: "Issue Item",
-      description: "Add Basic Details of Subject",
+      description: "Add Basic Details of Issue Item",
     },
     {
       href: "/stock/return-item",
-      icon: <FaChromecast className="studentIcon" />,
+      icon: <Image src="/module/stock/returnItem.png" className="studentIcon" width={100} height={100} alt="" />,
       title: "Return Item",
-      description: "Add Basic Details of Cast",
+      description: "Add Basic Details of Return Item",
     },
     {
         href: "/stock/write-off-entry",
-        icon: <FaChromecast className="studentIcon" />,
+        icon: <Image src="/module/stock/writeoff.png" className="studentIcon" width={100} height={100} alt="" />,
         title: "Write Off Entry",
-        description: "Add Basic Details of Cast",
+        description: "Add Basic Details of Write Off Entry",
       },
       {
         href: "/stock/gate-pass",
-        icon: <FaChromecast className="studentIcon" />,
+        icon: <Image src="/module/stock/pass.png" className="studentIcon" width={100} height={100} alt="" />,
         title: "Gate Pass",
-        description: "Add Basic Details of Cast",
+        description: "Add Basic Details of Gate Pass",
       },
       {
         href: "/stock/generate-gate-pass",
-        icon: <FaChromecast className="studentIcon" />,
+        icon: <Image src="/module/stock/generatepass.png" className="studentIcon" width={100} height={100} alt="" />,
         title: "Generate Gate Pass",
-        description: "Add Basic Details of Cast",
+        description: "generate Slip  of Gate Pass",
+      },
+      {
+        href: "/stock/generate-gate-pass",
+        icon: <Image src="/module/stock/report.png" className="studentIcon" width={100} height={100} alt="" />,
+        title: "Reports",
+        description: "generate Slip  of Gate Pass",
       },
   ];
 
@@ -99,7 +106,7 @@ const Page = () => {
           <div className="subCard1" key={index}>
             <Link href={card.href} className="SubCardLink">
               <SubCard
-                icon={card.icon}
+                icon={<div className="iconBack"> {card.icon} </div>}
                 title={<h3>{card.title}</h3>}
                 description={<p>{card.description}</p>}
               />

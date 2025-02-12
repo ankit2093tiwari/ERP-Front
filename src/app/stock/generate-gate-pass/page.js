@@ -54,9 +54,9 @@ const GenerateGatePass = () => {
 
   return (
     <Container>
-            <Row className='mt-5 mb-3'>
+            <Row>
                 <Col>
-                    <Breadcrumb style={{ marginLeft: '20px' }}>
+                    <Breadcrumb>
                         <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
                         <Breadcrumb.Item href="/transport">
                             Stock Module
@@ -65,15 +65,16 @@ const GenerateGatePass = () => {
                     </Breadcrumb>
                 </Col>
             </Row>
-            
             <Row>
                 <Col>
-                    <h2 style={{ marginLeft: '23px' }}>Person Entry Records</h2>
+                  <div className="tableSheet">
+                    <h2>Person Entry Records</h2>
                     <Table columns={columns} data={data} />
                     <div className={styles.buttons} style={{ float: 'right', marginRight: '10px' }}>
                         <button type="button" className="editButton">Previous</button>
                         <button type="button" className="editButton">Next</button>
                     </div>
+                  </div>
                 </Col>
             </Row>
         </Container>

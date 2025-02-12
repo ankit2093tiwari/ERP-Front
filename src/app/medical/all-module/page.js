@@ -11,24 +11,25 @@ import { PiTreeStructureLight } from "react-icons/pi";
 import { MdOutlineSubject } from "react-icons/md";
 import { FaChromecast } from "react-icons/fa6";
 import SubCard from "@/app/component/SubCard";
+import Image from "next/image"; 
 
 const Page = () => {
   const cardData = [
     {
       href: "/medical/add-check-up-type",
-      icon: <RiSchoolLine className="studentIcon" />,
+      icon: <Image src="/module/medical/addCheckup.png" className="studentIcon" width={100} height={100} alt="" />,
       title: "Add Check Up Type",
       description: "Add Basic Details Of School",
     },
     {
       href: "/medical/add-doctor-profile",
-      icon: <SiGoogleclassroom className="studentIcon" />,
+      icon: <Image src="/module/medical/doctor.png" className="studentIcon" width={100} height={100} alt="" />,
       title: "Add Doctor Profile",
       description: "Add Basic Details Of Class",
     },
     {
       href: "/medical/routine-check-up",
-      icon: <LiaCitySolid className="studentIcon" />,
+      icon: <Image src="/module/medical/routineCheckup.png" className="studentIcon" width={100} height={100} alt="" />,
       title: "Routine Check Up",
       description: "Add Basic Details of City Master",
     },

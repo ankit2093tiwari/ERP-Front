@@ -11,24 +11,25 @@ import { PiTreeStructureLight } from "react-icons/pi";
 import { MdOutlineSubject } from "react-icons/md";
 import { FaChromecast } from "react-icons/fa6";
 import SubCard from "@/app/component/SubCard";
+import Image from "next/image"; 
 
 const Page = () => {
   const cardData = [
     {
       href: "/gallery/add-group",
-      icon: <RiSchoolLine className="studentIcon" />,
+      icon: <Image src="/module/gallery/group.png" className="studentIcon" width={100} height={100} alt=" " />,
       title: "Add Group",
       description: "Add Basic Details Of School",
     },
     {
       href: "/gallery/add-image",
-      icon: <SiGoogleclassroom className="studentIcon" />,
+      icon: <Image src="/module/gallery/addImage.png" className="studentIcon" width={100} height={100} alt=" " />,
       title: "Add Image",
       description: "Add Basic Details Of Class",
     },
     {
       href: "/gallery/image-record",
-      icon: <LiaCitySolid className="studentIcon" />,
+      icon: <Image src="/module/gallery/records.png" className="studentIcon" width={100} height={100} alt=" "  />,
       title: "Image Record",
       description: "Add Basic Details of City Master",
     },

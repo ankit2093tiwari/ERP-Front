@@ -11,63 +11,47 @@ import { PiTreeStructureLight } from "react-icons/pi";
 import { MdOutlineSubject } from "react-icons/md";
 import { FaChromecast } from "react-icons/fa6";
 import SubCard from "@/app/component/SubCard";
+import Image from "next/image";
 
 const Page = () => {
   const cardData = [
     {
       href: "/students/add-new-student",
-      icon: <RiSchoolLine className="studentIcon" />,
+      icon: <Image src="/module/student/students.png" className="studentIcon" width={100} height={100} alt="" />,
       title: "New Student",
       description: "Add Basic Details Of New Student",
     },
     {
       href: "/students/update-student",
-      icon: <SiGoogleclassroom className="studentIcon" />,
+      icon: <Image src="/module/student/updateStudent.png" className="studentIcon" width={100} height={100} alt="" />,
       title: "Update Student",
       description: "Update Basic Details Of Student",
     },
     {
       href: "/students/assign-roll-no",
-      icon: <LiaCitySolid className="studentIcon" />,
+      icon: <Image src="/module/student/assignroll.png" className="studentIcon" width={100} height={100} alt="" />,
       title: "Assign RollNo",
       description: "Assign Roll No To Student",
     },
     {
       href: "/students/promote-student",
-      icon: <SlCalender className="studentIcon" />,
+      icon: <Image src="/module/student/promoteStudent.png" className="studentIcon" width={100} height={100} alt=""  />,
       title: "Promote Student",
       description: "Promote Student To Next Session",
     },
     {
       href: "/students/transfer-certificate",
-      icon: <HiOutlineDocumentPlus className="studentIcon" />,
+      icon: <Image src="/module/student/transferCertificate.png" className="studentIcon" width={100} height={100} alt=""  />,
       title: "Transfer Certificate",
       description: "Generate TC Of Student",
     },
     {
       href: "/students/id-card",
-      icon: <TbCategoryPlus className="studentIcon" />,
+      icon: <Image src="/module/student/report.png" className="studentIcon" width={100} height={100} alt="" />,
       title: "ID Card",
       description: "Generate Id Card Of Student",
     },
-    // {
-    //   href: "/students/religion-master",
-    //   icon: <PiTreeStructureLight className="studentIcon" />,
-    //   title: "Religion Master",
-    //   description: "Add Basic Details of Religion",
-    // },
-    // {
-    //   href: "/students/subject-master",
-    //   icon: <MdOutlineSubject className="studentIcon" />,
-    //   title: "Subject Master",
-    //   description: "Add Basic Details of Subject",
-    // },
-    // {
-    //   href: "/students/caste-master",
-    //   icon: <FaChromecast className="studentIcon" />,
-    //   title: "Caste Master",
-    //   description: "Add Basic Details of Cast",
-    // },
+   
   ];
 
   return (

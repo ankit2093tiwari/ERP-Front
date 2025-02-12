@@ -11,83 +11,84 @@ import { PiTreeStructureLight } from "react-icons/pi";
 import { MdOutlineSubject } from "react-icons/md";
 import { FaChromecast } from "react-icons/fa6";
 import SubCard from "@/app/component/SubCard";
+import Image from "next/image";
 const Page = () => {
   const cardData = [
     {
       href: "/library/group",
-      icon: <RiSchoolLine className="studentIcon" />,
+      icon: <Image src="/module/library/groupMaster.png" className="studentIcon" width={100} height={100} alt=""  />,
       title: "Group Master",
       description: "Add Basic Details Of Group",
     },
     {
       href: "/master-entry/class-master",
-      icon: <SiGoogleclassroom className="studentIcon" />,
+      icon: <Image src="/module/library/publish.png" className="studentIcon" width={100} height={100} alt=""  />,
       title: "Publisher Master",
       description: "Add Basic Details Of Publisher",
     },
     {
       href: "/master-entry/city-master",
-      icon: <LiaCitySolid className="studentIcon" />,
+      icon: <Image src="/module/library/rack.png" className="studentIcon" width={100} height={100} alt=""  />,
       title: "Rack Master",
       description: "Add Basic Details of Rack",
     },
     {
       href: "/master-entry/year-master",
-      icon: <SlCalender className="studentIcon" />,
+      icon: <Image src="/module/library/vendor.png" className="studentIcon" width={100} height={100} alt=""  />,
       title: "Vendor Master",
       description: "Add Basic Details of Vendor",
     },
     {
       href: "/master-entry/document-upload",
-      icon: <HiOutlineDocumentPlus className="studentIcon" />,
+      icon: <Image src="/module/library/categoryMaster.png" className="studentIcon" width={100} height={100} alt=""  />,
       title: "Category Master",
       description: "Add Basic Details of Category",
     },
     {
       href: "/master-entry/category-master",
-      icon: <TbCategoryPlus className="studentIcon" />,
+      icon: <Image src="/module/library/fine.png" className="studentIcon" width={100} height={100} alt=""  />,
       title: "Fine Master",
       description: "Add Basic Details of Fine",
     },
     {
       href: "/master-entry/religion-master",
-      icon: <PiTreeStructureLight className="studentIcon" />,
+      icon: <Image src="/module/library/newBook.png" className="studentIcon" width={100} height={100} alt=""  />,
       title: "New Book Entry",
       description: "Add Basic Details of New Book",
     },
     {
       href: "/master-entry/subject-master",
-      icon: <MdOutlineSubject className="studentIcon" />,
+      icon: <Image src="/module/library/suggestion.png" className="studentIcon" width={100} height={100} alt=""  />,
       title: "New Book Suggestion",
       description: "Add Details of Book Suggestion",
     },
     {
       href: "/master-entry/caste-master",
-      icon: <FaChromecast className="studentIcon" />,
+      icon: <Image src="/module/library/issueBook.png" className="studentIcon" width={100} height={100} alt=""  />,
       title: "Issue Book",
       description: "Add Basic Details of Cast",
     },
     {
       href: "/master-entry/caste-master",
-      icon: <FaChromecast className="studentIcon" />,
+      icon: <Image src="/module/library/returnBook.png" className="studentIcon" width={100} height={100} alt=""  />,
       title: "Return Book",
       description: "Add Basic Details of Return Book",
     },
     {
       href: "/master-entry/caste-master",
-      icon: <FaChromecast className="studentIcon" />,
+      icon: <Image src="/module/library/repairbook.png" className="studentIcon" width={100} height={100} alt=""  />,
       title: "Book Under Repair",
       description: "Add Basic Details of Under Repair",
     },
     {
       href: "/master-entry/caste-master",
-      icon: <FaChromecast className="studentIcon" />,
+      icon: <Image src="/module/library/barCode.png" className="studentIcon" width={100} height={100} alt=""  />,
       title: "Generate Bar Code",
       description: "Generate All Books Bar Codes",
     },
     {
       href: "/master-entry/caste-master",
-      icon: <FaChromecast className="studentIcon" />,
+      icon: <Image src="/module/library/report.png" className="studentIcon" width={100} height={100} alt=""  />,
       title: "Reports",
       description: "Check all Reports",
     },

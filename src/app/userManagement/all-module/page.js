@@ -1,20 +1,19 @@
 "use client";
 import React from "react";
 import Link from "next/link";
-import { RiSchoolLine } from "react-icons/ri";
-import { SiGoogleclassroom } from "react-icons/si";
 import SubCard from "@/app/component/SubCard";
+import Image from "next/image";
 const Page = () => {
   const cardData = [
     {
       href: "/user-management/add-user",
-      icon: <RiSchoolLine className="studentIcon" />,
+      icon: <Image src="/module/user/addUser.png" className="studentIcon" width={100} height={100} alt=""  />,
       title: "Add User",
       description: "Add Basic Details Of Notice",
     },
     {
       href: "/user-management/existing-user",
-      icon: <SiGoogleclassroom className="studentIcon" />,
+      icon: <Image src="/module/user/ExistingUsers.png" className="studentIcon" width={100} height={100} alt=""  />,
       title: "Existing Users",
       description: "Check Basic Details Of Notice",
     },

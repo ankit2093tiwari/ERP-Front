@@ -154,7 +154,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
         { title: "Enter Data", href: "/advertising-management/enter-data", icon: <FaUserGraduate /> },
     ];
     const examItems = [
-        { title: "All Modules", href: "/advertising-management/all-module", icon: <FaCog /> },
+        { title: "All Modules", href: "/exam/all-module", icon: <FaCog /> },
         { title: "Create Type", href: "/advertising-management/create-type", icon: <FaSchool /> },
         { title: "Enter Data", href: "/advertising-management/enter-data", icon: <FaUserGraduate /> },
     ];
@@ -195,6 +195,12 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
     ];
     const importantSMSItems = [
         { title: "importantSMS", href: "/importantSMS", icon: <FaCog /> },
+    ];
+    const studentAttendenceItems = [
+        { title: "All Modules", href: "/studentAttendence/all-module", icon: <FaCog /> },
+        { title: "Take Attendence", href: "/studentAttendence/TakeAttendence", icon: <FaSchool /> },
+        { title: "Attendence Report", href: "/studentAttendence/AttendenceReport", icon: <FaUserGraduate /> },
+        { title: "Monthly Report", href: "/studentAttendence/MonthlyReport", icon: <FaSchool /> },
     ];
     const userItems = [
         { title: "All Modules", href: "/userManagement/all-module", icon: <FaCog /> },
@@ -664,6 +670,28 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
                             <Accordion.Body>
                                 <ul style={{ listStyle: "none", paddingLeft: isOpen || activeKey ? "20px" : "0" }}>
                                     {importantSMSItems.map((item, index) => (
+                                        <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
+                                            {item.icon}
+                                            <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>
+                                                <Link href={item.href}>
+                                                    {item.title}
+                                                </Link>
+                                            </span>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </Accordion.Body>
+                        </Accordion.Item>
+                        <Accordion.Item eventKey="sudentAttendence">
+                            <Accordion.Header>
+                                <span style={{ display: "flex", alignItems: "center" }}>
+                                    <FaCog style={{ marginRight: isOpen || activeKey ? "10px" : "0" }} />
+                                    {(isOpen || activeKey) && "Student Attendence"}
+                                </span>
+                            </Accordion.Header>
+                            <Accordion.Body>
+                                <ul style={{ listStyle: "none", paddingLeft: isOpen || activeKey ? "20px" : "0" }}>
+                                    {studentAttendenceItems.map((item, index) => (
                                         <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
                                             {item.icon}
                                             <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>

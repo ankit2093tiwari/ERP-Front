@@ -650,8 +650,11 @@ input::-webkit-inner-spin-button {
 
 .studentIcon {
   font-size: 40px;
-  color: black;
+  color: #000;
   margin-bottom: 10px;
+  width: 55px;
+  height: 55px;
+  margin: 0 auto 10px;
 }
 
 .SubCard h3 {
@@ -665,6 +668,33 @@ input::-webkit-inner-spin-button {
   font-size: 0.8rem;
   color: #555555;
   margin-top: 8px;
+  min-height: 38px;
+}
+
+.cover-sheet-id{
+  background: rgb(249, 249, 249);
+  padding: 0px;
+  border-radius: 20px;
+  /* box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); */
+  border: 1px solid #ddd;
+  overflow: hidden;
+  margin-bottom: 20px;
+  /* padding: 20px; */
+}
+
+
+.cover-sheet-id .studentHeading {
+  padding: 10px 20px;
+  background-color: #2b6293;
+  /* margin-bottom: 10px; */
+  display: flex;
+  justify-content: space-between;
+}
+
+.cover-sheet-id .studentHeading h2 {
+  margin: 0;
+  font-size: 18px !important;
+  color: #fff !important;
 }
 
 .editButton {
@@ -723,6 +753,10 @@ input::-webkit-inner-spin-button {
   } */
 
 }
+
+
+
+
 
 @media (max-width: 768px) {
   .subCard1 {

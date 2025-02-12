@@ -11,85 +11,98 @@ import { PiTreeStructureLight } from "react-icons/pi";
 import { MdOutlineSubject } from "react-icons/md";
 import { FaChromecast } from "react-icons/fa6";
 import SubCard from "@/app/component/SubCard";
+import Image from "next/image";
 
 const Page = () => {
   const cardData = [
     {
       href: "/fees/dashboard",
-      icon: <RiSchoolLine className="studentIcon" />,
+      icon: <Image src="/module/fees/dashboard.png" className="studentIcon" width={100} height={100} alt=""  />,
       title: "Dashboard",
       description: "Add Basic Details Of dashboard",
     },
     {
       href: "/fees/school-account",
-      icon: <SiGoogleclassroom className="studentIcon" />,
+      icon: <Image src="/module/fees/schoolAccount.png" className="studentIcon" width={100} height={100} alt=""  />,
       title: "School Accounts",
       description: "Add Basic Details Of school Account",
     },
     {
       href: "/fees/installmentMaster",
-      icon: <LiaCitySolid className="studentIcon" />,
+      icon: <Image src="/module/fees/installmentMaster.png" className="studentIcon" width={100} height={100} alt=""  />,
       title: "Installment Master",
       description: "Add Basic Details of Installment Master",
     },
     {
       href: "/fees/headMaster",
-      icon: <SlCalender className="studentIcon" />,
+      icon: <Image src="/module/fees/headMaster.png" className="studentIcon" width={100} height={100} alt=""  />,
       title: "Head Master",
       description: "Add Basic Details of Head Master",
     },
     {
       href: "/fees/feeGroup",
-      icon: <HiOutlineDocumentPlus className="studentIcon" />,
+      icon: <Image src="/module/fees/feeGroup.png" className="studentIcon" width={100} height={100} alt=""  />,
       title: "Fee Group",
       description: "Add Basic Details of Fee Group",
     },
     {
       href: "/fees/feeSetting",
-      icon: <TbCategoryPlus className="studentIcon" />,
+      icon: <Image src="/module/fees/feeSetting.png" className="studentIcon" width={100} height={100} alt=""  />,
       title: "Fee Setting",
       description: "Add Basic Details of Fee Setting",
     },
     {
       href: "/fees/bank-master",
-      icon: <PiTreeStructureLight className="studentIcon" />,
+      icon: <Image src="/module/fees/bankMaster.png" className="studentIcon" width={100} height={100} alt=""  />,
       title: "Bank Master",
       description: "Add Basic Details of Bank Master",
     },
     {
       href: "/fees/pettyHeadMaster",
-      icon: <MdOutlineSubject className="studentIcon" />,
+      icon: <Image src="/module/fees/petty.png" className="studentIcon" width={100} height={100} alt=""  />,
       title: "Petty Head",
       description: "Add Basic Details of Petty Head Master",
     },
     {
       href: "/fees/fee-structure",
-      icon: <FaChromecast className="studentIcon" />,
+      icon: <Image src="/module/fees/feeStructure.png" className="studentIcon" width={100} height={100} alt=""  />,
       title: "Fee Structure",
       description: "Add Basic Details of Fee Structure",
     },
     {
       href: "/fees/fixed-amount",
-      icon: <FaChromecast className="studentIcon" />,
+      icon: <Image src="/module/fees/fixedAmount.png" className="studentIcon" width={100} height={100} alt=""  />,
       title: "Fixed Amount",
       description: "Add Basic Details of Fixed Amount",
     },
     {
       href: "/fees/fee-entry",
-      icon: <FaChromecast className="studentIcon" />,
+      icon: <Image src="/module/fees/depositEntry.png" className="studentIcon" width={100} height={100} alt=""  />,
       title: "Fee Entry",
       description: "Add Basic Details of Fee Entry",
     },
     {
       href: "/fees/concession-entry",
-      icon: <FaChromecast className="studentIcon" />,
+      icon: <Image src="/module/fees/concessionEntry.png" className="studentIcon" width={100} height={100} alt=""  />,
       title: "Concession Entry",
       description: "Add Basic Details of Concession Entry",
     },
     {
       href: "/fees/cheque-bounce",
-      icon: <FaChromecast className="studentIcon" />,
+      icon: <Image src="/module/fees/bounceCheque.png" className="studentIcon" width={100} height={100} alt=""  />,
       title: "Cheque Bounce Entry",
+      description: "Add Basic Details of Cheque Bounce",
+    },
+    {
+      href: "/fees/cheque-bounce",
+      icon: <Image src="/module/fees/transferYear.png" className="studentIcon" width={100} height={100} alt=""  />,
+      title: "Transfer to Next Year",
+      description: "Add Basic Details of Cheque Bounce",
+    },
+    {
+      href: "/fees/cheque-bounce",
+      icon: <Image src="/module/fees/report.png" className="studentIcon" width={100} height={100} alt=""  />,
+      title: "Reports",
       description: "Add Basic Details of Cheque Bounce",
     },
   ];
@@ -105,7 +118,7 @@ const Page = () => {
           <div className="subCard1" key={index}>
             <Link href={card.href} className="SubCardLink">
               <SubCard
-                icon={card.icon}
+                 icon={<div className="iconBack"> {card.icon} </div>}
                 title={<h3>{card.title}</h3>}
                 description={<p>{card.description}</p>}
               />

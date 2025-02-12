@@ -2,34 +2,35 @@
 import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { FaPlus, FaEdit, FaTrashAlt } from 'react-icons/fa';
-import { Container, Row, Col, Breadcrumb, Form, FormLabel, FormControl, FormSelect, Button, Alert } from 'react-bootstrap';
+import { Container, Row, Col, Breadcrumb, Form, FormGroup, FormLabel, FormControl, FormSelect, Button, Alert } from 'react-bootstrap';
 import axios from 'axios';
 import Table from '@/app/component/DataTable'; // Ensure the path is correct
+import { CgAddR } from 'react-icons/cg';
 
 const VendorMaster = () => {
   const [data, setData] = useState([]); // Data for the table
   const [loading, setLoading] = useState(false); // Loading state
   const [error, setError] = useState(''); // Error message
   const [successMessage, setSuccessMessage] = useState(''); // Success message
-  const [showAddForm, setShowAddForm] = useState(false); // Form visibility toggle
-  const [newVendor, setNewVendor] = useState({ 
-    organizationName: '', 
-    organizationType: '', 
-    contactPersonName: '', 
-    organizationAddress: '', 
-    statusOfEnterprise: '', 
-    itemCategory: '', 
-    organizationWebAddress: '', 
-    tinNo: '', 
-    contactNo: '', 
-    panNo: '', 
-    emailId: '', 
-    gstNo: '', 
-    remark: '', 
-    exciseRegistrationNo: '', 
-    bankerName: '', 
-    bankAccountNo: '', 
-    ifscCode: '' 
+  // const [showAddForm, setShowAddForm] = useState(false); 
+  const [newVendor, setNewVendor] = useState({
+    organizationName: '',
+    organizationType: '',
+    contactPersonName: '',
+    organizationAddress: '',
+    statusOfEnterprise: '',
+    itemCategory: '',
+    organizationWebAddress: '',
+    tinNo: '',
+    contactNo: '',
+    panNo: '',
+    emailId: '',
+    gstNo: '',
+    remark: '',
+    exciseRegistrationNo: '',
+    bankerName: '',
+    bankAccountNo: '',
+    ifscCode: ''
   }); // New vendor form state
   const [editingVendorId, setEditingVendorId] = useState(null); // Track if we're editing a vendor
 
@@ -47,6 +48,10 @@ const VendorMaster = () => {
       setLoading(false);
     }
   };
+
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const onOpen = () => setIsPopoverOpen(true);
+  const onClose = () => setIsPopoverOpen(false);
 
   // Add new vendor
   const handleAdd = async () => {
@@ -168,49 +173,176 @@ const VendorMaster = () => {
           </Breadcrumb>
         </Col>
       </Row>
-
       {successMessage && <Alert variant="success">{successMessage}</Alert>}
       {error && <Alert variant="danger">{error}</Alert>}
-
       <Row>
         <Col>
-          <Button onClick={() => setShowAddForm((prev) => !prev)} className="mb-4">
-            <FaPlus /> {editingVendorId ? 'Edit Vendor' : 'Add Vendor'}
+          <Button onClick={onOpen} className="btn btn-primary">
+            <CgAddR /> Add New Vendor
           </Button>
-          {showAddForm && (
+          {isPopoverOpen && (
             <div className="cover-sheet">
-              <h2>{editingVendorId ? 'Edit Vendor' : 'Add Vendor'}</h2>
-              <Form>
+              <div className="studentHeading">
+                <h2>Add New Vendor</h2>
+                <button className='closeForm' onClick={onClose}> X </button>
+              </div>
+              <Form className="formSheet">
                 <Row className="mb-3">
-                  <Col lg={6}>
-                    <FormLabel>Organization Name</FormLabel>
-                    <FormControl
-                      type="text"
-                      placeholder="Enter Organization Name"
-                      value={newVendor.organizationName}
-                      onChange={(e) => setNewVendor({ ...newVendor, organizationName: e.target.value })}
-                    />
-                  </Col>
-                  <Col lg={6}>
-                    <FormLabel>Organization Type</FormLabel>
-                    <FormSelect
-                      value={newVendor.organizationType}
-                      onChange={(e) => setNewVendor({ ...newVendor, organizationType: e.target.value })}
-                    >
+                  <FormGroup as={Col} md="6" controlId="validationCustom03">
+                    <FormLabel className="labelForm">Organization Name</FormLabel>
+                    <FormControl required type="text" value={formData.organizationName} name="organizationName" onChange={handleChange} />
+                  </FormGroup>
+                  <FormGroup as={Col} md="6" controlId="validationCustom02">
+                    <FormLabel className="labelForm"> Organization Type </FormLabel>
+                    <FormSelect value={formData.organizationType} name="organizationType" onChange={handleChange} required>
                       <option>Select</option>
-                      <option value="1">Manufacturer</option>
-                      <option value="2">Distributor</option>
-                      <option value="2">Super Stockiest</option>
-                      <option value="2">Dealer</option>
-                      <option value="2">Retailer</option>
+                      <option value="1">RECURRING</option>
+                      <option value="2">NON RECURRING</option>
                     </FormSelect>
-                  </Col>
+                  </FormGroup>
                 </Row>
-                {/* Add more fields here for other vendor data */}
+                <Row className="mb-3">
+                  <FormGroup as={Col} md="6" controlId="validationCustom01">
+                    <FormLabel className="labelForm">Contact Person Name</FormLabel>
+                    <FormControl required type="text" value={formData.contactPersonName} name="contactPersonName" onChange={handleChange} />
+                  </FormGroup>
+                  <FormGroup as={Col} md="6" controlId="validationCustom04">
+                    <FormLabel className="labelForm">Status Of Enterprise</FormLabel>
+                    <FormSelect value={formData.statusOfEnterprise} name="statusOfEnterprise" onChange={handleChange} required >
+                      <option>Select</option>
+                      <option value="1">RECURRING</option>
+                      <option value="2">NON RECURRING</option>
+                    </FormSelect>
+                  </FormGroup>
+                </Row>
+                <Row className="mb-3">
+                  <FormGroup as={Col} md="6" controlId="validationCustom05">
+                    <FormLabel className="labelForm">Organization Address</FormLabel>
+                    <FormControl required type="textarea" value={formData.organizationAddress} name="organizationAddress" onChange={handleChange} />
+                  </FormGroup>
+                  <FormGroup as={Col} md="6" controlId="validationCustom06">
+                    <FormLabel className="labelForm">Item category</FormLabel>
+                    <FormSelect value={formData.itemCategory} name="itemCategory" onChange={handleChange} required>
+                      <option>Select</option>
+                      <option value="1">RECURRING</option>
+                      <option value="2">NON RECURRING</option>
+                    </FormSelect>
+                  </FormGroup>
+                </Row>
+                <Row className='mb-3'>
+                  <FormGroup as={Col} md="6" controlId="validationCustom07">
+                    <FormLabel className="labelForm">Organization Web Address</FormLabel>
+                    <FormControl required type="text" value={formData.organizationWebAddress} name="organizationWebAddress" onChange={handleChange} />
+                  </FormGroup>
+                  <FormGroup as={Col} md="6" controlId="validationCustom08">
+                    <FormLabel className="labelForm">TIN No</FormLabel>
+                    <FormControl required type="number" value={formData.tinNo} name="tinNo" onChange={handleChange} />
+                  </FormGroup>
+                </Row>
+                <Row className='mb-3'>
+                  <FormGroup as={Col} md="6" controlId="validationCustom09">
+                    <FormLabel className="labelForm">Contact No</FormLabel>
+                    <FormControl
+                      required
+                      type="number"
+                      value={formData.contactNo}
+                      name="contactNo"
+                      onChange={handleChange}
+                    />
+                  </FormGroup>
+                  <FormGroup as={Col} md="6" controlId="validationCustom10">
+                    <FormLabel className="labelForm">PAN No</FormLabel>
+                    <FormControl
+                      required
+                      type="number"
+                      value={formData.panNo}
+                      name="panNo"
+                      onChange={handleChange}
+                    />
+                  </FormGroup>
+                </Row>
+                <Row className='mb-3'>
+                  <FormGroup as={Col} md="6" controlId="validationCustom11">
+                    <FormLabel className="labelForm">Email ID</FormLabel>
+                    <FormControl
+                      required
+                      type="email"
+                      value={formData.emailId}
+                      name="emailId"
+                      onChange={handleChange}
+                    />
+                  </FormGroup>
+                  <FormGroup as={Col} md="6" controlId="validationCustom12">
+                    <FormLabel className="labelForm">G.S.T No</FormLabel>
+                    <FormControl
+                      required
+                      type="number"
+                      value={formData.gstNo}
+                      name="gstNo"
+                      onChange={handleChange}
+                    />
+                  </FormGroup>
+                </Row>
+                <Row className='mb-3'>
+                  <FormGroup as={Col} md="6" controlId="validationCustom13">
+                    <FormLabel className="labelForm">Remark</FormLabel>
+                    <FormControl
+                      required
+                      type="text"
+                      value={formData.remark}
+                      name="remark"
+                      onChange={handleChange}
+                    />
+                  </FormGroup>
+                  <FormGroup as={Col} md="6" controlId="validationCustom14">
+                    <FormLabel className="labelForm">Excise Registration No</FormLabel>
+                    <FormControl
+                      required
+                      type="number"
+                      value={formData.exciseRegistrationNo}
+                      name="exciseRegistrationNo"
+                      onChange={handleChange}
+                    />
+                  </FormGroup>
+                </Row>
+                <Row className='mb-3'>
+                  <FormGroup as={Col} md="6" controlId="validationCustom15">
+                    <FormLabel className="labelForm">Banker&apos;s Name With Address</FormLabel>
+                    <FormControl
+                      required
+                      type="text"
+                      value={formData.bankerName}
+                      name="bankerName"
+                      onChange={handleChange}
+                    />
+                  </FormGroup>
+                  <FormGroup as={Col} md="6" controlId="validationCustom16">
+                    <FormLabel className="labelForm">Bank Account No</FormLabel>
+                    <FormControl
+                      required
+                      type="number"
+                      value={formData.bankAccountNo}
+                      name="bankAccountNo"
+                      onChange={handleChange}
+                    />
+                  </FormGroup>
+                </Row>
+                <Row className='mb-3'>
+                  <FormGroup as={Col} md="6" controlId="validationCustom19">
+                    <FormLabel className="labelForm">IFSC Code</FormLabel>
+                    <FormControl
+                      required
+                      type="number"
+                      value={formData.ifscCode}
+                      name="ifscCode"
+                      onChange={handleChange}
+                    />
+                  </FormGroup>
+                </Row>
                 <Row>
                   <Col>
-                    <Button onClick={editingVendorId ? handleUpdate : handleAdd} className="btn btn-primary mt-4">
-                      {editingVendorId ? 'Update Vendor' : 'Add Vendor'}
+                    <Button type="submit" className="btn btn-primary mt-4">
+                      Add New Vendor
                     </Button>
                   </Col>
                 </Row>
@@ -219,11 +351,10 @@ const VendorMaster = () => {
           )}
         </Col>
       </Row>
-
       <Row>
         <Col>
           <div className="tableSheet">
-            <h2>Vendor Records</h2>
+            <h2> Stock Vendor Records</h2>
             {loading ? (
               <p>Loading...</p>
             ) : data.length > 0 ? (

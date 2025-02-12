@@ -12,9 +12,10 @@ import {
   FormLabel,
   FormControl,
   Button,
-  FormSelect,
+  FormSelect, Breadcrumb
 } from "react-bootstrap";
 import axios from "axios";
+import { CgAddR } from 'react-icons/cg';
 
 const ItemMaster = () => {
   const [data, setData] = useState([]); // Table data
@@ -70,6 +71,12 @@ const ItemMaster = () => {
     }
   };
 
+
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const onOpen = () => setIsPopoverOpen(true);
+  const onClose = () => setIsPopoverOpen(false);
+
+
   const handleAdd = async () => {
     const { itemName, itemCategory, description, maintainMinimumStock, itemType } = formValues;
     if (itemName.trim() && itemCategory.trim() && itemType.trim()) {
@@ -89,7 +96,7 @@ const ItemMaster = () => {
           maintainMinimumStock: false,
           itemType: "",
         });
-        setShowAddForm(false);
+        setIsPopoverOpen(false);
       } catch (error) {
         console.error("Error adding data:", error);
         setError("Failed to add item. Please try again later.");
@@ -132,79 +139,107 @@ const ItemMaster = () => {
   }, []);
 
   return (
-    <Container className={styles.formContainer}>
-      <Button onClick={() => setShowAddForm(!showAddForm)} className={`mb-4 ${styles.search}`}>
-        {showAddForm ? "Close Form" : "Add Item"}
+    <Container>
+      <Row className='mt-1 mb-1'>
+        <Col>
+          <Breadcrumb>
+            <Breadcrumb.Item href="/">Home</Breadcrumb.Item>
+            <Breadcrumb.Item href="/medical/all-module">
+              Stock
+            </Breadcrumb.Item>
+            <Breadcrumb.Item active>Item Master</Breadcrumb.Item>
+          </Breadcrumb>
+        </Col>
+      </Row>
+
+
+      <Button onClick={onOpen} className="btn btn-primary">
+        <CgAddR /> Add Item
       </Button>
 
-      {showAddForm && (
-        <div className="mb-4">
-          <Row className="mb-3">
-            <Col lg={6}>
-              <FormLabel>Item Name</FormLabel>
-              <FormControl
-                type="text"
-                placeholder="Enter Item Name"
-                value={formValues.itemName}
-                onChange={(e) => setFormValues({ ...formValues, itemName: e.target.value })}
-              />
-            </Col>
-            <Col lg={6}>
-              <FormLabel>Category</FormLabel>
-              <FormSelect
-                value={formValues.itemCategory}
-                onChange={(e) => setFormValues({ ...formValues, itemCategory: e.target.value })}
-              >
-                <option value="">Select</option>
-                {categories.map((category) => (
-                  <option key={category._id} value={category._id}>
-                    {category.categoryName}
-                  </option>
-                ))}
-              </FormSelect>
-            </Col>
-          </Row>
-          <Row className="mb-3">
-            <Col lg={6}>
-              <FormLabel>Item Type</FormLabel>
-              <FormSelect
-                value={formValues.itemType}
-                onChange={(e) => setFormValues({ ...formValues, itemType: e.target.value })}
-              >
-                <option value="">Select</option>
-                <option value="recurring">Recurring</option>
-                <option value="non-recurring">Non-Recurring</option>
-              </FormSelect>
-            </Col>
-            <Col lg={6}>
-              <FormLabel>Description</FormLabel>
-              <FormControl
-                type="text"
-                placeholder="Enter Description"
-                value={formValues.description}
-                onChange={(e) => setFormValues({ ...formValues, description: e.target.value })}
-              />
-            </Col>
-          </Row>
-          <Form.Check
-            type="checkbox"
-            label="Maintain Minimum Stock"
-            checked={formValues.maintainMinimumStock}
-            onChange={(e) => setFormValues({ ...formValues, maintainMinimumStock: e.target.checked })}
-          />
-          <Button className="mt-3" onClick={handleAdd}>
-            Submit
-          </Button>
+      {isPopoverOpen && (
+
+
+        <div className="cover-sheet">
+          <div className="studentHeading"><h2>Add Doctor Profile</h2>
+            <button className='closeForm' onClick={onClose}> X </button>
+          </div>
+          <Form className="formSheet">
+            <Row className="mb-3">
+              <Col lg={6}>
+                <FormLabel className="labelForm">Item Name</FormLabel>
+                <FormControl
+                  type="text"
+                  placeholder="Enter Item Name"
+                  value={formValues.itemName}
+                  onChange={(e) => setFormValues({ ...formValues, itemName: e.target.value })}
+                />
+              </Col>
+              <Col lg={6}>
+                <FormLabel className="labelForm">Category</FormLabel>
+                <FormSelect
+                  value={formValues.itemCategory}
+                  onChange={(e) => setFormValues({ ...formValues, itemCategory: e.target.value })}
+                >
+                  <option value="">Select</option>
+                  {categories.map((category) => (
+                    <option key={category._id} value={category._id}>
+                      {category.categoryName}
+                    </option>
+                  ))}
+                </FormSelect>
+              </Col>
+            </Row>
+            <Row className="mb-3">
+              <Col lg={6}>
+                <FormLabel className="labelForm">Item Type</FormLabel>
+                <FormSelect
+                  value={formValues.itemType}
+                  onChange={(e) => setFormValues({ ...formValues, itemType: e.target.value })}
+                >
+                  <option value="">Select</option>
+                  <option value="recurring">Recurring</option>
+                  <option value="non-recurring">Non-Recurring</option>
+                </FormSelect>
+              </Col>
+              <Col lg={6}>
+                <FormLabel className="labelForm">Description</FormLabel>
+                <FormControl
+                  type="text"
+                  placeholder="Enter Description"
+                  value={formValues.description}
+                  onChange={(e) => setFormValues({ ...formValues, description: e.target.value })}
+                />
+              </Col>
+            </Row>
+            <Form.Check
+              type="checkbox"
+              label="Maintain Minimum Stock"
+              checked={formValues.maintainMinimumStock}
+              onChange={(e) => setFormValues({ ...formValues, maintainMinimumStock: e.target.checked })}
+            />
+            <Button className="mt-3" onClick={handleAdd}>
+              Submit
+            </Button>
+          </Form>
         </div>
       )}
 
-      {loading ? (
-        <p>Loading data...</p>
-      ) : error ? (
-        <p style={{ color: "red" }}>{error}</p>
-      ) : (
-        <Table columns={columns} data={data} />
-      )}
+
+      <Row>
+        <Col>
+          <div className="tableSheet">
+            <h2>Stock Item Records</h2>
+            {loading ? (
+              <p>Loading data...</p>
+            ) : error ? (
+              <p style={{ color: "red" }}>{error}</p>
+            ) : (
+              <Table columns={columns} data={data} />
+            )}
+          </div>
+        </Col>
+      </Row>
     </Container>
   );
 };

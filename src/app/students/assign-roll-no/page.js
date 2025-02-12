@@ -99,7 +99,12 @@ const AssignRollNo = () => {
       alert("Please select both class and section");
       return;
     }
-
+  
+    if (!students || !Array.isArray(students) || students.length === 0) {
+      alert("No students available to assign roll numbers.");
+      return;
+    }
+  
     setLoading(true);
     try {
       const response = await axios.post(
@@ -107,16 +112,20 @@ const AssignRollNo = () => {
         {
           class_name: selectedClass,
           section_name: selectedSection,
-          ["prefix-key"]: prefixKey, // Using the prefixKey state
+          students: students.map(student => ({
+            _id: student._id, // Ensure the student ID is included
+            roll_no: student.roll_no, // Assign roll number
+          })),
+          prefix_key: prefixKey, 
         }
       );
-
+  
       if (response.data.success) {
-        alert("Roll numbers assigned successfully!");
+        alert("Roll numbers Updated successfully!");
         setStudents(response.data.data); // Update student list with new roll numbers
         setIsEditing(false);
       } else {
-        alert("Failed to assign roll numbers.");
+        alert(response.data.message || "Failed to assign roll numbers.");
       }
     } catch (error) {
       console.error("Error assigning roll numbers:", error);
@@ -124,6 +133,38 @@ const AssignRollNo = () => {
     }
     setLoading(false);
   };
+  
+
+  // const handleSaveRollNo = async () => {
+  //   if (!selectedClass || !selectedSection) {
+  //     alert("Please select both class and section");
+  //     return;
+  //   }
+
+  //   setLoading(true);
+  //   try {
+  //     const response = await axios.post(
+  //       "https://erp-backend-fy3n.onrender.com/api/students/roll-number-assigned-Students",
+  //       {
+  //         class_name: selectedClass,
+  //         section_name: selectedSection,
+  //         ["prefix-key"]: prefixKey, // Using the prefixKey state
+  //       }
+  //     );
+
+  //     if (response.data.success) {
+  //       alert("Roll numbers assigned successfully!");
+  //       setStudents(response.data.data); // Update student list with new roll numbers
+  //       setIsEditing(false);
+  //     } else {
+  //       alert("Failed to assign roll numbers.");
+  //     }
+  //   } catch (error) {
+  //     console.error("Error assigning roll numbers:", error);
+  //     alert("Something went wrong. Please try again.");
+  //   }
+  //   setLoading(false);
+  // };
 
   return (
     <Container>
@@ -168,7 +209,7 @@ const AssignRollNo = () => {
             </Col>
           </Row>
 
-          <Row className="mt-3">
+          {/* <Row className="mt-3">
             <Col>
               <FormLabel className="labelForm">Prefix Key (Optional)</FormLabel>
               <input
@@ -179,7 +220,7 @@ const AssignRollNo = () => {
                 placeholder="Enter Prefix (e.g., A)"
               />
             </Col>
-          </Row>
+          </Row> */}
 
           <br />
           <Row>

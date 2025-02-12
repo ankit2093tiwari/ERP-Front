@@ -1,6 +1,7 @@
 "use client";
 import React from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { RiSchoolLine } from "react-icons/ri";
 import { SiGoogleclassroom } from "react-icons/si";
 import { LiaCitySolid } from "react-icons/lia";
@@ -16,55 +17,55 @@ const Page = () => {
   const cardData = [
     {
       href: "/master-entry/school-info",
-      icon: <RiSchoolLine className="studentIcon" />,
+      icon: <Image src="/module/masterEntry/school.png" className="studentIcon" width={100} height={100} alt=""  />,
       title: "School Information",
       description: "Add Basic Details Of School",
     },
     {
       href: "/master-entry/class-master",
-      icon: <SiGoogleclassroom className="studentIcon" />,
+      icon: <Image src="/module/masterEntry/classmaster.png" className="studentIcon" width={100} height={100} alt=""  />,
       title: "Class Master",
       description: "Add Basic Details Of Class",
     },
     {
       href: "/master-entry/city-master",
-      icon: <LiaCitySolid className="studentIcon" />,
+      icon: <Image src="/module/masterEntry/citymaster.png" className="studentIcon" width={100} height={100} alt=""  />,
       title: "City Master",
       description: "Add Basic Details of City Master",
     },
     {
       href: "/master-entry/year-master",
-      icon: <SlCalender className="studentIcon" />,
+      icon:<Image src="/module/masterEntry/year.png" className="studentIcon" width={100} height={100} alt="" />,
       title: "Year Master",
       description: "Add Basic Details of Year",
     },
     {
       href: "/master-entry/document-upload",
-      icon: <HiOutlineDocumentPlus className="studentIcon" />,
+      icon: <Image src="/module/masterEntry/upload.png" className="studentIcon" width={100} height={100} alt="" />,
       title: "Document Upload",
       description: "Upload Basic Details of Document",
     },
     {
       href: "/master-entry/category-master",
-      icon: <TbCategoryPlus className="studentIcon" />,
+      icon: <Image src="/module/masterEntry/categoryMaster.png" className="studentIcon" width={100} height={100} alt=""  />,
       title: "Category Master",
       description: "Add Basic Details of Category",
     },
     {
       href: "/master-entry/religion-master",
-      icon: <PiTreeStructureLight className="studentIcon" />,
+      icon: <Image src="/module/masterEntry/religion.png" className="studentIcon" width={100} height={100} alt="" />,
       title: "Religion Master",
       description: "Add Basic Details of Religion",
     },
     {
       href: "/master-entry/subject-master",
-      icon: <MdOutlineSubject className="studentIcon" />,
+      icon: <Image src="/module/masterEntry/subject.png" className="studentIcon" width={100} height={100} alt=""  />,
       title: "Subject Master",
       description: "Add Basic Details of Subject",
     },
     {
       href: "/master-entry/caste-master",
-      icon: <FaChromecast className="studentIcon" />,
+      icon: <Image src="/module/masterEntry/caste.png" className="studentIcon" width={100} height={100} alt="" />,
       title: "Caste Master",
       description: "Add Basic Details of Cast",
     },

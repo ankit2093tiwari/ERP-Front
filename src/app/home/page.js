@@ -32,7 +32,7 @@ const Dashboard = () => {
           action3="Students Details"
           actionLink="/students/add-new-student"
           action2Link="/students/transfer-certificate"
-          action3Link="/students/details"
+          action3Link="/students/reports/student-list-wizard"
         />
         <Card
           name="FEES"

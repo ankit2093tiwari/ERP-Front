@@ -104,10 +104,8 @@ const QuotationMaster = () => {
   const [startDate, setStartDate] = useState(new Date());
 
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-
-  const togglePopover = () => {
-    setIsPopoverOpen(!isPopoverOpen);
-  };
+  const onOpen = () => setIsPopoverOpen(true);
+  const onClose = () => setIsPopoverOpen(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -117,9 +115,9 @@ const QuotationMaster = () => {
 
   return (
     <Container className={styles.vehicle}>
-      <Row className='mt-1 mb-1'>
+      <Row>
         <Col>
-          <Breadcrumb style={{ marginLeft: '20px' }}>
+          <Breadcrumb>
             <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
             <Breadcrumb.Item href="/stock/all-module">
               Stock Module
@@ -130,15 +128,16 @@ const QuotationMaster = () => {
       </Row>
       <Row>
         <Col>
-          <button onClick={togglePopover} id="submit" type='button' style={{ marginLeft: '20px' }}>
-            <CgAddR style={{ fontSize: '27px', marginTop: '-2px', marginRight: '5px' }} /> Add Quotation</button>
+          <Button onClick={onOpen} className="btn btn-primary">
+            <CgAddR /> Add Quotation</Button>
           {isPopoverOpen && (
-            <div className='absolute right-0 mt-3 w-60 p-4' style={{ backgroundColor: '#f8f9fa', border: '1px solid #ddd', borderRadius: '8px', padding: '20px', width: '940px' }}>
-              <h3>Add Quotation</h3>
-              <Form onSubmit={handleSubmit}>
+            <div className="cover-sheet">
+            <div className="studentHeading">
+              <h2>Add Quotation</h2> <button className='closeForm' onClick={onClose}> X </button></div>
+             <Form className="formSheet" onSubmit={handleSubmit}>
                 <Row className="mb-3">
                   <FormGroup as={Col} md="6" controlId="validationCustom06">
-                    <FormLabel value={formData.itemCategory} onChange={handleChange} required>Item category</FormLabel>
+                    <FormLabel className="labelForm" value={formData.itemCategory} onChange={handleChange} required>Item category</FormLabel>
                     <FormSelect>
                       <option>Select</option>
                       <option value="1">RECUURING</option>
@@ -146,7 +145,7 @@ const QuotationMaster = () => {
                     </FormSelect>
                   </FormGroup>
                   <FormGroup as={Col} md="6" controlId="validationCustom05">
-                    <FormLabel value={formData.itemName} onChange={handleChange} required>Item Name</FormLabel>
+                    <FormLabel className="labelForm" value={formData.itemName} onChange={handleChange} required>Item Name</FormLabel>
                     <FormControl
                       required
                       type="textarea"
@@ -155,14 +154,14 @@ const QuotationMaster = () => {
                 </Row>
                 <Row className="mb-3">
                   <FormGroup as={Col} md="6" controlId="validationCustom01">
-                    <FormLabel value={formData.pricePerUnit} onChange={handleChange} required>Price Per Unit</FormLabel>
+                    <FormLabel className="labelForm" value={formData.pricePerUnit} onChange={handleChange} required>Price Per Unit</FormLabel>
                     <FormControl
                       required
                       type="number"
                     />
                   </FormGroup>
                   <FormGroup as={Col} md="6" controlId="validationCustom02">
-                    <FormLabel value={formData.vendorName} onChange={handleChange} required>Vendor Name</FormLabel>
+                    <FormLabel className="labelForm" value={formData.vendorName} onChange={handleChange} required>Vendor Name</FormLabel>
                     <FormSelect>
                       <option>Select</option>
                       <option value="1">RECUURING</option>
@@ -172,14 +171,14 @@ const QuotationMaster = () => {
                 </Row>
                 <Row className='mb-3'>
                   <FormGroup as={Col} md="6" controlId="validationCustom07">
-                    <FormLabel value={formData.quotationNo} onChange={handleChange} required>Quotation No</FormLabel>
+                    <FormLabel className="labelForm" value={formData.quotationNo} onChange={handleChange} required>Quotation No</FormLabel>
                     <FormControl
                       required
                       type="number"
                     />
                   </FormGroup>
                   <FormGroup as={Col} md="6" controlId="validationCustom08">
-                    <FormLabel value={formData.remark} onChange={handleChange} required>Remark</FormLabel>
+                    <FormLabel className="labelForm" value={formData.remark} onChange={handleChange} required>Remark</FormLabel>
                     <FormControl
                       required
                       type="text"
@@ -194,11 +193,13 @@ const QuotationMaster = () => {
       </Row>
       <Row>
         <Col>
-          <h2 style={{ marginLeft: '23px', marginTop: '15px', marginBottom: '25px', fontSize: '22px' }}>Quotation Record</h2>
+        <div className="tableSheet">
+          <h2>Quotation Record</h2>
           <Table columns={columns} data={data} />
           <div className={styles.buttons} style={{ float: 'right', marginRight: '10px' }}>
             <button type="button" className="editButton">Previous</button>
             <button type="button" className="editButton">Next</button>
+          </div>
           </div>
         </Col>
       </Row>

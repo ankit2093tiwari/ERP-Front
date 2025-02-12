@@ -11,36 +11,37 @@ import { PiTreeStructureLight } from "react-icons/pi";
 import { MdOutlineSubject } from "react-icons/md";
 import { FaChromecast } from "react-icons/fa6";
 import SubCard from "@/app/component/SubCard";
+import Image from "next/image"; 
 
 const Page = () => {
   const cardData = [
     {
       href: "/accounts/stock-purchase",
-      icon: <RiSchoolLine className="studentIcon" />,
+      icon: <Image src="/module/account/stockPurchase.png" className="studentIcon" width={100} height={100} alt=""  />,
       title: "Stock Purchase",
       description: "Add Basic Details Of School",
     },
     {
       href: "/accounts/hrd-salary",
-      icon: <SiGoogleclassroom className="studentIcon" />,
+      icon: <Image src="/module/account/hrdSalary.png" className="studentIcon" width={100} height={100} alt=""  />,
       title: "HRD Sallary",
       description: "Add Basic Details Of Class",
     },
     {
       href: "/accounts/expense-entry",
-      icon: <LiaCitySolid className="studentIcon" />,
+      icon: <Image src="/module/account/expenseEntry.png" className="studentIcon" width={100} height={100} alt=""   />,
       title: "Expense Entry",
       description: "Add Basic Details of City Master",
     },
     {
       href: "/accounts/bal-bank",
-      icon: <SlCalender className="studentIcon" />,
+      icon: <Image src="/module/account/balBank.png" className="studentIcon" width={100} height={100} alt=""  />,
       title: "Bal Bank",
       description: "Add Basic Details of Year",
     },
     {
       href: "/accounts/all-income",
-      icon: <HiOutlineDocumentPlus className="studentIcon" />,
+      icon: <Image src="/module/account/allIncome.png" className="studentIcon" width={100} height={100} alt=""  />,
       title: "All Income",
       description: "Upload Basic Details of Document",
     },

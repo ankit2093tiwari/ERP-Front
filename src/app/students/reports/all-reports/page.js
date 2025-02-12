@@ -1,34 +1,26 @@
 "use client";
 import React from "react";
 import Link from "next/link";
-import { RiSchoolLine } from "react-icons/ri";
-import { SiGoogleclassroom } from "react-icons/si";
-import { LiaCitySolid } from "react-icons/lia";
-import { SlCalender } from "react-icons/sl";
-import { HiOutlineDocumentPlus } from "react-icons/hi2";
-import { TbCategoryPlus } from "react-icons/tb";
-import { PiTreeStructureLight } from "react-icons/pi";
-import { MdOutlineSubject } from "react-icons/md";
-import { FaChromecast } from "react-icons/fa6";
 import SubCard from "@/app/component/SubCard";
+import Image from "next/image";
 
 const Page = () => {
   const cardData = [
     {
-      href: "/students/reports/student-list-wizard",
-      icon: <RiSchoolLine className="studentIcon" />,
+      href: "/students/student/student-list-wizard",
+      icon: <Image src="/module/student/studentListwizard.png" className="studentIcon" width={100} height={100} alt=""  />,
       title: "Student List Wizard",
       description: "Check Student List Wizard Records",
     },
     {
-      href: "/students/reports/school-overview",
-      icon: <SiGoogleclassroom className="studentIcon" />,
+      href: "/students/student/school-overview",
+      icon: <Image src="/module/student/schoolOverview.png" className="studentIcon" width={100} height={100} alt=""  />,
       title: "School Overview",
       description: "Check School Overview Records",
     },
     {
-      href: "/students/reports/certificate-wizard",
-      icon: <LiaCitySolid className="studentIcon" />,
+      href: "/students/student/certificate-wizard",
+      icon: <Image src="/module/student/certificateWizard.png" className="studentIcon" width={100} height={100} alt=""  />,
       title: "Certificate Wizard",
       description: "Check Certificate Wizard Records",
     }, 

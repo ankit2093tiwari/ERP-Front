@@ -1,46 +1,38 @@
 "use client";
 import React from "react";
 import Link from "next/link";
-import { RiSchoolLine } from "react-icons/ri";
-import { SiGoogleclassroom } from "react-icons/si";
-import { LiaCitySolid } from "react-icons/lia";
-import { SlCalender } from "react-icons/sl";
-import { HiOutlineDocumentPlus } from "react-icons/hi2";
-import { TbCategoryPlus } from "react-icons/tb";
-import { PiTreeStructureLight } from "react-icons/pi";
-import { MdOutlineSubject } from "react-icons/md";
-import { FaChromecast } from "react-icons/fa6";
 import SubCard from "@/app/component/SubCard";
+import Image from "next/image"; 
 
 const Page = () => {
   const cardData = [
     {
       href: "/Transport/vehicle-type-master",
-      icon: <RiSchoolLine className="studentIcon" />,
+      icon: <Image src="/module/transport/vehicleType.png" className="studentIcon" width={100} height={100} alt="" />,
       title: "Vehicle Type Master",
       description: "Add Basic Details Of Vehicle Type",
     },
     {
       href: "/Transport/vehicle-master",
-      icon: <SiGoogleclassroom className="studentIcon" />,
+      icon: <Image src="/module/transport/vehicleMaster.png" className="studentIcon" width={100} height={100} alt="" />,
       title: "Vehicle Master",
       description: "Add Basic Details Of Vehicle",
     },
     {
       href: "/Transport/route-master",
-      icon: <LiaCitySolid className="studentIcon" />,
+      icon: <Image src="/module/transport/route.png" className="studentIcon" width={100} height={100} alt="" />,
       title: "Route",
       description: "Add Basic Details Of Route",
     },
     {
       href: "/Transport/fuel-filling",
-      icon: <SlCalender className="studentIcon" />,
+      icon: <Image src="/module/transport/fuelFilling.png" className="studentIcon" width={100} height={100} alt="" />,
       title: "Vehicle Fuel Filling",
       description: "Add Basic Details of FuelFilling",
     },
     {
       href: "/Transport/student-vehicle-relation",
-      icon: <HiOutlineDocumentPlus className="studentIcon" />,
+      icon: <Image src="/module/transport/assignvehicle.png" className="studentIcon" width={100} height={100} alt="" />,
       title: "Assign To Student",
       description: "Assign Pickup Point to Students",
     },
