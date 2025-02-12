@@ -197,7 +197,7 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
         { title: "importantSMS", href: "/importantSMS", icon: <FaCog /> },
     ];
     const studentAttendenceItems = [
-        { title: "All Modules", href: "/studentAttendence/all-module", icon: <FaCog /> },
+        { title: "All Modules", href: "/studentAttendence/allModule", icon: <FaCog /> },
         { title: "Take Attendence", href: "/studentAttendence/TakeAttendence", icon: <FaSchool /> },
         { title: "Attendence Report", href: "/studentAttendence/AttendenceReport", icon: <FaUserGraduate /> },
         { title: "Monthly Report", href: "/studentAttendence/MonthlyReport", icon: <FaSchool /> },

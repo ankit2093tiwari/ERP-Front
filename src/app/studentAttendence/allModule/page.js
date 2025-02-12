@@ -11,33 +11,34 @@ import { PiTreeStructureLight } from "react-icons/pi";
 import { MdOutlineSubject } from "react-icons/md";
 import { FaChromecast } from "react-icons/fa6";
 import SubCard from "@/app/component/SubCard";
+import Image from "next/image"; 
 
 const Page = () => {
   const cardData = [
     {
-      href: "/gallery/add-group",
-      icon: <RiSchoolLine className="studentIcon" />,
-      title: "Add Group",
-      description: "Add Basic Details Of School",
+      href: "/studentAttendence/TakeAttendence",
+      icon: <Image src="/module/attendance/takeAttendance.png" className="studentIcon" width={100} height={100} alt="" />,
+      title: "Add Check Up Type",
+      description: "Add Basic Details Of Attendance",
     },
     {
-      href: "/gallery/add-image",
-      icon: <SiGoogleclassroom className="studentIcon" />,
-      title: "Add Image",
-      description: "Add Basic Details Of Class",
+      href: "/studentAttendence/AttendenceReport",
+      icon: <Image src="/module/attendance/AttendanceReport.png" className="studentIcon" width={100} height={100} alt="" />,
+      title: "Add Doctor Profile",
+      description: "Check Basic Details Of Attendance",
     },
     {
-      href: "/gallery/image-record",
-      icon: <LiaCitySolid className="studentIcon" />,
-      title: "Image Record",
-      description: "Add Basic Details of City Master",
+      href: "/studentAttendence/MonthlyReport",
+      icon: <Image src="/module/attendance/monthlyreport.png" className="studentIcon" width={100} height={100} alt="" />,
+      title: "Routine Check Up",
+      description: "Check Basic Details Of Attendance",
     },
   ];
 
   return (
     <div>
       <div className="studentHeading">
-        <h2>Gallery Module</h2>
+        <h2>Student Attendance Module</h2>
         <small>Manage your basic details....</small>
       </div>
       <div className="cardContainer">
