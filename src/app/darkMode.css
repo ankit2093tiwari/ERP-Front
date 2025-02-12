@@ -1,17 +1,18 @@
 body.dark-mode {
-    background: #000;
+    background: #000 !important;
 }
 
 body.dark-mode .header,
-body.dark-mode .sidebar,
-body.dark-mode .sidebar ul li svg,
-body.dark-mode .accordion-item>.accordion-header .accordion-button svg,
+body.dark-mode .layout,
 body.dark-mode main {
     background: #000;
 }
 
+body.dark-mode .sidebar,
 body.dark-mode .sidebar ul,
 body.dark-mode .sidebar ul li,
+body.dark-mode .sidebar ul li svg,
+body.dark-mode .accordion-item>.accordion-header .accordion-button svg,
 body.dark-mode .accordion-button,
 body.dark-mode .studentCardDetails .card,
 body.dark-mode .sidebar ul::-webkit-scrollbar-track,
@@ -38,7 +39,10 @@ body.dark-mode .studentCardCount p span,
 body.dark-mode .studentCardTitle1 h4,
 body.dark-mode .form-select,
 body.dark-mode .form-control,
-body.dark-mode h1, body.dark-mode h2, body.dark-mode h3, body.dark-mode h4, body.dark-mode h5, body.dark-mode h6
+body.dark-mode h1, body.dark-mode h2, body.dark-mode h3, body.dark-mode h4, body.dark-mode h5, body.dark-mode h6,
+body.dark-mode .breadcrumb .breadcrumb-item a,
+body.dark-mode .breadcrumb-item.active,
+body.dark-mode .breadcrumb-item + .breadcrumb-item:before
 {
     color: #fff;
     color: var(--bs-body-bg);
@@ -54,10 +58,10 @@ body.dark-mode .iconBack {
     background: #262525;
 }
 
-body.dark-mode .accordion-item>.accordion-header .accordion-button::after
+/* body.dark-mode .accordion-item>.accordion-header .accordion-button::after
  {
     filter: invert(100%);
-}
+} */
 
 body.dark-mode .sidebar li,
 body.dark-mode .sidebarAccordion .accordion-item,
@@ -78,5 +82,8 @@ body.dark-mode .nav-tabs .nav-link.active
 {
     color:#000;
 }
-
+body.dark-mode .tableSheet h2:before
+{
+    background-color: #fff;
+}
 

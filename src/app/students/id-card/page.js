@@ -180,8 +180,8 @@ const GenerateIdCard = () => {
           <h2>Search Students Class Wise</h2>
         </div>
         <Form className="formSheet">
-          <Row>
-            <Col>
+          <Row className="mb-3">
+            <Col lg={6}>
               <FormLabel>Select Class</FormLabel>
               <FormSelect value={selectedClass} onChange={(e) => setSelectedClass(e.target.value)}>
                 <option value="">Select Class</option>
@@ -190,7 +190,7 @@ const GenerateIdCard = () => {
                 ))}
               </FormSelect>
             </Col>
-            <Col>
+            <Col lg={6}>
               <FormLabel>Select Section</FormLabel>
               <FormSelect value={selectedSection} onChange={(e) => setSelectedSection(e.target.value)}>
                 <option value="">Select Section</option>
@@ -200,7 +200,7 @@ const GenerateIdCard = () => {
               </FormSelect>
             </Col>
             <Row>
-              <Col className="d-flex align-items-end">
+              <Col className="d-flex align-items-end mt-4">
                 <Button variant="primary" onClick={fetchStudents}>Search Students</Button>
               </Col>
             </Row>

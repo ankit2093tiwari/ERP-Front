@@ -271,9 +271,9 @@ const UpdatePage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault(); // Prevent page reload
     if (!validateForm()) return;
-console.log('student._id', student._id)
+    console.log('student._id', student._id)
     const endpoint = student._id
-      ? `${process.env.NEXT_PUBLIC_SITE_URL}/students/${student._id}`
+      ? `${process.env.NEXT_PUBLIC_SITE_URL}/students/${id}`
       : `${process.env.NEXT_PUBLIC_SITE_URL}/api/students`;
     const method = student._id ? "put" : "post";
 
@@ -591,7 +591,7 @@ console.log('student._id', student._id)
                   </FormGroup>
                 </Row>
                 <Row className='mb-3'>
-                  <FormGroup as={Col} md="3" controlId="validationCustom08">
+                  {/* <FormGroup as={Col} md="3" controlId="validationCustom08">
                     <FormLabel className="labelForm">Select Class</FormLabel>
                     <FormSelect
                       value={student?.class_name}
@@ -606,8 +606,25 @@ console.log('student._id', student._id)
                       ))}
                     </FormSelect>
                     <p className="error">{studentError.class_name_error}</p>
+                  </FormGroup> */}
+                  <FormGroup as={Col} md="3" controlId="validationCustom08">
+                    <FormLabel className="labelForm">Select Class</FormLabel>
+                    <FormSelect
+                      value={student?.class_name?._id || ""}
+                      onChange={handleClassChange}
+                      name="class_name"
+                    >
+                      <option value="">Select Class</option>
+                      {classList?.length > 0 &&
+                        classList.map((classItem) => (
+                          <option key={classItem?._id} value={classItem?._id}>
+                            {classItem?.class_name}
+                          </option>
+                        ))}
+                    </FormSelect>
+                    <p className="error">{studentError.class_name_error}</p>
                   </FormGroup>
-                  <FormGroup as={Col} md="3" controlId="validationCustom09">
+                  {/* <FormGroup as={Col} md="3" controlId="validationCustom09">
                     <FormLabel className="labelForm">Select Section</FormLabel>
 
                     <FormSelect
@@ -623,10 +640,28 @@ console.log('student._id', student._id)
                         </option>
                       ))}
                     </FormSelect>
+                  </FormGroup> */}
+                  <FormGroup as={Col} md="3" controlId="validationCustom09">
+                    <FormLabel className="labelForm">Select Section</FormLabel>
+                    <FormSelect
+                      value={student?.section_name?._id || ""}
+                      onChange={(e) =>
+                        setStudent({ ...student, section_name: sectionList?.sections?.find(sec => sec._id === e.target.value) || e.target.value })
+                      }
+                    >
+                      <option value="">Select Section</option>
+                      {sectionList?.sections?.length > 0 &&
+                        sectionList?.sections.map((sectionItem) => (
+                          <option key={sectionItem?._id} value={sectionItem?._id}>
+                            {sectionItem?.section_name}
+                          </option>
+                        ))}
+                    </FormSelect>
                   </FormGroup>
 
 
-                  <FormGroup as={Col} md="3" controlId="validationCustom10">
+
+                  {/* <FormGroup as={Col} md="3" controlId="validationCustom10">
                     <FormLabel className="labelForm">Date Of Birth</FormLabel>
                     <FormControl
                       value={student?.date_of_birth}
@@ -636,7 +671,19 @@ console.log('student._id', student._id)
                       placeholder="Date of Birth"
                     />
                     <p className="error"> {studentError.date_of_birth_error}</p>
+                  </FormGroup> */}
+                  <FormGroup as={Col} md="3" controlId="validationCustom10">
+                    <FormLabel className="labelForm">Date Of Birth</FormLabel>
+                    <FormControl
+                      value={student?.date_of_birth ? new Date(student?.date_of_birth).toISOString().split('T')[0] : ""}
+                      onChange={(e) => setStudent({ ...student, date_of_birth: e.target.value })}
+                      type="date"
+                      name="date_of_birth"
+                      placeholder="Date of Birth"
+                    />
+                    <p className="error">{studentError.date_of_birth_error}</p>
                   </FormGroup>
+
                   <FormGroup as={Col} md="3" controlId="validationCustom11">
                     <FormLabel className="labelForm">Gender</FormLabel><br />
                     <FormCheck
@@ -724,10 +771,10 @@ console.log('student._id', student._id)
                   <FormGroup as={Col} md="3" controlId="validationCustom16">
                     <FormLabel className="labelForm">Enrollment No</FormLabel>
                     <FormControl
-                      value={student?.enrollment_No}
+                      value={student?.enrollment_no}
                       onChange={handleChange}
                       type="text"
-                      name="enrollment_No"
+                      name="enrollment_no"
                       placeholder="Enrollment Number"
                     />
                   </FormGroup>
@@ -783,7 +830,7 @@ console.log('student._id', student._id)
                       <option value="5">Mansion</option>
                     </FormSelect>
                   </FormGroup>
-                  <FormGroup as={Col} md="3" controlId="validationCustom21">
+                  {/* <FormGroup as={Col} md="3" controlId="validationCustom21">
                     <FormLabel className="labelForm">Date Of Admission</FormLabel>
                     <FormControl
                       value={student?.admission_date}
@@ -793,8 +840,20 @@ console.log('student._id', student._id)
                       placeholder="Date of Admission"
                     />
                     <p className="error"> {studentError.admission_date_error}</p>
+                  </FormGroup> */}
+                  <FormGroup as={Col} md="3" controlId="validationCustom10">
+                    <FormLabel className="labelForm">Date Of Admission</FormLabel>
+                    <FormControl
+                      value={student?.date_of_admission ? new Date(student?.date_of_admission).toISOString().split('T')[0] : ""}
+                      onChange={(e) => setStudent({ ...student, date_of_admission: e.target.value })}
+                      type="date"
+                      name="date_of_admission"
+                      placeholder="Date of Admission"
+                    />
+                    <p className="error">{studentError.date_of_admission_error}</p>
                   </FormGroup>
-                  <FormGroup as={Col} md="3" controlId="validationCustom22">
+
+                  {/* <FormGroup as={Col} md="3" controlId="validationCustom22">
                     <FormLabel className="labelForm">Date Of joining</FormLabel>
                     <FormControl
                       value={student?.joining_date}
@@ -804,6 +863,17 @@ console.log('student._id', student._id)
                       placeholder="Date of Joining"
                     />
                     <p className="error" > {studentError.joining_date_error}</p>
+                  </FormGroup> */}
+                  <FormGroup as={Col} md="3" controlId="validationCustom10">
+                    <FormLabel className="labelForm">Date Of Joining</FormLabel>
+                    <FormControl
+                      value={student?.date_of_joining ? new Date(student?.date_of_joining).toISOString().split('T')[0] : ""}
+                      onChange={(e) => setStudent({ ...student, date_of_joining: e.target.value })}
+                      type="date"
+                      name="date_of_joining "
+                      placeholder="Date of Joining"
+                    />
+                    <p className="error">{studentError.date_of_joining_error}</p>
                   </FormGroup>
                   <FormGroup as={Col} md="3" controlId="validationCustom23">
                     <FormLabel className="labelForm">Board Registration Number</FormLabel>
@@ -963,6 +1033,55 @@ console.log('student._id', student._id)
                       placeholder="Pin No."
                     />
                   </FormGroup>
+                </Row>
+                <div className="studentHeading"><h2>Sibilings Details</h2></div>
+                <Row className='mb-3'>
+                  <FormGroup as={Col} md="4" controlId="validationCustom06">
+                    <FormLabel className="labelForm" >Add Sibiling</FormLabel>
+                    <FormControl
+                      value={student?.father_mobile_no}
+                      onChange={handleChange}
+                      type="text"
+                      name="father_mobile_no"
+                      placeholder="Type Name of Student"
+                    />
+                    <p className="error"> {studentError.father_mobile_no_error}</p>
+                  </FormGroup>
+                  <FormGroup as={Col} md="4" controlId="validationCustom08">
+                    <FormLabel className="labelForm">Select Category</FormLabel>
+                    <FormSelect
+                      value={student?.category_name}
+                      onChange={handleChange}
+                      name="category_name"
+                    >
+                      <option value="">Select Category</option>
+                      {categoryList?.length > 0 && categoryList?.map((categoryItem) => (
+                        <option key={categoryItem?._id} value={categoryItem?._id}>
+                          {categoryItem?.category_name}
+                        </option>
+                      ))}
+                    </FormSelect>
+                    <p className="error">{studentError.category_name_error}</p>
+                  </FormGroup>
+
+                  <FormGroup as={Col} md="4" controlId="validationCustom14">
+                    <FormLabel className="labelForm">Mother Tongue</FormLabel>
+                    <FormSelect>
+                      <option>Select</option>
+
+                      {motherOptions?.map(item =>
+
+                        <option key={item?.label} value={item?.value}>{item?.label}</option>
+                      )}
+                    </FormSelect>
+                  </FormGroup>
+                </Row>
+                <Row>
+                  <Col>
+                    <div className='buttons1'>
+                      <Button type="button" className='btn btn-primary mt-4'>Add Sibiling</Button>
+                    </div>
+                  </Col>
                 </Row>
                 <Row>
                   <Col>

@@ -177,6 +177,15 @@ a {
   transition: all .3s;
 }
 
+.main-content.full-width
+{
+  width: calc(100% - 80px);
+}
+.main-content.full-width .header
+{
+  width: calc(100% - 80px);
+}
+
 main {
   flex: 1;
   padding: 40px;
@@ -222,9 +231,20 @@ main {
   padding: 8px;
   background-color: transparent;
   color: #fff;
+  box-shadow: none;
 }
 
-.accordion-item>.accordion-header .accordion-button:focus {
+.accordion-header:focus-visible,
+.sidebarAccordion .accordion-item:focus-visible
+{
+  outline: 0;
+}
+
+
+
+.accordion-item>.accordion-header .accordion-button:focus,
+.accordion-item>.accordion-header .accordion-button:focus-visible
+{
   box-shadow: none;
 }
 
@@ -235,13 +255,18 @@ main {
   padding: 5px;
   /* background: #520389; */
   color: #fff;
-  border-radius: 50%;
+  /* border-radius: 50%; */
   margin-right: 10px;
 }
 
 .accordion-body {
   padding: 0px !important;
 }
+
+.accordion-item.nav-item .accordion-button::after {
+  display: none !important;
+}
+
 
 .rightNavbar.navbar-expand-lg {
   margin: 0;
@@ -397,7 +422,7 @@ footer {
   height: 55px;
   border-radius: 50%;
   color: #fff;
-  background: #0083a5;
+  /* background: #0083a5; */
   line-height: 55px;
   margin: auto;
 }
@@ -426,7 +451,11 @@ footer {
   padding-top: 10px;
   /* padding-bottom: 10px; */
 }
-
+.error
+{
+  color: #F00;
+  font-size: 13px;
+}
 .studentItemList {
   padding-top: 10px;
   padding-bottom: 10px;
@@ -567,14 +596,15 @@ input::-webkit-inner-spin-button {
   margin-top: 20px;
 }
 
-.tableSheet h2 {
+.tableSheet h2 
+{
   font-size: 22px;
   font-weight: bold;
   color: #006393;
   margin-bottom: 30px;
   padding-left: 30px;
   position: relative;
-  background-color: #f7f7f7;
+  /* background-color: #f7f7f7; */
 }
 
 .tableSheet h2::before {
@@ -647,8 +677,8 @@ input::-webkit-inner-spin-button {
   transform: translateY(-10px);
   box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
 }
-
-.studentIcon {
+.studentIcon 
+{
   font-size: 40px;
   color: #000;
   margin-bottom: 10px;
@@ -657,47 +687,22 @@ input::-webkit-inner-spin-button {
   margin: 0 auto 10px;
 }
 
-.SubCard h3 {
+.SubCard h3 
+{
   font-weight: 700;
   font-size: 1.2rem;
   margin: 10px 0 0;
   color: #141e36;
 }
-
-.SubCard p {
+.SubCard p 
+{
   font-size: 0.8rem;
   color: #555555;
   margin-top: 8px;
   min-height: 38px;
 }
-
-.cover-sheet-id{
-  background: rgb(249, 249, 249);
-  padding: 0px;
-  border-radius: 20px;
-  /* box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); */
-  border: 1px solid #ddd;
-  overflow: hidden;
-  margin-bottom: 20px;
-  /* padding: 20px; */
-}
-
-
-.cover-sheet-id .studentHeading {
-  padding: 10px 20px;
-  background-color: #2b6293;
-  /* margin-bottom: 10px; */
-  display: flex;
-  justify-content: space-between;
-}
-
-.cover-sheet-id .studentHeading h2 {
-  margin: 0;
-  font-size: 18px !important;
-  color: #fff !important;
-}
-
-.editButton {
+.editButton 
+{
   background: #0083a5;
   color: white;
   border: none;
@@ -707,8 +712,8 @@ input::-webkit-inner-spin-button {
   font-size: 14px;
   margin: 10px 5px;
 }
-
-.printButton {
+.printButton 
+{
   background-color: #cd3434;
   color: white;
   border: none;
@@ -718,23 +723,21 @@ input::-webkit-inner-spin-button {
   font-size: 16px;
   margin: 10px 5px;
 }
-
-.btn-danger {
+.btn-danger 
+{
   background: #e97171;
 }
-
 .form-control,
 .form-select {
+
   color: #000;
 }
-
 .form-control::placeholder,
 .form-control:-ms-input-placeholder,
-.form-control::-ms-input-placeholder {
+.form-control::-ms-input-placeholder 
+{
   color: #999;
 }
-
-
 
 @media (max-width: 991px) 
 {
@@ -753,10 +756,6 @@ input::-webkit-inner-spin-button {
   } */
 
 }
-
-
-
-
 
 @media (max-width: 768px) {
   .subCard1 {

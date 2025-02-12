@@ -111,11 +111,13 @@ const PromoteStudentPage = () => {
         </Col>
       </Row>
 
-      <div className="cover-sheet2">
-        <h2>Promote Students</h2>
-        <Form>
+      <div className="cover-sheet">
+        <div className="studentHeading">
+          <h2>Promote Students</h2>
+        </div>
+        <Form className="formSheet">
           <Row>
-            <Col>
+            <Col lg={6}>
               <FormLabel>Select Class</FormLabel>
               <FormSelect value={selectedClass} onChange={(e) => { setSelectedClass(e.target.value); fetchSections(e.target.value, setSectionList); }}>
                 <option value="">Select Class</option>
