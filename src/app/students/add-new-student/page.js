@@ -285,10 +285,8 @@ const StudentMasterPage = () => {
     e.preventDefault(); 
     if (!validateForm()) return;
 
-    const endpoint = student._id
-      ? `${process.env.NEXT_PUBLIC_SITE_URL}/students/${id}`
-      : `${process.env.NEXT_PUBLIC_SITE_URL}/api/students`;
-    const method = student._id ? "put" : "post";
+    const endpoint = process.env.NEXT_PUBLIC_SITE_URL+'/api/students';
+    const method =  "post";
 
     try {
       const response = await axios[method](endpoint, student);
@@ -888,7 +886,7 @@ const StudentMasterPage = () => {
                       Important Note: Please fill basic details first, then you can upload
                       documents from this section.
                     </p>
-                    <Form onSubmit={handleSubmit}>
+                    <Form >
                       <Row>
                         {/* {inputFields.map((field) => (
                           <Col lg={4} key={field.id} className='mb-3'>
