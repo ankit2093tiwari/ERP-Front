@@ -2,21 +2,25 @@
 
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Form, Row, Col, Container, FormLabel, Button, Breadcrumb, FormSelect } from "react-bootstrap";
-import Table from "@/app/component/DataTable";
-import styles from "@/app/students/assign-roll-no/page.module.css";
+import { Form, Row, Col, Container, FormLabel, Button, Breadcrumb, FormSelect, Table } from "react-bootstrap";
 
 const SubjectMaster = () => {
   const [classList, setClassList] = useState([]);
   const [sectionList, setSectionList] = useState([]);
+  const [employeeList, setEmployeeList] = useState([]);
+  const [subjectList, setSubjectList] = useState([]);
+  
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedSection, setSelectedSection] = useState("");
-  const [students, setStudents] = useState([]);
-  const [updatedStudents, setUpdatedStudents] = useState([]);
-  const [showUpdateButton, setShowUpdateButton] = useState(false);
+  const [subjectName, setSubjectName] = useState("");
+  const [compulsory, setCompulsory] = useState(false);
+  const [selectedEmployee, setSelectedEmployee] = useState("");
+  const [editingSubjectId, setEditingSubjectId] = useState(null);
 
   useEffect(() => {
     fetchClasses();
+    fetchEmployees();
+    fetchSubjects();
   }, []);
 
   const fetchClasses = async () => {
@@ -31,144 +35,84 @@ const SubjectMaster = () => {
   const fetchSections = async (classId) => {
     try {
       const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/sections/class/${classId}`);
-      console.log('testttttnnn', response)
-      setSectionList(Array.isArray(response.data.data) ? response.data.data : []);
-      console.log('testttttnnn', response.data)
+      setSectionList(response.data.data || []);
     } catch (error) {
       console.error("Failed to fetch sections", error);
     }
   };
 
-  const fetchStudents = async () => {
-    if (!selectedClass || !selectedSection) {
-      alert("Please select both class and section");
+  const fetchEmployees = async () => {
+    try {
+      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-employee");
+      setEmployeeList(response.data.data || []);
+    } catch (error) {
+      console.error("Failed to fetch employees", error);
+    }
+  };
+
+  const fetchSubjects = async () => {
+    try {
+      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-subject");
+      setSubjectList(response.data.data || []);
+    } catch (error) {
+      console.error("Failed to fetch subjects", error);
+    }
+  };
+
+  const handleAddOrUpdateSubject = async () => {
+    if (!selectedClass || !subjectName || !selectedEmployee) {
+      alert("Please fill all required fields");
       return;
     }
+
+    const subjectData = {
+      class_name: selectedClass,
+      section_name: selectedSection || null, // Handle optional section
+      subject_name: subjectName,
+      compulsory,
+      employee: selectedEmployee,
+    };
+
     try {
-      const response = await axios.get(
-        `https://erp-backend-fy3n.onrender.com/api/students/search?class_name=${selectedClass}&section_name=${selectedSection}`
-      );
-
-      setStudents(response.data.data || []);
-      setUpdatedStudents(response.data.data || []);
-      setShowUpdateButton(true);
-    } catch (error) {
-      console.error("Failed to fetch students", error);
-    }
-  };
-
-  const handleClassChange = (event) => {
-    const classId = event.target.value;
-    setSelectedClass(classId);
-    setSelectedSection("");
-    fetchSections(classId);
-  };
-
-  const handleSectionChange = (event) => {
-    setSelectedSection(event.target.value);
-  };
-
-  const handleFieldChange = (index, field, value) => {
-    const updatedList = [...updatedStudents];
-    updatedList[index][field] = value;
-    setUpdatedStudents(updatedList);
-  };
-
-  const handleUpdateStudents = async () => {
-    try {
-      const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/students/bulkUpdate", { students: updatedStudents });
-      if (response.data.success) {
-        alert("Students updated successfully!");
+      if (editingSubjectId) {
+        await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-subject/${editingSubjectId}`, subjectData);
+      } else {
+        await axios.post("https://erp-backend-fy3n.onrender.com/api/create-subject", subjectData);
       }
+      fetchSubjects();
+      resetForm();
     } catch (error) {
-      console.error("Failed to update students", error);
-      alert("Error updating students.");
+      console.error("Error adding/updating subject", error);
     }
   };
 
-  const columns = [
-    { name: "Adm No", selector: (row) => row.registration_id || "N/A", sortable: true },
-    {
-      name: "First Name",
-      cell: (row, index) => (
-        <input
-          type="text"
-          value={updatedStudents[index]?.first_name || ""}
-          onChange={(e) => handleFieldChange(index, "first_name", e.target.value)}
-        />
-      ),
-    },
-    {
-      name: "Middle Name",
-      cell: (row, index) => (
-        <input
-          type="text"
-          value={updatedStudents[index]?.middle_name || ""}
-          onChange={(e) => handleFieldChange(index, "middle_name", e.target.value)}
-        />
-      ),
-    },
-    {
-      name: "Last Name",
-      cell: (row, index) => (
-        <input
-          type="text"
-          value={updatedStudents[index]?.last_name || ""}
-          onChange={(e) => handleFieldChange(index, "last_name", e.target.value)}
-        />
-      ),
-    },
-    {
-      name: "Father Name",
-      cell: (row, index) => (
-        <input
-          type="text"
-          value={updatedStudents[index]?.father_name || ""}
-          onChange={(e) => handleFieldChange(index, "father_name", e.target.value)}
-        />
-      ),
-    },
-    {
-      name: "Mother Name",
-      cell: (row, index) => (
-        <input
-          type="text"
-          value={updatedStudents[index]?.mother_name || ""}
-          onChange={(e) => handleFieldChange(index, "mother_name", e.target.value)}
-        />
-      ),
-    },
-    {
-      name: "Mobile No",
-      cell: (row, index) => (
-        <input
-          type="text"
-          value={updatedStudents[index]?.phone_no || ""}
-          onChange={(e) => handleFieldChange(index, "phone_no", e.target.value)}
-        />
-      ),
-    },
-    {
-      name: "Gender",
-      cell: (row, index) => (
-        <select value={updatedStudents[index]?.gender || ""} onChange={(e) => handleFieldChange(index, "gender", e.target.value)}>
-          <option value="">Select</option>
-          <option value="Male">Male</option>
-          <option value="Female">Female</option>
-        </select>
-      ),
-    },
-    {
-      name: "Roll No",
-      cell: (row, index) => (
-        <input
-          type="text"
-          value={updatedStudents[index]?.roll_no || ""}
-          onChange={(e) => handleFieldChange(index, "roll_no", e.target.value)}
-        />
-      ),
-    },
-  ];
+  const handleEditSubject = (subject) => {
+    setEditingSubjectId(subject._id);
+    setSelectedClass(subject.class_name?._id || "");
+    setSelectedSection(subject.section_name?._id || "");
+    setSubjectName(subject.subject_details.subject_name);
+    setCompulsory(subject.subject_details.compulsory);
+    setSelectedEmployee(subject.subject_details.employee?._id || "");
+    fetchSections(subject.class_name?._id);
+  };
+
+  const handleDeleteSubject = async (id) => {
+    try {
+      await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-subject/${id}`);
+      fetchSubjects();
+    } catch (error) {
+      console.error("Error deleting subject", error);
+    }
+  };
+
+  const resetForm = () => {
+    setSelectedClass("");
+    setSelectedSection("");
+    setSubjectName("");
+    setCompulsory(false);
+    setSelectedEmployee("");
+    setEditingSubjectId(null);
+  };
 
   return (
     <Container>
@@ -183,15 +127,19 @@ const SubjectMaster = () => {
       </Row>
 
       <div className="cover-sheet">
-        <div className="studentHeading">
-          <h2>Search Students</h2>
-        </div>
+        <h2>Assign Subjects to Class & Section</h2>
 
-        <Form className="formSheet">
+        <Form>
           <Row>
             <Col>
-              <FormLabel className="labelForm">Select Class</FormLabel>
-              <FormSelect value={selectedClass} onChange={handleClassChange}>
+              <FormLabel>Select Class</FormLabel>
+              <FormSelect
+                value={selectedClass}
+                onChange={(e) => {
+                  setSelectedClass(e.target.value);
+                  fetchSections(e.target.value);
+                }}
+              >
                 <option value="">Select Class</option>
                 {classList.map((cls) => (
                   <option key={cls._id} value={cls._id}>
@@ -201,10 +149,13 @@ const SubjectMaster = () => {
               </FormSelect>
             </Col>
             <Col>
-              <FormLabel className="labelForm">Select Section</FormLabel>
-              <FormSelect value={selectedSection} onChange={handleSectionChange}>
+              <FormLabel>Select Section (Optional)</FormLabel>
+              <FormSelect
+                value={selectedSection}
+                onChange={(e) => setSelectedSection(e.target.value)}
+              >
                 <option value="">Select Section</option>
-                {Array.isArray(sectionList) && sectionList.map((sec) => (
+                {sectionList.map((sec) => (
                   <option key={sec._id} value={sec._id}>
                     {sec.section_name}
                   </option>
@@ -212,34 +163,98 @@ const SubjectMaster = () => {
               </FormSelect>
             </Col>
           </Row>
-          <br />
-          <Row>
+          <Row className="mt-3">
             <Col>
-              <Button className="btn btn-primary" onClick={fetchStudents}>
-                Search Students
+              <FormLabel>Enter Subject Name</FormLabel>
+              <Form.Control
+                type="text"
+                value={subjectName}
+                onChange={(e) => setSubjectName(e.target.value)}
+              />
+            </Col>
+            <Col>
+              <FormLabel>Select Teacher</FormLabel>
+              <FormSelect
+                value={selectedEmployee}
+                onChange={(e) => setSelectedEmployee(e.target.value)}
+              >
+                <option value="">Select Employee</option>
+                {employeeList.map((emp) => (
+                  <option key={emp._id} value={emp._id}>
+                    {emp.employee_name}
+                  </option>
+                ))}
+              </FormSelect>
+            </Col>
+          </Row>
+          <Row className="mt-3">
+            <Col>
+              <Form.Check
+                type="checkbox"
+                label="Compulsory Subject"
+                checked={compulsory}
+                onChange={(e) => setCompulsory(e.target.checked)}
+              />
+            </Col>
+          </Row>
+          <Row className="mt-3">
+            <Col>
+              <Button onClick={handleAddOrUpdateSubject}>
+                {editingSubjectId ? "Update Subject" : "Add Subject"}
               </Button>
-              {showUpdateButton && (
-                <Button className="btn btn-success mt-3" onClick={handleUpdateStudents}>
-                  Update Students
-                </Button>
-              )}
             </Col>
           </Row>
         </Form>
       </div>
 
-      <Row>
-        <Col>
-          <div className="tableSheet">
-            <h2>Students Records</h2>
-            {students.length > 0 ? (
-              <Table columns={columns} data={students} />
-            ) : (
-              <p className="text-center">No students found for the selected class and section.</p>
-            )}
-          </div>
-        </Col>
-      </Row>
+      <h3 className="mt-4">Assigned Subjects</h3>
+      <Table striped bordered hover>
+        <thead>
+          <tr>
+            <th>Class Name</th>
+            <th>Section Name</th>
+            <th>Subject & Teacher</th>
+            <th>Compulsory</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {subjectList.length > 0 ? (
+            subjectList.map((subject) => (
+              <tr key={subject._id}>
+                <td>{subject.class_name?.class_name}</td>
+                <td>{subject.section_name?.section_name || "N/A"}</td>
+                <td>
+                  {subject.subject_details.subject_name} -{" "}
+                  {subject.subject_details.employee?.employee_name}
+                </td>
+                <td>{subject.subject_details.compulsory ? "Yes" : "No"}</td>
+                <td>
+                  <Button
+                    variant="warning"
+                    className="me-2"
+                    onClick={() => handleEditSubject(subject)}
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    variant="danger"
+                    onClick={() => handleDeleteSubject(subject._id)}
+                  >
+                    Delete
+                  </Button>
+                </td>
+              </tr>
+            ))
+          ) : (
+            <tr>
+              <td colSpan="5" className="text-center">
+                No data available
+              </td>
+            </tr>
+          )}
+        </tbody>
+      </Table>
     </Container>
   );
 };

@@ -12,7 +12,7 @@ import { FormCheck } from 'react-bootstrap';
 import { capitalizeFirstLetter, motherTongueOptions } from "@/app/utils";
 import { FaEdit, FaTrashAlt } from "react-icons/fa"
 import axios from "axios";
-
+import { toast } from 'react-toastify';
 
 
 const StudentMasterPage = () => {
@@ -20,7 +20,7 @@ const StudentMasterPage = () => {
   const [loading, setLoading] = useState(false); // Loading state
   const [error, setError] = useState(""); // Error state
   const [showAddForm, setShowAddForm] = useState(false); // Toggle Add Form visibility
-  const [student, setStudent] = useState({
+  let student_field = {
     first_name: "",
     middle_name: "",
     last_name: "",
@@ -59,7 +59,8 @@ const StudentMasterPage = () => {
     state_name: "",
     city_Or_District: "",
     pin_No: "",
-  });
+  }
+  const [student, setStudent] = useState(student_field);
 
   const [studentError, setStudentError] = useState({});
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
@@ -100,7 +101,7 @@ const StudentMasterPage = () => {
     try {
       const response = await axios.get(`${process.env.NEXT_PUBLIC_SITE_URL}/api/religions`);
       const resp = response.data;
-     
+
       setReligionList(resp.data || []);
 
     } catch (err) {
@@ -141,41 +142,21 @@ const StudentMasterPage = () => {
     }
   };
 
-  // const fetchSections = async (classId) => {
-  //   try {
-  //     console.log('testinggg', classId)
-  //     const response = await axios.get(`${process.env.NEXT_PUBLIC_SITE_URL}/api/sections/class/${classId} `);
-  //     setSectionList(response.data || []);
-  //     console.log('testingg', response.data);
-  //   } catch (err) {
-  //     setError("Failed to fetch sections.");
-  //   }
-  // };
-
-  // const fetchSections = async (classId) => {
-  //   try {
-  //     const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/sections/class/${classId}`);
-  //     console.log('testttttnnn', response)
-  //     setSectionList(Array.isArray(response.data.data) ? response.data.data : []);
-  //     console.log('testttttnnn', response.data)
-  //   } catch (error) {
-  //     console.error("Failed to fetch sections", error);
-  //   }
-  // };
-
   const fetchSections = async (classId) => {
     try {
-      console.log('classId', classId)
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_SITE_URL}/api/sections/class/${classId}`);
-      console.log('testttttnnn', response.data.data[0].section_name);
-      console.log('testdata', response.data.data);
-      setSectionList(Array.isArray(response.data.data) ? response.data.data[0] : []);
-    } catch (error) {
-      console.error("Failed to fetch sections", error);
+      console.log('testinggg', classId)
+      const response = await axios.get(`${process.env.NEXT_PUBLIC_SITE_URL}/api/sections/class/${classId} `);
+      console.log('response', response);
+      if (response?.data?.success) {
+        setSectionList(response?.data?.data);
+      } else {
+        setSectionList([]);
+      }
+      console.log('testingg', response.data);
+    } catch (err) {
+      setError("Failed to fetch sections.");
     }
   };
-
-
 
   const columns = [
     { name: "#", selector: (row, index) => index + 1, sortable: false, width: "50px" },
@@ -250,7 +231,7 @@ const StudentMasterPage = () => {
     const errors = {};
     Object.entries(student).forEach(([key, value]) => {
       if (
-        key === 'first_name' || key === 'father_name' || key === 'father_mobile_no' || key === 'class_name' || key === 'section_name' || key === 'date_of_birth' || key === 'gender_name' || key === 'admission_date' || key === 'joining_date'
+        key === 'first_name' || key === 'father_name' || key === 'father_mobile_no' || key === 'class_name' || key === 'section_name' || key === 'date_of_birth' || key === 'gender_name' || key === 'admission_date' || key === 'joining_date' || key === 'caste_name' || key === 'religion_name'
       ) {
         if (!value || (typeof value === 'object' && !Object.values(value).some(Boolean))) {
           const formattedKey = key.replace(/_/g, ' ').split(' ').map(capitalizeFirstLetter).join(' ');
@@ -265,12 +246,15 @@ const StudentMasterPage = () => {
   const [selectedValue, setSelectedValue] = useState("");
 
 
-  console.log('motherTongueOptions', motherTongueOptions);
 
   const handleRadioChange = (e) => {
     const { name, value } = e.target;
+    console.log('radio', name, value);
+
+
     setStudent((prev) => ({ ...prev, [name]: value }));
     setStudentError((prev) => ({ ...prev, [`${name}_error`]: "" }));
+
   };
 
   const [sourceText, setSourceText] = useState("");
@@ -280,36 +264,44 @@ const StudentMasterPage = () => {
     setTargetText(sourceText);
   };
 
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  if (!validateForm()) return;
 
-  const handleSubmit = async (e) => {
-    e.preventDefault(); 
-    if (!validateForm()) return;
+  const endpoint = process.env.NEXT_PUBLIC_SITE_URL + '/api/students';
+  const method = "post";
+  console.log('setStudent', student);
 
-    const endpoint = process.env.NEXT_PUBLIC_SITE_URL+'/api/students';
-    const method =  "post";
+  try {
+    const response = await axios[method](endpoint, student);
+    console.log('response', response);
 
-    try {
-      const response = await axios[method](endpoint, student);
-      console.log('response', response);
-      if (response?.data?.status) {
-        setData((prev) =>
-          student._id
-            ? prev.map((row) => (row._id === student._id ? { ...row, ...student } : row))
-            : [...prev, response.data]
-        );
+    if (response?.data?.status === 'success') {
+      toast.success("Student Created Successfully");
 
-        setShowAddForm(false);
-        resetStudentForm();
-      } else {
-        setError(response.message);
-      }
+      setData((prev) =>
+        student._id
+          ? prev.map((row) => (row._id === student._id ? { ...row, ...student } : row))
+          : [...prev, response.data]
+      );
 
-      onClose();
-    } catch (err) {
-      console.error("Error submitting data:", err.response || err?.data?.message);
-      setError("Failed to submit data. Please check the API endpoint.");
+      setShowAddForm(false);
+      resetStudentForm();
+    } else {
+      const errorMessage = response?.data?.message || "An error occurred. Please try again.";
+      setError(errorMessage);
+      toast.error(errorMessage);
     }
-  };
+
+    onClose();
+  } catch (err) {
+    console.error("Error submitting data:", err.response || err?.data?.message);
+    const errorMessage = err?.response?.data?.message || "Failed to submit data. Please check the API endpoint.";
+    setError(errorMessage);
+    toast.error(errorMessage);
+  }
+};
+
 
   const handleEdit = async (id) => {
     try {
@@ -381,7 +373,6 @@ const StudentMasterPage = () => {
   const onOpen = () => setIsPopoverOpen(true);
   const onClose = () => setIsPopoverOpen(false);
 
-  const motherOptions = motherTongueOptions();
 
   return (
     <Container>
@@ -519,12 +510,13 @@ const StudentMasterPage = () => {
                         }
                       >
                         <option value="">Select Section</option>
-                        {sectionList?.sections?.length > 0 && sectionList?.sections?.map((sectionItem) => (
+                        {sectionList?.length > 0 && sectionList?.map((sectionItem) => (
                           <option key={sectionItem?._id} value={sectionItem?._id}>
-                            {sectionItem?.section_name}
+                            {sectionItem?.section_name} ({sectionItem?.section_code})
                           </option>
                         ))}
                       </FormSelect>
+                      <p className="error">{studentError.section_name_error}</p>
                     </FormGroup>
 
 
@@ -546,7 +538,7 @@ const StudentMasterPage = () => {
                         name="gender_name"
                         value="Male"
                         label="Male"
-                        checked={student.gender_name === "Male"}
+                        checked={student.gender_name == "Male"}
                         onChange={handleRadioChange}
                         inline
                       />
@@ -555,7 +547,7 @@ const StudentMasterPage = () => {
                         name="gender_name"
                         value="Female"
                         label="Female"
-                        checked={student.gender_name === "Female"}
+                        checked={student.gender_name == "Female"}
                         onChange={handleRadioChange}
                         inline
                       />
@@ -595,13 +587,13 @@ const StudentMasterPage = () => {
                       </FormSelect>
                       <p className="error">{studentError.category_name_error}</p>
                     </FormGroup>
-                    
+
                     <FormGroup as={Col} md="3" controlId="validationCustom14">
                       <FormLabel className="labelForm">Mother Tongue</FormLabel>
                       <FormSelect>
                         <option>Select</option>
 
-                        {motherOptions?.map(item =>
+                        {motherTongueOptions()?.map(item =>
 
                           <option key={item?.label} value={item?.value}>{item?.label}</option>
                         )}
@@ -841,7 +833,6 @@ const StudentMasterPage = () => {
                           </option>
                         ))}
                       </FormSelect>
-                      <p className="error">{studentError.religion_name_error}</p>
                     </FormGroup>
                   </Row>
                   <Row className='mb-3'>
@@ -886,19 +877,9 @@ const StudentMasterPage = () => {
                       Important Note: Please fill basic details first, then you can upload
                       documents from this section.
                     </p>
-                    <Form >
+                    <Form onSubmit={handleSubmit}>
                       <Row>
-                        {/* {inputFields.map((field) => (
-                          <Col lg={4} key={field.id} className='mb-3'>
-                            <FormLabel htmlFor={field.id} className="labelForm">
-                              {field.label}
-                            </FormLabel>
-                            <FormControl
-                              type="file"
-                              id={field.id}
-                              onChange={(e) => handleFileChange(e, field.id)} />
-                          </Col>
-                        ))} */}
+                       
                       </Row>
                       <Button type="button" className='btn btn-primary mt-4'>
                         Submit

@@ -13,15 +13,10 @@ import { capitalizeFirstLetter, motherTongueOptions } from "@/app/utils";
 import { FaEdit, FaTrashAlt } from "react-icons/fa"
 import axios from "axios";
 import { useRouter } from "next/navigation";
-// import { RiTumblrLine } from "react-icons/ri";
-// import { TbBatteryCharging } from "react-icons/tb";
 import Select from 'react-select';
-// import { hookPropertyMap } from "next/dist/server/require-hook";
 
 
 const UpdatePage = () => {
-  // const router = useRouter();
-  // const { isReady } = useRouter()
   const router = useRouter();
   const { isReady } = router;
   const [data, setData] = useState([]); // Table data
@@ -84,11 +79,11 @@ const UpdatePage = () => {
 
 
 
-  // const TOKEN = "6DJdQZJIv6WpChtccQOceQui2qYoKDWWJik2qTX3";
+  //   const TOKEN = "6DJdQZJIv6WpChtccQOceQui2qYoKDWWJik2qTX3";
   // axios.defaults.headers.common["Authorization"] = `Bearer ${TOKEN}`;
 
   useEffect(() => {
-    // fetchData();
+
     fetchClasses();
     getAllStudent()
     fetchReligion();
@@ -267,18 +262,49 @@ const UpdatePage = () => {
     setTargetText(sourceText);
   };
 
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault(); // Prevent page reload
+  //   if (!validateForm()) return;
+
+  //   if (!student._id) {
+  //     setError("Student ID is missing.");
+  //     return;
+  //   }
+
+  //   const endpoint = `${process.env.NEXT_PUBLIC_SITE_URL}/api/students/${student._id}`;
+
+  //   try {
+  //     const response = await axios.put(endpoint, student);
+  //     console.log("response", response);
+
+  //     if (response?.data?.success) {
+  //       setData((prev) =>
+  //         prev.map((row) => (row._id === student._id ? { ...row, ...student } : row))
+  //       );
+
+  //       setShowAddForm(false);
+  //       resetStudentForm();
+  //     } else {
+  //       setError(response?.data?.message || "Unknown error occurred.");
+  //     }
+
+  //     onClose();
+  //   } catch (err) {
+  //     console.error("Error submitting data:", err.response?.data?.message || err.message);
+  //     setError("Failed to submit data. Please check the API endpoint.");
+  //   }
+  // };
+
+
 
   const handleSubmit = async (e) => {
     e.preventDefault(); // Prevent page reload
     if (!validateForm()) return;
-    console.log('student._id', student._id)
-    const endpoint = student._id
-      ? `${process.env.NEXT_PUBLIC_SITE_URL}/students/${id}`
-      : `${process.env.NEXT_PUBLIC_SITE_URL}/api/students`;
-    const method = student._id ? "put" : "post";
+
+     const endpoint = `${process.env.NEXT_PUBLIC_SITE_URL}/api/students/${student._id}`;
 
     try {
-      const response = await axios[method](endpoint, student);
+      const response = await axios.put(endpoint, student);
       console.log('response', response);
       if (response?.data?.success) {
         setData((prev) =>
@@ -479,15 +505,7 @@ const UpdatePage = () => {
               <Form className="formSheet" >
                 <Row className="mb-3">
                   <Col lg={12}>
-                    {/* <FormGroup as={Col} lg="12" md="12" controlId="validationCustom01">
-                      <FormControl
-                        type="search"
-                        name="search"
-                        value={student?.first_name}
-                        onChange={handleChange}
-                        placeholder="Student name"
-                      />
-                    </FormGroup> */}
+
                     {console.log('studentListOptions', studentListOptions)}
                     <FormGroup as={Col} lg="12" md="12">
 
@@ -591,22 +609,6 @@ const UpdatePage = () => {
                   </FormGroup>
                 </Row>
                 <Row className='mb-3'>
-                  {/* <FormGroup as={Col} md="3" controlId="validationCustom08">
-                    <FormLabel className="labelForm">Select Class</FormLabel>
-                    <FormSelect
-                      value={student?.class_name}
-                      onChange={handleClassChange}
-                      name="class_name"
-                    >
-                      <option value="">Select Class</option>
-                      {classList?.length && classList?.map((classItem) => (
-                        <option key={classItem?._id} value={classItem?._id}>
-                          {classItem?.class_name}
-                        </option>
-                      ))}
-                    </FormSelect>
-                    <p className="error">{studentError.class_name_error}</p>
-                  </FormGroup> */}
                   <FormGroup as={Col} md="3" controlId="validationCustom08">
                     <FormLabel className="labelForm">Select Class</FormLabel>
                     <FormSelect
@@ -624,23 +626,6 @@ const UpdatePage = () => {
                     </FormSelect>
                     <p className="error">{studentError.class_name_error}</p>
                   </FormGroup>
-                  {/* <FormGroup as={Col} md="3" controlId="validationCustom09">
-                    <FormLabel className="labelForm">Select Section</FormLabel>
-
-                    <FormSelect
-                      value={student.section_name}
-                      onChange={(e) =>
-                        setStudent({ ...student, section_name: e.target.value })
-                      }
-                    >
-                      <option value="">Select Section</option>
-                      {sectionList?.sections?.length > 0 && sectionList?.sections?.map((sectionItem) => (
-                        <option key={sectionItem?._id} value={sectionItem?._id}>
-                          {sectionItem?.section_name}
-                        </option>
-                      ))}
-                    </FormSelect>
-                  </FormGroup> */}
                   <FormGroup as={Col} md="3" controlId="validationCustom09">
                     <FormLabel className="labelForm">Select Section</FormLabel>
                     <FormSelect
@@ -658,20 +643,6 @@ const UpdatePage = () => {
                         ))}
                     </FormSelect>
                   </FormGroup>
-
-
-
-                  {/* <FormGroup as={Col} md="3" controlId="validationCustom10">
-                    <FormLabel className="labelForm">Date Of Birth</FormLabel>
-                    <FormControl
-                      value={student?.date_of_birth}
-                      onChange={handleChange}
-                      type="date"
-                      name="date_of_birth"
-                      placeholder="Date of Birth"
-                    />
-                    <p className="error"> {studentError.date_of_birth_error}</p>
-                  </FormGroup> */}
                   <FormGroup as={Col} md="3" controlId="validationCustom10">
                     <FormLabel className="labelForm">Date Of Birth</FormLabel>
                     <FormControl
@@ -830,17 +801,6 @@ const UpdatePage = () => {
                       <option value="5">Mansion</option>
                     </FormSelect>
                   </FormGroup>
-                  {/* <FormGroup as={Col} md="3" controlId="validationCustom21">
-                    <FormLabel className="labelForm">Date Of Admission</FormLabel>
-                    <FormControl
-                      value={student?.admission_date}
-                      onChange={handleChange}
-                      type="date"
-                      name="admission_date"
-                      placeholder="Date of Admission"
-                    />
-                    <p className="error"> {studentError.admission_date_error}</p>
-                  </FormGroup> */}
                   <FormGroup as={Col} md="3" controlId="validationCustom10">
                     <FormLabel className="labelForm">Date Of Admission</FormLabel>
                     <FormControl
@@ -852,18 +812,6 @@ const UpdatePage = () => {
                     />
                     <p className="error">{studentError.date_of_admission_error}</p>
                   </FormGroup>
-
-                  {/* <FormGroup as={Col} md="3" controlId="validationCustom22">
-                    <FormLabel className="labelForm">Date Of joining</FormLabel>
-                    <FormControl
-                      value={student?.joining_date}
-                      onChange={handleChange}
-                      type="date"
-                      name="joining_date"
-                      placeholder="Date of Joining"
-                    />
-                    <p className="error" > {studentError.joining_date_error}</p>
-                  </FormGroup> */}
                   <FormGroup as={Col} md="3" controlId="validationCustom10">
                     <FormLabel className="labelForm">Date Of Joining</FormLabel>
                     <FormControl
@@ -1106,24 +1054,12 @@ const UpdatePage = () => {
                       documents from this section.
                     </p>
                     <Row>
-                      {/* {inputFields.map((field) => (
-                          <Col lg={4} key={field.id} className='mb-3'>
-                            <FormLabel htmlFor={field.id} className="labelForm">
-                              {field.label}
-                            </FormLabel>
-                            <FormControl
-                              type="file"
-                              id={field.id}
-                              onChange={(e) => handleFileChange(e, field.id)} />
-                          </Col>
-                        ))} */}
+
                     </Row>
                     <Button type="button" className='btn btn-primary mt-4'>
                       Submit
                     </Button>
                   </Form>
-
-
                 </Col>
               </Row>
             </Tab>
@@ -1136,3 +1072,4 @@ const UpdatePage = () => {
 };
 
 export default UpdatePage;
+

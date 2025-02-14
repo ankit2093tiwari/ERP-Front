@@ -1,13 +1,15 @@
-"use client"
+"use client";
 
 import { useState } from "react";
-import Script from 'next/script';
+import Script from "next/script";
 import Header from "./component/Header";
 import Footer from "./component/Footer";
 import SideBar from "./component/SideBar"; // Import Sidebar component
 import "./globals.css";
 import "./darkMode.css";
 import "bootstrap/dist/css/bootstrap.min.css";
+import { ToastContainer } from "react-toastify";
+
 export default function RootLayout({ children }) {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
 
@@ -20,18 +22,16 @@ export default function RootLayout({ children }) {
       <head>
         <Script
           src="https://cdn.jsdelivr.net/npm/react/umd/react.production.min.js"
-          crossOrigin="anonymous"
-        ></Script>
-
+          strategy="beforeInteractive"
+        />
         <Script
           src="https://cdn.jsdelivr.net/npm/react-dom/umd/react-dom.production.min.js"
-          crossOrigin="anonymous"
-        ></Script>
-
+          strategy="beforeInteractive"
+        />
         <Script
           src="https://cdn.jsdelivr.net/npm/react-bootstrap@next/dist/react-bootstrap.min.js"
-          crossOrigin="anonymous"
-        ></Script>
+          strategy="beforeInteractive"
+        />
       </head>
       <body>
         <div className="layout">
@@ -45,6 +45,7 @@ export default function RootLayout({ children }) {
             <Footer />
           </div>
         </div>
+        <ToastContainer position="top-center" />
       </body>
     </html>
   );
