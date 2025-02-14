@@ -1,21 +1,62 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import axios from "axios";
 import { Form, Row, Col, Container, FormLabel, Button, Breadcrumb, FormSelect, Table } from "react-bootstrap";
 
 const SubjectMaster = () => {
   const [classList, setClassList] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [sectionList, setSectionList] = useState([]);
+  const [data, setData] = useState([]);
   const [employeeList, setEmployeeList] = useState([]);
   const [subjectList, setSubjectList] = useState([]);
-  
+  const [error, setError] = useState("");
+
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedSection, setSelectedSection] = useState("");
   const [subjectName, setSubjectName] = useState("");
   const [compulsory, setCompulsory] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState("");
   const [editingSubjectId, setEditingSubjectId] = useState(null);
+
+  const columns = [
+    {
+      name: "#",
+      selector: (row, index) => index + 1,
+      sortable: false,
+      width: "80px",
+    },
+    {
+      name: "ClassName",
+      selector: (row) => row.class_name || "N/A",
+      sortable: true,
+    },
+    {
+      name: "SectionName",
+      selector: (row) => row.section_name || "N/A",
+      sortable: true,
+    },
+    {
+      name: "Subject & Teacher",
+      selector: (row) => row.section_name || "N/A",
+      sortable: true,
+    },
+    {
+      name: "Actions",
+      cell: (row) => (
+        <div className="d-flex gap-2">
+          <button className="editButton" onClick={() => handleEditSubject(subject)}>
+            <FaEdit />
+          </button>
+          <button className="editButton btn-danger" onClick={() => handleDeleteSubject(subject._id)}>
+            <FaTrashAlt />
+          </button>
+        </div>
+      ),
+    },
+  ];
 
   useEffect(() => {
     fetchClasses();
@@ -127,10 +168,13 @@ const SubjectMaster = () => {
       </Row>
 
       <div className="cover-sheet">
-        <h2>Assign Subjects to Class & Section</h2>
+        <div className="studentHeading">
+          <h2>Add New Subject</h2>
+          {/* <button className="closeForm" onClick={() => setIsPopoverOpen(false)}>X</button> */}
+        </div>
 
-        <Form>
-          <Row>
+        <Form className="formSheet">
+          <Row className="mb-3">
             <Col>
               <FormLabel>Select Class</FormLabel>
               <FormSelect
@@ -206,55 +250,63 @@ const SubjectMaster = () => {
           </Row>
         </Form>
       </div>
-
-      <h3 className="mt-4">Assigned Subjects</h3>
-      <Table striped bordered hover>
-        <thead>
-          <tr>
-            <th>Class Name</th>
-            <th>Section Name</th>
-            <th>Subject & Teacher</th>
-            <th>Compulsory</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {subjectList.length > 0 ? (
-            subjectList.map((subject) => (
-              <tr key={subject._id}>
-                <td>{subject.class_name?.class_name}</td>
-                <td>{subject.section_name?.section_name || "N/A"}</td>
-                <td>
-                  {subject.subject_details.subject_name} -{" "}
-                  {subject.subject_details.employee?.employee_name}
-                </td>
-                <td>{subject.subject_details.compulsory ? "Yes" : "No"}</td>
-                <td>
-                  <Button
-                    variant="warning"
-                    className="me-2"
-                    onClick={() => handleEditSubject(subject)}
-                  >
-                    Edit
-                  </Button>
-                  <Button
-                    variant="danger"
-                    onClick={() => handleDeleteSubject(subject._id)}
-                  >
-                    Delete
-                  </Button>
+      <div className="tableSheet">
+        <h2>Subject Master</h2>
+        <Table striped bordered hover>
+          <thead>
+            <tr>
+              <th>Class Name</th>
+              <th>Section Name</th>
+              <th>Subject & Teacher</th>
+              <th>Compulsory</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {subjectList.length > 0 ? (
+              subjectList.map((subject) => (
+                <tr key={subject._id}>
+                  <td>{subject.class_name?.class_name}</td>
+                  <td>{subject.section_name?.section_name || "N/A"}</td>
+                  <td>
+                    {subject.subject_details.subject_name} -{" "}
+                    {subject.subject_details.employee?.employee_name}
+                  </td>
+                  <td>{subject.subject_details.compulsory ? "Yes" : "No"}</td>
+                  <td>
+                    <button className="editButton" onClick={() => handleEditSubject(subject)}>
+                      <FaEdit />
+                    </button>
+                    <button className="editButton btn-danger" onClick={() => handleDeleteSubject(subject._id)}>
+                      <FaTrashAlt />
+                    </button>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="5" className="text-center">
+                  No data available
                 </td>
               </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan="5" className="text-center">
-                No data available
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </Table>
+            )}
+          </tbody>
+        </Table>
+      </div>
+      {/* <Row>
+        <Col>
+          <div className="tableSheet">
+            <h2>Subject Master</h2>
+            {loading ? (
+              <p>Loading...</p>
+            ) : error ? (
+              <p style={{ color: "red" }}>{error}</p>
+            ) : (
+              <Table columns={columns} data={data} />
+            )}
+          </div>
+        </Col>
+      </Row> */}
     </Container>
   );
 };
