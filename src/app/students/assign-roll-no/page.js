@@ -75,36 +75,63 @@ const AssignRollNo = () => {
   };
 
   const handleRollNoChange = (index, newRollNo) => {
-    const updatedStudents = [...students];
-    updatedStudents[index].roll_no = newRollNo;
-    setStudents(updatedStudents);
+    setStudents((prevStudents) => {
+      const updatedStudents = [...prevStudents];
+      updatedStudents[index] = { ...updatedStudents[index], roll_no: newRollNo };
+      return updatedStudents;
+    });
   };
+  
+
+  // const handleRollNoChange = (index, newRollNo) => {
+  //   const updatedStudents = [...students];
+  //   updatedStudents[index].roll_no = newRollNo;
+  //   setStudents(updatedStudents);
+  // };
 
   const handleAutoFillRollNo = () => {
-    if (students.length === 0) {
+    if (!students || students.length === 0) {
       alert("No students found to assign roll numbers.");
       return;
     }
 
-    const updatedStudents = students.map((student, index) => ({
+    // Sort students by registration_id or any unique field to ensure consistency
+    const sortedStudents = [...students].sort((a, b) => (a.registration_id > b.registration_id ? 1 : -1));
+
+    const updatedStudents = sortedStudents.map((student, index) => ({
       ...student,
       roll_no: prefixKey ? `${prefixKey}-${index + 1}` : (index + 1).toString(),
     }));
 
-    setStudents([...updatedStudents]);
+    setStudents(updatedStudents); // Update the state to trigger re-render
   };
+
+
+  // const handleAutoFillRollNo = () => {
+  //   if (students.length === 0) {
+  //     alert("No students found to assign roll numbers.");
+  //     return;
+  //   }
+
+  //   const updatedStudents = students.map((student, index) => ({
+  //     ...student,
+  //     roll_no: prefixKey ? `${prefixKey}-${index + 1}` : (index + 1).toString(),
+  //   }));
+
+  //   setStudents([...updatedStudents]);
+  // };
 
   const handleSaveRollNo = async () => {
     if (!selectedClass || !selectedSection) {
       alert("Please select both class and section");
       return;
     }
-  
+
     if (!students || !Array.isArray(students) || students.length === 0) {
       alert("No students available to assign roll numbers.");
       return;
     }
-  
+
     setLoading(true);
     try {
       const response = await axios.post(
@@ -112,16 +139,16 @@ const AssignRollNo = () => {
         {
           class_name: selectedClass,
           section_name: selectedSection,
-          students: students.map(student => ({
+          students: students.map((student) => ({
             _id: student._id, // Ensure the student ID is included
             roll_no: student.roll_no, // Assign roll number
           })),
-          prefix_key: prefixKey, 
+          prefix_key: prefixKey, // Include prefix key if applicable
         }
       );
-  
+
       if (response.data.success) {
-        alert("Roll numbers Updated successfully!");
+        alert("Roll numbers updated successfully!");
         setStudents(response.data.data); // Update student list with new roll numbers
         setIsEditing(false);
       } else {
@@ -133,38 +160,6 @@ const AssignRollNo = () => {
     }
     setLoading(false);
   };
-  
-
-  // const handleSaveRollNo = async () => {
-  //   if (!selectedClass || !selectedSection) {
-  //     alert("Please select both class and section");
-  //     return;
-  //   }
-
-  //   setLoading(true);
-  //   try {
-  //     const response = await axios.post(
-  //       "https://erp-backend-fy3n.onrender.com/api/students/roll-number-assigned-Students",
-  //       {
-  //         class_name: selectedClass,
-  //         section_name: selectedSection,
-  //         ["prefix-key"]: prefixKey, // Using the prefixKey state
-  //       }
-  //     );
-
-  //     if (response.data.success) {
-  //       alert("Roll numbers assigned successfully!");
-  //       setStudents(response.data.data); // Update student list with new roll numbers
-  //       setIsEditing(false);
-  //     } else {
-  //       alert("Failed to assign roll numbers.");
-  //     }
-  //   } catch (error) {
-  //     console.error("Error assigning roll numbers:", error);
-  //     alert("Something went wrong. Please try again.");
-  //   }
-  //   setLoading(false);
-  // };
 
   return (
     <Container>
@@ -209,7 +204,7 @@ const AssignRollNo = () => {
             </Col>
           </Row>
 
-          {/* <Row className="mt-3">
+          <Row className="mt-3">
             <Col>
               <FormLabel className="labelForm">Prefix Key (Optional)</FormLabel>
               <input
@@ -220,7 +215,7 @@ const AssignRollNo = () => {
                 placeholder="Enter Prefix (e.g., A)"
               />
             </Col>
-          </Row> */}
+          </Row>
 
           <br />
           <Row>

@@ -151,7 +151,7 @@ const StudentBulkUpdate = () => {
     {
       name: "Gender",
       cell: (row, index) => (
-        <select value={updatedStudents[index]?.gender || ""} onChange={(e) => handleFieldChange(index, "gender", e.target.value)}>
+        <select value={updatedStudents[index]?.gender_name || ""} onChange={(e) => handleFieldChange(index, "gender_name", e.target.value)}>
           <option value="">Select</option>
           <option value="Male">Male</option>
           <option value="Female">Female</option>
