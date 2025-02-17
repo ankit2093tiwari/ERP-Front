@@ -2,24 +2,23 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Select from "react-select";
+import { Button, Row } from "react-bootstrap";
 
 const SchoolOverview = () => {
-  const [selectedClasses, setSelectedClasses] = useState([]); // Selected classes from dropdown
-  const [tableData, setTableData] = useState([]); // Data to display in the table
-  const [isLoading, setIsLoading] = useState(false); // Loading state for search
-  const [classOptions, setClassOptions] = useState([]); // Dynamically fetched class options
-  const [isFetchingClasses, setIsFetchingClasses] = useState(false); // Loading state for fetching classes
+  const [selectedClass, setSelectedClass] = useState(null);
+  const [tableData, setTableData] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [classOptions, setClassOptions] = useState([]);
+  const [isFetchingClasses, setIsFetchingClasses] = useState(false);
 
-  // Fetch classes dynamically when the component mounts
   useEffect(() => {
     const fetchClasses = async () => {
       setIsFetchingClasses(true);
       try {
-        // Fetch classes from the API
         const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-classes");
         const classes = response.data.data.map((cls) => ({
-          value: cls._id, // Use class ID as the value
-          label: cls.class_name, // Use class name as the label
+          value: cls._id,
+          label: cls.class_name,
         }));
         setClassOptions(classes);
       } catch (error) {
@@ -29,39 +28,53 @@ const SchoolOverview = () => {
         setIsFetchingClasses(false);
       }
     };
-
     fetchClasses();
   }, []);
 
-  // Handle search button click
   const handleSearch = async () => {
-    if (selectedClasses.length === 0) {
-      alert("Please select at least one class.");
+    if (!selectedClass) {
+      alert("Please select a class.");
       return;
     }
-
     setIsLoading(true);
-
     try {
-      // ✅ FIX: Ensure correct data format
-      const requestData = {
-        class_ids: selectedClasses.map((cls) => cls.value), // Array of class IDs
-        
-        // If API needs class names instead, use: class_name: selectedClasses.map((cls) => cls.label)
-      };
-      // console.log('class_ids', class_ids);
-
-      console.log("Sending data:", requestData); // Debugging log
-
-      // Call the backend API to fetch student data
+      const requestData = { class_name: selectedClass.value };
       const response = await axios.post(
         "https://erp-backend-fy3n.onrender.com/api/students/searchByClass",
         requestData
       );
-      // console.log('response', response);
-
-      // Update table data with API response
-      setTableData(response.data.students);
+  
+      const students = response.data.students;
+      const groupedData = { ...tableData }; // Start with the existing data
+  
+      students.forEach((student) => {
+        const className = student.class_name?.class_name;
+        const sectionName = student.section_name?.section_name;
+  
+        if (!groupedData[className]) {
+          groupedData[className] = {};
+        }
+  
+        if (!groupedData[className][sectionName]) {
+          groupedData[className][sectionName] = {
+            totalBoys: 0,
+            totalGirls: 0,
+            sectionTotal: 0,
+            dropoutStudents: 0,
+            newStudents: 0,
+          };
+        }
+  
+        if (student.gender_name === "Male") groupedData[className][sectionName].totalBoys += 1;
+        if (student.gender_name === "Female") groupedData[className][sectionName].totalGirls += 1;
+        groupedData[className][sectionName].sectionTotal += 1;
+        if (student.transfer_status === "Dropout") groupedData[className][sectionName].dropoutStudents += 1;
+        if (new Date(student.date_of_admission) >= new Date(new Date().getFullYear(), 0, 1)) {
+          groupedData[className][sectionName].newStudents += 1;
+        }
+      });
+  
+      setTableData(groupedData); // Update the state with the merged data
     } catch (error) {
       console.error("Error fetching data:", error.response?.data || error.message);
       alert("Failed to fetch data. Please try again.");
@@ -70,59 +83,136 @@ const SchoolOverview = () => {
     }
   };
 
-  return (
-    <div style={{ padding: "20px" }}>
-      <h1>School Overview</h1>
+  // const handleSearch = async () => {
+  //   if (!selectedClass) {
+  //     alert("Please select a class.");
+  //     return;
+  //   }
+  //   setIsLoading(true);
+  //   try {
+  //     const requestData = { class_name: selectedClass.value };
+  //     const response = await axios.post(
+  //       "https://erp-backend-fy3n.onrender.com/api/students/searchByClass",
+  //       requestData
+  //     );
 
-      {/* Multi-select dropdown for classes */}
-      <div style={{ marginBottom: "20px" }}>
-        <label>Select Classes:</label>
+  //     const students = response.data.students;
+  //     const groupedData = {};
+
+  //     students.forEach((student) => {
+  //       const className = student.class_name?.class_name;
+  //       const sectionName = student.section_name?.section_name;
+
+  //       if (!groupedData[className]) {
+  //         groupedData[className] = {};
+  //       }
+
+  //       if (!groupedData[className][sectionName]) {
+  //         groupedData[className][sectionName] = {
+  //           totalBoys: 0,
+  //           totalGirls: 0,
+  //           sectionTotal: 0,
+  //           dropoutStudents: 0,
+  //           newStudents: 0,
+  //         };
+  //       }
+
+  //       if (student.gender_name === "Male") groupedData[className][sectionName].totalBoys += 1;
+  //       if (student.gender_name === "Female") groupedData[className][sectionName].totalGirls += 1;
+  //       groupedData[className][sectionName].sectionTotal += 1;
+  //       if (student.transfer_status === "Dropout") groupedData[className][sectionName].dropoutStudents += 1;
+  //       if (new Date(student.date_of_admission) >= new Date(new Date().getFullYear(), 0, 1)) {
+  //         groupedData[className][sectionName].newStudents += 1;
+  //       }
+  //     });
+
+  //     setTableData(groupedData);
+  //   } catch (error) {
+  //     console.error("Error fetching data:", error.response?.data || error.message);
+  //     alert("Failed to fetch data. Please try again.");
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
+
+  return (
+    <div className="cover-sheet">
+      <div className="studentHeading">
+        <h2>School Overview</h2>
+      </div>
+      <div style={{ marginBottom: "20px", padding: "20px" }}>
+        <label>Select Class:</label>
         <Select
-          isMulti
           options={classOptions}
-          value={selectedClasses}
-          onChange={(selected) => setSelectedClasses(selected)}
-          placeholder={isFetchingClasses ? "Loading classes..." : "Select classes..."}
-          isDisabled={isFetchingClasses} // Disable dropdown while fetching classes
+          value={selectedClass}
+          onChange={(selected) => setSelectedClass(selected)}
+          placeholder={isFetchingClasses ? "Loading classes..." : "Select a class..."}
+          isDisabled={isFetchingClasses}
         />
       </div>
 
-      {/* Search button */}
-      <button onClick={handleSearch} disabled={isLoading || isFetchingClasses}>
-        {isLoading ? "Searching..." : "Search"}
-      </button>
 
-      {/* Table to display results */}
-      {tableData.length > 0 && (
-        <table style={{ marginTop: "20px", width: "100%", borderCollapse: "collapse" }}>
-          <thead>
+      <Button
+        className="btn btn-warning ms-4"
+        onClick={handleSearch}
+        disabled={isLoading || isFetchingClasses}
+      >
+        {isLoading ? "Searching..." : "Search"}
+      </Button>
+
+      <table
+        style={{
+          marginTop: "20px",
+          width: "100%",
+          borderCollapse: "collapse",
+          border: "1px solid black",
+          marginBottom: "40px",
+        }}
+      >
+        <thead>
+          <tr>
+            <th style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>Class</th>
+            <th style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>Sections</th>
+            <th style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>Total Boys</th>
+            <th style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>Total Girls</th>
+            <th style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>Total Students</th>
+            <th style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>Dropout</th>
+            <th style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>New Students</th>
+          </tr>
+        </thead>
+        <tbody>
+          {Object.keys(tableData).length > 0 ? (
+            Object.entries(tableData).map(([className, sections], index) =>
+              Object.entries(sections).map(([sectionName, data], secIndex) => (
+                <tr key={`${index}-${secIndex}`}>
+                  {secIndex === 0 && (
+                    <td
+                      rowSpan={Object.keys(sections).length}
+                      style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}
+                    >
+                      {className}
+                    </td>
+                  )}
+                  <td style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>
+                    {sectionName}
+                  </td>
+                  <td style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>{data.totalBoys}</td>
+                  <td style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>{data.totalGirls}</td>
+                  <td style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>{data.sectionTotal}</td>
+                  <td style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>{data.dropoutStudents}</td>
+                  <td style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>{data.newStudents}</td>
+                </tr>
+              ))
+            )
+          ) : (
             <tr>
-              <th>Class</th>
-              <th>Section</th>
-              <th>Boys</th>
-              <th>Girls</th>
-              <th>Total</th>
-              <th>TC</th>
-              <th>Dropout</th>
-              <th>New</th>
+              <td colSpan="7" style={{ textAlign: "center", padding: "8px", border: "1px solid black" }}>
+                No data to display. Please search for a class.
+              </td>
             </tr>
-          </thead>
-          <tbody>
-            {tableData.map((student, index) => (
-              <tr key={index}>
-                <td>{student.class_name?.class_name}</td>
-                <td>{student.section_name?.section_name}</td>
-                <td>{student.gender_name === "Male" ? 1 : 0}</td>
-                <td>{student.gender_name === "Female" ? 1 : 0}</td>
-                <td>{student.gender_name === "Male" || student.gender_name === "Female" ? 1 : 0}</td>
-                <td>{student.transfer_status === "TC" ? 1 : 0}</td>
-                <td>{student.transfer_status === "Dropout" ? 1 : 0}</td>
-                <td>{new Date(student.date_of_admission) >= new Date(new Date().getFullYear(), 0, 1) ? 1 : 0}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+          )}
+        </tbody>
+      </table>
     </div>
   );
 };

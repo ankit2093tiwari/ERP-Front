@@ -40,13 +40,7 @@ const ClassMasterPage = () => {
     },
     {
       name: "Sections",
-      selector: (row) => (
-        <div>
-          {row.sections?.map((section) => (
-            <div key={section._id}>{section.section_name}</div>
-          ))}
-        </div>
-      ),
+      selector: (row) => row.sections.length > 0 ? row.sections.join(", ") : "No sections",
       sortable: false,
     },
     {
@@ -64,18 +58,30 @@ const ClassMasterPage = () => {
     },
   ];
 
-  // Fetch class data from API
+
+  // Fetch class data and sections together
   const fetchData = async () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-classes");
+      // Fetch classes
+      const classResponse = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-classes");
+      const classes = classResponse.data.data;
 
-      if (response.data && Array.isArray(response.data.data)) {
-        setData(response.data.data); // Setting fetched data correctly
-      } else {
-        setError("Unexpected API response format.");
-      }
+      // Fetch all sections
+      const sectionResponse = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-sections");
+      const sections = sectionResponse.data.data;
+
+      // Merge sections into corresponding classes
+      const updatedData = classes.map((classItem) => {
+        const classSections = sections
+          .filter((section) => section.class._id === classItem._id)
+          .map((section) => section.section_name);
+
+        return { ...classItem, sections: classSections };
+      });
+
+      setData(updatedData);
     } catch (err) {
       console.error("Error fetching data:", err);
       setError("Failed to fetch data. Please try again later.");
@@ -331,4 +337,4 @@ const ClassMasterPage = () => {
   );
 };
 
-export default dynamic(() => Promise.resolve(ClassMasterPage), { ssr: false });
+export default ClassMasterPage;

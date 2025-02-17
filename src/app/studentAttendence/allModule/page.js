@@ -18,19 +18,19 @@ const Page = () => {
     {
       href: "/studentAttendence/TakeAttendence",
       icon: <Image src="/module/attendance/takeAttendance.png" className="studentIcon" width={100} height={100} alt="" />,
-      title: "Add Check Up Type",
+      title: "Take Attendence",
       description: "Add Basic Details Of Attendance",
     },
     {
       href: "/studentAttendence/AttendenceReport",
       icon: <Image src="/module/attendance/AttendanceReport.png" className="studentIcon" width={100} height={100} alt="" />,
-      title: "Add Doctor Profile",
+      title: "Attendence Report",
       description: "Check Basic Details Of Attendance",
     },
     {
       href: "/studentAttendence/MonthlyReport",
       icon: <Image src="/module/attendance/monthlyreport.png" className="studentIcon" width={100} height={100} alt="" />,
-      title: "Routine Check Up",
+      title: "Monthly Report",
       description: "Check Basic Details Of Attendance",
     },
   ];
