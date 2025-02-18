@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
-import { CgAddR } from 'react-icons/cg';
+import { CgAddR } from "react-icons/cg";
 import {
   Form,
   Row,
@@ -11,7 +11,7 @@ import {
   FormLabel,
   FormControl,
   Button,
-  Breadcrumb
+  Breadcrumb,
 } from "react-bootstrap";
 import axios from "axios";
 import Table from "@/app/component/DataTable";
@@ -23,7 +23,7 @@ const HeadMasterPage = () => {
   const [error, setError] = useState("");
   const [newHeadMaster, setNewHeadMaster] = useState({
     head_name: "",
-    head_type: "", // Default is empty, can be set to 'Installment Type' or 'Lifetime'
+    head_type: "",
   });
   const [showAddForm, setShowAddForm] = useState(false);
 
@@ -66,17 +66,15 @@ const HeadMasterPage = () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get(
-        "https://erp-backend-fy3n.onrender.com/api/all-fee-type"
-      );
-      if (response.data && response.data.headMasters && response.data.headMasters.length > 0) {
+      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-fee-type");
+      if (response.data && response.data.success) {
         setData(response.data.data);
       } else {
-        setData([]); // Set empty array if no records are found
+        setData([]);
         setError("No records found.");
       }
     } catch (err) {
-      setData([]); // Set empty array if there's an error fetching data
+      setData([]);
       setError("Failed to fetch HeadMasters.");
     } finally {
       setLoading(false);
@@ -86,14 +84,24 @@ const HeadMasterPage = () => {
   const handleAdd = async () => {
     if (newHeadMaster.head_name.trim() && newHeadMaster.head_type.trim()) {
       try {
-        const response = await axios.post(
-          "https://erp-backend-fy3n.onrender.com/api/add-fee-type",
-          newHeadMaster
+        // Check if the HeadMaster already exists
+        const existingHeadMaster = data.find(
+          (row) => row.head_name === newHeadMaster.head_name
         );
-        setData((prevData) => [...prevData, response.data.headMaster]);
-        setNewHeadMaster({ head_name: "", head_type: "" });
-        setShowAddForm(false);
-        fetchData(); // Fetch data again after adding new headMaster
+        if (existingHeadMaster) {
+          alert("HeadMaster name already exists.");
+          return;
+        }
+
+        const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/add-fee-type", newHeadMaster);
+        if (response.data && response.data.success) {
+          setData((prevData) => [...prevData, response.data.data]);
+          setNewHeadMaster({ head_name: "", head_type: "" });
+          setShowAddForm(false);
+          fetchData(); // Refresh data after adding
+        } else {
+          setError("Failed to add HeadMaster.");
+        }
       } catch (err) {
         setError("Failed to add HeadMaster.");
       }
@@ -104,26 +112,26 @@ const HeadMasterPage = () => {
 
   const handleEdit = async (id) => {
     const headMaster = data.find((row) => row._id === id);
-    const updatedName = prompt(
-      "Enter new head name:",
-      headMaster?.head_name || ""
-    );
-    const updatedType = prompt(
-      "Enter new head type (Installment Type or Lifetime):",
-      headMaster?.head_type || ""
-    );
+    const updatedName = prompt("Enter new head name:", headMaster?.head_name || "");
+    const updatedType = prompt("Enter new head type:", headMaster?.head_type || "");
 
     if (updatedName && updatedType) {
       try {
-        await axios.put(
-          `https://erp-backend-fy3n.onrender.com/api/update-fee-type/${id}`,
-          { head_name: updatedName, head_type: updatedType }
-        );
-        setData((prevData) =>
-          prevData.map((row) =>
-            row._id === id ? { ...row, head_name: updatedName, head_type: updatedType } : row
-          )
-        );
+        const response = await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-fee-type/${id}`, {
+          head_name: updatedName,
+          head_type: updatedType,
+        });
+        if (response.data && response.data.success) {
+          setData((prevData) =>
+            prevData.map((row) =>
+              row._id === id
+                ? { ...row, head_name: updatedName, head_type: updatedType }
+                : row
+            )
+          );
+        } else {
+          setError("Failed to update HeadMaster.");
+        }
       } catch (err) {
         setError("Failed to update HeadMaster.");
       }
@@ -133,10 +141,12 @@ const HeadMasterPage = () => {
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this HeadMaster?")) {
       try {
-        await axios.delete(
-          `https://erp-backend-fy3n.onrender.com/api/delete-fee-type/${id}`
-        );
-        setData((prevData) => prevData.filter((row) => row._id !== id));
+        const response = await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-fee-type/${id}`);
+        if (response.data && response.data.success) {
+          setData((prevData) => prevData.filter((row) => row._id !== id));
+        } else {
+          setError("Failed to delete HeadMaster.");
+        }
       } catch (err) {
         setError("Failed to delete HeadMaster.");
       }
@@ -153,12 +163,12 @@ const HeadMasterPage = () => {
         <Col>
           <Breadcrumb>
             <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-            <Breadcrumb.Item href="/headmasters">HeadMasters</Breadcrumb.Item>
+            <Breadcrumb.Item href="/head-masters">HeadMasters</Breadcrumb.Item>
             <Breadcrumb.Item active>Manage HeadMasters</Breadcrumb.Item>
           </Breadcrumb>
         </Col>
       </Row>
-      
+
       <Button
         onClick={() => setShowAddForm(!showAddForm)}
         className="btn btn-primary mb-4"
@@ -170,7 +180,9 @@ const HeadMasterPage = () => {
         <div className="cover-sheet">
           <div className="studentHeading">
             <h2>Add New HeadMaster</h2>
-            <button className="closeForm" onClick={() => setShowAddForm(false)}>X</button>
+            <button className="closeForm" onClick={() => setShowAddForm(false)}>
+              X
+            </button>
           </div>
           <Form className="formSheet">
             <Row>
