@@ -2,9 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import styles from "@/app/medical/routine-check-up/page.module.css";
-import Table from "@/app/component/DataTable";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
+import { CgAddR } from "react-icons/cg";
 import {
   Form,
   Row,
@@ -13,15 +12,17 @@ import {
   FormLabel,
   FormControl,
   Button,
+  Breadcrumb,
   FormSelect,
 } from "react-bootstrap";
 import axios from "axios";
+import Table from "@/app/component/DataTable";
+import styles from "@/app/medical/routine-check-up/page.module.css";
 
 const FeeGroup = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [showAddForm, setShowAddForm] = useState(false);
   const [newFeeGroup, setNewFeeGroup] = useState({
     group_name: "",
     class_name: "",
@@ -30,6 +31,7 @@ const FeeGroup = () => {
   });
   const [classList, setClassList] = useState([]);
   const [sectionList, setSectionList] = useState([]);
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
   const columns = [
     {
@@ -82,13 +84,13 @@ const FeeGroup = () => {
     try {
       const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-fee-groups");
       if (response.data && response.data.feeGroups.length > 0) {
-        setData(response.data.feeGroups);
+        setData(response.data.data);
       } else {
-        setData([]); 
+        setData([]);
         setError("No fee groups found.");
       }
     } catch (err) {
-      setData([]); 
+      setData([]);
       setError("Failed to fetch fee groups.");
     } finally {
       setLoading(false);
@@ -98,9 +100,7 @@ const FeeGroup = () => {
   const fetchClasses = async () => {
     try {
       const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-classes");
-      const resp = response.data;
-      setClassList(resp.data || []);
-    
+      setClassList(response.data.data || []);
     } catch (err) {
       setError("Failed to fetch classes.");
     }
@@ -109,9 +109,7 @@ const FeeGroup = () => {
   const fetchSections = async (classId) => {
     try {
       const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/sections/class/${classId}`);
-
       setSectionList(response.data || []);
-      console.log('testddddddddd',response.data)
     } catch (err) {
       setError("Failed to fetch sections.");
     }
@@ -133,8 +131,8 @@ const FeeGroup = () => {
           section_name: "",
           late_fine_per_day: "",
         });
-        setShowAddForm(false);
-        fetchData(); 
+        setIsPopoverOpen(false);
+        fetchData();
       } catch (err) {
         setError("Failed to add fee group.");
       }
@@ -184,16 +182,30 @@ const FeeGroup = () => {
   }, []);
 
   return (
-    <Container className={styles.formContainer}>
-      <Form className={styles.form}>
-        <Button
-          onClick={() => setShowAddForm(!showAddForm)}
-          className={`mb-4 ${styles.search}`}
-        >
-          Add Fee Group
-        </Button>
-        {showAddForm && (
-          <div className="mb-4">
+    <Container className="">
+      <Row className="mt-1 mb-1">
+        <Col>
+          <Breadcrumb>
+            <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
+            <Breadcrumb.Item href="/fee-groups">Fee Groups</Breadcrumb.Item>
+            <Breadcrumb.Item active>Manage Fee Groups</Breadcrumb.Item>
+          </Breadcrumb>
+        </Col>
+      </Row>
+
+      <Button onClick={() => setIsPopoverOpen(true)} className="btn btn-primary">
+        <CgAddR /> Add Fee Group
+      </Button>
+
+      {isPopoverOpen && (
+        <div className="cover-sheet">
+          <div className="studentHeading">
+            <h2>Add New Fee Group</h2>
+            <button className="closeForm" onClick={() => setIsPopoverOpen(false)}>
+              X
+            </button>
+          </div>
+          <Form className="formSheet">
             <Row>
               <Col lg={6}>
                 <FormLabel>Group Name</FormLabel>
@@ -211,11 +223,11 @@ const FeeGroup = () => {
                   value={newFeeGroup.class_name}
                   onChange={(e) => {
                     setNewFeeGroup({ ...newFeeGroup, class_name: e.target.value });
-                    fetchSections(e.target.value); // Fetch sections on class change
+                    fetchSections(e.target.value);
                   }}
                 >
                   <option value="">Select Class</option>
-                  {classList.length > 0 && classList.map((classItem) => (
+                  {classList.map((classItem) => (
                     <option key={classItem._id} value={classItem._id}>
                       {classItem.class_name}
                     </option>
@@ -231,7 +243,7 @@ const FeeGroup = () => {
                   }
                 >
                   <option value="">Select Section</option>
-                  {sectionList?.sections?.length > 0 && sectionList?.sections?.map((sectionItem) => (
+                  {sectionList?.sections?.map((sectionItem) => (
                     <option key={sectionItem._id} value={sectionItem._id}>
                       {sectionItem.section_name}
                     </option>
@@ -249,16 +261,19 @@ const FeeGroup = () => {
                 />
               </Col>
             </Row>
-            <Button onClick={handleAdd} className={styles.search}>
+            <Button onClick={handleAdd} className="btn btn-primary">
               Add Fee Group
             </Button>
-          </div>
-        )}
+          </Form>
+        </div>
+      )}
+
+      <div className="tableSheet">
         <h2>Fee Group Records</h2>
+        {loading && <p>Loading...</p>}
         {error && <p>{error}</p>}
-        {!loading && !error && data.length === 0 && <p>No records found.</p>}
-        {!loading && !error && data.length > 0 && <Table columns={columns} data={data} />}
-      </Form>
+        {!loading && !error && <Table columns={columns} data={data} />}
+      </div>
     </Container>
   );
 };

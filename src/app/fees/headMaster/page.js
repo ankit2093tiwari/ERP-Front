@@ -70,7 +70,7 @@ const HeadMasterPage = () => {
         "https://erp-backend-fy3n.onrender.com/api/all-fee-type"
       );
       if (response.data && response.data.headMasters && response.data.headMasters.length > 0) {
-        setData(response.data.headMasters);
+        setData(response.data.data);
       } else {
         setData([]); // Set empty array if no records are found
         setError("No records found.");

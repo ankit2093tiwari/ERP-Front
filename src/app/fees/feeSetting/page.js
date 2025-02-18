@@ -25,9 +25,108 @@ const FeeSetting = () => {
     credit_card_charge: "",
     debit_card_charge: "",
     amex_charge: "",
-    editStatus:false
+    editStatus: false,
   });
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+
+  const fetchData = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-fee-settings");
+      console.log("API Response:", response.data);
+
+      if (response.data && response.data.success && Array.isArray(response.data.feeSettings)) {
+        setData(response.data.feeSettings);
+      } else {
+        setData([]); // Set empty array instead of null
+        setError("No records found.");
+      }
+    } catch (err) {
+      console.error("Fetch error:", err);
+      setData([]);
+      setError("Failed to fetch fee settings.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleAdd = async () => {
+    if (
+      newFeeSetting.credit_card_charge.trim() &&
+      newFeeSetting.debit_card_charge.trim() &&
+      newFeeSetting.amex_charge.trim()
+    ) {
+      try {
+        const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/add-fee-settings", newFeeSetting);
+        console.log("Added Fee Setting:", response.data);
+        fetchData();
+        setNewFeeSetting({
+          credit_card_charge: "",
+          debit_card_charge: "",
+          amex_charge: "",
+          editStatus: false,
+        });
+        setIsPopoverOpen(false);
+      } catch (err) {
+        console.error("Add error:", err);
+        setError("Failed to add fee setting.");
+      }
+    } else {
+      alert("All fields are required.");
+    }
+  };
+
+  const handleEdit = async (id) => {
+    const feeSetting = data.find((row) => row._id === id);
+    if (!feeSetting) return;
+  
+    const updatedCreditCardCharge = prompt("Enter new Credit Card Charge:", feeSetting.credit_card_charge || "");
+    const updatedDebitCardCharge = prompt("Enter new Debit Card Charge:", feeSetting.debit_card_charge || "");
+    const updatedAmexCharge = prompt("Enter new AMEX Charge:", feeSetting.amex_charge || "");
+  
+    if (updatedCreditCardCharge && updatedDebitCardCharge && updatedAmexCharge) {
+      try {
+        await axios.put(
+          `https://erp-backend-fy3n.onrender.com/api/update-fee-settings/${id}`,
+          {
+            credit_card_charge: updatedCreditCardCharge,
+            debit_card_charge: updatedDebitCardCharge,
+            amex_charge: updatedAmexCharge,
+          }
+        );
+  
+        setData((prevData) =>
+          prevData.map((row) =>
+            row._id === id
+              ? { ...row, credit_card_charge: updatedCreditCardCharge, debit_card_charge: updatedDebitCardCharge, amex_charge: updatedAmexCharge }
+              : row
+          )
+        );
+      } catch (err) {
+        console.error("Update error:", err);
+        setError("Failed to update fee setting.");
+      }
+    }
+  };
+  
+
+  const handleDelete = async (id) => {
+    if (confirm("Are you sure you want to delete this fee setting?")) {
+      try {
+        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-fee-settings/${id}`);
+        console.log("Deleted Fee Setting:", id);
+        fetchData();
+      } catch (err) {
+        console.error("Delete error:", err);
+        setError("Failed to delete fee setting.");
+      }
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   const columns = [
     {
@@ -55,128 +154,24 @@ const FeeSetting = () => {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
-        {
-          newFeeSetting?.editStatus ? 
-          <button className="editButton" onClick={() => handleUpdate(row._id)}>
-            <FaSave />
-          </button>
-          :
-          <>
-          <button className="editButton" onClick={() => handleEdit(row._id)}>
-            <FaEdit />
-          </button>
-          <button className="editButton btn-danger" onClick={() => handleDelete(row._id)} >
-            <FaTrashAlt />
-          </button>
-         </>
-         }
+          {newFeeSetting?.editStatus ? (
+            <button className="editButton" onClick={() => handleUpdate(row._id)}>
+              <FaSave />
+            </button>
+          ) : (
+            <>
+              <button className="editButton" onClick={() => handleEdit(row._id)}>
+                <FaEdit />
+              </button>
+              <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
+                <FaTrashAlt />
+              </button>
+            </>
+          )}
         </div>
       ),
     },
   ];
-
-  const fetchData = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const response = await axios.get(
-        "https://erp-backend-fy3n.onrender.com/api/all-fee-settings"
-      );
-      console.log('responsee', response);
-      if (response.data && response.data.length > 0) {
-        setData(response.data);
-      } else {
-        setData([]);
-        setError("No records found.");
-      }
-    } catch (err) {
-      setData([]);
-      setError("Failed to fetch fee settings.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAdd = async () => {
-    if (
-      newFeeSetting.credit_card_charge.trim() &&
-      newFeeSetting.debit_card_charge.trim() &&
-      newFeeSetting.amex_charge.trim()
-    ) {
-      try {
-        const response = await axios.post(
-          "https://erp-backend-fy3n.onrender.com/api/add-fee-settings",
-          newFeeSetting
-        );
-        setData((prevData) => [...prevData, response.data]);
-        setNewFeeSetting({
-          credit_card_charge: "",
-          debit_card_charge: "",
-          amex_charge: "",
-        });
-        setIsPopoverOpen(false);
-        fetchData();
-      } catch (err) {
-        setError("Failed to add fee setting.");
-      }
-    } else {
-      alert("All fields are required.");
-    }
-  };
-
- const handleEdit = () => {
-    setNewFeeSetting({... newFeeSetting, editStatus:true})
- }
-
-  const handleUpdate = async (id) => {
-    setNewFeeSetting({... newFeeSetting, editStatus:true})
-    const feeSetting = data.find((row) => row._id === id);
-   
-
-    if (updatedCreditCardCharge && updatedDebitCardCharge && updatedAmexCharge) {
-      try {
-        await axios.put(
-          `https://erp-backend-fy3n.onrender.com/api/update-fee-settings/${id}`,
-          {
-            credit_card_charge: updatedCreditCardCharge,
-            debit_card_charge: updatedDebitCardCharge,
-            amex_charge: updatedAmexCharge,
-          }
-        );
-        setData((prevData) =>
-          prevData.map((row) =>
-            row._id === id
-              ? {
-                  ...row,
-                  credit_card_charge: updatedCreditCardCharge,
-                  debit_card_charge: updatedDebitCardCharge,
-                  amex_charge: updatedAmexCharge,
-                }
-              : row
-          )
-        );
-      } catch (err) {
-        setError("Failed to update fee setting.");
-      }
-    }
-  };
-
-  const handleDelete = async (id) => {
-    if (confirm("Are you sure you want to delete this fee setting?")) {
-      try {
-        await axios.delete(
-          `https://erp-backend-fy3n.onrender.com/api/delete-fee-settings/${id}`
-        );
-        setData((prevData) => prevData.filter((row) => row._id !== id));
-      } catch (err) {
-        setError("Failed to delete fee setting.");
-      }
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
 
   return (
     <Container className="mt-3">
@@ -190,10 +185,7 @@ const FeeSetting = () => {
         </Col>
       </Row>
 
-      <Button
-        onClick={() => setIsPopoverOpen(true)}
-        className="btn btn-primary mb-4"
-      >
+      <Button onClick={() => setIsPopoverOpen(true)} className="btn btn-primary mb-4">
         <CgAddR /> Add Fee Setting
       </Button>
 
@@ -201,10 +193,7 @@ const FeeSetting = () => {
         <div className="cover-sheet">
           <div className="studentHeading">
             <h2>Add New Fee Setting</h2>
-            <button
-              className="closeForm"
-              onClick={() => setIsPopoverOpen(false)}
-            >
+            <button className="closeForm" onClick={() => setIsPopoverOpen(false)}>
               X
             </button>
           </div>
@@ -216,10 +205,7 @@ const FeeSetting = () => {
                   type="text"
                   value={newFeeSetting.credit_card_charge}
                   onChange={(e) =>
-                    setNewFeeSetting({
-                      ...newFeeSetting,
-                      credit_card_charge: e.target.value,
-                    })
+                    setNewFeeSetting({ ...newFeeSetting, credit_card_charge: e.target.value })
                   }
                 />
               </Col>
@@ -229,10 +215,7 @@ const FeeSetting = () => {
                   type="text"
                   value={newFeeSetting.debit_card_charge}
                   onChange={(e) =>
-                    setNewFeeSetting({
-                      ...newFeeSetting,
-                      debit_card_charge: e.target.value,
-                    })
+                    setNewFeeSetting({ ...newFeeSetting, debit_card_charge: e.target.value })
                   }
                 />
               </Col>
@@ -242,10 +225,7 @@ const FeeSetting = () => {
                   type="text"
                   value={newFeeSetting.amex_charge}
                   onChange={(e) =>
-                    setNewFeeSetting({
-                      ...newFeeSetting,
-                      amex_charge: e.target.value,
-                    })
+                    setNewFeeSetting({ ...newFeeSetting, amex_charge: e.target.value })
                   }
                 />
               </Col>
