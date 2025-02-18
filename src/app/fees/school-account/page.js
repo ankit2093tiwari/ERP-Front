@@ -37,12 +37,12 @@ const SchoolAccount = () => {
           >
             <FaEdit />
           </button>
-          <button
+          {/* <button
             className="editButton btn-danger"
             onClick={() => handleDelete(row._id)}
           >
             <FaTrashAlt />
-          </button>
+          </button> */}
         </div>
       ),
     },

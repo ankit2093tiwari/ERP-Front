@@ -82,6 +82,7 @@ const FeeSetting = () => {
       const response = await axios.get(
         "https://erp-backend-fy3n.onrender.com/api/all-fee-settings"
       );
+      console.log('responsee', response);
       if (response.data && response.data.length > 0) {
         setData(response.data);
       } else {
