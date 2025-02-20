@@ -19,45 +19,59 @@ const ClassMasterPage = () => {
   const [error, setError] = useState(""); // Error state
   const [formErrors, setFormErrors] = useState({}); // Field-specific errors
   const [editingClass, setEditingClass] = useState(null); // State to track the class being edited
+  const [editingSection, setEditingSection] = useState(null); // State to track the section being edited
 
-  // Table columns configuration
   const columns = [
-    {
-      name: "#",
-      selector: (row, index) => index + 1,
-      sortable: false,
-      width: "80px",
-    },
-    {
-      name: "Class Name",
-      selector: (row) => row.class_name || "N/A",
-      sortable: true,
-    },
-    {
-      name: "Class Code",
-      selector: (row) => row.class_code || "N/A",
-      sortable: true,
-    },
-    {
-      name: "Sections",
-      selector: (row) => row.sections.length > 0 ? row.sections.join(", ") : "No sections",
-      sortable: false,
-    },
-    {
-      name: "Actions",
-      cell: (row) => (
-        <div className="d-flex gap-2">
-          <button className="editButton" onClick={() => handleEdit(row)}>
-            <FaEdit />
-          </button>
-          <button className="editButton btn-danger" onClick={() => handleDeleteClass(row._id)}>
-            <FaTrashAlt />
-          </button>
-        </div>
-      ),
-    },
-  ];
-
+  {
+    name: "#",
+    selector: (row, index) => index + 1,
+    sortable: false,
+    width: "80px",
+  },
+  {
+    name: "Class Name",
+    cell: (row) => (
+      <div>
+        {row.class_name || "N/A"}
+        <button className="editButton ms-2" onClick={() => handleEdit(row)}>
+          <FaEdit />
+        </button>
+        <button className="editButton btn-danger ms-2" onClick={() => handleDeleteClass(row._id)}>
+          <FaTrashAlt />
+        </button>
+      </div>
+    ),
+    sortable: true,
+  },
+  {
+    name: "Class Code",
+    selector: (row) => row.class_code || "N/A",
+    sortable: true,
+  },
+  {
+    name: "Sections",
+    cell: (row) => (
+      <div>
+        {row.sections.length > 0 ? (
+          row.sections.map((section, index) => (
+            <div key={index}>
+              {section.section_code} - {section.section_name}
+              <button className="editButton ms-2" onClick={() => handleEditSection(section)}>
+                <FaEdit />
+              </button>
+              <button className="editButton btn-danger ms-2" onClick={() => handleDeleteSection(section._id)}>
+                <FaTrashAlt />
+              </button>
+            </div>
+          ))
+        ) : (
+          "No sections"
+        )}
+      </div>
+    ),
+    sortable: false,
+  },
+];
 
   // Fetch class data and sections together
   const fetchData = async () => {
@@ -76,7 +90,11 @@ const ClassMasterPage = () => {
       const updatedData = classes.map((classItem) => {
         const classSections = sections
           .filter((section) => section.class._id === classItem._id)
-          .map((section) => section.section_name);
+          .map((section) => ({
+            section_name: section.section_name,
+            section_code: section.section_code,
+            _id: section._id,
+          }));
 
         return { ...classItem, sections: classSections };
       });
@@ -186,7 +204,7 @@ const ClassMasterPage = () => {
 
     try {
       const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/add-sections", {
-        class_id: selectedClass,
+        class_name: selectedClass,
         section_name: newSectionName,
         section_code: newSectionCode,
       });
@@ -201,7 +219,67 @@ const ClassMasterPage = () => {
     }
   };
 
-  // Edit functionality
+  // Handle editing a section
+  const handleEditSection = (section) => {
+    setEditingSection(section);
+    setNewSectionName(section.section_name);
+    setNewSectionCode(section.section_code);
+  };
+
+  // Handle updating a section
+  const handleUpdateSection = async () => {
+    if (!editingSection) return;
+
+    const errors = {};
+    if (!newSectionName.trim()) {
+      errors.section_name = "Section name is required.";
+    }
+    if (!newSectionCode.trim()) {
+      errors.section_code = "Section code is required.";
+    }
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
+    }
+
+    try {
+      const response = await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-sections/${editingSection._id}`, {
+        section_name: newSectionName,
+        section_code: newSectionCode,
+      });
+
+      // Update the section in the state
+      const updatedData = data.map((classItem) => {
+        const updatedSections = classItem.sections.map((section) =>
+          section._id === editingSection._id ? response.data : section
+        );
+        return { ...classItem, sections: updatedSections };
+      });
+
+      setData(updatedData);
+      setEditingSection(null);
+      setNewSectionName("");
+      setNewSectionCode("");
+      setFormErrors({});
+      fetchData();
+    } catch (err) {
+      console.error("Error updating section:", err);
+      setError("Failed to update section. Please try again later.");
+    }
+  };
+
+  // Handle deleting a section
+  const handleDeleteSection = async (id) => {
+    try {
+      await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-sections/${id}`);
+      fetchData(); // Fetch updated class data
+    } catch (err) {
+      console.error("Error deleting section:", err);
+      setError("Failed to delete section. Please try again later.");
+    }
+  };
+
+  // Edit functionality for class
   const handleEdit = (classItem) => {
     setEditingClass(classItem);
     setNewClassName(classItem.class_name);
@@ -315,8 +393,8 @@ const ClassMasterPage = () => {
 
             <Row className="mb-3">
               <Col>
-                <Button onClick={handleAddSection} className="btn btn-primary mt-4">
-                  Add Section
+                <Button onClick={editingSection ? handleUpdateSection : handleAddSection} className="btn btn-primary mt-4">
+                  {editingSection ? "Update Section" : "Add Section"}
                 </Button>
               </Col>
             </Row>
