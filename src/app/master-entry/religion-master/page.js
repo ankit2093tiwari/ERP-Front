@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Form, Row, Col, Container, FormLabel, FormControl, Button, Breadcrumb } from "react-bootstrap";
 import Table from "@/app/component/DataTable";
-import { FaEdit, FaTrashAlt } from "react-icons/fa";
+import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
 import { CgAddR } from 'react-icons/cg';
 import axios from "axios";
 
@@ -13,27 +13,43 @@ const ReligionMasterPage = () => {
   const [error, setError] = useState(""); // Error state
   const [showAddForm, setShowAddForm] = useState(false); // Toggle Add Form visibility
   const [newReligionName, setNewReligionName] = useState(""); // New religion name
+  const [editId, setEditId] = useState(null);
+  const [editName, setEditName] = useState("");
 
   // Table columns configuration
   const columns = [
     {
       name: "#",
       selector: (row, index) => index + 1,
-      sortable: false,
       width: "80px",
     },
     {
       name: "Name",
-      selector: (row) => row.religion_name || "N/A",
+      selector: (row) =>
+        editId === row._id ? (
+          <FormControl
+            type="text"
+            value={editName}
+            onChange={(e) => setEditName(e.target.value)}
+          />
+        ) : (
+          row.religion_name || "N/A"
+        ),
       sortable: true,
     },
     {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
-          <button className="editButton" onClick={() => handleEdit(row._id)}>
-            <FaEdit />
-          </button>
+          {editId === row._id ? (
+            <button className="editButton" onClick={() => handleSave(row._id)}>
+              <FaSave />
+            </button>
+          ) : (
+            <button className="editButton" onClick={() => handleEdit(row._id, row.religion_name)}>
+              <FaEdit />
+            </button>
+          )}
           <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
             <FaTrashAlt />
           </button>
@@ -58,23 +74,26 @@ const ReligionMasterPage = () => {
   };
 
   // Edit existing entry
-  const handleEdit = async (id) => {
-    const item = data.find((row) => row._id === id);
-    const updatedName = prompt("Enter new name:", item?.religion_name || "");
-    if (updatedName) {
-      try {
-        await axios.put(`https://erp-backend-fy3n.onrender.com/api/religions/${id}`, {
-          religion_name: updatedName,
-        });
-        setData((prevData) =>
-          prevData.map((row) =>
-            row._id === id ? { ...row, religion_name: updatedName } : row
-          )
-        );
-      } catch (error) {
-        console.error("Error updating data:", error);
-        setError("Failed to update data. Please try again later.");
-      }
+  const handleEdit = (id, name) => {
+    setEditId(id);
+    setEditName(name);
+  };
+
+  const handleSave = async (id) => {
+    try {
+      await axios.put(`https://erp-backend-fy3n.onrender.com/api/religions/${id}`, {
+        religion_name: editName,
+      });
+      setData((prevData) =>
+        prevData.map((row) =>
+          row._id === id ? { ...row, religion_name: editName } : row
+        )
+      );
+      fetchData();
+      setEditId(null);
+    } catch (error) {
+      console.error("Error updating data:", error);
+      setError("Failed to update data. Please try again later.");
     }
   };
 
@@ -84,6 +103,7 @@ const ReligionMasterPage = () => {
       try {
         await axios.delete(`https://erp-backend-fy3n.onrender.com/api/religions/${id}`);
         setData((prevData) => prevData.filter((row) => row._id !== id));
+        fetchData();
       } catch (error) {
         console.error("Error deleting data:", error);
         setError("Failed to delete data. Please try again later.");

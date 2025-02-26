@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import Table from "@/app/component/DataTable"; // Ensure this path is correct
-import { FaEdit, FaTrashAlt } from "react-icons/fa";
+import { FaEdit, FaTrashAlt, FaSave} from "react-icons/fa";
 import {
   Form,
   Row,
@@ -18,6 +18,8 @@ import { CgAddR } from "react-icons/cg";
 
 const VehicleRecords = () => {
   const [data, setData] = useState([]); // Table data
+  const [editRowId, setEditRowId] = useState(null);
+  const [updatedVehicle, setUpdatedVehicle] = useState({});
   const [loading, setLoading] = useState(false); // Loading state
   const [error, setError] = useState(""); // Error state
   const [showAddForm, setShowAddForm] = useState(false); // Toggle Add Form visibility
@@ -29,39 +31,29 @@ const VehicleRecords = () => {
     },
   }); // New vehicle form
 
+  const handleChange = (e, field) => {
+    setUpdatedVehicle({ ...updatedVehicle, [field]: e.target.value });
+  };
+
   const columns = [
-    {
-      name: "#",
-      selector: (row, index) => index + 1,
-      sortable: false,
-      width: "80px",
-    },
-    {
-      name: "Vehicle Type",
-      selector: (row) => row.vehicle_type || "N/A",
-      sortable: true,
-    },
-    {
-      name: "Vehicle No",
-      selector: (row) => row.vehicle_no || "N/A",
-      sortable: true,
-    },
-    {
-      name: "Driver Name",
-      selector: (row) => row.driver?.driver_name || "N/A",
-      sortable: true,
-    },
+    { name: "#", selector: (row, index) => index + 1, width: "80px" },
+    { name: "Vehicle Type", selector: (row) => (row._id === editRowId ? <FormControl type="text" value={updatedVehicle.vehicle_type} onChange={(e) => handleChange(e, "vehicle_type")} /> : row.vehicle_type) },
+    { name: "Vehicle No", selector: (row) => (row._id === editRowId ? <FormControl type="text" value={updatedVehicle.vehicle_no} onChange={(e) => handleChange(e, "vehicle_no")} /> : row.vehicle_no) },
+    { name: "Driver Name", selector: (row) => (row._id === editRowId ? <FormControl type="text" value={updatedVehicle.driver.driver_name} onChange={(e) => setUpdatedVehicle({ ...updatedVehicle, driver: { driver_name: e.target.value } })} /> : row.driver?.driver_name) },
     {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
-          <button className="editButton" onClick={() => handleEdit(row._id)}>
-            <FaEdit />
-          </button>
-          <button
-            className="editButton btn-danger"
-            onClick={() => handleDelete(row._id)}
-          >
+          {editRowId === row._id ? (
+            <button className="editButton btn-success" onClick={() => handleUpdate(row._id)}>
+              <FaSave /> 
+            </button>
+          ) : (
+            <button className="editButton" onClick={() => handleEditClick(row._id, row)}>
+              <FaEdit /> 
+            </button>
+          )}
+          <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
             <FaTrashAlt />
           </button>
         </div>
@@ -118,33 +110,18 @@ const VehicleRecords = () => {
     }
   };
   // Edit existing vehicle
-  const handleEdit = async (id) => {
-    const item = data.find((row) => row._id === id);
-    const updatedVehicleType = prompt(
-      "Enter new vehicle type:",
-      item?.vehicle_type || ""
-    );
+  const handleEditClick = (id, row) => {
+    setEditRowId(id);
+    setUpdatedVehicle(row);
+  };
 
-    if (updatedVehicleType) {
-      try {
-        await axios.put(
-          `https://erp-backend-fy3n.onrender.com/api/vehicles/${id}`,
-          {
-            vehicle_type: updatedVehicleType,
-            driver_name: updateddriver_name
-          }
-        );
-        setData((prevData) =>
-          prevData.map((row) =>
-            row._id === id
-              ? { ...row, vehicle_type: updatedVehicleType }
-              : row
-          )
-        );
-      } catch (error) {
-        console.error("Error updating vehicle:", error);
-        setError("Failed to update vehicle. Please try again later.");
-      }
+  const handleUpdate = async (id) => {
+    try {
+      await axios.put(`https://erp-backend-fy3n.onrender.com/api/vehicles/${id}`, updatedVehicle);
+      setData((prevData) => prevData.map((row) => (row._id === id ? updatedVehicle : row)));
+      setEditRowId(null);
+    } catch (error) {
+      setError("Failed to update vehicle.");
     }
   };
 

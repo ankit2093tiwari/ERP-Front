@@ -4,7 +4,7 @@ import dynamic from "next/dynamic";
 import { Form, Row, Col, Container, FormLabel, FormControl, Button, Breadcrumb, Tabs, Tab } from "react-bootstrap";
 import axios from "axios";
 import Table from "@/app/component/DataTable";
-import { FaEdit, FaTrashAlt } from "react-icons/fa";
+import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
 import { CgAddR } from "react-icons/cg";
 
 const ClassMasterPage = () => {
@@ -22,56 +22,103 @@ const ClassMasterPage = () => {
   const [editingSection, setEditingSection] = useState(null); // State to track the section being edited
 
   const columns = [
-  {
-    name: "#",
-    selector: (row, index) => index + 1,
-    sortable: false,
-    width: "80px",
-  },
-  {
-    name: "Class Name",
-    cell: (row) => (
-      <div>
-        {row.class_name || "N/A"}
-        <button className="editButton ms-2" onClick={() => handleEdit(row)}>
-          <FaEdit />
-        </button>
-        <button className="editButton btn-danger ms-2" onClick={() => handleDeleteClass(row._id)}>
-          <FaTrashAlt />
-        </button>
-      </div>
-    ),
-    sortable: true,
-  },
-  {
-    name: "Class Code",
-    selector: (row) => row.class_code || "N/A",
-    sortable: true,
-  },
-  {
-    name: "Sections",
-    cell: (row) => (
-      <div>
-        {row.sections.length > 0 ? (
-          row.sections.map((section, index) => (
-            <div key={index}>
-              {section.section_code} - {section.section_name}
-              <button className="editButton ms-2" onClick={() => handleEditSection(section)}>
-                <FaEdit />
-              </button>
-              <button className="editButton btn-danger ms-2" onClick={() => handleDeleteSection(section._id)}>
-                <FaTrashAlt />
-              </button>
-            </div>
-          ))
-        ) : (
-          "No sections"
-        )}
-      </div>
-    ),
-    sortable: false,
-  },
-];
+    {
+      name: "#",
+      selector: (row, index) => index + 1,
+      sortable: false,
+      width: "80px",
+    },
+    {
+      name: "Class Name",
+      cell: (row) => (
+        <div>
+          {editingClass && editingClass._id === row._id ? (
+            <FormControl
+              type="text"
+              value={newClassName}
+              onChange={(e) => setNewClassName(e.target.value)}
+            />
+          ) : (
+            row.class_name || "N/A"
+          )}
+          {editingClass && editingClass._id === row._id ? (
+            <button className="editButton ms-2" onClick={handleUpdateClass}>
+              <FaSave />
+            </button>
+          ) : (
+            <button className="editButton ms-2" onClick={() => handleEdit(row)}>
+              <FaEdit />
+            </button>
+          )}
+          <button className="editButton btn-danger ms-2" onClick={() => handleDeleteClass(row._id)}>
+            <FaTrashAlt />
+          </button>
+        </div>
+      ),
+      sortable: true,
+    },
+    {
+      name: "Class Code",
+      cell: (row) => (
+        <div>
+          {editingClass && editingClass._id === row._id ? (
+            <FormControl
+              type="text"
+              value={newClassCode}
+              onChange={(e) => setNewClassCode(e.target.value)}
+            />
+          ) : (
+            row.class_code || "N/A"
+          )}
+        </div>
+      ),
+      sortable: true,
+    },
+    {
+      name: "Sections",
+      cell: (row) => (
+        <div>
+          {row.sections.length > 0 ? (
+            row.sections.map((section, index) => (
+              <div key={index}>
+                {editingSection && editingSection._id === section._id ? (
+                  <>
+                    <FormControl
+                      type="text"
+                      value={newSectionCode}
+                      onChange={(e) => setNewSectionCode(e.target.value)}
+                    />
+                    <FormControl
+                      type="text"
+                      value={newSectionName}
+                      onChange={(e) => setNewSectionName(e.target.value)}
+                    />
+                  </>
+                ) : (
+                  `${section.section_code} - ${section.section_name}`
+                )}
+                {editingSection && editingSection._id === section._id ? (
+                  <button className="editButton ms-2" onClick={handleUpdateSection}>
+                    <FaSave />
+                  </button>
+                ) : (
+                  <button className="editButton ms-2" onClick={() => handleEditSection(section)}>
+                    <FaEdit />
+                  </button>
+                )}
+                <button className="editButton btn-danger ms-2" onClick={() => handleDeleteSection(section._id)}>
+                  <FaTrashAlt />
+                </button>
+              </div>
+            ))
+          ) : (
+            "No sections"
+          )}
+        </div>
+      ),
+      sortable: false,
+    },
+  ];
 
   // Fetch class data and sections together
   const fetchData = async () => {

@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { FaEdit, FaTrashAlt } from "react-icons/fa";
+import { FaEdit, FaTrashAlt, FaSave  } from "react-icons/fa";
 import { CgAddR } from "react-icons/cg";
 import {
   Form,
@@ -26,6 +26,12 @@ const HeadMasterPage = () => {
     head_type: "",
   });
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editingId, setEditingId] = useState(null); // Track which row is being edited
+  const [editingHeadMaster, setEditingHeadMaster] = useState({
+    _id: "",
+    head_name: "",
+    head_type: "",
+  });
 
   const columns = [
     {
@@ -36,21 +42,62 @@ const HeadMasterPage = () => {
     },
     {
       name: "Head Name",
-      selector: (row) => row.head_name || "N/A",
+      cell: (row) =>
+        editingId === row._id ? (
+          <FormControl
+            type="text"
+            value={editingHeadMaster.head_name}
+            onChange={(e) =>
+              setEditingHeadMaster({
+                ...editingHeadMaster,
+                head_name: e.target.value,
+              })
+            }
+          />
+        ) : (
+          row.head_name || "N/A"
+        ),
       sortable: true,
     },
     {
       name: "Head Type",
-      selector: (row) => row.head_type || "N/A",
+      cell: (row) =>
+        editingId === row._id ? (
+          <FormControl
+            as="select"
+            value={editingHeadMaster.head_type}
+            onChange={(e) =>
+              setEditingHeadMaster({
+                ...editingHeadMaster,
+                head_type: e.target.value,
+              })
+            }
+          >
+            <option value="">Select Head Type</option>
+            <option value="Installment Type">Installment Type</option>
+            <option value="Lifetime">Lifetime</option>
+          </FormControl>
+        ) : (
+          row.head_type || "N/A"
+        ),
       sortable: true,
     },
     {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
-          <button className="editButton" onClick={() => handleEdit(row._id)}>
-            <FaEdit />
-          </button>
+          {editingId === row._id ? (
+            <button
+              className="editButton btn-success"
+              onClick={() => handleSave(row._id)}
+            >
+              <FaSave />
+            </button>
+          ) : (
+            <button className="editButton" onClick={() => handleEdit(row)}>
+              <FaEdit />
+            </button>
+          )}
           <button
             className="editButton btn-danger"
             onClick={() => handleDelete(row._id)}
@@ -110,31 +157,37 @@ const HeadMasterPage = () => {
     }
   };
 
-  const handleEdit = async (id) => {
-    const headMaster = data.find((row) => row._id === id);
-    const updatedName = prompt("Enter new head name:", headMaster?.head_name || "");
-    const updatedType = prompt("Enter new head type:", headMaster?.head_type || "");
+  const handleEdit = (row) => {
+    setEditingId(row._id); // Set the row ID being edited
+    setEditingHeadMaster(row); // Populate the editable fields
+  };
 
-    if (updatedName && updatedType) {
+  const handleSave = async (id) => {
+    const { head_name, head_type } = editingHeadMaster;
+    if (head_name.trim() && head_type.trim()) {
       try {
         const response = await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-fee-type/${id}`, {
-          head_name: updatedName,
-          head_type: updatedType,
+          head_name,
+          head_type,
         });
         if (response.data && response.data.success) {
           setData((prevData) =>
             prevData.map((row) =>
               row._id === id
-                ? { ...row, head_name: updatedName, head_type: updatedType }
+                ? { ...row, head_name, head_type }
                 : row
             )
           );
+          fetchData();
+          setEditingId(null); // Exit edit mode
         } else {
           setError("Failed to update HeadMaster.");
         }
       } catch (err) {
         setError("Failed to update HeadMaster.");
       }
+    } else {
+      alert("Both Head Name and Head Type are required.");
     }
   };
 
@@ -144,6 +197,7 @@ const HeadMasterPage = () => {
         const response = await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-fee-type/${id}`);
         if (response.data && response.data.success) {
           setData((prevData) => prevData.filter((row) => row._id !== id));
+          fetchData();
         } else {
           setError("Failed to delete HeadMaster.");
         }

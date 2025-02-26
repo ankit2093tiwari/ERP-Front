@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { FaPlus, FaEdit, FaTrashAlt } from "react-icons/fa";
+import { FaPlus, FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
 import {
   Container,
   Row,
@@ -23,6 +23,8 @@ const ItemCategory = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [editId, setEditId] = useState(null);
+  const [updatedCategory, setUpdatedCategory] = useState({});
   // const [showAddForm, setShowAddForm] = useState(false);
   const [newCategory, setNewCategory] = useState({ categoryName: "" });
 
@@ -61,7 +63,6 @@ const ItemCategory = () => {
       setData([...data, response.data]);
       setNewCategory({ categoryName: "" });
       setIsPopoverOpen(false);
-      setSuccessMessage("Category added successfully!");
       fetchData();
     } catch (err) {
       console.error(err);
@@ -72,22 +73,23 @@ const ItemCategory = () => {
   };
 
   // Edit category
-  const handleEdit = async (id) => {
-    const category = data.find((item) => item._id === id);
-    const updatedName = prompt("Enter new category name:", category?.categoryName || "");
-    if (!updatedName) return;
+  const handleEdit = (id, categoryName) => {
+    setEditId(id);
+    setUpdatedCategory({ id, categoryName });
+  };
 
+  const handleSave = async (id) => {
+    if (!updatedCategory.categoryName.trim()) return;
     setLoading(true);
     try {
       await axios.put(`https://erp-backend-fy3n.onrender.com/api/itemCategory/${id}`, {
-        categoryName: updatedName,
+        categoryName: updatedCategory.categoryName,
       });
       setData((prevData) =>
-        prevData.map((item) =>
-          item._id === id ? { ...item, categoryName: updatedName } : item
-        )
+        prevData.map((item) => (item._id === id ? { ...item, categoryName: updatedCategory.categoryName } : item))
       );
-      setSuccessMessage("Category updated successfully!");
+      fetchData();
+      setEditId(null);
     } catch (err) {
       console.error(err);
       setError("Failed to update category. Please try again.");
@@ -104,7 +106,7 @@ const ItemCategory = () => {
     try {
       await axios.delete(`https://erp-backend-fy3n.onrender.com/api/itemCategory/${id}`);
       setData((prevData) => prevData.filter((item) => item._id !== id));
-      setSuccessMessage("Category deleted successfully!");
+      fetchData();
     } catch (err) {
       console.error(err);
       setError("Failed to delete category. Please try again.");
@@ -128,18 +130,31 @@ const ItemCategory = () => {
       name: "Category Name",
       selector: (row) => row.categoryName || "N/A",
       sortable: true,
+      cell: (row) =>
+        editId === row._id ? (
+          <FormControl
+            type="text"
+            value={updatedCategory.categoryName}
+            onChange={(e) => setUpdatedCategory({ ...updatedCategory, categoryName: e.target.value })}
+          />
+        ) : (
+          row.categoryName
+        ),
     },
     {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
-          <button className="editButton" onClick={() => handleEdit(row._id)}>
-            <FaEdit />
-          </button>
-          <button
-            className="editButton btn-danger"
-            onClick={() => handleDelete(row._id)}
-          >
+          {editId === row._id ? (
+            <button className="editButton" onClick={() => handleSave(row._id)}>
+              <FaSave />
+            </button>
+          ) : (
+            <button className="editButton" onClick={() => handleEdit(row._id, row.categoryName)}>
+              <FaEdit />
+            </button>
+          )}
+          <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
             <FaTrashAlt />
           </button>
         </div>

@@ -5,7 +5,7 @@ import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import styles from "@/app/medical/routine-check-up/page.module.css";
 import Table from "@/app/component/DataTable";
-import { FaEdit, FaTrashAlt } from "react-icons/fa";
+import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
 import { Form, Row, Col, Container, FormLabel, FormControl, Button, Breadcrumb } from "react-bootstrap";
 import axios from "axios";
 import { CgAddR } from 'react-icons/cg';
@@ -16,26 +16,38 @@ const AddLibraryGroup = () => {
   const [error, setError] = useState("");
   // const [showAddForm, setShowAddForm] = useState(false);
   const [newGroupName, setNewGroupName] = useState("");
+  const [editId, setEditId] = useState(null);
+  const [editGroupName, setEditGroupName] = useState("");
 
   const columns = [
-    {
-      name: "#",
-      selector: (row, index) => index + 1,
-      sortable: false,
-      width: "80px",
-    },
+    { name: "#", selector: (row, index) => index + 1, width: "80px" },
     {
       name: "Group Name",
-      selector: (row) => row.groupName || "N/A",
+      selector: (row) =>
+        editId === row._id ? (
+          <FormControl
+            type="text"
+            value={editGroupName}
+            onChange={(e) => setEditGroupName(e.target.value)}
+          />
+        ) : (
+          row.groupName || "N/A"
+        ),
       sortable: true,
     },
     {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
-          <button className="editButton" onClick={() => handleEdit(row._id)}>
-            <FaEdit />
-          </button>
+          {editId === row._id ? (
+            <button className="editButton" onClick={() => handleSave(row._id)}>
+              <FaSave />
+            </button>
+          ) : (
+            <button className="editButton" onClick={() => handleEdit(row)}>
+              <FaEdit />
+            </button>
+          )}
           <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
             <FaTrashAlt />
           </button>
@@ -43,6 +55,7 @@ const AddLibraryGroup = () => {
       ),
     },
   ];
+
 
   const fetchData = async () => {
     setLoading(true);
@@ -57,20 +70,21 @@ const AddLibraryGroup = () => {
     }
   };
 
-  const handleEdit = async (id) => {
-    const item = data.find((row) => row._id === id);
-    const updatedGroupName = prompt("Enter new group name:", item?.groupName || "");
-    if (updatedGroupName) {
-      try {
-        await axios.put(`https://erp-backend-fy3n.onrender.com/api/libraryGroup/${id}`, {
-          groupName: updatedGroupName,
-        });
-        setData((prevData) =>
-          prevData.map((row) => (row._id === id ? { ...row, groupName: updatedGroupName } : row))
-        );
-      } catch (error) {
-        setError("Failed to update data.");
-      }
+  const handleEdit = (row) => {
+    setEditId(row._id);
+    setEditGroupName(row.groupName);
+  };
+
+  const handleSave = async (id) => {
+    try {
+      await axios.put(`https://erp-backend-fy3n.onrender.com/api/libraryGroup/${id}`, {
+        groupName: editGroupName,
+      });
+      setData((prevData) => prevData.map((row) => (row._id === id ? { ...row, groupName: editGroupName } : row)));
+      fetchData();
+      setEditId(null);
+    } catch (error) {
+      setError("Failed to update data.");
     }
   };
 
@@ -79,6 +93,7 @@ const AddLibraryGroup = () => {
       try {
         await axios.delete(`https://erp-backend-fy3n.onrender.com/api/libraryGroup/${id}`);
         setData((prevData) => prevData.filter((row) => row._id !== id));
+        fetchData();
       } catch (error) {
         setError("Failed to delete data.");
       }
@@ -96,6 +111,7 @@ const AddLibraryGroup = () => {
         setData((prevData) => [...prevData, response.data]);
         setNewGroupName("");
         setIsPopoverOpen(false);
+        fetchData();
       } catch (error) {
         setError("Failed to add data.");
       }

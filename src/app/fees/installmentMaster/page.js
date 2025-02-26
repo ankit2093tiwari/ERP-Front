@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { FaEdit, FaTrashAlt } from "react-icons/fa";
+import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
 import { CgAddR } from 'react-icons/cg';
 import {
   Form,
@@ -24,34 +24,10 @@ const InstallmentMaster = () => {
   const [error, setError] = useState("");
   const [newInstallment, setNewInstallment] = useState("");
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [editingId, setEditingId] = useState(null); // Track which row is being edited
+  const [editedName, setEditedName] = useState(""); // Store the edited installment name
 
-  const columns = [
-    {
-      name: "#",
-      selector: (row, index) => index + 1,
-      sortable: false,
-      width: "80px",
-    },
-    {
-      name: "Installment Name",
-      selector: (row) => row.installment_name || "N/A",
-      sortable: true,
-    },
-    {
-      name: "Actions",
-      cell: (row) => (
-        <div className="d-flex gap-2">
-          <button className="editButton" onClick={() => handleEdit(row._id)}>
-            <FaEdit />
-          </button>
-          <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
-            <FaTrashAlt />
-          </button>
-        </div>
-      ),
-    },
-  ];
-
+  // Fetch data from the API
   const fetchData = async () => {
     setLoading(true);
     setError("");
@@ -71,37 +47,7 @@ const InstallmentMaster = () => {
     }
   };
 
-  const handleEdit = async (id) => {
-    const installment = data.find((row) => row._id === id);
-    const updatedName = prompt(
-      "Enter new installment name:",
-      installment?.installment_name || ""
-    );
-    if (updatedName) {
-      try {
-        await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-installments/${id}`, {
-          installment_name: updatedName
-        });
-        setData((prevData) =>
-          prevData.map((row) => (row._id === id ? { ...row, installment_name: updatedName } : row))
-        );
-      } catch (err) {
-        setError("Failed to update installment.");
-      }
-    }
-  };
-
-  const handleDelete = async (id) => {
-    if (confirm("Are you sure you want to delete this installment?")) {
-      try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-installments/${id}`);
-        setData((prevData) => prevData.filter((row) => row._id !== id));
-      } catch (err) {
-        setError("Failed to delete installment.");
-      }
-    }
-  };
-
+  // Add a new installment
   const handleAdd = async () => {
     if (newInstallment.trim()) {
       try {
@@ -111,16 +57,106 @@ const InstallmentMaster = () => {
         setData((prevData) => [...prevData, response.data]);
         setNewInstallment("");
         setIsPopoverOpen(false);
-        fetchData();
+        fetchData(); // Refresh data
       } catch (err) {
         setError("Failed to add installment.");
       }
     }
   };
 
+  // Enter edit mode for a row
+  const handleEdit = (row) => {
+    setEditingId(row._id); // Set the ID of the row being edited
+    setEditedName(row.installment_name); // Set the current installment name
+  };
+
+  // Save changes for the edited row
+  const handleUpdate = async (id) => {
+    if (editedName.trim()) {
+      try {
+        await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-installments/${id}`, {
+          installment_name: editedName
+        });
+        setData((prevData) =>
+          prevData.map((row) =>
+            row._id === id ? { ...row, installment_name: editedName } : row
+          )
+        );
+        fetchData();
+        setEditingId(null); // Exit edit mode
+      } catch (err) {
+        setError("Failed to update installment.");
+      }
+    }
+  };
+
+  // Delete an installment
+  const handleDelete = async (id) => {
+    if (confirm("Are you sure you want to delete this installment?")) {
+      try {
+        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-installments/${id}`);
+        setData((prevData) => prevData.filter((row) => row._id !== id));
+        fetchData();
+      } catch (err) {
+        setError("Failed to delete installment.");
+      }
+    }
+  };
+
+  // Fetch data on component mount
   useEffect(() => {
     fetchData();
   }, []);
+
+  // Table columns definition
+  const columns = [
+    {
+      name: "#",
+      selector: (row, index) => index + 1,
+      sortable: false,
+      width: "80px",
+    },
+    {
+      name: "Installment Name",
+      cell: (row) =>
+        editingId === row._id ? (
+          <FormControl
+            type="text"
+            value={editedName}
+            onChange={(e) => setEditedName(e.target.value)}
+          />
+        ) : (
+          row.installment_name || "N/A"
+        ),
+      sortable: true,
+    },
+    {
+      name: "Actions",
+      cell: (row) => (
+        <div className="d-flex gap-2">
+          {editingId === row._id ? (
+            <>
+              <button className="editButton" onClick={() => handleUpdate(row._id)}>
+                <FaSave /> 
+              </button>
+              <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
+                <FaTrashAlt /> 
+              </button>
+            </>
+          ) : (
+            <>
+              <button className="editButton" onClick={() => handleEdit(row)}>
+                <FaEdit />
+              </button>
+              <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
+                <FaTrashAlt /> 
+              </button>
+            </>
+          )}
+        </div>
+      ),
+    },
+  ];
 
   return (
     <Container className="">
@@ -134,10 +170,12 @@ const InstallmentMaster = () => {
         </Col>
       </Row>
 
+      {/* Add Installment Button */}
       <Button onClick={() => setIsPopoverOpen(true)} className="btn btn-primary">
         <CgAddR /> Add Installment
       </Button>
 
+      {/* Add Installment Popover */}
       {isPopoverOpen && (
         <div className="cover-sheet">
           <div className="studentHeading">
@@ -163,6 +201,7 @@ const InstallmentMaster = () => {
         </div>
       )}
 
+      {/* Installment Records Table */}
       <div className="tableSheet">
         <h2>Installment Records</h2>
         {loading && <p>Loading...</p>}

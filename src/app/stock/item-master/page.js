@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import styles from "@/app/medical/routine-check-up/page.module.css";
 import Table from "@/app/component/DataTable";
-import { FaEdit, FaTrashAlt } from "react-icons/fa";
+import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
 import {
   Form,
   Row,
@@ -22,7 +22,9 @@ const ItemMaster = () => {
   const [categories, setCategories] = useState([]); // Category dropdown options
   const [loading, setLoading] = useState(false); // Loading state
   const [error, setError] = useState(""); // Error state
-  const [showAddForm, setShowAddForm] = useState(false); // Toggle Add Form visibility
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [editedValues, setEditedValues] = useState({}); // Toggle Add Form visibility
   const [formValues, setFormValues] = useState({
     itemName: "",
     itemCategory: "",
@@ -106,19 +108,20 @@ const ItemMaster = () => {
     }
   };
 
-  const handleEdit = async (id) => {
+  const handleEdit = (id) => {
+    setEditingId(id);
     const item = data.find((row) => row._id === id);
-    const updatedName = prompt("Enter new item name:", item?.itemName || "");
-    if (updatedName) {
-      try {
-        await axios.put(`https://erp-backend-fy3n.onrender.com/api/itemMaster/${id}`, {
-          itemName: updatedName,
-        });
-        fetchData();
-      } catch (error) {
-        console.error("Error updating data:", error);
-        setError("Failed to update item. Please try again later.");
-      }
+    setEditedValues({ ...item });
+  };
+
+  const handleSave = async (id) => {
+    try {
+      await axios.put(`https://erp-backend-fy3n.onrender.com/api/itemMaster/${id}`, editedValues);
+      fetchData();
+      setEditingId(null);
+    } catch (error) {
+      console.error("Error updating data:", error);
+      setError("Failed to update item. Please try again later.");
     }
   };
 

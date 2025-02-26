@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { FaPlus, FaEdit, FaTrashAlt } from "react-icons/fa";
+import { FaPlus, FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
 import { CgAddR } from 'react-icons/cg';
 import {
   Container,
@@ -22,6 +22,8 @@ const StoreMaster = () => {
   const [data, setData] = useState([]); // Data for the table
   const [loading, setLoading] = useState(false); // Loading state
   const [error, setError] = useState(""); // Error message
+  const [editId, setEditId] = useState(null);
+  const [editName, setEditName] = useState("");
   const [successMessage, setSuccessMessage] = useState(""); // Success message
   // const [showAddForm, setShowAddForm] = useState(false); 
   const [newStore, setNewStore] = useState({ storeName: "" }); // New store form state
@@ -41,6 +43,7 @@ const StoreMaster = () => {
     }
   };
 
+
   // Add new store
   const handleAdd = async () => {
     if (!newStore.storeName.trim()) {
@@ -58,8 +61,8 @@ const StoreMaster = () => {
       const addedStore = response.data;
       setData((prevData) => [...prevData, addedStore]);
       setNewStore({ storeName: "" });
-      setIsPopoverOpen(false);
-      setSuccessMessage("Store added successfully!");
+      // setIsPopoverOpen(false);
+      setShowAddForm(false);
       fetchData();
     } catch (err) {
       console.error(err);
@@ -94,24 +97,25 @@ const StoreMaster = () => {
 
 
   // Edit store
-  const handleEdit = async (id) => {
-    const store = data.find((item) => item._id === id);
-    const updatedName = prompt("Enter new store name:", store?.storeName || "");
-    if (!updatedName) return;
+  const handleEdit = (id, name) => {
+    setEditId(id);
+    setEditName(name);
+  };
 
+  const handleSave = async (id) => {
     setLoading(true);
     try {
       await axios.put(`https://erp-backend-fy3n.onrender.com/api/store/${id}`, {
-        storeName: updatedName,
+        storeName: editName,
       });
       setData((prevData) =>
         prevData.map((item) =>
-          item._id === id ? { ...item, storeName: updatedName } : item
+          item._id === id ? { ...item, storeName: editName } : item
         )
       );
-      setSuccessMessage("Store updated successfully!");
+      fetchData();
+      setEditId(null);
     } catch (err) {
-      console.error(err);
       setError("Failed to update store. Please try again.");
     } finally {
       setLoading(false);
@@ -124,7 +128,7 @@ const StoreMaster = () => {
     try {
       await axios.delete(`https://erp-backend-fy3n.onrender.com/api/store/${id}`);
       setData((prevData) => prevData.filter((item) => item._id !== id));
-      setSuccessMessage("Store deleted successfully!");
+      fetchData();
     } catch (err) {
       console.error(err);
       setError("Failed to delete store. Please try again.");
@@ -136,34 +140,42 @@ const StoreMaster = () => {
     fetchData();
   }, []);
   const columns = [
-    {
-      name: "#",
-      selector: (_, index) => index + 1,
-      sortable: false,
-      width: "80px",
-    },
+    { name: "#", selector: (_, index) => index + 1, sortable: false, width: "80px" },
     {
       name: "Store Name",
-      selector: (row) => row.storeName || "N/A",
+      selector: (row) =>
+        editId === row._id ? (
+          <FormControl
+            type="text"
+            value={editName}
+            onChange={(e) => setEditName(e.target.value)}
+          />
+        ) : (
+          row.storeName || "N/A"
+        ),
       sortable: true,
     },
     {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
-          <button className="editButton" onClick={() => handleEdit(row._id)}>
-            <FaEdit />
-          </button>
-          <button
-            className="editButton btn-danger"
-            onClick={() => handleDelete(row._id)}
-          >
+          {editId === row._id ? (
+            <button className="editButton btn-success" onClick={() => handleSave(row._id)}>
+              <FaSave />
+            </button>
+          ) : (
+            <button className="editButton" onClick={() => handleEdit(row._id, row.storeName)}>
+              <FaEdit />
+            </button>
+          )}
+          <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
             <FaTrashAlt />
           </button>
         </div>
       ),
     },
   ];
+
   return (
     <Container>
       <Row className="mt-1 mb-1">

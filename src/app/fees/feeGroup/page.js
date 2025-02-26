@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { FaEdit, FaTrashAlt } from "react-icons/fa";
+import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
 import { CgAddR } from "react-icons/cg";
 import {
   Form,
@@ -32,6 +32,8 @@ const FeeGroup = () => {
   const [classList, setClassList] = useState([]);
   const [sectionList, setSectionList] = useState([]);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [editId, setEditId] = useState(null);
+  const [editData, setEditData] = useState({});
 
   const columns = [
     {
@@ -42,31 +44,49 @@ const FeeGroup = () => {
     },
     {
       name: "Group Name",
-      selector: (row) => row.group_name || "N/A",
+      selector: (row) =>
+        editId === row._id ? (
+          <FormControl
+            type="text"
+            value={editData.group_name}
+            onChange={(e) =>
+              setEditData({ ...editData, group_name: e.target.value })
+            }
+          />
+        ) : (
+          row.group_name || "N/A"
+        ),
       sortable: true,
     },
-    // {
-    //   name: "Class Name",
-    //   selector: (row) => row.class_name?.class_name || "N/A",
-    //   sortable: true,
-    // },
-    // {
-    //   name: "Section Name",
-    //   selector: (row) => row.section_name?.section_name || "N/A",
-    //   sortable: true,
-    // },
     {
       name: "Late Fine Per Day",
-      selector: (row) => row.late_fine_per_day || "N/A",
+      selector: (row) =>
+        editId === row._id ? (
+          <FormControl
+            type="text"
+            value={editData.late_fine_per_day}
+            onChange={(e) =>
+              setEditData({ ...editData, late_fine_per_day: e.target.value })
+            }
+          />
+        ) : (
+          row.late_fine_per_day || "N/A"
+        ),
       sortable: true,
     },
     {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
-          <button className="editButton" onClick={() => handleEdit(row._id)}>
-            <FaEdit />
-          </button>
+          {editId === row._id ? (
+            <button className="editButton" onClick={() => handleSave(row._id)}>
+              <FaSave />
+            </button>
+          ) : (
+            <button className="editButton" onClick={() => handleEdit(row)}>
+              <FaEdit />
+            </button>
+          )}
           <button
             className="editButton btn-danger"
             onClick={() => handleDelete(row._id)}
@@ -77,6 +97,42 @@ const FeeGroup = () => {
       ),
     },
   ];
+
+  // const columns = [
+  //   {
+  //     name: "#",
+  //     selector: (row, index) => index + 1,
+  //     sortable: false,
+  //     width: "80px",
+  //   },
+  //   {
+  //     name: "Group Name",
+  //     selector: (row) => row.group_name || "N/A",
+  //     sortable: true,
+  //   },
+
+  //   {
+  //     name: "Late Fine Per Day",
+  //     selector: (row) => row.late_fine_per_day || "N/A",
+  //     sortable: true,
+  //   },
+  //   {
+  //     name: "Actions",
+  //     cell: (row) => (
+  //       <div className="d-flex gap-2">
+  //         <button className="editButton" onClick={() => handleEdit(row._id)}>
+  //           <FaEdit />
+  //         </button>
+  //         <button
+  //           className="editButton btn-danger"
+  //           onClick={() => handleDelete(row._id)}
+  //         >
+  //           <FaTrashAlt />
+  //         </button>
+  //       </div>
+  //     ),
+  //   },
+  // ];
 
   const fetchData = async () => {
     setLoading(true);
@@ -154,37 +210,67 @@ const FeeGroup = () => {
     }
   };
 
-  const handleEdit = async (id) => {
-    const feeGroup = data.find((row) => row._id === id);
-    const updatedGroupName = prompt("Enter new Group Name:", feeGroup?.group_name || "");
-    // const updatedClassName = prompt("Enter new Class Name:", feeGroup?.class_name?.class_name || "");
-    // const updatedSectionName = prompt("Enter new Section Name:", feeGroup?.section_name?.section_name || "");
-    const updatedLateFine = prompt("Enter new Late Fine Per Day:", feeGroup?.late_fine_per_day || "");
+  const handleEdit = (row) => {
+    setEditId(row._id);
+    setEditData({
+      group_name: row.group_name,
+      late_fine_per_day: row.late_fine_per_day,
+    });
+  };
 
-    if (updatedGroupName && updatedLateFine) {
-      try {
-        const response = await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-fee-groups/${id}`, {
-          group_name: updatedGroupName,
-          // class_name: updatedClassName,
-          // section_name: updatedSectionName,
-          late_fine_per_day: updatedLateFine,
-        });
-        if (response.data && response.data.success) {
-          setData((prevData) =>
-            prevData.map((row) =>
-              row._id === id
-                ? { ...row, group_name: updatedGroupName, late_fine_per_day: updatedLateFine }
-                : row
-            )
-          );
-        } else {
-          setError("Failed to update fee group.");
-        }
-      } catch (err) {
+  const handleSave = async (id) => {
+    try {
+      const response = await axios.put(
+        `https://erp-backend-fy3n.onrender.com/api/update-fee-groups/${id}`,
+        editData
+      );
+      if (response.data && response.data.success) {
+        setData((prevData) =>
+          prevData.map((row) =>
+            row._id === id ? { ...row, ...editData } : row
+          )
+        );
+        fetchData();
+        setEditId(null);
+      } else {
         setError("Failed to update fee group.");
       }
+    } catch (err) {
+      setError("Failed to update fee group.");
     }
   };
+
+  // const handleEdit = async (id) => {
+  //   const feeGroup = data.find((row) => row._id === id);
+  //   const updatedGroupName = prompt("Enter new Group Name:", feeGroup?.group_name || "");
+  //   // const updatedClassName = prompt("Enter new Class Name:", feeGroup?.class_name?.class_name || "");
+  //   // const updatedSectionName = prompt("Enter new Section Name:", feeGroup?.section_name?.section_name || "");
+  //   const updatedLateFine = prompt("Enter new Late Fine Per Day:", feeGroup?.late_fine_per_day || "");
+
+  //   if (updatedGroupName && updatedLateFine) {
+  //     try {
+  //       const response = await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-fee-groups/${id}`, {
+  //         group_name: updatedGroupName,
+  //         // class_name: updatedClassName,
+  //         // section_name: updatedSectionName,
+  //         late_fine_per_day: updatedLateFine,
+  //       });
+  //       if (response.data && response.data.success) {
+  //         setData((prevData) =>
+  //           prevData.map((row) =>
+  //             row._id === id
+  //               ? { ...row, group_name: updatedGroupName, late_fine_per_day: updatedLateFine }
+  //               : row
+  //           )
+  //         );
+  //       } else {
+  //         setError("Failed to update fee group.");
+  //       }
+  //     } catch (err) {
+  //       setError("Failed to update fee group.");
+  //     }
+  //   }
+  // };
 
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this fee group?")) {
@@ -192,6 +278,7 @@ const FeeGroup = () => {
         const response = await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-fee-groups/${id}`);
         if (response.data && response.data.success) {
           setData((prevData) => prevData.filter((row) => row._id !== id));
+          fetchData();
         } else {
           setError("Failed to delete fee group.");
         }

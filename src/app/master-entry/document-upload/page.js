@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { FaEdit, FaTrashAlt } from "react-icons/fa";
+import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
 import { CgAddR } from 'react-icons/cg';
 import {
   Form,
@@ -23,35 +23,48 @@ const DocumentMasterPage = () => {
   const [showAddForm, setShowAddForm] = useState(false); // Add form visibility toggle
   const [loading, setLoading] = useState(false); // Loading state
   const [error, setError] = useState(""); // Error state
+  const [editingId, setEditingId] = useState(null);
+  const [editedDocument, setEditedDocument] = useState("");
+
 
   const columns = [
-    {
-      name: "#",
-      selector: (row, index) => index + 1, // Sequential numbering
-      sortable: false,
-      width: "80px",
-    },
+    { name: "#", selector: (row, index) => index + 1, width: "80px" },
     {
       name: "Document Name",
-      selector: (row) => row.document_name || "N/A", // Document name field
-      sortable: true,
+      selector: (row) =>
+        editingId === row._id ? (
+          <FormControl
+            type="text"
+            value={editedDocument}
+            onChange={(e) => setEditedDocument(e.target.value)}
+          />
+        ) : (
+          row.document_name || "N/A"
+        ),
     },
     {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
-          <button
-            className="editButton"
-            onClick={() => handleEdit(row._id)}
-          >
-            <FaEdit />
-          </button>
-          <button
-            className="editButton btn-danger"
-            onClick={() => handleDelete(row._id)}
-          >
-            <FaTrashAlt />
-          </button>
+          {editingId === row._id ? (
+            <>
+              <Button className="editButton" onClick={() => handleUpdate(row._id)}>
+                <FaSave />
+              </Button>
+              <Button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
+                <FaTrashAlt />
+              </Button>
+            </>
+          ) : (
+            <>
+              <button className="editButton" onClick={() => handleEdit(row)}>
+                <FaEdit />
+              </button>
+              <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
+                <FaTrashAlt />
+              </button>
+            </>
+          )}
         </div>
       ),
     },
@@ -104,31 +117,20 @@ const DocumentMasterPage = () => {
   };
 
   // Edit document
-  const handleEdit = async (id) => {
-    const item = data.find((row) => row._id === id);
-    const updatedName = prompt(
-      "Enter new document name:",
-      item?.document_name || ""
-    );
+  const handleEdit = (row) => {
+    setEditingId(row._id);
+    setEditedDocument(row.document_name);
+  };
 
-    if (updatedName) {
-      try {
-        await axios.put(
-          `https://erp-backend-fy3n.onrender.com/api/document-uploads/${id}`,
-          { document_name: updatedName }
-        );
-
-        setData((prevData) =>
-          prevData.map((row) =>
-            row._id === id ? { ...row, document_name: updatedName } : row
-          )
-        );
-
-        alert("Document updated successfully!");
-      } catch (err) {
-        console.error("Error updating document:", err);
-        setError("Failed to update document. Please try again later.");
-      }
+  // Save edited document
+  const handleUpdate = async (id) => {
+    try {
+      await axios.put(`https://erp-backend-fy3n.onrender.com/api/document-uploads/${id}`, { document_name: editedDocument });
+      fetchData();
+      setEditingId(null);
+    } catch (err) {
+      console.error("Update error:", err);
+      setError("Failed to update document.");
     }
   };
 
@@ -141,7 +143,7 @@ const DocumentMasterPage = () => {
         );
 
         setData((prevData) => prevData.filter((row) => row._id !== id));
-        alert("Document deleted successfully!");
+        fetchData();
       } catch (err) {
         console.error("Error deleting document:", err);
         setError("Failed to delete document. Please try again later.");

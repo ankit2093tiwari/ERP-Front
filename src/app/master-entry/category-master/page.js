@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { FaEdit, FaTrashAlt } from "react-icons/fa";
+import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
 import { CgAddR } from 'react-icons/cg';
 import { Form, Row, Col, Container, FormLabel, FormControl, Button, Breadcrumb } from "react-bootstrap";
 import axios from "axios";
@@ -15,27 +15,40 @@ const CategoryMasterPage = () => {
   const [showAddForm, setShowAddForm] = useState(false); // Toggle for add form
   const [loading, setLoading] = useState(false); // Loading state
   const [error, setError] = useState(""); // Error state
+  const [editingId, setEditingId] = useState(null);
+  const [editedName, setEditedName] = useState("");
 
   // Table columns configuration
   const columns = [
-    {
-      name: "#",
-      selector: (row, index) => index + 1,
-      sortable: false,
-      width: "80px",
-    },
-    {
-      name: "Category Name",
-      selector: (row) => row.category_name || "N/A",
+    { name: "#", selector: (row, index) => index + 1, sortable: false, width: "80px" },
+    { 
+      name: "Category Name", 
+      selector: (row) => row.category_name || "N/A", 
       sortable: true,
+      cell: (row) => 
+        editingId === row._id ? (
+          <FormControl
+            type="text"
+            value={editedName}
+            onChange={(e) => setEditedName(e.target.value)}
+          />
+        ) : (
+          row.category_name
+        )
     },
     {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
-          <button className="editButton" onClick={() => handleEdit(row._id)}>
-            <FaEdit />
-          </button>
+          {editingId === row._id ? (
+            <button className="editButton btn-success" onClick={() => handleSave(row._id)}>
+              <FaSave />
+            </button>
+          ) : (
+            <button className="editButton" onClick={() => handleEdit(row)}>
+              <FaEdit />
+            </button>
+          )}
           <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
             <FaTrashAlt />
           </button>
@@ -94,33 +107,20 @@ const CategoryMasterPage = () => {
   };
 
   // Handle editing a category
-  const handleEdit = async (id) => {
-    const item = categories.find((row) => row._id === id);
-    const updatedName = prompt(
-      "Enter new category name:",
-      item?.category_name || ""
-    );
-    if (updatedName) {
-      try {
-        await axios.put(
-          `https://erp-backend-fy3n.onrender.com/api/categories/${id}`,
-          {
-            category_name: updatedName,
-          }
-        );
+  const handleEdit = (row) => {
+    setEditingId(row._id);
+    setEditedName(row.category_name);
+  };
 
-        // Update the category in state
-        setCategories((prevCategories) =>
-          prevCategories.map((row) =>
-            row._id === id ? { ...row, category_name: updatedName } : row
-          )
-        );
-
-        alert("Category updated successfully!");
-      } catch (err) {
-        console.error("Error updating category:", err);
-        setError("Failed to update category. Please try again later.");
-      }
+  const handleSave = async (id) => {
+    try {
+      await axios.put(`https://erp-backend-fy3n.onrender.com/api/categories/${id}`, { category_name: editedName });
+      setCategories((prev) => prev.map((row) => (row._id === id ? { ...row, category_name: editedName } : row)));
+      fetchCategories();
+      setEditingId(null);
+    } catch (err) {
+      console.error("Error updating category:", err);
+      setError("Failed to update category. Please try again later.");
     }
   };
 
@@ -134,16 +134,17 @@ const CategoryMasterPage = () => {
 
         // Remove the category from the state array
         setCategories((prevCategories) =>
-          prevCategories.filter((row) => row._id !== id)
+          prevCategories.filter((row) => row._id !== id)       
         );
-
-        alert("Category deleted successfully!");
+        fetchCategories();
       } catch (err) {
         console.error("Error deleting category:", err);
         setError("Failed to delete category. Please try again later.");
       }
     }
   };
+
+
 
   // Fetch categories on component mount
   useEffect(() => {
