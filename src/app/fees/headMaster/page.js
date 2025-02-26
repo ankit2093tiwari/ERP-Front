@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { FaEdit, FaTrashAlt, FaSave  } from "react-icons/fa";
+import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
 import { CgAddR } from "react-icons/cg";
 import {
   Form,
@@ -16,6 +16,8 @@ import {
 import axios from "axios";
 import Table from "@/app/component/DataTable";
 import styles from "@/app/medical/routine-check-up/page.module.css";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 
 const HeadMasterPage = () => {
   const [data, setData] = useState([]);
@@ -108,6 +110,42 @@ const HeadMasterPage = () => {
       ),
     },
   ];
+
+  const handlePrint = () => {
+    const doc = new jsPDF();
+    const tableHeaders = [["#", "Head Name", "Head Type"]]; // Updated headers
+    const tableRows = data.map((row, index) => [
+      index + 1,
+      row.head_name || "N/A",
+      row.head_type || "N/A",
+    ]);
+
+    doc.autoTable({
+      head: tableHeaders,
+      body: tableRows,
+      theme: "grid", // Add grid styling
+      styles: { fontSize: 10 },
+      headStyles: { fillColor: [41, 128, 185] }, // Header background color
+    });
+
+    // Open the print dialog instead of directly downloading
+    const pdfBlob = doc.output("blob");
+    const pdfUrl = URL.createObjectURL(pdfBlob);
+    const printWindow = window.open(pdfUrl);
+    printWindow.onload = () => {
+      printWindow.print(); // Trigger the print dialog
+    };
+  };
+
+  const handleCopy = () => {
+    const headers = ["#", "Head Name", "Head Type"].join("\t"); // Tab-separated headers
+    const rows = data.map((row, index) => `${index + 1}\t${row.head_name || "N/A"}\t${row.head_type || "N/A"}`).join("\n");
+    const fullData = `${headers}\n${rows}`;
+
+    navigator.clipboard.writeText(fullData)
+      .then(() => alert("Table data copied to clipboard!"))
+      .catch(() => alert("Failed to copy table data to clipboard."));
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -276,7 +314,8 @@ const HeadMasterPage = () => {
         <h2>HeadMaster Records</h2>
         {loading && <p>Loading...</p>}
         {error && <p>{error}</p>}
-        {!loading && !error && <Table columns={columns} data={data} />}
+        {!loading && !error && <Table columns={columns} data={data} handlePrint={handlePrint}
+          handleCopy={handleCopy} />}
       </div>
     </Container>
   );

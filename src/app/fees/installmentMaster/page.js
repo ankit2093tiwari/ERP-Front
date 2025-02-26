@@ -17,6 +17,8 @@ import {
 import axios from "axios";
 import Table from "@/app/component/DataTable";
 import styles from "@/app/medical/routine-check-up/page.module.css";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 
 const InstallmentMaster = () => {
   const [data, setData] = useState([]);
@@ -101,6 +103,43 @@ const InstallmentMaster = () => {
         setError("Failed to delete installment.");
       }
     }
+  };
+
+  // Handle Print Functionality
+  const handlePrint = () => {
+    const doc = new jsPDF();
+    const tableHeaders = [["#", "Installment Name"]]; // Add headers
+    const tableRows = data.map((row, index) => [
+      index + 1,
+      row.installment_name || "N/A",
+    ]);
+
+    doc.autoTable({
+      head: tableHeaders,
+      body: tableRows,
+      theme: "grid", // Add grid styling
+      styles: { fontSize: 10 },
+      headStyles: { fillColor: [41, 128, 185] }, // Header background color
+    });
+
+    // Open the print dialog instead of directly downloading
+    const pdfBlob = doc.output("blob");
+    const pdfUrl = URL.createObjectURL(pdfBlob);
+    const printWindow = window.open(pdfUrl);
+    printWindow.onload = () => {
+      printWindow.print(); // Trigger the print dialog
+    };
+  };
+
+  // Copy table data to clipboard
+  const handleCopy = () => {
+    const headers = ["#", "Installment Name"].join("\t"); // Tab-separated headers
+    const rows = data.map((row, index) => `${index + 1}\t${row.installment_name || "N/A"}`).join("\n");
+    const fullData = `${headers}\n${rows}`;
+
+    navigator.clipboard.writeText(fullData)
+      .then(() => alert("Table data copied to clipboard!"))
+      .catch(() => alert("Failed to copy table data to clipboard."));
   };
 
   // Fetch data on component mount
@@ -206,7 +245,14 @@ const InstallmentMaster = () => {
         <h2>Installment Records</h2>
         {loading && <p>Loading...</p>}
         {error && <p>{error}</p>}
-        {!loading && !error && <Table columns={columns} data={data} />}
+        {!loading && !error && (
+          <Table
+            columns={columns}
+            data={data}
+            handlePrint={handlePrint}
+            handleCopy={handleCopy}
+          />
+        )}
       </div>
     </Container>
   );

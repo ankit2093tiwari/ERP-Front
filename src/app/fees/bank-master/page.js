@@ -110,28 +110,6 @@ const BankMaster = () => {
       setError("Failed to update bank.");
     }
   };
-  // const handleEdit = async (id) => {
-  //   const bank = data.find((row) => row._id === id);
-  //   const updatedName = prompt(
-  //     "Enter new bank name:",
-  //     bank?.bank_name || ""
-  //   );
-  //   if (updatedName) {
-  //     try {
-  //       await axios.put(
-  //         `https://erp-backend-fy3n.onrender.com/api/update-banks/${id}`,
-  //         { bank_name: updatedName }
-  //       );
-  //       setData((prevData) =>
-  //         prevData.map((row) =>
-  //           row._id === id ? { ...row, bank_name: updatedName } : row
-  //         )
-  //       );
-  //     } catch (err) {
-  //       setError("Failed to update bank.");
-  //     }
-  //   }
-  // };
 
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this bank?")) {
