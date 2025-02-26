@@ -28,7 +28,7 @@ const HeadMasterPage = () => {
     head_type: "",
   });
   const [showAddForm, setShowAddForm] = useState(false);
-  const [editingId, setEditingId] = useState(null); // Track which row is being edited
+  const [editingId, setEditingId] = useState(null); 
   const [editingHeadMaster, setEditingHeadMaster] = useState({
     _id: "",
     head_name: "",
