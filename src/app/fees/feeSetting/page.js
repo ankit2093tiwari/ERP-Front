@@ -34,6 +34,17 @@ const FeeSetting = () => {
     amex_charge: "",
   });
 
+  const handleCopy = () => {
+    const headers = ["#", "Credit Card Charge", "Debit Card Charge", "AMEX Charge"].join("\t");
+    const rows = data.map((row, index) => `${index + 1}\t${row.credit_card_charge || "N/A"}\t${row.debit_card_charge || "N/A"}\t${row.amex_charge || "N/A"}`).join("\n");
+    const fullData = `${headers}\n${rows}`;
+
+    navigator.clipboard.writeText(fullData)
+      .then(() => alert("Copied to clipboard!"))
+      .catch(() => alert("Failed to copy table data to clipboard."));
+  };
+
+
   // Fetch data from the API
   const fetchData = async () => {
     setLoading(true);
@@ -291,7 +302,7 @@ const FeeSetting = () => {
         <h2>Fee Setting Records</h2>
         {loading && <p>Loading...</p>}
         {error && <p>{error}</p>}
-        {!loading && !error && <Table columns={columns} data={data} />}
+        {!loading && !error && <Table columns={columns} data={data} handleCopy={handleCopy} />}
       </div>
     </Container>
   );
