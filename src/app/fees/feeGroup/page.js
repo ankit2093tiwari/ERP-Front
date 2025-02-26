@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
+import { FaEdit, FaTrashAlt, FaSave, FaPrint, FaCopy } from "react-icons/fa";
 import { CgAddR } from "react-icons/cg";
 import {
   Form,
@@ -18,6 +18,8 @@ import {
 import axios from "axios";
 import Table from "@/app/component/DataTable";
 import styles from "@/app/medical/routine-check-up/page.module.css";
+import jsPDF from "jspdf";
+import "jspdf-autotable";
 
 const FeeGroup = () => {
   const [data, setData] = useState([]);
@@ -98,41 +100,40 @@ const FeeGroup = () => {
     },
   ];
 
-  // const columns = [
-  //   {
-  //     name: "#",
-  //     selector: (row, index) => index + 1,
-  //     sortable: false,
-  //     width: "80px",
-  //   },
-  //   {
-  //     name: "Group Name",
-  //     selector: (row) => row.group_name || "N/A",
-  //     sortable: true,
-  //   },
+  const handlePrint = () => {
+    const doc = new jsPDF();
+    const tableHeaders = [["#", "Group Name", "Late Fine Per Day"]];
+    const tableRows = data.map((row, index) => [
+      index + 1,
+      row.group_name || "N/A",
+      row.late_fine_per_day || "N/A",
+    ]);
 
-  //   {
-  //     name: "Late Fine Per Day",
-  //     selector: (row) => row.late_fine_per_day || "N/A",
-  //     sortable: true,
-  //   },
-  //   {
-  //     name: "Actions",
-  //     cell: (row) => (
-  //       <div className="d-flex gap-2">
-  //         <button className="editButton" onClick={() => handleEdit(row._id)}>
-  //           <FaEdit />
-  //         </button>
-  //         <button
-  //           className="editButton btn-danger"
-  //           onClick={() => handleDelete(row._id)}
-  //         >
-  //           <FaTrashAlt />
-  //         </button>
-  //       </div>
-  //     ),
-  //   },
-  // ];
+    doc.autoTable({
+      head: tableHeaders,
+      body: tableRows,
+      theme: "grid",
+      styles: { fontSize: 10 },
+      headStyles: { fillColor: [41, 128, 185] },
+    });
+
+    const pdfBlob = doc.output("blob");
+    const pdfUrl = URL.createObjectURL(pdfBlob);
+    const printWindow = window.open(pdfUrl);
+    printWindow.onload = () => {
+      printWindow.print();
+    };
+  };
+
+  const handleCopy = () => {
+    const headers = ["#", "Group Name", "Late Fine Per Day"].join("\t");
+    const rows = data.map((row, index) => `${index + 1}\t${row.group_name || "N/A"}\t${row.late_fine_per_day || "N/A"}`).join("\n");
+    const fullData = `${headers}\n${rows}`;
+
+    navigator.clipboard.writeText(fullData)
+      .then(() => alert("Copied to clipboard!"))
+      .catch(() => alert("Failed to copy table data to clipboard."));
+  };
 
   const fetchData = async () => {
     setLoading(true);
@@ -179,7 +180,6 @@ const FeeGroup = () => {
       newFeeGroup.late_fine_per_day.trim()
     ) {
       try {
-        // Check if the fee group already exists
         const existingFeeGroup = data.find(
           (row) => row.group_name === newFeeGroup.group_name
         );
@@ -198,7 +198,7 @@ const FeeGroup = () => {
             late_fine_per_day: "",
           });
           setIsPopoverOpen(false);
-          fetchData(); // Refresh data after adding
+          fetchData();
         } else {
           setError("Failed to add fee group.");
         }
@@ -239,38 +239,6 @@ const FeeGroup = () => {
       setError("Failed to update fee group.");
     }
   };
-
-  // const handleEdit = async (id) => {
-  //   const feeGroup = data.find((row) => row._id === id);
-  //   const updatedGroupName = prompt("Enter new Group Name:", feeGroup?.group_name || "");
-  //   // const updatedClassName = prompt("Enter new Class Name:", feeGroup?.class_name?.class_name || "");
-  //   // const updatedSectionName = prompt("Enter new Section Name:", feeGroup?.section_name?.section_name || "");
-  //   const updatedLateFine = prompt("Enter new Late Fine Per Day:", feeGroup?.late_fine_per_day || "");
-
-  //   if (updatedGroupName && updatedLateFine) {
-  //     try {
-  //       const response = await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-fee-groups/${id}`, {
-  //         group_name: updatedGroupName,
-  //         // class_name: updatedClassName,
-  //         // section_name: updatedSectionName,
-  //         late_fine_per_day: updatedLateFine,
-  //       });
-  //       if (response.data && response.data.success) {
-  //         setData((prevData) =>
-  //           prevData.map((row) =>
-  //             row._id === id
-  //               ? { ...row, group_name: updatedGroupName, late_fine_per_day: updatedLateFine }
-  //               : row
-  //           )
-  //         );
-  //       } else {
-  //         setError("Failed to update fee group.");
-  //       }
-  //     } catch (err) {
-  //       setError("Failed to update fee group.");
-  //     }
-  //   }
-  // };
 
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this fee group?")) {
@@ -384,7 +352,14 @@ const FeeGroup = () => {
         <h2>Fee Group Records</h2>
         {loading && <p>Loading...</p>}
         {error && <p>{error}</p>}
-        {!loading && !error && <Table columns={columns} data={data} />}
+        {!loading && !error && (
+          <Table
+            columns={columns}
+            data={data}
+            handlePrint={handlePrint} // Pass handlePrint
+            handleCopy={handleCopy}   // Pass handleCopy
+          />
+        )}
       </div>
     </Container>
   );

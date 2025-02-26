@@ -16,6 +16,8 @@ import {
 import axios from "axios";
 import Table from "@/app/component/DataTable";
 import styles from "@/app/medical/routine-check-up/page.module.css";
+import jsPDF from "jspdf";
+import "jspdf-autotable"; 
 
 const BankMaster = () => {
   const [data, setData] = useState([]);
@@ -140,6 +142,47 @@ const BankMaster = () => {
     }
   };
 
+  const handlePrint = async () => {
+    if (typeof window !== "undefined") {
+      const { default: jsPDF } = await import("jspdf");
+      const { default: autoTable } = await import("jspdf-autotable");
+
+      const doc = new jsPDF();
+      const tableHeaders = [["#", "Bank Name"]];
+      const tableRows = data.map((row, index) => [
+        index + 1,
+        row.bank_name || "N/A",
+      ]);
+
+      doc.autoTable({
+        head: tableHeaders,
+        body: tableRows,
+        theme: "grid",
+        styles: { fontSize: 10 },
+        headStyles: { fillColor: [41, 128, 185] }, 
+      });
+
+      const pdfBlob = doc.output("blob");
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+      const printWindow = window.open(pdfUrl);
+      printWindow.onload = () => {
+        printWindow.print(); 
+      };
+    }
+  };
+
+  const handleCopy = () => {
+    if (typeof window !== "undefined") {
+      const headers = ["#", "Bank Name"].join("\t"); 
+      const rows = data.map((row, index) => `${index + 1}\t${row.bank_name || "N/A"}`).join("\n");
+      const fullData = `${headers}\n${rows}`;
+
+      navigator.clipboard.writeText(fullData)
+        .then(() => alert("Copied to clipboard!"))
+        .catch(() => alert("Failed to copy table data to clipboard."));
+    }
+  };
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -191,7 +234,7 @@ const BankMaster = () => {
         <h2>Bank Records</h2>
         {loading && <p>Loading...</p>}
         {error && <p>{error}</p>}
-        {!loading && !error && <Table columns={columns} data={data} />}
+        {!loading && !error && <Table columns={columns} data={data} handlePrint={handlePrint} handleCopy={handleCopy} />}
       </div>
     </Container>
   );

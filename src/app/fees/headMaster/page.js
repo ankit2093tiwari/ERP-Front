@@ -143,7 +143,7 @@ const HeadMasterPage = () => {
     const fullData = `${headers}\n${rows}`;
 
     navigator.clipboard.writeText(fullData)
-      .then(() => alert("Table data copied to clipboard!"))
+      .then(() => alert("Copied to clipboard!"))
       .catch(() => alert("Failed to copy table data to clipboard."));
   };
 
