@@ -16,8 +16,6 @@ import {
 import axios from "axios";
 import Table from "@/app/component/DataTable";
 import styles from "@/app/medical/routine-check-up/page.module.css";
-import jsPDF from "jspdf";
-import "jspdf-autotable"; 
 
 const BankMaster = () => {
   const [data, setData] = useState([]);
@@ -144,8 +142,8 @@ const BankMaster = () => {
 
   const handlePrint = async () => {
     if (typeof window !== "undefined") {
-      const { default: jsPDF } = await import("jspdf");
-      const { default: autoTable } = await import("jspdf-autotable");
+      const { jsPDF } = await import("jspdf");
+      const { autoTable } = await import("jspdf-autotable");
 
       const doc = new jsPDF();
       const tableHeaders = [["#", "Bank Name"]];
@@ -154,7 +152,7 @@ const BankMaster = () => {
         row.bank_name || "N/A",
       ]);
 
-      doc.autoTable({
+      autoTable(doc, {
         head: tableHeaders,
         body: tableRows,
         theme: "grid",

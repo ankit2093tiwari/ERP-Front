@@ -75,31 +75,34 @@ const PettyHeadMaster = () => {
     },
   ];
 
-   const handlePrint = () => {
-      const doc = new jsPDF();
-      const tableHeaders = [["#", "Petty Head Name", "Head Type"]]; // Updated headers
-      const tableRows = data.map((row, index) => [
-        index + 1,
-        row.petty_name || "N/A",
-        row.head_type || "N/A",
-      ]);
-  
-      doc.autoTable({
-        head: tableHeaders,
-        body: tableRows,
-        theme: "grid", // Add grid styling
-        styles: { fontSize: 10 },
-        headStyles: { fillColor: [41, 128, 185] }, // Header background color
-      });
-  
-      // Open the print dialog instead of directly downloading
-      const pdfBlob = doc.output("blob");
-      const pdfUrl = URL.createObjectURL(pdfBlob);
-      const printWindow = window.open(pdfUrl);
-      printWindow.onload = () => {
-        printWindow.print(); // Trigger the print dialog
-      };
-    };
+   const handlePrint = async () => {
+       const { jsPDF } = await import("jspdf");
+       const autoTable = (await import("jspdf-autotable")).default;
+     
+       const doc = new jsPDF();
+       const tableHeaders = [["#", "Petty Head Name", "Head Type"]];
+       const tableRows = data.map((row, index) => [
+         index + 1,
+         row.petty_name || "N/A",
+         row.head_type || "N/A",
+       ]);
+     
+       autoTable(doc, {
+         head: tableHeaders,
+         body: tableRows,
+         theme: "grid",
+         styles: { fontSize: 10 },
+         headStyles: { fillColor: [41, 128, 185] },
+       });
+     
+       // Open the print dialog instead of directly downloading
+       const pdfBlob = doc.output("blob");
+       const pdfUrl = URL.createObjectURL(pdfBlob);
+       const printWindow = window.open(pdfUrl);
+       printWindow.onload = () => {
+         printWindow.print();
+       };
+     };  
   
     const handleCopy = () => {
       const headers = ["#", "Petty Head Name", "Head Type"].join("\t"); // Tab-separated headers

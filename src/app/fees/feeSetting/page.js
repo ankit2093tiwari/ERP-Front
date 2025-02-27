@@ -34,6 +34,38 @@ const FeeSetting = () => {
     amex_charge: "",
   });
 
+   const handlePrint = async () => {
+      const { jsPDF } = await import("jspdf");
+      const autoTable = (await import("jspdf-autotable")).default;
+    
+      const doc = new jsPDF();
+      const tableHeaders = [["#", "Credit Card Charge", "Debit Card Charge", "AMEX Charge"]];
+      const tableRows = data.map((row, index) => [
+        index + 1,
+        row.credit_card_charge || "N/A",
+        row.debit_card_charge || "N/A",
+        row.amex_charge || "N/A",
+      ]);
+    
+      autoTable(doc, {
+        head: tableHeaders,
+        body: tableRows,
+        theme: "grid",
+        styles: { fontSize: 10 },
+        headStyles: { fillColor: [41, 128, 185] },
+      });
+    
+      // Open the print dialog instead of directly downloading
+      const pdfBlob = doc.output("blob");
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+      const printWindow = window.open(pdfUrl);
+      printWindow.onload = () => {
+        printWindow.print();
+      };
+    };  
+
+  
+
   const handleCopy = () => {
     const headers = ["#", "Credit Card Charge", "Debit Card Charge", "AMEX Charge"].join("\t");
     const rows = data.map((row, index) => `${index + 1}\t${row.credit_card_charge || "N/A"}\t${row.debit_card_charge || "N/A"}\t${row.amex_charge || "N/A"}`).join("\n");
@@ -302,7 +334,7 @@ const FeeSetting = () => {
         <h2>Fee Setting Records</h2>
         {loading && <p>Loading...</p>}
         {error && <p>{error}</p>}
-        {!loading && !error && <Table columns={columns} data={data} handleCopy={handleCopy} />}
+        {!loading && !error && <Table columns={columns} data={data} handleCopy={handleCopy} handlePrint={handlePrint} />}
       </div>
     </Container>
   );

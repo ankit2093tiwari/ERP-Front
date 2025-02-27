@@ -1,5 +1,4 @@
 "use client";
-
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
@@ -17,8 +16,6 @@ import {
 import axios from "axios";
 import Table from "@/app/component/DataTable";
 import styles from "@/app/medical/routine-check-up/page.module.css";
-import jsPDF from "jspdf";
-import "jspdf-autotable";
 
 const InstallmentMaster = () => {
   const [data, setData] = useState([]);
@@ -106,29 +103,34 @@ const InstallmentMaster = () => {
   };
 
   // Handle Print Functionality
-  const handlePrint = () => {
-    const doc = new jsPDF();
-    const tableHeaders = [["#", "Installment Name"]]; // Add headers
-    const tableRows = data.map((row, index) => [
-      index + 1,
-      row.installment_name || "N/A",
-    ]);
+  const handlePrint = async () => {
+    if (typeof window !== "undefined") {
+      const { jsPDF } = await import("jspdf");
+      const { autoTable } = await import("jspdf-autotable");
 
-    doc.autoTable({
-      head: tableHeaders,
-      body: tableRows,
-      theme: "grid", // Add grid styling
-      styles: { fontSize: 10 },
-      headStyles: { fillColor: [41, 128, 185] }, // Header background color
-    });
+      const doc = new jsPDF();
+      const tableHeaders = [["#", "Installment Name"]]; // Add headers
+      const tableRows = data.map((row, index) => [
+        index + 1,
+        row.installment_name || "N/A",
+      ]);
 
-    // Open the print dialog instead of directly downloading
-    const pdfBlob = doc.output("blob");
-    const pdfUrl = URL.createObjectURL(pdfBlob);
-    const printWindow = window.open(pdfUrl);
-    printWindow.onload = () => {
-      printWindow.print(); // Trigger the print dialog
-    };
+      autoTable(doc, {
+        head: tableHeaders,
+        body: tableRows,
+        theme: "grid", // Add grid styling
+        styles: { fontSize: 10 },
+        headStyles: { fillColor: [41, 128, 185] }, // Header background color
+      });
+
+      // Open the print dialog instead of directly downloading
+      const pdfBlob = doc.output("blob");
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+      const printWindow = window.open(pdfUrl);
+      printWindow.onload = () => {
+        printWindow.print(); // Trigger the print dialog
+      };
+    }
   };
 
   // Copy table data to clipboard

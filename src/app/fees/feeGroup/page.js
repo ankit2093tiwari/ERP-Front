@@ -100,30 +100,60 @@ const FeeGroup = () => {
     },
   ];
 
-  const handlePrint = () => {
-    const doc = new jsPDF();
-    const tableHeaders = [["#", "Group Name", "Late Fine Per Day"]];
-    const tableRows = data.map((row, index) => [
-      index + 1,
-      row.group_name || "N/A",
-      row.late_fine_per_day || "N/A",
-    ]);
+  const handlePrint = async () => {
+      const { jsPDF } = await import("jspdf");
+      const autoTable = (await import("jspdf-autotable")).default;
+    
+      const doc = new jsPDF();
+      const tableHeaders = [["#", "Group Name", "Late Fine Per Day"]];
+      const tableRows = data.map((row, index) => [
+        index + 1,
+        row.group_name || "N/A",
+        row.late_fine_per_day || "N/A",
+      ]);
+    
+      autoTable(doc, {
+        head: tableHeaders,
+        body: tableRows,
+        theme: "grid",
+        styles: { fontSize: 10 },
+        headStyles: { fillColor: [41, 128, 185] },
+      });
+    
+      // Open the print dialog instead of directly downloading
+      const pdfBlob = doc.output("blob");
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+      const printWindow = window.open(pdfUrl);
+      printWindow.onload = () => {
+        printWindow.print();
+      };
+    };  
+  
 
-    doc.autoTable({
-      head: tableHeaders,
-      body: tableRows,
-      theme: "grid",
-      styles: { fontSize: 10 },
-      headStyles: { fillColor: [41, 128, 185] },
-    });
+  // const handlePrint = () => {
+  //   const doc = new jsPDF();
+  //   const tableHeaders = [["#", "Group Name", "Late Fine Per Day"]];
+  //   const tableRows = data.map((row, index) => [
+  //     index + 1,
+  //     row.group_name || "N/A",
+  //     row.late_fine_per_day || "N/A",
+  //   ]);
 
-    const pdfBlob = doc.output("blob");
-    const pdfUrl = URL.createObjectURL(pdfBlob);
-    const printWindow = window.open(pdfUrl);
-    printWindow.onload = () => {
-      printWindow.print();
-    };
-  };
+  //   doc.autoTable({
+  //     head: tableHeaders,
+  //     body: tableRows,
+  //     theme: "grid",
+  //     styles: { fontSize: 10 },
+  //     headStyles: { fillColor: [41, 128, 185] },
+  //   });
+
+  //   const pdfBlob = doc.output("blob");
+  //   const pdfUrl = URL.createObjectURL(pdfBlob);
+  //   const printWindow = window.open(pdfUrl);
+  //   printWindow.onload = () => {
+  //     printWindow.print();
+  //   };
+  // };
 
   const handleCopy = () => {
     const headers = ["#", "Group Name", "Late Fine Per Day"].join("\t");
