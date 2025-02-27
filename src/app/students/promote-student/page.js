@@ -75,6 +75,69 @@ const PromoteStudentPage = () => {
     }
   };
 
+  const handlePrint = async () => {
+    if (typeof window !== "undefined") {
+      const { jsPDF } = await import("jspdf");
+      const { autoTable } = await import("jspdf-autotable");
+
+      const doc = new jsPDF();
+      doc.text("Promote Students Report", 14, 10);
+
+      const tableHeaders = [["#", "Student Name", "Father Name", "Adm No", "Gender", "Roll No"]];
+      const tableRows = students.map((row, index) => [
+        index + 1,
+        `${row.first_name} ${row.middle_name || ""} ${row.last_name}`.trim(),
+        row.father_name || "N/A",
+        row.registration_id || "N/A",
+        row.gender_name || "N/A",
+        row.roll_no || "N/A",
+      ]);
+
+      autoTable(doc, {
+        head: tableHeaders,
+        body: tableRows,
+        theme: "grid",
+        styles: { fontSize: 10 },
+        headStyles: { fillColor: [41, 128, 185] },
+      });
+
+      const pdfBlob = doc.output("blob");
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+      const printWindow = window.open(pdfUrl);
+      printWindow.onload = () => {
+        printWindow.print(); 
+      };
+
+      // doc.save("Promote_Students_Report.pdf");
+    }
+  };
+
+  const handleCopy = () => {
+    if (typeof window !== "undefined") {
+      const headers = ["#", "Student Name", "Father Name", "Adm No", "Gender", "Roll No"].join("\t");
+      const rows = students
+        .map((row, index) =>
+          [
+            index + 1,
+            `${row.first_name} ${row.middle_name || ""} ${row.last_name}`.trim(),
+            row.father_name || "N/A",
+            row.registration_id || "N/A",
+            row.gender_name || "N/A",
+            row.roll_no || "N/A",
+          ].join("\t")
+        )
+        .join("\n");
+
+      const fullData = `${headers}\n${rows}`;
+
+      navigator.clipboard
+        .writeText(fullData)
+        .then(() => alert("Copied to clipboard!"))
+        .catch(() => alert("Failed to copy table data to clipboard."));
+    }
+  };
+
+
   const columns = [
     {
       name: "Select",
@@ -98,6 +161,8 @@ const PromoteStudentPage = () => {
     { name: "Gender", selector: (row) => row.gender_name || "N/A", sortable: true },
     { name: "Roll No", selector: (row) => row.roll_no || "N/A", sortable: true },
   ];
+
+
 
   return (
     <Container>
@@ -167,7 +232,7 @@ const PromoteStudentPage = () => {
         <Col>
           <div className="tableSheet">
             <h2>Students Records</h2>
-            {students.length > 0 ? <Table columns={columns} data={students} /> : <p className="text-center">No students found.</p>}
+            {students.length > 0 ? <Table columns={columns} data={students} handlePrint={handlePrint} handleCopy={handleCopy} /> : <p className="text-center">No students found.</p>}
           </div>
         </Col>
       </Row>

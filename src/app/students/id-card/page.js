@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Form, Row, Col, Container, FormLabel, Button, Breadcrumb, FormSelect, Table } from "react-bootstrap";
+import { Form, Row, Col, Container, FormLabel, Button, Breadcrumb, FormSelect, Alert } from "react-bootstrap";
 import jsPDF from "jspdf";
+import DataTable from "@/app/component/DataTable"; // Adjust the import path as needed
 import styles from "@/app/students/assign-roll-no/page.module.css";
 
 const GenerateIdCard = () => {
@@ -15,6 +16,7 @@ const GenerateIdCard = () => {
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [noRecordsFound, setNoRecordsFound] = useState(false); // New state for no records
 
   useEffect(() => {
     fetchClasses();
@@ -51,15 +53,23 @@ const GenerateIdCard = () => {
     }
 
     setLoading(true);
+    setNoRecordsFound(false); // Reset no records flag
     try {
       const response = await axios.get(
         `https://erp-backend-fy3n.onrender.com/api/students/search?class_name=${selectedClass}&section_name=${selectedSection}`
       );
-      setStudents(response.data.data || []);
+      if (response.data.data && response.data.data.length > 0) {
+        setStudents(response.data.data);
+      } else {
+        setStudents([]);
+        setNoRecordsFound(true); // Set no records flag if no data is found
+      }
       setSelectedStudents([]);
       setSelectAll(false);
     } catch (error) {
       console.error("Failed to fetch students", error);
+      setStudents([]);
+      setNoRecordsFound(true); // Set no records flag on error
     }
     setLoading(false);
   };
@@ -74,16 +84,17 @@ const GenerateIdCard = () => {
       prev.includes(studentId) ? prev.filter((id) => id !== studentId) : [...prev, studentId]
     );
   };
+
   const generatePDF = () => {
     if (selectedStudents.length === 0) {
       alert("Please select at least one student.");
       return;
     }
-  
+
     const pdf = new jsPDF();
     pdf.setFontSize(12);
     pdf.text("Generated ID Cards", 10, 10);
-  
+
     const cardWidth = 62;  // Width of each ID card
     const cardHeight = 70; // Height of each ID card
     const marginX = 10;    // Left margin
@@ -91,17 +102,17 @@ const GenerateIdCard = () => {
     const gapX = 3;       // Horizontal gap between ID cards
     const gapY = 3;       // Vertical gap between rows
     const cardsPerRow = 3; // Number of ID cards per row
-  
+
     let xPosition = marginX;
     let yPosition = marginY;
-  
+
     selectedStudents.forEach((studentId, index) => {
       const student = students.find(s => s._id === studentId);
       if (!student) return;
-  
+
       // Draw the ID card box
       pdf.rect(xPosition, yPosition, cardWidth, cardHeight);
-  
+
       // Add student details inside the box
       pdf.setFontSize(10);
       pdf.text(`Class: ${student.class_name?.class_name || "N/A"}`, xPosition + 5, yPosition + 10);
@@ -110,16 +121,16 @@ const GenerateIdCard = () => {
       pdf.text(`Roll No: ${student.roll_no || "N/A"}`, xPosition + 5, yPosition + 40);
       pdf.text(`Father Name: ${student.father_name || "N/A"}`, xPosition + 5, yPosition + 50);
       pdf.text(`Mobile No: ${student.phone_no || "N/A"}`, xPosition + 5, yPosition + 60);
-  
+
       // Move to next position
       xPosition += cardWidth + gapX;
-  
+
       // If three ID cards are printed in a row, reset X position and move to the next row
       if ((index + 1) % cardsPerRow === 0) {
         xPosition = marginX;
         yPosition += cardHeight + gapY;
       }
-  
+
       // If Y position exceeds page height, create a new page
       if (yPosition + cardHeight > 280) {
         pdf.addPage();
@@ -127,41 +138,108 @@ const GenerateIdCard = () => {
         xPosition = marginX;
       }
     });
-  
+
     pdf.save("Student_ID_Cards.pdf");
   };
-  
 
-  // const generatePDF = () => {
-  //   if (selectedStudents.length === 0) {
-  //     alert("Please select at least one student.");
-  //     return;
-  //   }
+  const handlePrint = async () => {
+    if (typeof window !== "undefined") {
+      const { jsPDF } = await import("jspdf");
+      const { autoTable } = await import("jspdf-autotable");
 
-  //   const pdf = new jsPDF();
-  //   pdf.setFontSize(12);
-  //   pdf.text("Generated ID Cards", 10, 10);
+      const doc = new jsPDF();
+      doc.text("Student ID Cards Report", 14, 10);
 
-  //   let yPosition = 20;
-  //   selectedStudents.forEach((studentId) => {
-  //     const student = students.find(s => s._id === studentId);
-  //     if (!student) return;
+      const tableHeaders = [["#", "Class", "Section", "Roll No", "Student Name", "Father Name", "Mobile No"]];
+      const tableRows = students.map((row, index) => [
+        index + 1,
+        row.class_name?.class_name || "N/A",
+        row.section_name?.section_name || "N/A",
+        row.roll_no || "N/A",
+        `${row.first_name} ${row.last_name}`,
+        row.father_name || "N/A",
+        row.phone_no || "N/A",
+      ]);
 
-  //     pdf.rect(10, yPosition, 180, 50);
-  //     pdf.text(`Class: ${student.class_name?.class_name || "N/A"}`, 15, yPosition + 10);
-  //     pdf.text(`Section: ${student.section_name?.section_name || "N/A"}`, 15, yPosition + 20);
-  //     pdf.text(`Name: ${student.first_name} ${student.last_name}`, 15, yPosition + 30);
-  //     pdf.text(`Roll No: ${student.roll_no || "N/A"}`, 15, yPosition + 40);
-  //     pdf.text(`Father Name: ${student.father_name || "N/A"}`, 15, yPosition + 50);
-  //     pdf.text(`Mobile No: ${student.phone_no || "N/A"}`, 15, yPosition + 60);
-  //     yPosition += 70;
-  //     if (yPosition > 250) {
-  //       pdf.addPage();
-  //       yPosition = 20;
-  //     }
-  //   });
-  //   pdf.save("Student_ID_Cards.pdf");
-  // };
+      autoTable(doc, {
+        head: tableHeaders,
+        body: tableRows,
+        theme: "grid",
+        styles: { fontSize: 10 },
+        headStyles: { fillColor: [41, 128, 185] },
+      });
+
+      const pdfBlob = doc.output("blob");
+      const pdfUrl = URL.createObjectURL(pdfBlob);
+      const printWindow = window.open(pdfUrl);
+      printWindow.onload = () => {
+        printWindow.print();
+      };
+    }
+  };
+
+  const handleCopy = () => {
+    const headers = ["#", "Class", "Section", "Roll No", "Student Name", "Father Name", "Mobile No"].join("\t");
+    const rows = students
+      .map((row, index) =>
+        [
+          index + 1,
+          row.class_name?.class_name || "N/A",
+          row.section_name?.section_name || "N/A",
+          row.roll_no || "N/A",
+          `${row.first_name} ${row.last_name}`,
+          row.father_name || "N/A",
+          row.phone_no || "N/A",
+        ].join("\t")
+      )
+      .join("\n");
+
+    const fullData = `${headers}\n${rows}`;
+
+    navigator.clipboard
+      .writeText(fullData)
+      .then(() => alert("Copied to clipboard!"))
+      .catch(() => alert("Failed to copy table data to clipboard."));
+  };
+
+  const columns = [
+    {
+      name: "#",
+      selector: (row, index) => index + 1,
+      sortable: false,
+      width: "50px",
+    },
+    {
+      name: "Class",
+      selector: (row) => row.class_name?.class_name || "N/A",
+      sortable: true,
+    },
+    {
+      name: "Section",
+      selector: (row) => row.section_name?.section_name || "N/A",
+      sortable: true,
+    },
+    {
+      name: "Roll No",
+      selector: (row) => row.roll_no || "N/A",
+      sortable: true,
+    },
+    {
+      name: "Student Name",
+      selector: (row) => `${row.first_name} ${row.last_name}`,
+      sortable: true,
+    },
+    {
+      name: "Father Name",
+      selector: (row) => row.father_name || "N/A",
+      sortable: true,
+    },
+    {
+      name: "Mobile No",
+      selector: (row) => row.phone_no || "N/A",
+      sortable: true,
+    },
+  ];
 
   return (
     <Container>
@@ -218,38 +296,18 @@ const GenerateIdCard = () => {
         <Col>
           <div className="tableSheet">
             <h2>Students Details</h2>
-            <Table striped bordered hover>
-              <thead>
-                <tr>
-                  <th>Action</th>
-                  <th>Class</th>
-                  <th>Section</th>
-                  <th>Roll No</th>
-                  <th>Student Name</th>
-                  <th>Father Name</th>
-                  <th>Mobile No</th>
-                </tr>
-              </thead>
-              <tbody>
-                {students.map((student) => (
-                  <tr key={student._id}>
-                    <td>
-                      <Form.Check
-                        type="checkbox"
-                        checked={selectedStudents.includes(student._id)}
-                        onChange={() => handleStudentSelect(student._id)}
-                      />
-                    </td>
-                    <td>{student.class_name?.class_name || "N/A"}</td>
-                    <td>{student.section_name?.section_name || "N/A"}</td>
-                    <td>{student.roll_no || "N/A"}</td>
-                    <td>{student.first_name} {student.last_name}</td>
-                    <td>{student.father_name || "N/A"}</td>
-                    <td>{student.phone_no || "N/A"}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </Table>
+            {loading ? (
+              <p>Loading...</p>
+            ) : noRecordsFound ? (
+              <Alert variant="info">There is no record to display.</Alert>
+            ) : (
+              <DataTable
+                columns={columns}
+                data={students}
+                handlePrint={handlePrint}
+                handleCopy={handleCopy}
+              />
+            )}
           </div>
         </Col>
       </Row>
