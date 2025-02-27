@@ -5,7 +5,7 @@ import dynamic from "next/dynamic";
 import styles from "@/app/medical/routine-check-up/page.module.css";
 import Table from "@/app/component/DataTable";
 import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
-import { Form, Row, Col, Container, FormLabel, FormControl, Button, Breadcrumb } from "react-bootstrap";
+import { Form, Row, Col, Container, FormLabel, FormControl, Button, Breadcrumb, Alert } from "react-bootstrap";
 import axios from "axios";
 import { CgAddR } from 'react-icons/cg';
 
@@ -75,6 +75,44 @@ const BookCategory = () => {
         setError("Failed to add book group.");
       }
     }
+  };
+
+  const handlePrint = async () => {
+    const { jsPDF } = await import("jspdf");
+    const autoTable = (await import("jspdf-autotable")).default;
+
+    const doc = new jsPDF();
+    const tableHeaders = [["#", "Group Name"]];
+    const tableRows = data.map((row, index) => [
+      index + 1,
+      row.groupName || "N/A",
+    ]);
+
+    autoTable(doc, {
+      head: tableHeaders,
+      body: tableRows,
+      theme: "grid",
+      styles: { fontSize: 10 },
+      headStyles: { fillColor: [41, 128, 185] },
+    });
+
+    // Open the print dialog instead of directly downloading
+    const pdfBlob = doc.output("blob");
+    const pdfUrl = URL.createObjectURL(pdfBlob);
+    const printWindow = window.open(pdfUrl);
+    printWindow.onload = () => {
+      printWindow.print();
+    };
+  };
+
+  const handleCopy = () => {
+    const headers = ["#", "Group Name"].join("\t");
+    const rows = data.map((row, index) => `${index + 1}\t${row.groupName || "N/A"}`).join("\n");
+    const fullData = `${headers}\n${rows}`;
+
+    navigator.clipboard.writeText(fullData)
+      .then(() => alert("Copied to clipboard!"))
+      .catch(() => alert("Failed to copy table data to clipboard."));
   };
 
   useEffect(() => {
@@ -151,15 +189,24 @@ const BookCategory = () => {
                 />
               </Col>
             </Row>
-            <Button onClick={handleAdd} className="btn btn-success mt-2">Add</Button>
+            <Button onClick={handleAdd} className="btn btn-success mt-2">Add Group</Button>
           </Form>
         </div>
       )}
-      
-      <h2 className="mt-4">Book Group Records</h2>
-      {loading && <p>Loading...</p>}
-      {error && <p className="text-danger">{error}</p>}
-      {!loading && !error && <Table columns={columns} data={data} />}
+
+      <div className="tableSheet">
+        <h2>Book Group Records</h2>
+        {loading && <p>Loading...</p>}
+        {error && <Alert variant="danger">{error}</Alert>}
+        {!loading && !error && (
+          <Table
+            columns={columns}
+            data={data}
+            handleCopy={handleCopy}
+            handlePrint={handlePrint}
+          />
+        )}
+      </div>
     </Container>
   );
 };

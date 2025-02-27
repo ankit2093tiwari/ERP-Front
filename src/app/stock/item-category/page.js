@@ -115,6 +115,44 @@ const ItemCategory = () => {
     }
   };
 
+  const handlePrint = async () => {
+    const { jsPDF } = await import("jspdf");
+    const autoTable = (await import("jspdf-autotable")).default;
+
+    const doc = new jsPDF();
+    const tableHeaders = [["#", "Category Name"]];
+    const tableRows = data.map((row, index) => [
+      index + 1,
+      row.categoryName || "N/A",
+    ]);
+
+    autoTable(doc, {
+      head: tableHeaders,
+      body: tableRows,
+      theme: "grid",
+      styles: { fontSize: 10 },
+      headStyles: { fillColor: [41, 128, 185] },
+    });
+
+    // Open the print dialog instead of directly downloading
+    const pdfBlob = doc.output("blob");
+    const pdfUrl = URL.createObjectURL(pdfBlob);
+    const printWindow = window.open(pdfUrl);
+    printWindow.onload = () => {
+      printWindow.print();
+    };
+  };
+
+  const handleCopy = () => {
+    const headers = ["#", "Category Name"].join("\t");
+    const rows = data.map((row, index) => `${index + 1}\t${row.categoryName || "N/A"}`).join("\n");
+    const fullData = `${headers}\n${rows}`;
+
+    navigator.clipboard.writeText(fullData)
+      .then(() => alert("Copied to clipboard!"))
+      .catch(() => alert("Failed to copy table data to clipboard."));
+  };
+
   useEffect(() => {
     fetchData();
   }, []);
@@ -222,7 +260,7 @@ const ItemCategory = () => {
             {loading ? (
               <p>Loading...</p>
             ) : data.length > 0 ? (
-              <Table columns={columns} data={data} />
+              <Table columns={columns} data={data} handleCopy={handleCopy} handlePrint={handlePrint} />
             ) : (
               <p>No categories available.</p>
             )}
