@@ -1,56 +1,69 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { FaEdit, FaTrashAlt } from "react-icons/fa";
+import { Form, Row, Col, Container, FormLabel, FormControl, Button, Breadcrumb,FormSelect } from "react-bootstrap";
+import Table from "@/app/component/DataTable";
+import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
+import { CgAddR } from 'react-icons/cg';
 import axios from "axios";
-import { Form, Row, Col, Container, FormLabel, Button, Breadcrumb, FormSelect, Table } from "react-bootstrap";
 
 const SubjectMaster = () => {
   const [classList, setClassList] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [sectionList, setSectionList] = useState([]);
-  const [data, setData] = useState([]);
   const [employeeList, setEmployeeList] = useState([]);
   const [subjectList, setSubjectList] = useState([]);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showAddForm, setShowAddForm] = useState(false);
 
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedSection, setSelectedSection] = useState("");
   const [subjectName, setSubjectName] = useState("");
   const [compulsory, setCompulsory] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState("");
-  const [editingSubjectId, setEditingSubjectId] = useState(null);
+  const [editId, setEditId] = useState(null);
 
   const columns = [
     {
       name: "#",
       selector: (row, index) => index + 1,
-      sortable: false,
       width: "80px",
     },
     {
-      name: "ClassName",
-      selector: (row) => row.class_name || "N/A",
+      name: "Class Name",
+      selector: (row) => row.class_name?.class_name || "N/A",
       sortable: true,
     },
     {
-      name: "SectionName",
-      selector: (row) => row.section_name || "N/A",
+      name: "Section Name",
+      selector: (row) => row.section_name?.section_name || "N/A",
       sortable: true,
     },
     {
       name: "Subject & Teacher",
-      selector: (row) => row.section_name || "N/A",
+      selector: (row) =>
+        `${row.subject_details.subject_name} - ${row.subject_details.employee?.employee_name}`,
+      sortable: true,
+    },
+    {
+      name: "Compulsory",
+      selector: (row) => (row.subject_details.compulsory ? "Yes" : "No"),
       sortable: true,
     },
     {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
-          <button className="editButton" onClick={() => handleEditSubject(subject)}>
-            <FaEdit />
-          </button>
-          <button className="editButton btn-danger" onClick={() => handleDeleteSubject(subject._id)}>
+          {editId === row._id ? (
+            <button className="editButton" onClick={() => handleSave(row._id)}>
+              <FaSave />
+            </button>
+          ) : (
+            <button className="editButton" onClick={() => handleEdit(row)}>
+              <FaEdit />
+            </button>
+          )}
+          <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
             <FaTrashAlt />
           </button>
         </div>
@@ -92,11 +105,16 @@ const SubjectMaster = () => {
   };
 
   const fetchSubjects = async () => {
+    setLoading(true);
+    setError("");
     try {
       const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-subject");
       setSubjectList(response.data.data || []);
     } catch (error) {
       console.error("Failed to fetch subjects", error);
+      setError("Failed to fetch subjects. Please try again later.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -108,15 +126,15 @@ const SubjectMaster = () => {
 
     const subjectData = {
       class_name: selectedClass,
-      section_name: selectedSection || null, // Handle optional section
+      section_name: selectedSection || null,
       subject_name: subjectName,
       compulsory,
       employee: selectedEmployee,
     };
 
     try {
-      if (editingSubjectId) {
-        await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-subject/${editingSubjectId}`, subjectData);
+      if (editId) {
+        await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-subject/${editId}`, subjectData);
       } else {
         await axios.post("https://erp-backend-fy3n.onrender.com/api/create-subject", subjectData);
       }
@@ -127,8 +145,8 @@ const SubjectMaster = () => {
     }
   };
 
-  const handleEditSubject = (subject) => {
-    setEditingSubjectId(subject._id);
+  const handleEdit = (subject) => {
+    setEditId(subject._id);
     setSelectedClass(subject.class_name?._id || "");
     setSelectedSection(subject.section_name?._id || "");
     setSubjectName(subject.subject_details.subject_name);
@@ -137,12 +155,19 @@ const SubjectMaster = () => {
     fetchSections(subject.class_name?._id);
   };
 
-  const handleDeleteSubject = async (id) => {
-    try {
-      await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-subject/${id}`);
-      fetchSubjects();
-    } catch (error) {
-      console.error("Error deleting subject", error);
+  const handleSave = async (id) => {
+    await handleAddOrUpdateSubject();
+    setEditId(null);
+  };
+
+  const handleDelete = async (id) => {
+    if (confirm("Are you sure you want to delete this subject?")) {
+      try {
+        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-subject/${id}`);
+        fetchSubjects();
+      } catch (error) {
+        console.error("Error deleting subject", error);
+      }
     }
   };
 
@@ -152,7 +177,54 @@ const SubjectMaster = () => {
     setSubjectName("");
     setCompulsory(false);
     setSelectedEmployee("");
-    setEditingSubjectId(null);
+    setEditId(null);
+  };
+
+  const handlePrint = async () => {
+    const { jsPDF } = await import("jspdf");
+    const autoTable = (await import("jspdf-autotable")).default;
+
+    const doc = new jsPDF();
+    const tableHeaders = [["#", "Class Name", "Section Name", "Subject & Teacher", "Compulsory"]];
+    const tableRows = subjectList.map((row, index) => [
+      index + 1,
+      row.class_name?.class_name || "N/A",
+      row.section_name?.section_name || "N/A",
+      `${row.subject_details.subject_name} - ${row.subject_details.employee?.employee_name}`,
+      row.subject_details.compulsory ? "Yes" : "No",
+    ]);
+
+    autoTable(doc, {
+      head: tableHeaders,
+      body: tableRows,
+      theme: "grid",
+      styles: { fontSize: 10 },
+      headStyles: { fillColor: [41, 128, 185] },
+    });
+
+    const pdfBlob = doc.output("blob");
+    const pdfUrl = URL.createObjectURL(pdfBlob);
+    const printWindow = window.open(pdfUrl);
+    printWindow.onload = () => {
+      printWindow.print();
+    };
+  };
+
+  const handleCopy = () => {
+    const headers = ["#", "Class Name", "Section Name", "Subject & Teacher", "Compulsory"].join("\t");
+    const rows = subjectList
+      .map((row, index) =>
+        `${index + 1}\t${row.class_name?.class_name || "N/A"}\t${row.section_name?.section_name || "N/A"}\t${
+          row.subject_details.subject_name
+        } - ${row.subject_details.employee?.employee_name}\t${row.subject_details.compulsory ? "Yes" : "No"}`
+      )
+      .join("\n");
+    const fullData = `${headers}\n${rows}`;
+
+    navigator.clipboard
+      .writeText(fullData)
+      .then(() => alert("Copied to clipboard!"))
+      .catch(() => alert("Failed to copy table data to clipboard."));
   };
 
   return (
@@ -166,134 +238,94 @@ const SubjectMaster = () => {
           </Breadcrumb>
         </Col>
       </Row>
-
-      <div className="cover-sheet">
-        <div className="studentHeading">
-          <h2>Add New Subject</h2>
-          {/* <button className="closeForm" onClick={() => setIsPopoverOpen(false)}>X</button> */}
+      <Button onClick={() => setShowAddForm(!showAddForm)} className="mb-4">
+        <CgAddR /> {showAddForm ? "Close Form" : "Add Subject"}
+      </Button>
+      {showAddForm && (
+        <div className="cover-sheet">
+          <div className="studentHeading">
+            <h2>Add Subject</h2>
+            <button className="closeForm" onClick={() => setShowAddForm(false)}>X</button>
+          </div>
+          <Form className="formSheet">
+            <Row className="mb-3">
+              <Col>
+                <FormLabel>Select Class</FormLabel>
+                <FormSelect
+                  value={selectedClass}
+                  onChange={(e) => {
+                    setSelectedClass(e.target.value);
+                    fetchSections(e.target.value);
+                  }}
+                >
+                  <option value="">Select Class</option>
+                  {classList.map((cls) => (
+                    <option key={cls._id} value={cls._id}>
+                      {cls.class_name}
+                    </option>
+                  ))}
+                </FormSelect>
+              </Col>
+              <Col>
+                <FormLabel>Select Section (Optional)</FormLabel>
+                <FormSelect
+                  value={selectedSection}
+                  onChange={(e) => setSelectedSection(e.target.value)}
+                >
+                  <option value="">Select Section</option>
+                  {sectionList.map((sec) => (
+                    <option key={sec._id} value={sec._id}>
+                      {sec.section_name}
+                    </option>
+                  ))}
+                </FormSelect>
+              </Col>
+            </Row>
+            <Row className="mt-3">
+              <Col>
+                <FormLabel>Enter Subject Name</FormLabel>
+                <FormControl
+                  type="text"
+                  value={subjectName}
+                  onChange={(e) => setSubjectName(e.target.value)}
+                />
+              </Col>
+              <Col>
+                <FormLabel>Select Teacher</FormLabel>
+                <FormSelect
+                  value={selectedEmployee}
+                  onChange={(e) => setSelectedEmployee(e.target.value)}
+                >
+                  <option value="">Select Employee</option>
+                  {employeeList.map((emp) => (
+                    <option key={emp._id} value={emp._id}>
+                      {emp.employee_name}
+                    </option>
+                  ))}
+                </FormSelect>
+              </Col>
+            </Row>
+            <Row className="mt-3">
+              <Col>
+                <Form.Check
+                  type="checkbox"
+                  label="Compulsory Subject"
+                  checked={compulsory}
+                  onChange={(e) => setCompulsory(e.target.checked)}
+                />
+              </Col>
+            </Row>
+            <Row className="mt-3">
+              <Col>
+                <Button onClick={handleAddOrUpdateSubject}>
+                  {editId ? "Update Subject" : "Add Subject"}
+                </Button>
+              </Col>
+            </Row>
+          </Form>
         </div>
-
-        <Form className="formSheet">
-          <Row className="mb-3">
-            <Col>
-              <FormLabel>Select Class</FormLabel>
-              <FormSelect
-                value={selectedClass}
-                onChange={(e) => {
-                  setSelectedClass(e.target.value);
-                  fetchSections(e.target.value);
-                }}
-              >
-                <option value="">Select Class</option>
-                {classList.map((cls) => (
-                  <option key={cls._id} value={cls._id}>
-                    {cls.class_name}
-                  </option>
-                ))}
-              </FormSelect>
-            </Col>
-            <Col>
-              <FormLabel>Select Section (Optional)</FormLabel>
-              <FormSelect
-                value={selectedSection}
-                onChange={(e) => setSelectedSection(e.target.value)}
-              >
-                <option value="">Select Section</option>
-                {sectionList.map((sec) => (
-                  <option key={sec._id} value={sec._id}>
-                    {sec.section_name}
-                  </option>
-                ))}
-              </FormSelect>
-            </Col>
-          </Row>
-          <Row className="mt-3">
-            <Col>
-              <FormLabel>Enter Subject Name</FormLabel>
-              <Form.Control
-                type="text"
-                value={subjectName}
-                onChange={(e) => setSubjectName(e.target.value)}
-              />
-            </Col>
-            <Col>
-              <FormLabel>Select Teacher</FormLabel>
-              <FormSelect
-                value={selectedEmployee}
-                onChange={(e) => setSelectedEmployee(e.target.value)}
-              >
-                <option value="">Select Employee</option>
-                {employeeList.map((emp) => (
-                  <option key={emp._id} value={emp._id}>
-                    {emp.employee_name}
-                  </option>
-                ))}
-              </FormSelect>
-            </Col>
-          </Row>
-          <Row className="mt-3">
-            <Col>
-              <Form.Check
-                type="checkbox"
-                label="Compulsory Subject"
-                checked={compulsory}
-                onChange={(e) => setCompulsory(e.target.checked)}
-              />
-            </Col>
-          </Row>
-          <Row className="mt-3">
-            <Col>
-              <Button onClick={handleAddOrUpdateSubject}>
-                {editingSubjectId ? "Update Subject" : "Add Subject"}
-              </Button>
-            </Col>
-          </Row>
-        </Form>
-      </div>
-      <div className="tableSheet">
-        <h2>Subject Master</h2>
-        <Table striped bordered hover>
-          <thead>
-            <tr>
-              <th>Class Name</th>
-              <th>Section Name</th>
-              <th>Subject & Teacher</th>
-              <th>Compulsory</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {subjectList.length > 0 ? (
-              subjectList.map((subject) => (
-                <tr key={subject._id}>
-                  <td>{subject.class_name?.class_name}</td>
-                  <td>{subject.section_name?.section_name || "N/A"}</td>
-                  <td>
-                    {subject.subject_details.subject_name} -{" "}
-                    {subject.subject_details.employee?.employee_name}
-                  </td>
-                  <td>{subject.subject_details.compulsory ? "Yes" : "No"}</td>
-                  <td>
-                    <button className="editButton" onClick={() => handleEditSubject(subject)}>
-                      <FaEdit />
-                    </button>
-                    <button className="editButton btn-danger" onClick={() => handleDeleteSubject(subject._id)}>
-                      <FaTrashAlt />
-                    </button>
-                  </td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="5" className="text-center">
-                  No data available
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </Table>
-      </div>
-      {/* <Row>
+      )}
+      <Row>
         <Col>
           <div className="tableSheet">
             <h2>Subject Master</h2>
@@ -302,11 +334,11 @@ const SubjectMaster = () => {
             ) : error ? (
               <p style={{ color: "red" }}>{error}</p>
             ) : (
-              <Table columns={columns} data={data} />
+              <Table columns={columns} data={subjectList} handleCopy={handleCopy} handlePrint={handlePrint} />
             )}
           </div>
         </Col>
-      </Row> */}
+      </Row>
     </Container>
   );
 };
