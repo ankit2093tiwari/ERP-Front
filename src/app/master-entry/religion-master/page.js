@@ -131,6 +131,44 @@ const ReligionMasterPage = () => {
     }
   };
 
+  const handlePrint = async () => {
+    const { jsPDF } = await import("jspdf");
+    const autoTable = (await import("jspdf-autotable")).default;
+
+    const doc = new jsPDF();
+    const tableHeaders = [["#", "Religion Name"]];
+    const tableRows = data.map((row, index) => [
+      index + 1,
+      row.religion_name || "N/A",
+    ]);
+
+    autoTable(doc, {
+      head: tableHeaders,
+      body: tableRows,
+      theme: "grid",
+      styles: { fontSize: 10 },
+      headStyles: { fillColor: [41, 128, 185] },
+    });
+
+    // Open the print dialog instead of directly downloading
+    const pdfBlob = doc.output("blob");
+    const pdfUrl = URL.createObjectURL(pdfBlob);
+    const printWindow = window.open(pdfUrl);
+    printWindow.onload = () => {
+      printWindow.print();
+    };
+  };
+
+  const handleCopy = () => {
+    const headers = ["#", "Religion Name"].join("\t");
+    const rows = data.map((row, index) => `${index + 1}\t${row.religion_name || "N/A"}`).join("\n");
+    const fullData = `${headers}\n${rows}`;
+
+    navigator.clipboard.writeText(fullData)
+      .then(() => alert("Copied to clipboard!"))
+      .catch(() => alert("Failed to copy table data to clipboard."));
+  };
+
   // Fetch data on component mount
   useEffect(() => {
     fetchData();
@@ -187,7 +225,7 @@ const ReligionMasterPage = () => {
             ) : error ? (
               <p style={{ color: "red" }}>{error}</p>
             ) : (
-              <Table columns={columns} data={data} />
+              <Table columns={columns} data={data} handleCopy={handleCopy} handlePrint={handlePrint} />
             )}
           </div>
         </Col>

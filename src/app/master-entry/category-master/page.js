@@ -21,11 +21,11 @@ const CategoryMasterPage = () => {
   // Table columns configuration
   const columns = [
     { name: "#", selector: (row, index) => index + 1, sortable: false, width: "80px" },
-    { 
-      name: "Category Name", 
-      selector: (row) => row.category_name || "N/A", 
+    {
+      name: "Category Name",
+      selector: (row) => row.category_name || "N/A",
       sortable: true,
-      cell: (row) => 
+      cell: (row) =>
         editingId === row._id ? (
           <FormControl
             type="text"
@@ -69,8 +69,8 @@ const CategoryMasterPage = () => {
       const fetchedCategories = Array.isArray(response.data)
         ? response.data
         : Array.isArray(response.data?.data)
-        ? response.data.data
-        : [];
+          ? response.data.data
+          : [];
 
       setCategories(fetchedCategories);
     } catch (err) {
@@ -134,7 +134,7 @@ const CategoryMasterPage = () => {
 
         // Remove the category from the state array
         setCategories((prevCategories) =>
-          prevCategories.filter((row) => row._id !== id)       
+          prevCategories.filter((row) => row._id !== id)
         );
         fetchCategories();
       } catch (err) {
@@ -142,6 +142,40 @@ const CategoryMasterPage = () => {
         setError("Failed to delete category. Please try again later.");
       }
     }
+  };
+
+  const handlePrint = async () => {
+    const { jsPDF } = await import("jspdf");
+    const autoTable = (await import("jspdf-autotable")).default;
+    const doc = new jsPDF();
+    const tableHeaders = [["#", "Category Name"]];
+    const tableRows = categories.map((row, index) => [index + 1, row.category_name || "N/A"]);
+
+    autoTable(doc, {
+      head: tableHeaders,
+      body: tableRows,
+      theme: "grid",
+      styles: { fontSize: 10 },
+      headStyles: { fillColor: [41, 128, 185] },
+    });
+
+    const pdfBlob = doc.output("blob");
+    const pdfUrl = URL.createObjectURL(pdfBlob);
+    const printWindow = window.open(pdfUrl);
+    if (printWindow) {
+      printWindow.onload = () => {
+        printWindow.print();
+      };
+    }
+  };
+
+  const handleCopy = () => {
+    const headers = "#\tCategory Name";
+    const rows = categories.map((row, index) => `${index + 1}\t${row.category_name || "N/A"}`).join("\n");
+    const fullData = `${headers}\n${rows}`;
+    navigator.clipboard.writeText(fullData)
+      .then(() => alert("Copied to clipboard!"))
+      .catch(() => alert("Failed to copy table data to clipboard."));
   };
 
 
@@ -164,7 +198,7 @@ const CategoryMasterPage = () => {
           </Breadcrumb>
         </Col>
       </Row>
-      
+
       <Button
         onClick={() => setShowAddForm(!showAddForm)}
         className="btn btn-primary mb-4"
@@ -202,7 +236,7 @@ const CategoryMasterPage = () => {
         <h2>Category Records</h2>
         {loading && <p>Loading...</p>}
         {error && <p style={{ color: "red" }}>{error}</p>}
-        {!loading && !error && <Table columns={columns} data={categories} />}
+        {!loading && !error && <Table columns={columns} data={categories} handleCopy={handleCopy} handlePrint={handlePrint} />}
       </div>
     </Container>
   );
