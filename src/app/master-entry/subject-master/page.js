@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Form, Row, Col, Container, FormLabel, FormControl, Button, Breadcrumb,FormSelect } from "react-bootstrap";
+import { Form, Row, Col, Container, FormLabel, FormControl, Button, Breadcrumb, FormSelect } from "react-bootstrap";
 import Table from "@/app/component/DataTable";
 import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
 import { CgAddR } from 'react-icons/cg';
@@ -23,6 +23,13 @@ const SubjectMaster = () => {
   const [selectedEmployee, setSelectedEmployee] = useState("");
   const [editId, setEditId] = useState(null);
 
+  // States for editable fields
+  const [editableClass, setEditableClass] = useState("");
+  const [editableSection, setEditableSection] = useState("");
+  const [editableSubjectName, setEditableSubjectName] = useState("");
+  const [editableCompulsory, setEditableCompulsory] = useState(false);
+  const [editableEmployee, setEditableEmployee] = useState("");
+
   const columns = [
     {
       name: "#",
@@ -32,22 +39,90 @@ const SubjectMaster = () => {
     {
       name: "Class Name",
       selector: (row) => row.class_name?.class_name || "N/A",
+      cell: (row) =>
+        editId === row._id ? (
+          <FormSelect
+            value={editableClass}
+            onChange={(e) => setEditableClass(e.target.value)}
+          >
+            <option value="">Select Class</option>
+            {classList.map((cls) => (
+              <option key={cls._id} value={cls._id}>
+                {cls.class_name}
+              </option>
+            ))}
+          </FormSelect>
+        ) : (
+          row.class_name?.class_name || "N/A"
+        ),
       sortable: true,
     },
     {
       name: "Section Name",
       selector: (row) => row.section_name?.section_name || "N/A",
+      cell: (row) =>
+        editId === row._id ? (
+          <FormSelect
+            value={editableSection}
+            onChange={(e) => setEditableSection(e.target.value)}
+          >
+            <option value="">Select Section</option>
+            {sectionList.map((sec) => (
+              <option key={sec._id} value={sec._id}>
+                {sec.section_name}
+              </option>
+            ))}
+          </FormSelect>
+        ) : (
+          row.section_name?.section_name || "N/A"
+        ),
       sortable: true,
     },
     {
       name: "Subject & Teacher",
       selector: (row) =>
         `${row.subject_details.subject_name} - ${row.subject_details.employee?.employee_name}`,
+      cell: (row) =>
+        editId === row._id ? (
+          <div>
+            <FormControl
+              type="text"
+              value={editableSubjectName}
+              onChange={(e) => setEditableSubjectName(e.target.value)}
+              placeholder="Subject Name"
+            />
+            <FormSelect
+              value={editableEmployee}
+              onChange={(e) => setEditableEmployee(e.target.value)}
+              className="mt-2"
+            >
+              <option value="">Select Teacher</option>
+              {employeeList.map((emp) => (
+                <option key={emp._id} value={emp._id}>
+                  {emp.employee_name}
+                </option>
+              ))}
+            </FormSelect>
+          </div>
+        ) : (
+          `${row.subject_details.subject_name} - ${row.subject_details.employee?.employee_name}`
+        ),
       sortable: true,
     },
     {
       name: "Compulsory",
       selector: (row) => (row.subject_details.compulsory ? "Yes" : "No"),
+      cell: (row) =>
+        editId === row._id ? (
+          <Form.Check
+            type="checkbox"
+            label="Compulsory"
+            checked={editableCompulsory}
+            onChange={(e) => setEditableCompulsory(e.target.checked)}
+          />
+        ) : (
+          row.subject_details.compulsory ? "Yes" : "No"
+        ),
       sortable: true,
     },
     {
@@ -55,7 +130,7 @@ const SubjectMaster = () => {
       cell: (row) => (
         <div className="d-flex gap-2">
           {editId === row._id ? (
-            <button className="editButton" onClick={() => handleSave(row._id)}>
+            <button className="editButton btn-success" onClick={() => handleSave(row._id)}>
               <FaSave />
             </button>
           ) : (
@@ -147,17 +222,30 @@ const SubjectMaster = () => {
 
   const handleEdit = (subject) => {
     setEditId(subject._id);
-    setSelectedClass(subject.class_name?._id || "");
-    setSelectedSection(subject.section_name?._id || "");
-    setSubjectName(subject.subject_details.subject_name);
-    setCompulsory(subject.subject_details.compulsory);
-    setSelectedEmployee(subject.subject_details.employee?._id || "");
+    setEditableClass(subject.class_name?._id || "");
+    setEditableSection(subject.section_name?._id || "");
+    setEditableSubjectName(subject.subject_details.subject_name);
+    setEditableCompulsory(subject.subject_details.compulsory);
+    setEditableEmployee(subject.subject_details.employee?._id || "");
     fetchSections(subject.class_name?._id);
   };
 
   const handleSave = async (id) => {
-    await handleAddOrUpdateSubject();
-    setEditId(null);
+    const subjectData = {
+      class_name: editableClass,
+      section_name: editableSection || null,
+      subject_name: editableSubjectName,
+      compulsory: editableCompulsory,
+      employee: editableEmployee,
+    };
+
+    try {
+      await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-subject/${id}`, subjectData);
+      fetchSubjects();
+      setEditId(null);
+    } catch (error) {
+      console.error("Error updating subject", error);
+    }
   };
 
   const handleDelete = async (id) => {
