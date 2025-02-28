@@ -2,14 +2,13 @@
 import React, { useState } from "react";
 import Link from "next/link";
 import { Accordion } from "react-bootstrap";
-import { GiHamburgerMenu } from "react-icons/gi";
-import { FaHome, FaBug, FaBell, FaBriefcaseMedical, FaAngleDoubleRight, FaFile, FaEnvelope, FaUsersCog, FaBook, FaCalendarPlus, FaSuitcase, FaPhotoVideo, FaNewspaper, FaSchool, FaUserGraduate, FaFileAlt, FaCog, FaUsers, FaGraduationCap, FaRegIdCard, FaBus, FaRupeeSign, FaBusinessTime, FaBoxOpen } from "react-icons/fa";
+import { FaHome, FaBug, FaBell, FaBriefcaseMedical, FaAngleDoubleRight, FaFile, FaEnvelope, FaUsersCog, FaBook, FaCalendarPlus, FaPhotoVideo, FaNewspaper, FaUserGraduate, FaFileAlt, FaBus, FaRupeeSign, FaBusinessTime, FaBoxOpen } from "react-icons/fa";
 import { FaGauge } from "react-icons/fa6";
 import { MdAccountBalance, MdLibraryBooks } from "react-icons/md";
 import { TiContacts } from "react-icons/ti";
 import { RiUserFollowLine } from "react-icons/ri";
 
-export default function Sidebar({ isOpen, toggleSidebar }) {
+export default function Sidebar({ isOpen }) {
     const [activeKey, setActiveKey] = useState(null);
 
     const masterEntryItems = [
@@ -201,13 +200,14 @@ export default function Sidebar({ isOpen, toggleSidebar }) {
 
     return (
         <div>
-            <div
+           <div
                 className={`sidebar ${isOpen ? "open" : "closed"}`}
             >
-                <button className="hamburger" onClick={toggleSidebar}>
+                {/* <button className="hamburger" onClick={toggleSidebar}>
                     <GiHamburgerMenu />
-                </button>
+                </button> */}
                 <ul>
+                    {/* <Accordion activeKey={activeKey} onSelect={(key) => setActiveKey(key === activeKey ? null : key)} className="sidebarAccordion"> */}
                     <Accordion activeKey={activeKey} onSelect={(key) => setActiveKey(key === activeKey ? null : key)} className="sidebarAccordion">
                         <Accordion.Item className="nav-item">
                             <Accordion.Header>

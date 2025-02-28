@@ -1,14 +1,17 @@
+"use client";
 import React, { useState, useEffect } from 'react';
-import ReactDOM from 'react-dom';
 import { Row, Col, Container, Nav, Navbar, NavDropdown } from "react-bootstrap";
 import { DarkModeSwitch } from 'react-toggle-dark-mode';
 import Image from "next/image";
+import { GiHamburgerMenu } from "react-icons/gi";
 
-export default function Header() {
-  const [isDarkMode, setDarkMode] = React.useState(false);
-  const toggleDarkMode = (checked, boolean) => {
+export default function Header({ toggleSidebar }) {
+  const [isDarkMode, setDarkMode] = useState(false);
+
+  const toggleDarkMode = (checked) => {
     setDarkMode(checked);
   };
+
   useEffect(() => {
     if (isDarkMode) {
       document.body.classList.add('dark-mode');
@@ -16,12 +19,21 @@ export default function Header() {
       document.body.classList.remove('dark-mode');
     }
   }, [isDarkMode]);
+
   return (
     <>
       <section className="header">
         <Container>
           <Row className='align-items-center'>
-            <Col className="col-md-6"><h3>ERP DASHBOARD</h3></Col>
+            <Col className="col-md-6">
+              <div style={{ display: "flex", alignItems: "center" }}>
+                {/* Toggle Sidebar Icon */}
+                <button className="hamburger" onClick={toggleSidebar} style={{ marginRight: "10px", background: "none",color: "blue", border: "none", cursor: "pointer" }}>
+                  <GiHamburgerMenu size={24} />
+                </button>
+                <h3>ERP DASHBOARD</h3>
+              </div>
+            </Col>
             <Col className="col-md-6">
               <Navbar expand="lg" className="rightNavbar justify-content-end">
                 <Navbar.Collapse id="basic-navbar-nav" className="justify-content-end">
@@ -32,7 +44,8 @@ export default function Header() {
                         style={{ marginBottom: '0rem' }}
                         checked={isDarkMode}
                         onChange={toggleDarkMode}
-                        size={20} />
+                        size={20}
+                      />
                     </Nav.Link>
                     <NavDropdown title={<span><Image src="/user.png" alt="dropdown icon" style={{ marginRight: "8px" }} width={25} height={25} />  User Name </span>} id="basic-nav-dropdown">
                       <NavDropdown.Item href="#">Change Password</NavDropdown.Item>
@@ -49,4 +62,3 @@ export default function Header() {
     </>
   );
 }
-
