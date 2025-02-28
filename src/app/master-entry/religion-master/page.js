@@ -6,6 +6,7 @@ import Table from "@/app/component/DataTable";
 import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
 import { CgAddR } from 'react-icons/cg';
 import axios from "axios";
+import { copyContent, printContent } from "@/app/utils";
 
 const ReligionMasterPage = () => {
   const [data, setData] = useState([]); // Table data
@@ -103,7 +104,7 @@ const ReligionMasterPage = () => {
       try {
         await axios.delete(`https://erp-backend-fy3n.onrender.com/api/religions/${id}`);
         setData((prevData) => prevData.filter((row) => row._id !== id));
-        fetchData();
+        // fetchData();
       } catch (error) {
         console.error("Error deleting data:", error);
         setError("Failed to delete data. Please try again later.");
@@ -131,42 +132,21 @@ const ReligionMasterPage = () => {
     }
   };
 
-  const handlePrint = async () => {
-    const { jsPDF } = await import("jspdf");
-    const autoTable = (await import("jspdf-autotable")).default;
-
-    const doc = new jsPDF();
+  const handlePrint =  () => {
+ 
     const tableHeaders = [["#", "Religion Name"]];
     const tableRows = data.map((row, index) => [
       index + 1,
       row.religion_name || "N/A",
     ]);
-
-    autoTable(doc, {
-      head: tableHeaders,
-      body: tableRows,
-      theme: "grid",
-      styles: { fontSize: 10 },
-      headStyles: { fillColor: [41, 128, 185] },
-    });
-
-    // Open the print dialog instead of directly downloading
-    const pdfBlob = doc.output("blob");
-    const pdfUrl = URL.createObjectURL(pdfBlob);
-    const printWindow = window.open(pdfUrl);
-    printWindow.onload = () => {
-      printWindow.print();
-    };
+    printContent(tableHeaders, tableRows);
+    
   };
 
   const handleCopy = () => {
-    const headers = ["#", "Religion Name"].join("\t");
-    const rows = data.map((row, index) => `${index + 1}\t${row.religion_name || "N/A"}`).join("\n");
-    const fullData = `${headers}\n${rows}`;
-
-    navigator.clipboard.writeText(fullData)
-      .then(() => alert("Copied to clipboard!"))
-      .catch(() => alert("Failed to copy table data to clipboard."));
+    const headers = ["#", "Religion Name"];
+    const row = data.map((row, index) => `${index + 1}\t${row.religion_name || "N/A"}`);
+    copyContent(headers, row);
   };
 
   // Fetch data on component mount

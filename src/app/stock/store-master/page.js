@@ -17,6 +17,7 @@ import {
 } from "react-bootstrap";
 import axios from "axios";
 import Table from "@/app/component/DataTable"; // Ensure the path is correct
+import { copyContent, printContent } from "@/app/utils";
 
 const StoreMaster = () => {
   const [data, setData] = useState([]); // Data for the table
@@ -138,41 +139,20 @@ const StoreMaster = () => {
   };
 
   const handlePrint = async () => {
-    const { jsPDF } = await import("jspdf");
-    const autoTable = (await import("jspdf-autotable")).default;
-
-    const doc = new jsPDF();
     const tableHeaders = [["#", "Store Name"]];
     const tableRows = data.map((row, index) => [
       index + 1,
       row.storeName || "N/A",
     ]);
 
-    autoTable(doc, {
-      head: tableHeaders,
-      body: tableRows,
-      theme: "grid",
-      styles: { fontSize: 10 },
-      headStyles: { fillColor: [41, 128, 185] },
-    });
-
-    // Open the print dialog instead of directly downloading
-    const pdfBlob = doc.output("blob");
-    const pdfUrl = URL.createObjectURL(pdfBlob);
-    const printWindow = window.open(pdfUrl);
-    printWindow.onload = () => {
-      printWindow.print();
-    };
+    printContent(tableHeaders, tableRows);
   };
 
   const handleCopy = () => {
-    const headers = ["#", "Store Name"].join("\t");
-    const rows = data.map((row, index) => `${index + 1}\t${row.storeName || "N/A"}`).join("\n");
-    const fullData = `${headers}\n${rows}`;
+    const headers = ["#", "Store Name"];
+    const rows = data.map((row, index) => `${index + 1}\t${row.storeName || "N/A"}`);
 
-    navigator.clipboard.writeText(fullData)
-      .then(() => alert("Copied to clipboard!"))
-      .catch(() => alert("Failed to copy table data to clipboard."));
+    copyContent(headers, rows);
   };
 
   useEffect(() => {
@@ -235,11 +215,11 @@ const StoreMaster = () => {
           </Button>
           {isPopoverOpen && (
             <div className="cover-sheet">
-              <div className="studentHeading"><h2>Add Store</h2> 
-              <button className='closeForm' onClick={onClose}> X </button>
+              <div className="studentHeading"><h2>Add Store</h2>
+                <button className='closeForm' onClick={onClose}> X </button>
               </div>
 
-               <Form className="formSheet">
+              <Form className="formSheet">
                 <Row className="mb-3">
                   <Col lg={6}>
                     <FormLabel className="labelForm">Store Name</FormLabel>
@@ -275,7 +255,7 @@ const StoreMaster = () => {
             {loading ? (
               <p>Loading...</p>
             ) : data.length > 0 ? (
-              <Table columns={columns} data={data} handleCopy={handleCopy} handlePrint={handlePrint}/>
+              <Table columns={columns} data={data} handleCopy={handleCopy} handlePrint={handlePrint} />
             ) : (
               <p>No stores available.</p>
             )}

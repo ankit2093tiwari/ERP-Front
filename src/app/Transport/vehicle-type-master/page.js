@@ -6,6 +6,7 @@ import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
 import { Form, Row, Col, Container, FormLabel, FormControl, Button, Breadcrumb, Modal } from "react-bootstrap";
 import axios from "axios";
 import { CgAddR } from "react-icons/cg";
+import { copyContent, printContent } from "@/app/utils";
 
 const VehicleRecords = () => {
   const [data, setData] = useState([]);
@@ -123,41 +124,20 @@ const VehicleRecords = () => {
   };
 
   const handlePrint = async () => {
-    const { jsPDF } = await import("jspdf");
-    const autoTable = (await import("jspdf-autotable")).default;
-
-    const doc = new jsPDF();
     const tableHeaders = [["#", "Vehicle Type Name"]];
     const tableRows = data.map((row, index) => [
       index + 1,
       row.type_name || "N/A",
     ]);
 
-    autoTable(doc, {
-      head: tableHeaders,
-      body: tableRows,
-      theme: "grid",
-      styles: { fontSize: 10 },
-      headStyles: { fillColor: [41, 128, 185] },
-    });
-
-    // Open the print dialog instead of directly downloading
-    const pdfBlob = doc.output("blob");
-    const pdfUrl = URL.createObjectURL(pdfBlob);
-    const printWindow = window.open(pdfUrl);
-    printWindow.onload = () => {
-      printWindow.print();
-    };
+    printContent(tableHeaders, tableRows);
   };
 
   const handleCopy = () => {
-    const headers = ["#", "Vehicle Type Name"].join("\t");
-    const rows = data.map((row, index) => `${index + 1}\t${row.type_name || "N/A"}`).join("\n");
-    const fullData = `${headers}\n${rows}`;
+    const headers = ["#", "Vehicle Type Name"];
+    const rows = data.map((row, index) => `${index + 1}\t${row.type_name || "N/A"}`);
 
-    navigator.clipboard.writeText(fullData)
-      .then(() => alert("Copied to clipboard!"))
-      .catch(() => alert("Failed to copy table data to clipboard."));
+    copyContent(headers, rows);
   };
 
   useEffect(() => {
@@ -171,7 +151,7 @@ const VehicleRecords = () => {
         <Breadcrumb.Item href="/Transport/all-module">Transport</Breadcrumb.Item>
         <Breadcrumb.Item active>Vehicle Master</Breadcrumb.Item>
       </Breadcrumb>
-      
+
       <Button onClick={() => setShowAddForm(true)} className="btn btn-primary mb-4">
         <CgAddR /> Add Vehicle
       </Button>
@@ -201,12 +181,12 @@ const VehicleRecords = () => {
           </Form>
         </div>
       )}
-      
+
       <Row>
         <Col>
           <div className="tableSheet">
             <h2>Vehicle Records</h2>
-            {loading ? <p>Loading...</p> : error ? <p style={{ color: "red" }}>{error}</p> : data.length > 0 ? <Table columns={columns} data={data} handleCopy={handleCopy} handlePrint={handlePrint}  /> : <p>No data available.</p>}
+            {loading ? <p>Loading...</p> : error ? <p style={{ color: "red" }}>{error}</p> : data.length > 0 ? <Table columns={columns} data={data} handleCopy={handleCopy} handlePrint={handlePrint} /> : <p>No data available.</p>}
           </div>
         </Col>
       </Row>

@@ -5,6 +5,7 @@ import axios from "axios";
 import { Form, Row, Col, Container, FormLabel, Button, Breadcrumb, FormSelect } from "react-bootstrap";
 import Table from "@/app/component/DataTable";
 import styles from "@/app/medical/routine-check-up/page.module.css";
+import { copyContent, printContent } from "@/app/utils";
 
 const PromoteStudentPage = () => {
   const [classList, setClassList] = useState([]);
@@ -16,6 +17,7 @@ const PromoteStudentPage = () => {
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [promotedClass, setPromotedClass] = useState("");
   const [promotedSection, setPromotedSection] = useState("");
+  const [selectAll, setSelectAll] = useState(false);
 
   useEffect(() => {
     fetchClasses();
@@ -76,85 +78,99 @@ const PromoteStudentPage = () => {
   };
 
   const handlePrint = async () => {
-    if (typeof window !== "undefined") {
-      const { jsPDF } = await import("jspdf");
-      const { autoTable } = await import("jspdf-autotable");
 
-      const doc = new jsPDF();
-      doc.text("Promote Students Report", 14, 10);
+    // doc.text("Promote Students Report", 14, 10);
 
-      const tableHeaders = [["#", "Student Name", "Father Name", "Adm No", "Gender", "Roll No"]];
-      const tableRows = students.map((row, index) => [
-        index + 1,
-        `${row.first_name} ${row.middle_name || ""} ${row.last_name}`.trim(),
-        row.father_name || "N/A",
-        row.registration_id || "N/A",
-        row.gender_name || "N/A",
-        row.roll_no || "N/A",
-      ]);
+    const tableHeaders = [["#", "Student Name", "Father Name", "Adm No", "Gender", "Roll No"]];
+    const tableRows = students.map((row, index) => [
+      index + 1,
+      `${row.first_name} ${row.middle_name || ""} ${row.last_name}`.trim(),
+      row.father_name || "N/A",
+      row.registration_id || "N/A",
+      row.gender_name || "N/A",
+      row.roll_no || "N/A",
+    ]);
 
-      autoTable(doc, {
-        head: tableHeaders,
-        body: tableRows,
-        theme: "grid",
-        styles: { fontSize: 10 },
-        headStyles: { fillColor: [41, 128, 185] },
-      });
+    printContent(tableHeaders, tableRows);
 
-      const pdfBlob = doc.output("blob");
-      const pdfUrl = URL.createObjectURL(pdfBlob);
-      const printWindow = window.open(pdfUrl);
-      printWindow.onload = () => {
-        printWindow.print(); 
-      };
 
-      // doc.save("Promote_Students_Report.pdf");
-    }
   };
 
   const handleCopy = () => {
-    if (typeof window !== "undefined") {
-      const headers = ["#", "Student Name", "Father Name", "Adm No", "Gender", "Roll No"].join("\t");
-      const rows = students
-        .map((row, index) =>
-          [
-            index + 1,
-            `${row.first_name} ${row.middle_name || ""} ${row.last_name}`.trim(),
-            row.father_name || "N/A",
-            row.registration_id || "N/A",
-            row.gender_name || "N/A",
-            row.roll_no || "N/A",
-          ].join("\t")
-        )
-        .join("\n");
 
-      const fullData = `${headers}\n${rows}`;
+    const headers = ["#", "Student Name", "Father Name", "Adm No", "Gender", "Roll No"];
+    const rows = students
+      .map((row, index) =>
+        [
+          index + 1,
+          `${row.first_name} ${row.middle_name || ""} ${row.last_name}`.trim(),
+          row.father_name || "N/A",
+          row.registration_id || "N/A",
+          row.gender_name || "N/A",
+          row.roll_no || "N/A",
+        ]
+      )
+    copyContent(headers, rows)
+  };
 
-      navigator.clipboard
-        .writeText(fullData)
-        .then(() => alert("Copied to clipboard!"))
-        .catch(() => alert("Failed to copy table data to clipboard."));
+  const handleSelectAll = () => {
+    if (selectAll) {
+      setSelectedStudents([]);
+    } else {
+      setSelectedStudents(students.map((student) => student._id));
     }
+    setSelectAll(!selectAll);
+  };
+
+  const handleStudentSelect = (studentId) => {
+    setSelectedStudents((prevSelected) =>
+      prevSelected.includes(studentId)
+        ? prevSelected.filter((id) => id !== studentId)
+        : [...prevSelected, studentId]
+    );
   };
 
 
+
   const columns = [
+    // {
+    //   name: "Select",
+    //   cell: (row) => (
+    //     <input
+    //       type="checkbox"
+    //       checked={selectedStudents.includes(row._id)}
+    //       onChange={() =>
+    //         setSelectedStudents((prevSelected) =>
+    //           prevSelected.includes(row._id)
+    //             ? prevSelected.filter((id) => id !== row._id)
+    //             : [...prevSelected, row._id]
+    //         )
+    //       }
+    //     />
+    //   ),
+    // },
     {
-      name: "Select",
+      name: "#",
+      selector: (row, index) => index + 1,
+      sortable: false,
+      width: "50px",
+    },
+    {
+      name: (
+        <>
+          Select All{" "}
+          <input type="checkbox" checked={selectAll} onChange={handleSelectAll} />
+        </>
+      ),
       cell: (row) => (
         <input
           type="checkbox"
           checked={selectedStudents.includes(row._id)}
-          onChange={() =>
-            setSelectedStudents((prevSelected) =>
-              prevSelected.includes(row._id)
-                ? prevSelected.filter((id) => id !== row._id)
-                : [...prevSelected, row._id]
-            )
-          }
+          onChange={() => handleStudentSelect(row._id)}
         />
       ),
     },
+
     { name: "Student Name", selector: (row) => `${row.first_name} ${row.middle_name || ""} ${row.last_name}`.trim(), sortable: true },
     { name: "Father Name", selector: (row) => row.father_name || "N/A", sortable: true },
     { name: "Adm No", selector: (row) => row.registration_id || "N/A", sortable: true },

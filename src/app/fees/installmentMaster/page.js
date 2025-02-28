@@ -16,6 +16,7 @@ import {
 import axios from "axios";
 import Table from "@/app/component/DataTable";
 import styles from "@/app/medical/routine-check-up/page.module.css";
+import { copyContent, printContent } from "@/app/utils";
 
 const InstallmentMaster = () => {
   const [data, setData] = useState([]);
@@ -104,44 +105,22 @@ const InstallmentMaster = () => {
 
   // Handle Print Functionality
   const handlePrint = async () => {
-    if (typeof window !== "undefined") {
-      const { jsPDF } = await import("jspdf");
-      const { autoTable } = await import("jspdf-autotable");
+    const tableHeaders = [["#", "Installment Name"]]; // Add headers
+    const tableRows = data.map((row, index) => [
+      index + 1,
+      row.installment_name || "N/A",
+    ]);
 
-      const doc = new jsPDF();
-      const tableHeaders = [["#", "Installment Name"]]; // Add headers
-      const tableRows = data.map((row, index) => [
-        index + 1,
-        row.installment_name || "N/A",
-      ]);
+    printContent(tableHeaders, tableRows);
 
-      autoTable(doc, {
-        head: tableHeaders,
-        body: tableRows,
-        theme: "grid", // Add grid styling
-        styles: { fontSize: 10 },
-        headStyles: { fillColor: [41, 128, 185] }, // Header background color
-      });
-
-      // Open the print dialog instead of directly downloading
-      const pdfBlob = doc.output("blob");
-      const pdfUrl = URL.createObjectURL(pdfBlob);
-      const printWindow = window.open(pdfUrl);
-      printWindow.onload = () => {
-        printWindow.print(); // Trigger the print dialog
-      };
-    }
   };
 
   // Copy table data to clipboard
   const handleCopy = () => {
-    const headers = ["#", "Installment Name"].join("\t"); // Tab-separated headers
-    const rows = data.map((row, index) => `${index + 1}\t${row.installment_name || "N/A"}`).join("\n");
-    const fullData = `${headers}\n${rows}`;
-
-    navigator.clipboard.writeText(fullData)
-      .then(() => alert("Copied to clipboard!"))
-      .catch(() => alert("Failed to copy table data to clipboard."));
+    const headers = ["#", "Installment Name"]; // Tab-separated headers
+    const rows = data.map((row, index) => `${index + 1}\t${row.installment_name || "N/A"}`);
+    
+    copyContent(headers, rows);
   };
 
   // Fetch data on component mount
@@ -178,10 +157,10 @@ const InstallmentMaster = () => {
           {editingId === row._id ? (
             <>
               <button className="editButton" onClick={() => handleUpdate(row._id)}>
-                <FaSave /> 
+                <FaSave />
               </button>
               <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
-                <FaTrashAlt /> 
+                <FaTrashAlt />
               </button>
             </>
           ) : (
@@ -190,7 +169,7 @@ const InstallmentMaster = () => {
                 <FaEdit />
               </button>
               <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
-                <FaTrashAlt /> 
+                <FaTrashAlt />
               </button>
             </>
           )}

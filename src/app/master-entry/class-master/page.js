@@ -6,6 +6,7 @@ import axios from "axios";
 import Table from "@/app/component/DataTable";
 import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
 import { CgAddR } from "react-icons/cg";
+import { copyContent, printContent } from "@/app/utils";
 
 const ClassMasterPage = () => {
   const [data, setData] = useState([]); // State for class data
@@ -334,10 +335,6 @@ const ClassMasterPage = () => {
   };
 
   const handlePrint = async () => {
-    const { jsPDF } = await import("jspdf");
-    const autoTable = (await import("jspdf-autotable")).default;
-    const doc = new jsPDF();
-
     const tableHeaders = [["#", "Class Name", "Class Code", "Sections"]];
     const tableRows = data.map((row, index) => {
       const sections = row.sections
@@ -346,37 +343,21 @@ const ClassMasterPage = () => {
       return [index + 1, row.class_name || "N/A", row.class_code || "N/A", sections || "No sections"];
     });
 
-    autoTable(doc, {
-      head: tableHeaders,
-      body: tableRows,
-      theme: "grid",
-      styles: { fontSize: 10 },
-      headStyles: { fillColor: [41, 128, 185] },
-    });
+    printContent(tableHeaders, tableRows);
 
-    const pdfBlob = doc.output("blob");
-    const pdfUrl = URL.createObjectURL(pdfBlob);
-    const printWindow = window.open(pdfUrl);
-    if (printWindow) {
-      printWindow.onload = () => {
-        printWindow.print();
-      };
-    }
+
   };
 
   const handleCopy = () => {
-    const headers = "#\tClass Name\tClass Code\tSections";
+    // const headers = "#\tClass Name\tClass Code\tSections";
+    const headers = ["#", "Class Name", "Class Code", "Sections"];
     const rows = data.map((row, index) => {
       const sections = row.sections
-        .map((section) => `${section.section_code} - ${section.section_name}`)
-        .join(", ");
+        .map((section) => `${section.section_code} - ${section.section_name}`);
       return `${index + 1}\t${row.class_name || "N/A"}\t${row.class_code || "N/A"}\t${sections || "No sections"}`;
-    }).join("\n");
+    });
 
-    const fullData = `${headers}\n${rows}`;
-    navigator.clipboard.writeText(fullData)
-      .then(() => alert("Copied to clipboard!"))
-      .catch(() => alert("Failed to copy table data to clipboard."));
+    copyContent(headers, rows);
   };
 
 

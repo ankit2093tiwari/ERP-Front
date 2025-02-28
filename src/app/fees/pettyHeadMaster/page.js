@@ -9,6 +9,7 @@ import Table from "@/app/component/DataTable";
 import styles from "@/app/medical/routine-check-up/page.module.css";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
+import { copyContent, printContent } from "@/app/utils";
 
 const PettyHeadMaster = () => {
   const [data, setData] = useState([]);
@@ -75,44 +76,24 @@ const PettyHeadMaster = () => {
     },
   ];
 
-   const handlePrint = async () => {
-       const { jsPDF } = await import("jspdf");
-       const autoTable = (await import("jspdf-autotable")).default;
-     
-       const doc = new jsPDF();
-       const tableHeaders = [["#", "Petty Head Name", "Head Type"]];
-       const tableRows = data.map((row, index) => [
-         index + 1,
-         row.petty_name || "N/A",
-         row.head_type || "N/A",
-       ]);
-     
-       autoTable(doc, {
-         head: tableHeaders,
-         body: tableRows,
-         theme: "grid",
-         styles: { fontSize: 10 },
-         headStyles: { fillColor: [41, 128, 185] },
-       });
-     
-       // Open the print dialog instead of directly downloading
-       const pdfBlob = doc.output("blob");
-       const pdfUrl = URL.createObjectURL(pdfBlob);
-       const printWindow = window.open(pdfUrl);
-       printWindow.onload = () => {
-         printWindow.print();
-       };
-     };  
-  
-    const handleCopy = () => {
-      const headers = ["#", "Petty Head Name", "Head Type"].join("\t"); // Tab-separated headers
-      const rows = data.map((row, index) => `${index + 1}\t${row.petty_name || "N/A"}\t${row.head_type || "N/A"}`).join("\n");
-      const fullData = `${headers}\n${rows}`;
-  
-      navigator.clipboard.writeText(fullData)
-        .then(() => alert("Copied to clipboard!"))
-        .catch(() => alert("Failed to copy table data to clipboard."));
-    };
+  const handlePrint = async () => {
+    const tableHeaders = [["#", "Petty Head Name", "Head Type"]];
+    const tableRows = data.map((row, index) => [
+      index + 1,
+      row.petty_name || "N/A",
+      row.head_type || "N/A",
+    ]);
+
+    printContent(tableHeaders, tableRows);
+
+  };
+
+  const handleCopy = () => {
+    const headers = ["#", "Petty Head Name", "Head Type"];
+    const rows = data.map((row, index) => `${index + 1}\t${row.petty_name || "N/A"}\t${row.head_type || "N/A"}`);
+
+    copyContent(headers, rows);
+  };
 
   // Fetch PettyHeads
   const fetchData = async () => {

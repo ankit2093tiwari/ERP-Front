@@ -17,6 +17,7 @@ import {
 import axios from "axios";
 import Table from "@/app/component/DataTable";
 import { CgAddR } from 'react-icons/cg';
+import { copyContent, printContent } from "@/app/utils";
 
 const ItemCategory = () => {
   const [data, setData] = useState([]);
@@ -116,41 +117,23 @@ const ItemCategory = () => {
   };
 
   const handlePrint = async () => {
-    const { jsPDF } = await import("jspdf");
-    const autoTable = (await import("jspdf-autotable")).default;
 
-    const doc = new jsPDF();
     const tableHeaders = [["#", "Category Name"]];
     const tableRows = data.map((row, index) => [
       index + 1,
       row.categoryName || "N/A",
     ]);
 
-    autoTable(doc, {
-      head: tableHeaders,
-      body: tableRows,
-      theme: "grid",
-      styles: { fontSize: 10 },
-      headStyles: { fillColor: [41, 128, 185] },
-    });
+    printContent(tableHeaders, tableRows);
 
-    // Open the print dialog instead of directly downloading
-    const pdfBlob = doc.output("blob");
-    const pdfUrl = URL.createObjectURL(pdfBlob);
-    const printWindow = window.open(pdfUrl);
-    printWindow.onload = () => {
-      printWindow.print();
-    };
+
   };
 
   const handleCopy = () => {
-    const headers = ["#", "Category Name"].join("\t");
-    const rows = data.map((row, index) => `${index + 1}\t${row.categoryName || "N/A"}`).join("\n");
-    const fullData = `${headers}\n${rows}`;
+    const headers = ["#", "Category Name"];
+    const rows = data.map((row, index) => `${index + 1}\t${row.categoryName || "N/A"}`);
 
-    navigator.clipboard.writeText(fullData)
-      .then(() => alert("Copied to clipboard!"))
-      .catch(() => alert("Failed to copy table data to clipboard."));
+    copyContent(headers, rows);
   };
 
   useEffect(() => {
@@ -215,15 +198,15 @@ const ItemCategory = () => {
       {error && <Alert variant="danger">{error}</Alert>}
       <Row>
         <Col>
-         <Button onClick={onOpen} className="btn btn-primary">
-           <CgAddR /> Add Category
+          <Button onClick={onOpen} className="btn btn-primary">
+            <CgAddR /> Add Category
           </Button>
           {isPopoverOpen && (
             <div className="cover-sheet">
-               <div className="studentHeading"><h2>Add Category</h2>
+              <div className="studentHeading"><h2>Add Category</h2>
                 <button className='closeForm' onClick={onClose}> X </button>
-                </div>
-                <Form className="formSheet">
+              </div>
+              <Form className="formSheet">
                 <Row className="mb-3">
                   <Col lg={6}>
                     <FormLabel className="labelForm">Category Name</FormLabel>

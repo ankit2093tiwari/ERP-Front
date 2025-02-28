@@ -16,6 +16,7 @@ import {
 import axios from "axios";
 import Table from "@/app/component/DataTable";
 import styles from "@/app/medical/routine-check-up/page.module.css";
+import { copyContent, printContent } from "@/app/utils";
 
 const FeeSetting = () => {
   const [data, setData] = useState([]);
@@ -34,46 +35,26 @@ const FeeSetting = () => {
     amex_charge: "",
   });
 
-   const handlePrint = async () => {
-      const { jsPDF } = await import("jspdf");
-      const autoTable = (await import("jspdf-autotable")).default;
-    
-      const doc = new jsPDF();
-      const tableHeaders = [["#", "Credit Card Charge", "Debit Card Charge", "AMEX Charge"]];
-      const tableRows = data.map((row, index) => [
-        index + 1,
-        row.credit_card_charge || "N/A",
-        row.debit_card_charge || "N/A",
-        row.amex_charge || "N/A",
-      ]);
-    
-      autoTable(doc, {
-        head: tableHeaders,
-        body: tableRows,
-        theme: "grid",
-        styles: { fontSize: 10 },
-        headStyles: { fillColor: [41, 128, 185] },
-      });
-    
-      // Open the print dialog instead of directly downloading
-      const pdfBlob = doc.output("blob");
-      const pdfUrl = URL.createObjectURL(pdfBlob);
-      const printWindow = window.open(pdfUrl);
-      printWindow.onload = () => {
-        printWindow.print();
-      };
-    };  
+  const handlePrint = async () => {
+    const tableHeaders = [["#", "Credit Card Charge", "Debit Card Charge", "AMEX Charge"]];
+    const tableRows = data.map((row, index) => [
+      index + 1,
+      row.credit_card_charge || "N/A",
+      row.debit_card_charge || "N/A",
+      row.amex_charge || "N/A",
+    ]);
 
-  
+    printContent(tableHeaders, tableRows);
+
+  };
+
+
 
   const handleCopy = () => {
-    const headers = ["#", "Credit Card Charge", "Debit Card Charge", "AMEX Charge"].join("\t");
-    const rows = data.map((row, index) => `${index + 1}\t${row.credit_card_charge || "N/A"}\t${row.debit_card_charge || "N/A"}\t${row.amex_charge || "N/A"}`).join("\n");
-    const fullData = `${headers}\n${rows}`;
+    const headers = ["#", "Credit Card Charge", "Debit Card Charge", "AMEX Charge"];
+    const rows = data.map((row, index) => `${index + 1}\t${row.credit_card_charge || "N/A"}\t${row.debit_card_charge || "N/A"}\t${row.amex_charge || "N/A"}`);
 
-    navigator.clipboard.writeText(fullData)
-      .then(() => alert("Copied to clipboard!"))
-      .catch(() => alert("Failed to copy table data to clipboard."));
+    copyContent(headers, rows);
   };
 
 
@@ -242,19 +223,19 @@ const FeeSetting = () => {
           {editingId === row._id ? (
             <>
               <button className="editButton" onClick={() => handleUpdate(row._id)}>
-                <FaSave /> 
+                <FaSave />
               </button>
               <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
-                <FaTrashAlt /> 
+                <FaTrashAlt />
               </button>
             </>
           ) : (
             <>
               <button className="editButton" onClick={() => handleEdit(row)}>
-                <FaEdit /> 
+                <FaEdit />
               </button>
               <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
-                <FaTrashAlt /> 
+                <FaTrashAlt />
               </button>
             </>
           )}

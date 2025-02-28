@@ -6,6 +6,7 @@ import { Form, Row, Col, Container, FormLabel, Button, Breadcrumb, FormSelect, A
 import jsPDF from "jspdf";
 import DataTable from "@/app/component/DataTable"; // Adjust the import path as needed
 import styles from "@/app/students/assign-roll-no/page.module.css";
+import { copyContent, printContent } from "@/app/utils";
 
 const GenerateIdCard = () => {
   const [classList, setClassList] = useState([]);
@@ -143,43 +144,24 @@ const GenerateIdCard = () => {
   };
 
   const handlePrint = async () => {
-    if (typeof window !== "undefined") {
-      const { jsPDF } = await import("jspdf");
-      const { autoTable } = await import("jspdf-autotable");
+    // doc.text("Student ID Cards Report", 14, 10);
 
-      const doc = new jsPDF();
-      doc.text("Student ID Cards Report", 14, 10);
+    const tableHeaders = [["#", "Class", "Section", "Roll No", "Student Name", "Father Name", "Mobile No"]];
+    const tableRows = students.map((row, index) => [
+      index + 1,
+      row.class_name?.class_name || "N/A",
+      row.section_name?.section_name || "N/A",
+      row.roll_no || "N/A",
+      `${row.first_name} ${row.last_name}`,
+      row.father_name || "N/A",
+      row.phone_no || "N/A",
+    ]);
 
-      const tableHeaders = [["#", "Class", "Section", "Roll No", "Student Name", "Father Name", "Mobile No"]];
-      const tableRows = students.map((row, index) => [
-        index + 1,
-        row.class_name?.class_name || "N/A",
-        row.section_name?.section_name || "N/A",
-        row.roll_no || "N/A",
-        `${row.first_name} ${row.last_name}`,
-        row.father_name || "N/A",
-        row.phone_no || "N/A",
-      ]);
-
-      autoTable(doc, {
-        head: tableHeaders,
-        body: tableRows,
-        theme: "grid",
-        styles: { fontSize: 10 },
-        headStyles: { fillColor: [41, 128, 185] },
-      });
-
-      const pdfBlob = doc.output("blob");
-      const pdfUrl = URL.createObjectURL(pdfBlob);
-      const printWindow = window.open(pdfUrl);
-      printWindow.onload = () => {
-        printWindow.print();
-      };
-    }
+    printContent(tableHeaders, tableRows);
   };
 
   const handleCopy = () => {
-    const headers = ["#", "Class", "Section", "Roll No", "Student Name", "Father Name", "Mobile No"].join("\t");
+    const headers = ["#", "Class", "Section", "Roll No", "Student Name", "Father Name", "Mobile No"];
     const rows = students
       .map((row, index) =>
         [
@@ -190,16 +172,10 @@ const GenerateIdCard = () => {
           `${row.first_name} ${row.last_name}`,
           row.father_name || "N/A",
           row.phone_no || "N/A",
-        ].join("\t")
-      )
-      .join("\n");
+        ]
+      );
 
-    const fullData = `${headers}\n${rows}`;
-
-    navigator.clipboard
-      .writeText(fullData)
-      .then(() => alert("Copied to clipboard!"))
-      .catch(() => alert("Failed to copy table data to clipboard."));
+    copyContent(headers, rows)
   };
 
   const columns = [

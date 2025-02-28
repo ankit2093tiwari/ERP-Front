@@ -9,6 +9,7 @@ import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
 import { Form, Row, Col, Container, FormLabel, FormControl, Button, Breadcrumb } from "react-bootstrap";
 import axios from "axios";
 import { CgAddR } from 'react-icons/cg';
+import { copyContent, printContent } from "@/app/utils";
 
 const AddLibraryGroup = () => {
   const [data, setData] = useState([]);
@@ -118,43 +119,23 @@ const AddLibraryGroup = () => {
     }
   };
 
-   const handlePrint = async () => {
-      const { jsPDF } = await import("jspdf");
-      const autoTable = (await import("jspdf-autotable")).default;
-  
-      const doc = new jsPDF();
-      const tableHeaders = [["#", "Group Name"]];
-      const tableRows = data.map((row, index) => [
-        index + 1,
-        row.groupName || "N/A",
-      ]);
-  
-      autoTable(doc, {
-        head: tableHeaders,
-        body: tableRows,
-        theme: "grid",
-        styles: { fontSize: 10 },
-        headStyles: { fillColor: [41, 128, 185] },
-      });
-  
-      // Open the print dialog instead of directly downloading
-      const pdfBlob = doc.output("blob");
-      const pdfUrl = URL.createObjectURL(pdfBlob);
-      const printWindow = window.open(pdfUrl);
-      printWindow.onload = () => {
-        printWindow.print();
-      };
-    };
-  
-    const handleCopy = () => {
-      const headers = ["#", "Group Name"].join("\t");
-      const rows = data.map((row, index) => `${index + 1}\t${row.groupName || "N/A"}`).join("\n");
-      const fullData = `${headers}\n${rows}`;
-  
-      navigator.clipboard.writeText(fullData)
-        .then(() => alert("Copied to clipboard!"))
-        .catch(() => alert("Failed to copy table data to clipboard."));
-    };
+  const handlePrint = async () => {
+    const tableHeaders = [["#", "Group Name"]];
+    const tableRows = data.map((row, index) => [
+      index + 1,
+      row.groupName || "N/A",
+    ]);
+
+    printContent(tableHeaders, tableRows);
+
+  };
+
+  const handleCopy = () => {
+    const headers = ["#", "Group Name"];
+    const rows = data.map((row, index) => `${index + 1}\t${row.groupName || "N/A"}`);
+
+    copyContent(headers, rows);
+  };
 
   useEffect(() => {
     fetchData();
@@ -174,14 +155,14 @@ const AddLibraryGroup = () => {
         </Col>
       </Row>
 
-       <Button onClick={onOpen} className="btn btn-primary">
+      <Button onClick={onOpen} className="btn btn-primary">
         <CgAddR /> Add Group
       </Button>
       {isPopoverOpen && (
 
         <div className="cover-sheet">
           <div className="studentHeading"><h2> Add New Group</h2>
-          <button className='closeForm' onClick={onClose}> X </button></div>
+            <button className='closeForm' onClick={onClose}> X </button></div>
           <Form className="formSheet">
             <Row>
               <Col lg={6}>

@@ -17,6 +17,7 @@ import {
 import axios from "axios";
 import Table from "@/app/component/DataTable";
 import styles from "@/app/medical/routine-check-up/page.module.css";
+import { copyContent, printContent } from "@/app/utils";
 
 const CasteMasterPage = () => {
   const [data, setData] = useState([]);
@@ -70,41 +71,22 @@ const CasteMasterPage = () => {
   ];
 
   const handlePrint = async () => {
-    const { jsPDF } = await import("jspdf");
-    const autoTable = (await import("jspdf-autotable")).default;
-
-    const doc = new jsPDF();
     const tableHeaders = [["#", "Caste Name"]];
     const tableRows = data.map((row, index) => [
       index + 1,
       row.caste_name || "N/A",
     ]);
 
-    autoTable(doc, {
-      head: tableHeaders,
-      body: tableRows,
-      theme: "grid",
-      styles: { fontSize: 10 },
-      headStyles: { fillColor: [41, 128, 185] },
-    });
+    printContent(tableHeaders, tableRows);
 
-    // Open the print dialog instead of directly downloading
-    const pdfBlob = doc.output("blob");
-    const pdfUrl = URL.createObjectURL(pdfBlob);
-    const printWindow = window.open(pdfUrl);
-    printWindow.onload = () => {
-      printWindow.print();
-    };
   };
 
   const handleCopy = () => {
-    const headers = ["#", "Caste Name"].join("\t");
-    const rows = data.map((row, index) => `${index + 1}\t${row.caste_name || "N/A"}`).join("\n");
-    const fullData = `${headers}\n${rows}`;
+    const headers = ["#", "Caste Name"];
+    const rows = data.map((row, index) => `${index + 1}\t${row.caste_name || "N/A"}`);
 
-    navigator.clipboard.writeText(fullData)
-      .then(() => alert("Copied to clipboard!"))
-      .catch(() => alert("Failed to copy table data to clipboard."));
+    copyContent(headers, rows);
+
   };
 
   const fetchData = async () => {

@@ -8,6 +8,7 @@ import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
 import { Form, Row, Col, Container, FormLabel, FormControl, Button, Breadcrumb, Alert } from "react-bootstrap";
 import axios from "axios";
 import { CgAddR } from 'react-icons/cg';
+import { copyContent } from "@/app/utils";
 
 const BookCategory = () => {
   const [data, setData] = useState([]);
@@ -78,41 +79,21 @@ const BookCategory = () => {
   };
 
   const handlePrint = async () => {
-    const { jsPDF } = await import("jspdf");
-    const autoTable = (await import("jspdf-autotable")).default;
-
-    const doc = new jsPDF();
     const tableHeaders = [["#", "Group Name"]];
     const tableRows = data.map((row, index) => [
       index + 1,
       row.groupName || "N/A",
     ]);
 
-    autoTable(doc, {
-      head: tableHeaders,
-      body: tableRows,
-      theme: "grid",
-      styles: { fontSize: 10 },
-      headStyles: { fillColor: [41, 128, 185] },
-    });
+    printContent(tableHeaders, tableRows);
 
-    // Open the print dialog instead of directly downloading
-    const pdfBlob = doc.output("blob");
-    const pdfUrl = URL.createObjectURL(pdfBlob);
-    const printWindow = window.open(pdfUrl);
-    printWindow.onload = () => {
-      printWindow.print();
-    };
   };
 
   const handleCopy = () => {
     const headers = ["#", "Group Name"].join("\t");
     const rows = data.map((row, index) => `${index + 1}\t${row.groupName || "N/A"}`).join("\n");
-    const fullData = `${headers}\n${rows}`;
 
-    navigator.clipboard.writeText(fullData)
-      .then(() => alert("Copied to clipboard!"))
-      .catch(() => alert("Failed to copy table data to clipboard."));
+    copyContent(headers, rows);
   };
 
   useEffect(() => {
