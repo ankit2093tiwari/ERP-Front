@@ -94,6 +94,7 @@ export default function Sidebar({ isOpen }) {
         { title: "Mail In", href: "/front-office/mail-in", icon: <FaAngleDoubleRight /> },
         { title: "Mail Out", href: "/front-office/mail-out", icon: <FaAngleDoubleRight /> },
         { title: "Address Book", href: "/front-office/address-book", icon: <FaAngleDoubleRight /> },
+        { title: "Gate Pass", href: "/stock/gate-pass", icon: <FaAngleDoubleRight /> },
     ];
 
     const stockItems = [
@@ -108,7 +109,6 @@ export default function Sidebar({ isOpen }) {
         { title: "Issue Item", href: "/stock/issue-item", icon: <FaAngleDoubleRight /> },
         { title: "Return Item", href: "/stock/return-item", icon: <FaAngleDoubleRight /> },
         { title: "Write Off Entry", href: "/stock/write-off-entry", icon: <FaAngleDoubleRight /> },
-        { title: "Gate Pass", href: "/stock/gate-pass", icon: <FaAngleDoubleRight /> },
         { title: "Generate Gate Pass", href: "/stock/generate-gate-pass", icon: <FaAngleDoubleRight /> },
     ];
     const accountItems = [
@@ -203,11 +203,7 @@ export default function Sidebar({ isOpen }) {
            <div
                 className={`sidebar ${isOpen ? "open" : "closed"}`}
             >
-                {/* <button className="hamburger" onClick={toggleSidebar}>
-                    <GiHamburgerMenu />
-                </button> */}
                 <ul>
-                    {/* <Accordion activeKey={activeKey} onSelect={(key) => setActiveKey(key === activeKey ? null : key)} className="sidebarAccordion"> */}
                     <Accordion activeKey={activeKey} onSelect={(key) => setActiveKey(key === activeKey ? null : key)} className="sidebarAccordion">
                         <Accordion.Item className="nav-item">
                             <Accordion.Header>
