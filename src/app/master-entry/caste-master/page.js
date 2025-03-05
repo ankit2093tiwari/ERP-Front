@@ -11,13 +11,13 @@ import {
   Container,
   FormLabel,
   FormControl,
-  Button,
-  Breadcrumb
+  Button
 } from "react-bootstrap";
 import axios from "axios";
 import Table from "@/app/component/DataTable";
 import styles from "@/app/medical/routine-check-up/page.module.css";
 import { copyContent, printContent } from "@/app/utils";
+import Breadcrumb from "@/app/component/Breadcrumb"; 
 
 const CasteMasterPage = () => {
   const [data, setData] = useState([]);
@@ -27,6 +27,12 @@ const CasteMasterPage = () => {
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [editedName, setEditedName] = useState("");
+
+  const breadcrumbItems = [
+    { label: "Home", href: "/" },
+    { label: "Master Entry", href: "/master-entry/all-module" }, 
+    { label: "Caste Master", href: null }, 
+  ];
 
   const columns = [
     {
@@ -78,7 +84,6 @@ const CasteMasterPage = () => {
     ]);
 
     printContent(tableHeaders, tableRows);
-
   };
 
   const handleCopy = () => {
@@ -86,7 +91,6 @@ const CasteMasterPage = () => {
     const rows = data.map((row, index) => `${index + 1}\t${row.caste_name || "N/A"}`);
 
     copyContent(headers, rows);
-
   };
 
   const fetchData = async () => {
@@ -170,13 +174,7 @@ const CasteMasterPage = () => {
     <Container>
       <Row className='mt-1 mb-1'>
         <Col>
-          <Breadcrumb>
-            <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-            <Breadcrumb.Item href="/master-entry/all-module">
-              Master Entry
-            </Breadcrumb.Item>
-            <Breadcrumb.Item active>Caste Master</Breadcrumb.Item>
-          </Breadcrumb>
+          <Breadcrumb items={breadcrumbItems} />
         </Col>
       </Row>
       <Button onClick={() => setIsPopoverOpen(true)} className="btn btn-primary mb-4">
