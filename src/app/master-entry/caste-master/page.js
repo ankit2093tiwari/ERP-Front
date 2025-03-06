@@ -155,6 +155,13 @@ const CasteMasterPage = () => {
   const handleAdd = async () => {
     if (newCasteName.trim()) {
       try {
+        // Check if the caste_name already exists
+        const existingCaste = data.find((caste) => caste.caste_name === newCasteName);
+        if (existingCaste) {
+          setError("Caste name already exists. Data already saved.");
+          return;
+        }
+
         const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/castes", {
           caste_name: newCasteName,
         });
