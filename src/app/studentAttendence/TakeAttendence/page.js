@@ -19,6 +19,10 @@ const TakeAttendence = () => {
 
     useEffect(() => {
         fetchClasses();
+        // Set today's date as the default attendance date
+        const today = new Date();
+        const formattedDate = today.toISOString().split('T')[0];
+        setAttendanceDate(formattedDate);
     }, []);
 
     const fetchClasses = async () => {

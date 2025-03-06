@@ -93,6 +93,7 @@ const CasteMasterPage = () => {
     copyContent(headers, rows);
   };
 
+  // Fetch data from the backend
   const fetchData = async () => {
     setLoading(true);
     setError("");
@@ -112,11 +113,13 @@ const CasteMasterPage = () => {
     }
   };
 
+  // Handle edit action
   const handleEdit = (id, name) => {
     setEditingId(id);
     setEditedName(name);
   };
 
+  // Handle save action
   const handleSave = async (id) => {
     try {
       await axios.put(`https://erp-backend-fy3n.onrender.com/api/castes/${id}`, {
@@ -127,19 +130,20 @@ const CasteMasterPage = () => {
           row._id === id ? { ...row, caste_name: editedName } : row
         )
       );
-      fetchData();
+      fetchData(); // Refresh data after update
       setEditingId(null);
     } catch (error) {
       setError("Failed to update data. Please try again later.");
     }
   };
 
+  // Handle soft delete action
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this entry?")) {
       try {
         await axios.delete(`https://erp-backend-fy3n.onrender.com/api/castes/${id}`);
-        setData((prevData) => prevData.filter((row) => row._id !== id));
-        fetchData();
+        setData((prevData) => prevData.filter((row) => row._id !== id)); // Remove from UI
+        fetchData(); // Refresh data after delete
       } catch (error) {
         console.error("Error deleting data:", error);
         setError("Failed to delete data. Please try again later.");
@@ -147,16 +151,17 @@ const CasteMasterPage = () => {
     }
   };
 
+  // Handle add action
   const handleAdd = async () => {
     if (newCasteName.trim()) {
       try {
         const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/castes", {
           caste_name: newCasteName,
         });
-        setData((prevData) => [...prevData, response.data]);
+        setData((prevData) => [...prevData, response.data]); // Add to UI
         setNewCasteName("");
         setIsPopoverOpen(false);
-        fetchData();
+        fetchData(); // Refresh data after add
       } catch (error) {
         console.error("Error adding data:", error);
         setError("Failed to add data. Please try again later.");
@@ -166,6 +171,7 @@ const CasteMasterPage = () => {
     }
   };
 
+  // Fetch data on component mount
   useEffect(() => {
     fetchData();
   }, []);
