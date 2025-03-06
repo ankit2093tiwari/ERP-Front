@@ -125,17 +125,28 @@ const CategoryMasterPage = () => {
   };
 
   // Handle deleting a category
+  // const handleDelete = async (id) => {
+  //   if (confirm("Are you sure you want to delete this category?")) {
+  //     try {
+  //       await axios.delete(
+  //         `https://erp-backend-fy3n.onrender.com/api/categories/${id}`
+  //       );
+
+  //       // Remove the category from the state array
+  //       setCategories((prevCategories) =>
+  //         prevCategories.filter((row) => row._id !== id)
+  //       );
+  //       fetchCategories();
+  //     } catch (err) {
+  //       console.error("Error deleting category:", err);
+  //       setError("Failed to delete category. Please try again later.");
+  //     }
+  //   }
+  // };
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this category?")) {
       try {
-        await axios.delete(
-          `https://erp-backend-fy3n.onrender.com/api/categories/${id}`
-        );
-
-        // Remove the category from the state array
-        setCategories((prevCategories) =>
-          prevCategories.filter((row) => row._id !== id)
-        );
+        await axios.put(`https://erp-backend-fy3n.onrender.com/api/categories/${id}`, { is_deleted: true });
         fetchCategories();
       } catch (err) {
         console.error("Error deleting category:", err);

@@ -5,17 +5,8 @@ const Breadcrumb = ({ items }) => {
   return (
     <BootstrapBreadcrumb>
       {items.map((item, index) => (
-        <BootstrapBreadcrumb.Item
-          key={index}
-          active={!item.href}
-        >
-          {item.href ? (
-            <Link href={item.href} passHref>
-              {item.label}
-            </Link>
-          ) : (
-            item.label
-          )}
+        <BootstrapBreadcrumb.Item key={index} href={item.href} active={!item.href}>
+          {item.label}
         </BootstrapBreadcrumb.Item>
       ))}
     </BootstrapBreadcrumb>
