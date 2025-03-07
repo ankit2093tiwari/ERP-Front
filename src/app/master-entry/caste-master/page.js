@@ -17,7 +17,7 @@ import axios from "axios";
 import Table from "@/app/component/DataTable";
 import styles from "@/app/medical/routine-check-up/page.module.css";
 import { copyContent, printContent } from "@/app/utils";
-import Breadcrumb from "@/app/component/Breadcrumb"; 
+import Breadcrumb from "@/app/component/Breadcrumb";
 
 const CasteMasterPage = () => {
   const [data, setData] = useState([]);
@@ -30,8 +30,8 @@ const CasteMasterPage = () => {
 
   const breadcrumbItems = [
     { label: "Home", href: "/" },
-    { label: "Master Entry", href: "/master-entry/all-module" }, 
-    { label: "Caste Master", href: null }, 
+    { label: "Master Entry", href: "/master-entry/all-module" },
+    { label: "Caste Master", href: null },
   ];
 
   const columns = [
@@ -159,7 +159,7 @@ const CasteMasterPage = () => {
         const existingCaste = data.find((caste) => caste.caste_name === newCasteName);
         if (existingCaste) {
           setError("Caste name already exists. Data already saved.");
-          return;
+          return; // Prevent adding duplicate data
         }
 
         const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/castes", {
@@ -198,7 +198,15 @@ const CasteMasterPage = () => {
         <div className="cover-sheet">
           <div className="studentHeading">
             <h2>Add New Caste</h2>
-            <button className="closeForm" onClick={() => setIsPopoverOpen(false)}>X</button>
+            <button
+              className="closeForm"
+              onClick={() => {
+                setIsPopoverOpen(false);
+                setError(""); // Clear error message when closing the popover
+              }}
+            >
+              X
+            </button>
           </div>
           <Form className="formSheet">
             <Row className="mb-3">
@@ -208,7 +216,10 @@ const CasteMasterPage = () => {
                   type="text"
                   placeholder="Enter Caste Name"
                   value={newCasteName}
-                  onChange={(e) => setNewCasteName(e.target.value)}
+                  onChange={(e) => {
+                    setNewCasteName(e.target.value);
+                    setError(""); // Clear error message when user starts typing
+                  }}
                 />
               </Col>
             </Row>
