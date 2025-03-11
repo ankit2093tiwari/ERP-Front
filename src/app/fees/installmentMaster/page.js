@@ -54,7 +54,7 @@ const InstallmentMaster = () => {
         const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/add-installments", {
           installment_name: newInstallment
         });
-        setData((prevData) => [...prevData, response.data]);
+        setData((prevData) => [...prevData, response.data.data]);
         setNewInstallment("");
         setIsPopoverOpen(false);
         fetchData(); // Refresh data
@@ -112,7 +112,6 @@ const InstallmentMaster = () => {
     ]);
 
     printContent(tableHeaders, tableRows);
-
   };
 
   // Copy table data to clipboard
