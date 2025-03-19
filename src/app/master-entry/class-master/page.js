@@ -7,6 +7,7 @@ import Table from "@/app/component/DataTable";
 import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
 import { CgAddR } from "react-icons/cg";
 import { copyContent, printContent } from "@/app/utils";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const ClassMasterPage = () => {
   const [data, setData] = useState([]); // State for class data
@@ -20,7 +21,7 @@ const ClassMasterPage = () => {
   const [error, setError] = useState(""); // Error state
   const [formErrors, setFormErrors] = useState({}); // Field-specific errors
   const [editingClass, setEditingClass] = useState(null); // State to track the class being edited
-  const [editingSection, setEditingSection] = useState(null); // State to track the section being edited
+  const [editingSection, setEditingSection] = useState(null); // State to track the section being 
 
   const columns = [
     {
@@ -366,9 +367,22 @@ const ClassMasterPage = () => {
     fetchData();
   }, []);
 
+  const breadcrumbItems = [{ label: "Master Entry", link: "/master-entry/all-module" }, { label: "class-master", link: "null" }]
+
   return (
-    <Container>
-      <Row className="mt-1 mb-1">
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
+      </div>
+      <section>
+        <Container>
+          {/* <Row className="mt-1 mb-1">
         <Col>
           <Breadcrumb>
             <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
@@ -376,118 +390,121 @@ const ClassMasterPage = () => {
             <Breadcrumb.Item active>Class Master</Breadcrumb.Item>
           </Breadcrumb>
         </Col>
-      </Row>
+      </Row> */}
 
-      <Tabs id="uncontrolled-tab-example" className="mb-3 TabButton" defaultActiveKey={null}>
-        <Tab eventKey="home" title={<span><CgAddR /> {editingClass ? "Update Class" : "New Class"}</span>} className="cover-sheet">
-          <div className="studentHeading">
-            <h2> {editingClass ? "Update Class" : "Add New Class"} </h2>
-          </div>
-          <div className="formSheet">
-            <Row className="mb-3">
-              <Col lg={6}>
-                <FormLabel className="labelForm">Class Name</FormLabel>
-                <FormControl
-                  required
-                  type="text"
-                  placeholder="Enter Class Name"
-                  value={newClassName}
-                  onChange={(e) => setNewClassName(e.target.value)}
-                />
-                {formErrors.class_name && <div className="text-danger">{formErrors.class_name}</div>}
-              </Col>
-              <Col lg={6}>
-                <FormLabel className="labelForm">Class Code</FormLabel>
-                <FormControl
-                  required
-                  type="text"
-                  placeholder="Enter Class Code"
-                  value={newClassCode}
-                  onChange={(e) => setNewClassCode(e.target.value)}
-                />
-                {formErrors.class_code && <div className="text-danger">{formErrors.class_code}</div>}
-              </Col>
-            </Row>
+          <Tabs id="uncontrolled-tab-example" className="mb-3 TabButton" defaultActiveKey={null}>
+            <Tab eventKey="home" title={<span><CgAddR /> {editingClass ? "Update Class" : "New Class"}</span>} className="cover-sheet">
+              <div className="studentHeading">
+                <h2> {editingClass ? "Update Class" : "Add New Class"} </h2>
+                <button className="closeForm" onClick={() => setShowAddForm(false)}>X</button>
+              </div>
+              <div className="formSheet">
+                <Row className="mb-3">
+                  <Col lg={6}>
+                    <FormLabel className="labelForm">Class Name</FormLabel>
+                    <FormControl
+                      required
+                      type="text"
+                      placeholder="Enter Class Name"
+                      value={newClassName}
+                      onChange={(e) => setNewClassName(e.target.value)}
+                    />
+                    {formErrors.class_name && <div className="text-danger">{formErrors.class_name}</div>}
+                  </Col>
+                  <Col lg={6}>
+                    <FormLabel className="labelForm">Class Code</FormLabel>
+                    <FormControl
+                      required
+                      type="text"
+                      placeholder="Enter Class Code"
+                      value={newClassCode}
+                      onChange={(e) => setNewClassCode(e.target.value)}
+                    />
+                    {formErrors.class_code && <div className="text-danger">{formErrors.class_code}</div>}
+                  </Col>
+                </Row>
 
-            <Row className="mb-3">
-              <Col>
-                <Button onClick={editingClass ? handleUpdateClass : handleAddClass} className="btn btn-primary mt-4">
-                  {editingClass ? "Update Class" : "Add Class"}
-                </Button>
-              </Col>
-            </Row>
-          </div>
-        </Tab>
+                <Row className="mb-3">
+                  <Col>
+                    <Button onClick={editingClass ? handleUpdateClass : handleAddClass} className="btn btn-primary mt-4">
+                      {editingClass ? "Update Class" : "Add Class"}
+                    </Button>
+                  </Col>
+                </Row>
+              </div>
+            </Tab>
 
-        <Tab eventKey="profile" title={<span><CgAddR /> New Section </span>} className="cover-sheet">
-          <div className="studentHeading">
-            <h2> Add New Section </h2>
-          </div>
-          <div className="formSheet">
-            <Row>
-              <Col lg={6}>
-                <FormLabel className="labelForm">Select Class</FormLabel>
-                <FormControl
-                  as="select"
-                  value={selectedClass}
-                  onChange={(e) => setSelectedClass(e.target.value)}
-                >
-                  <option value="">Select Class</option>
-                  {data.map((classItem) => (
-                    <option key={classItem._id} value={classItem._id}>
-                      {classItem.class_name}
-                    </option>
-                  ))}
-                </FormControl>
-              </Col>
-            </Row>
+            <Tab eventKey="profile" title={<span><CgAddR /> New Section </span>} className="cover-sheet">
+              <div className="studentHeading">
+                <h2> Add New Section </h2>
+              </div>
+              <div className="formSheet">
+                <Row>
+                  <Col lg={6}>
+                    <FormLabel className="labelForm">Select Class</FormLabel>
+                    <FormControl
+                      as="select"
+                      value={selectedClass}
+                      onChange={(e) => setSelectedClass(e.target.value)}
+                    >
+                      <option value="">Select Class</option>
+                      {data.map((classItem) => (
+                        <option key={classItem._id} value={classItem._id}>
+                          {classItem.class_name}
+                        </option>
+                      ))}
+                    </FormControl>
+                  </Col>
+                </Row>
 
-            <Row>
-              <Col lg={6}>
-                <FormLabel className="labelForm">Section Code</FormLabel>
-                <FormControl
-                  required
-                  type="text"
-                  placeholder="Section Code"
-                  value={newSectionCode}
-                  onChange={(e) => setNewSectionCode(e.target.value)}
-                />
-                {formErrors.section_code && <div className="text-danger">{formErrors.section_code}</div>}
-              </Col>
-              <Col lg={6}>
-                <FormLabel className="labelForm">Section Name</FormLabel>
-                <FormControl
-                  required
-                  type="text"
-                  placeholder="Section Name"
-                  value={newSectionName}
-                  onChange={(e) => setNewSectionName(e.target.value)}
-                />
-                {formErrors.section_name && <div className="text-danger">{formErrors.section_name}</div>}
-              </Col>
-            </Row>
+                <Row>
+                  <Col lg={6}>
+                    <FormLabel className="labelForm">Section Code</FormLabel>
+                    <FormControl
+                      required
+                      type="text"
+                      placeholder="Section Code"
+                      value={newSectionCode}
+                      onChange={(e) => setNewSectionCode(e.target.value)}
+                    />
+                    {formErrors.section_code && <div className="text-danger">{formErrors.section_code}</div>}
+                  </Col>
+                  <Col lg={6}>
+                    <FormLabel className="labelForm">Section Name</FormLabel>
+                    <FormControl
+                      required
+                      type="text"
+                      placeholder="Section Name"
+                      value={newSectionName}
+                      onChange={(e) => setNewSectionName(e.target.value)}
+                    />
+                    {formErrors.section_name && <div className="text-danger">{formErrors.section_name}</div>}
+                  </Col>
+                </Row>
 
-            <Row className="mb-3">
-              <Col>
-                <Button onClick={editingSection ? handleUpdateSection : handleAddSection} className="btn btn-primary mt-4">
-                  {editingSection ? "Update Section" : "Add Section"}
-                </Button>
-              </Col>
-            </Row>
-          </div>
-        </Tab>
-      </Tabs>
+                <Row className="mb-3">
+                  <Col>
+                    <Button onClick={editingSection ? handleUpdateSection : handleAddSection} className="btn btn-primary mt-4">
+                      {editingSection ? "Update Section" : "Add Section"}
+                    </Button>
+                  </Col>
+                </Row>
+              </div>
+            </Tab>
+          </Tabs>
 
-      <Row>
-        <Col>
-          <div className="tableSheet">
-            <h2>Class Records</h2>
-            {error && <p style={{ color: "red" }}>{error}</p>}
-            {!loading && !error && <Table columns={columns} data={data} handleCopy={handleCopy} handlePrint={handlePrint} />}
-          </div>
-        </Col>
-      </Row>
-    </Container>
+          <Row>
+            <Col>
+              <div className="tableSheet">
+                <h2>Class Records</h2>
+                {error && <p style={{ color: "red" }}>{error}</p>}
+                {!loading && !error && <Table columns={columns} data={data} handleCopy={handleCopy} handlePrint={handlePrint} />}
+              </div>
+            </Col>
+          </Row>
+        </Container>
+      </section>
+    </>
   );
 };
 

@@ -5,6 +5,7 @@ import styles from "@/app/students/add-new-student/page.module.css"
 import { Container, Row, Col, Breadcrumb, Form, FormLabel, FormGroup, FormControl, FormSelect, Button } from 'react-bootstrap';
 import dynamic from 'next/dynamic';
 import { CgAddR } from 'react-icons/cg';
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const ItemIssue = () => {
 
@@ -140,23 +141,23 @@ const ItemIssue = () => {
     e.preventDefault();
     console.log("Form Data Submitted:", formData);
   };
-
+  const breadcrumbItems = [{ label: "Stock", link: "/stock/all-module" }, { label: "Issue Item", link: "null" }]
   return (
+    <>
+    <div className="breadcrumbSheet position-relative">
     <Container>
       <Row>
         <Col>
-          <Breadcrumb>
-            <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-            <Breadcrumb.Item href="/transport">
-              Stock Module
-            </Breadcrumb.Item>
-            <Breadcrumb.Item active>Issue Items</Breadcrumb.Item>
-          </Breadcrumb>
+        <BreadcrumbComp items={breadcrumbItems} />
         </Col>
       </Row>
+      </Container>
+</div>
+<section>
+  <Container>
       <Row>
         <Col>
-          <Button onClick={onOpen} className="btn btn-primary">
+          <Button onClick={onOpen} className="btn-add">
             <CgAddR /> Issue Items</Button>
           {isPopoverOpen && (
             <div className="cover-sheet">
@@ -234,14 +235,13 @@ const ItemIssue = () => {
           <div className="tableSheet">
             <h2>Issued Items Records</h2>
             <Table columns={columns} data={data} />
-            <div className={styles.buttons} style={{ float: 'right', marginRight: '10px' }}>
-              <button type="button" className="editButton">Previous</button>
-              <button type="button" className="editButton">Next</button>
-            </div>
+            
           </div>
         </Col>
       </Row>
     </Container>
+    </section>
+    </>
   );
 };
 

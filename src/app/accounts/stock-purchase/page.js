@@ -2,11 +2,11 @@
 import React, { useState } from 'react';
 import Table from '@/app/component/DataTable';
 import styles from "@/app/students/add-new-student/page.module.css"
-import { Container, Row, Col, Breadcrumb, Form, FormLabel, FormGroup, FormControl, FormSelect, Button } from 'react-bootstrap';
+import { Container, Row, Col, Form, FormLabel, FormGroup, FormControl, FormSelect, Button, Breadcrumb } from 'react-bootstrap';
 import dynamic from 'next/dynamic';
-import { CgAddR } from 'react-icons/cg';
 import "react-datepicker/dist/react-datepicker.css";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const StockPurchase = () => {
   const [formData, setFormData] = useState({
@@ -20,11 +20,11 @@ const StockPurchase = () => {
     receiver: '',
     remark: '',
   });
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
   };
+
 
   const columns = [
     {
@@ -73,7 +73,6 @@ const StockPurchase = () => {
       ),
     }
   ];
-
   const data = [
     {
       id: 1,
@@ -104,48 +103,43 @@ const StockPurchase = () => {
       receiver: 'Nitin',
     },
   ];
-
   const [startDate, setStartDate] = useState(new Date());
-
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-
   const togglePopover = () => {
     setIsPopoverOpen(!isPopoverOpen);
   };
-
   const handleSubmit = (e) => {
     e.preventDefault();
     console.log('Form submitted:', formData);
     setIsPopoverOpen(false);
   };
+  const breadcrumbItems = [{ label: "Accounts", link: "/accounts/all-module" }, { label: "Stock Purchase", link: "null" }]
 
   return (
+<>
+    <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row>
+            <Col>
+            <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
+      </div>
     <Container>
-      <Row className='mt-1 mb-1'>
-        <Col>
-          <Breadcrumb>
-            <Breadcrumb.Item href="/">Home</Breadcrumb.Item>
-            <Breadcrumb.Item href="/accounts/all-module">
-              Account
-            </Breadcrumb.Item>
-            <Breadcrumb.Item active>Stock Purchase</Breadcrumb.Item>
-          </Breadcrumb>
-        </Col>
-      </Row>
-     
-      <Row>
-        <Col>
-        <div className="tableSheet">
-          <h2>Stock Purchase Records</h2>
-          <Table columns={columns} data={data} />
-          <div className={styles.buttons} style={{float: 'right', marginRight: '10px' }}>
-            <button type="button" className="editButton">Previous</button>
-            <button type="button" className="editButton">Next</button>
-          </div>
-          </div>
-        </Col>
-      </Row>
+      
+      <section>
+        <Row>
+          <Col>
+            <div className="tableSheet">
+              <h2>Stock Purchase Records</h2>
+              <Table columns={columns} data={data} />
+            </div>
+          </Col>
+        </Row>
+      </section>
     </Container>
+    </>
   );
 };
 

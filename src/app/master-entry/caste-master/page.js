@@ -17,7 +17,8 @@ import axios from "axios";
 import Table from "@/app/component/DataTable";
 import styles from "@/app/medical/routine-check-up/page.module.css";
 import { copyContent, printContent } from "@/app/utils";
-import Breadcrumb from "@/app/component/Breadcrumb";
+// import Breadcrumb from "@/app/component/Breadcrumb";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const CasteMasterPage = () => {
   const [data, setData] = useState([]);
@@ -28,11 +29,11 @@ const CasteMasterPage = () => {
   const [editingId, setEditingId] = useState(null);
   const [editedName, setEditedName] = useState("");
 
-  const breadcrumbItems = [
-    { label: "Home", href: "/" },
-    { label: "Master Entry", href: "/master-entry/all-module" },
-    { label: "Caste Master", href: null },
-  ];
+  // const breadcrumbItems = [
+  //   { label: "Home", href: "/" },
+  //   { label: "Master Entry", href: "/master-entry/all-module" },
+  //   { label: "Caste Master", href: null },
+  // ];
 
   const columns = [
     {
@@ -183,60 +184,71 @@ const CasteMasterPage = () => {
     fetchData();
   }, []);
 
+  const breadcrumbItems = [{ label: "Master Entry", link: "/master-entry/all-module" }, { label: "caste-master", link: "null" }]
+
   return (
-    <Container>
-      <Row className='mt-1 mb-1'>
-        <Col>
-          <Breadcrumb items={breadcrumbItems} />
-        </Col>
-      </Row>
-      <Button onClick={() => setIsPopoverOpen(true)} className="btn btn-primary mb-4">
-        <CgAddR /> Add Caste
-      </Button>
-
-      {isPopoverOpen && (
-        <div className="cover-sheet">
-          <div className="studentHeading">
-            <h2>Add New Caste</h2>
-            <button
-              className="closeForm"
-              onClick={() => {
-                setIsPopoverOpen(false);
-                setError(""); // Clear error message when closing the popover
-              }}
-            >
-              X
-            </button>
-          </div>
-          <Form className="formSheet">
-            <Row className="mb-3">
-              <Col lg={6}>
-                <FormLabel>Caste Name</FormLabel>
-                <FormControl
-                  type="text"
-                  placeholder="Enter Caste Name"
-                  value={newCasteName}
-                  onChange={(e) => {
-                    setNewCasteName(e.target.value);
-                    setError(""); // Clear error message when user starts typing
-                  }}
-                />
-              </Col>
-            </Row>
-            <Button onClick={handleAdd} className="btn btn-primary">
-              Add Caste
-            </Button>
-          </Form>
-        </div>
-      )}
-
-      <div className="tableSheet">
-        <h2>Caste Records</h2>
-        {loading && <p>Loading...</p>}
-        {error && <p style={{ color: "red" }}>{error}</p>}
-        {!loading && !error && <Table columns={columns} data={data} handleCopy={handleCopy} handlePrint={handlePrint} />}
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
       </div>
-    </Container>
+      <section>
+        <Container>
+          <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
+            <CgAddR /> Add Caste
+          </Button>
+
+          {isPopoverOpen && (
+            <div className="cover-sheet">
+              <div className="studentHeading">
+                <h2>Add New Caste</h2>
+                <button
+                  className="closeForm"
+                  onClick={() => {
+                    setIsPopoverOpen(false);
+                    setError(""); // Clear error message when closing the popover
+                  }}
+                >
+                  X
+                </button>
+              </div>
+              <Form className="formSheet">
+                <Row className="mb-3">
+                  <Col lg={6}>
+                    <FormLabel>Caste Name</FormLabel>
+                    <FormControl
+                      type="text"
+                      placeholder="Enter Caste Name"
+                      value={newCasteName}
+                      onChange={(e) => {
+                        setNewCasteName(e.target.value);
+                        setError(""); // Clear error message when user starts typing
+                      }}
+                    />
+                  </Col>
+                </Row>
+                <Button onClick={handleAdd} className="btn btn-primary">
+                  Add Caste
+                </Button>
+              </Form>
+            </div>
+          )}
+
+          <div className="tableSheet">
+            <h2>Caste Records</h2>
+            {loading && <p>Loading...</p>}
+            {error && <p style={{ color: "red" }}>{error}</p>}
+            {!loading && !error && <Table columns={columns} data={data} handleCopy={handleCopy} handlePrint={handlePrint} />}
+          </div>
+        </Container>
+      </section>
+
+    </>
   );
 };
 

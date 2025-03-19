@@ -16,6 +16,7 @@ import {
 } from "react-bootstrap";
 import axios from "axios";
 import { CgAddR } from 'react-icons/cg';
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const ItemMaster = () => {
   const [data, setData] = useState([]); // Table data
@@ -140,23 +141,21 @@ const ItemMaster = () => {
   useEffect(() => {
     fetchData();
   }, []);
-
+  const breadcrumbItems = [{ label: "Stock", link: "/stock/all-module" }, { label: "Item Master", link: "null" }]
   return (
+    <>
+    <div className="breadcrumbSheet position-relative">
     <Container>
       <Row className='mt-1 mb-1'>
         <Col>
-          <Breadcrumb>
-            <Breadcrumb.Item href="/">Home</Breadcrumb.Item>
-            <Breadcrumb.Item href="/medical/all-module">
-              Stock
-            </Breadcrumb.Item>
-            <Breadcrumb.Item active>Item Master</Breadcrumb.Item>
-          </Breadcrumb>
+        <BreadcrumbComp items={breadcrumbItems} />
         </Col>
       </Row>
-
-
-      <Button onClick={onOpen} className="btn btn-primary">
+</Container>
+</div>
+  <section>
+    <Container>
+      <Button onClick={onOpen} className=""btn-add>
         <CgAddR /> Add Item
       </Button>
 
@@ -244,6 +243,8 @@ const ItemMaster = () => {
         </Col>
       </Row>
     </Container>
+    </section>
+    </>
   );
 };
 

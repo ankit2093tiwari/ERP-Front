@@ -5,6 +5,7 @@ import styles from "@/app/students/add-new-student/page.module.css"
 import { Container, Row, Col, Breadcrumb, Form, FormLabel, FormGroup, FormControl, FormSelect, Button } from 'react-bootstrap';
 import dynamic from 'next/dynamic';
 import { CgAddR } from 'react-icons/cg';
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const StockWriteOffEntry = () => {
 
@@ -98,23 +99,23 @@ const StockWriteOffEntry = () => {
     e.preventDefault();
     console.log("Form Data Submitted:", formData);
   };
-
+  const breadcrumbItems = [{ label: "Stock", link: "/stock/all-module" }, { label: "Write Off Entry", link: "null" }]
   return (
-    <Container>
+    <>
+    <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row>
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
+      </div>
+      <section>
+        <Container>
       <Row>
         <Col>
-          <Breadcrumb>
-            <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-            <Breadcrumb.Item href="/transport">
-              Stock Module
-            </Breadcrumb.Item>
-            <Breadcrumb.Item active>Write Off Entry</Breadcrumb.Item>
-          </Breadcrumb>
-        </Col>
-      </Row>
-      <Row>
-        <Col>
-          <Button onClick={onOpen} className="btn btn-primary">
+          <Button onClick={onOpen} className="btn-add">
             <CgAddR /> Add Item  </Button>
           {isPopoverOpen && (
             <div className="cover-sheet">
@@ -182,14 +183,13 @@ const StockWriteOffEntry = () => {
           <div className="tableSheet">
             <h2>Write Off Entry Records</h2>
             <Table columns={columns} data={data} />
-            <div className={styles.buttons} style={{ float: 'right', marginRight: '10px' }}>
-              <button type="button" className="editButton">Previous</button>
-              <button type="button" className="editButton">Next</button>
-            </div>
+           
           </div>
         </Col>
       </Row>
     </Container>
+    </section>
+    </>
   );
 };
 

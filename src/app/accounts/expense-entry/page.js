@@ -4,9 +4,10 @@ import dynamic from "next/dynamic";
 import styles from "@/app/medical/routine-check-up/page.module.css";
 import Table from "@/app/component/DataTable";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
-import { Form, Row, Col, Container, FormLabel, FormSelect, FormControl, Button, Breadcrumb } from "react-bootstrap";
+import { Form, Row, Col, Container, FormLabel, FormSelect, FormControl, Button } from "react-bootstrap";
 import { CgAddR } from 'react-icons/cg';
 import axios from "axios";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 const ExpenceEntry = () => {
   const columns = [
     {
@@ -94,65 +95,66 @@ const ExpenceEntry = () => {
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const onOpen = () => setIsPopoverOpen(true);
   const onClose = () => setIsPopoverOpen(false);
+
+  const breadcrumbItems = [{ label: "Accounts", link: "/accounts/all-module" }, { label: "Expense Entry", link: "null" }]
+
   return (
-    <Container>
-      <Row className='mt-1 mb-1'>
-        <Col>
-          <Breadcrumb>
-            <Breadcrumb.Item href="/">Home</Breadcrumb.Item>
-            <Breadcrumb.Item href="/accounts/all-module">
-              Accounts
-            </Breadcrumb.Item>
-            <Breadcrumb.Item active>Expense Entry</Breadcrumb.Item>
-          </Breadcrumb>
-        </Col>
-      </Row>
-
-      <Button onClick={onOpen} className="btn btn-primary"> <CgAddR /> New Expenses </Button>
-      {isPopoverOpen ?
-
-        <div className="cover-sheet">
-          <div className="studentHeading"><h2>New Mail</h2>
-            <button className='closeForm' onClick={onClose}> X </button>
-          </div>
-          <Form className="formSheet">
-            <Row className="mb-3">
-              <Col lg={6}>
-                <FormLabel className="labelForm">Date</FormLabel>
-                <FormControl required type="date" />
-              </Col>
-              <Col lg={6}>
-                <FormLabel className="labelForm">Item Name</FormLabel>
-                <FormControl required type="text" />
-              </Col>
-            </Row>
-            <Row className="mb-3">
-              <Col lg={6}>
-                <FormLabel className="labelForm">Description</FormLabel>
-                <Form.Control as="textarea" rows={1} />
-              </Col>
-              <Col lg={6}>
-                <FormLabel className="labelForm">Amount</FormLabel>
-                <FormControl required type="text" />
-              </Col>
-            </Row><br />
-            <Row className="mb-3">
-              <Col><Button className="btn btn-primary mt-4">Submit</Button></Col>
-            </Row>
-          </Form>
-        </div>
-        : null}
-     
-      <Row>
-        <Col>
-          <div className="tableSheet">
-            <h2>Expense Records</h2>
-            <Table columns={columns} data={data} />
-          </div>
-        </Col>
-      </Row>
-
-    </Container >
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row>
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
+      </div>
+      <section>
+        <Container>
+          <Button onClick={onOpen} className="btn-add"> <CgAddR /> New Expenses </Button>
+          {isPopoverOpen ?
+            <div className="cover-sheet">
+              <div className="studentHeading"><h2>New Mail</h2>
+                <button className='closeForm' onClick={onClose}> X </button>
+              </div>
+              <Form className="formSheet">
+                <Row className="mb-3">
+                  <Col lg={6}>
+                    <FormLabel className="labelForm">Date</FormLabel>
+                    <FormControl required type="date" />
+                  </Col>
+                  <Col lg={6}>
+                    <FormLabel className="labelForm">Item Name</FormLabel>
+                    <FormControl required type="text" />
+                  </Col>
+                </Row>
+                <Row className="mb-3">
+                  <Col lg={6}>
+                    <FormLabel className="labelForm">Description</FormLabel>
+                    <Form.Control as="textarea" rows={1} />
+                  </Col>
+                  <Col lg={6}>
+                    <FormLabel className="labelForm">Amount</FormLabel>
+                    <FormControl required type="text" />
+                  </Col>
+                </Row><br />
+                <Row className="mb-3">
+                  <Col><Button className="btn btn-primary mt-4">Submit</Button></Col>
+                </Row>
+              </Form>
+            </div>
+            : null}
+          <Row>
+            <Col>
+              <div className="tableSheet">
+                <h2>Expense Records</h2>
+                <Table columns={columns} data={data} />
+              </div>
+            </Col>
+          </Row>
+        </Container >
+      </section>
+    </>
   )
 }
 export default dynamic(() => Promise.resolve(ExpenceEntry), { ssr: false })

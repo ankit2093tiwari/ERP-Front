@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "apexcharts": "^4.5.0",
     "axios": "^1.7.9",
     "bootstrap": "^5.3.3",
     "html2canvas": "^1.4.1",
@@ -16,7 +17,9 @@
     "jspdf-autotable": "^5.0.2",
     "next": "15.0.3",
     "react": "^18.3.0",
+    "react-apexcharts": "^1.7.0",
     "react-bootstrap": "^2.10.6",
+    "react-calendar": "^5.1.0",
     "react-data-table-component": "^7.6.2",
     "react-datepicker": "^7.5.0",
     "react-dom": "^18.3.0",

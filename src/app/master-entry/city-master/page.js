@@ -6,6 +6,7 @@ import axios from "axios";
 import Table from "@/app/component/DataTable";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import { CgAddR } from "react-icons/cg";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const StateCityMasterPage = () => {
   const [states, setStates] = useState([]);
@@ -160,144 +161,149 @@ const StateCityMasterPage = () => {
     };
   });
 
+  const breadcrumbItems = [{ label: "Master Entry", link: "/master-entry/all-module" }, { label: "city-master", link: "null" }]
+
   return (
-    <Container>
-      <Row className="mt-1 mb-1">
-        <Col>
-          <Breadcrumb>
-            <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-            <Breadcrumb.Item href="/master-entry/all-module">Master Entry</Breadcrumb.Item>
-            <Breadcrumb.Item active>State & City Master</Breadcrumb.Item>
-          </Breadcrumb>
-        </Col>
-      </Row>
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
+      </div>
+      <section>
+        <Container>
+         <Tabs id="uncontrolled-tab-example" className="mb-3 TabButton" defaultActiveKey={null}>
+            <Tab eventKey="state" title={<span><CgAddR /> {editState ? "Update State" : "New State"}</span>} className="cover-sheet">
+              <div className="studentHeading">
+                <h2>{editState ? "Update State" : "Add New State"}</h2>
+              </div>
+              <div className="formSheet">
+                <Row className="mb-3">
+                  <Col lg={12}>
+                    <FormLabel className="labelForm">State Name</FormLabel>
+                    <FormControl
+                      required
+                      type="text"
+                      placeholder="Enter State Name"
+                      value={newStateName}
+                      onChange={(e) => setNewStateName(e.target.value)}
+                    />
+                    {formErrors.state_name && <div className="text-danger">{formErrors.state_name}</div>}
+                  </Col>
+                </Row>
 
-      <Tabs id="uncontrolled-tab-example" className="mb-3 TabButton" defaultActiveKey={null}>
-        <Tab eventKey="state" title={<span><CgAddR /> {editState ? "Update State" : "New State"}</span>} className="cover-sheet">
-          <div className="studentHeading">
-            <h2>{editState ? "Update State" : "Add New State"}</h2>
-          </div>
-          <div className="formSheet">
-            <Row className="mb-3">
-              <Col lg={12}>
-                <FormLabel className="labelForm">State Name</FormLabel>
-                <FormControl
-                  required
-                  type="text"
-                  placeholder="Enter State Name"
-                  value={newStateName}
-                  onChange={(e) => setNewStateName(e.target.value)}
-                />
-                {formErrors.state_name && <div className="text-danger">{formErrors.state_name}</div>}
-              </Col>
-            </Row>
+                <Row className="mb-3">
+                  <Col>
+                    <Button onClick={editState ? handleUpdateState : handleAddState} className="btn btn-primary mt-4">
+                      {editState ? "Update State" : "Add State"}
+                    </Button>
+                  </Col>
+                </Row>
+              </div>
+            </Tab>
 
-            <Row className="mb-3">
-              <Col>
-                <Button onClick={editState ? handleUpdateState : handleAddState} className="btn btn-primary mt-4">
-                  {editState ? "Update State" : "Add State"}
-                </Button>
-              </Col>
-            </Row>
-          </div>
-        </Tab>
+            <Tab eventKey="city" title={<span><CgAddR /> {editCity ? "Update City" : "New City"}</span>} className="cover-sheet">
+              <div className="studentHeading">
+                <h2>{editCity ? "Update City" : "Add New City"}</h2>
+              </div>
+              <div className="formSheet">
+                <Row className="mb-3">
+                  <Col lg={12}>
+                    <FormLabel className="labelForm">Select State</FormLabel>
+                    <FormControl
+                      as="select"
+                      value={selectedState}
+                      onChange={(e) => setSelectedState(e.target.value)}
+                    >
+                      <option value="">Select State</option>
+                      {states.map((state) => (
+                        <option key={state._id} value={state._id}>
+                          {state.state_name}
+                        </option>
+                      ))}
+                    </FormControl>
+                  </Col>
+                </Row>
 
-        <Tab eventKey="city" title={<span><CgAddR /> {editCity ? "Update City" : "New City"}</span>} className="cover-sheet">
-          <div className="studentHeading">
-            <h2>{editCity ? "Update City" : "Add New City"}</h2>
-          </div>
-          <div className="formSheet">
-            <Row className="mb-3">
-              <Col lg={12}>
-                <FormLabel className="labelForm">Select State</FormLabel>
-                <FormControl
-                  as="select"
-                  value={selectedState}
-                  onChange={(e) => setSelectedState(e.target.value)}
-                >
-                  <option value="">Select State</option>
-                  {states.map((state) => (
-                    <option key={state._id} value={state._id}>
-                      {state.state_name}
-                    </option>
-                  ))}
-                </FormControl>
-              </Col>
-            </Row>
+                <Row className="mb-3">
+                  <Col lg={12}>
+                    <FormLabel className="labelForm">City Name</FormLabel>
+                    <FormControl
+                      required
+                      type="text"
+                      placeholder="Enter City Name"
+                      value={newCityName}
+                      onChange={(e) => setNewCityName(e.target.value)}
+                    />
+                    {formErrors.city_name && <div className="text-danger">{formErrors.city_name}</div>}
+                  </Col>
+                </Row>
 
-            <Row className="mb-3">
-              <Col lg={12}>
-                <FormLabel className="labelForm">City Name</FormLabel>
-                <FormControl
-                  required
-                  type="text"
-                  placeholder="Enter City Name"
-                  value={newCityName}
-                  onChange={(e) => setNewCityName(e.target.value)}
-                />
-                {formErrors.city_name && <div className="text-danger">{formErrors.city_name}</div>}
-              </Col>
-            </Row>
+                <Row className="mb-3">
+                  <Col>
+                    <Button onClick={editCity ? handleUpdateCity : handleAddCity} className="btn btn-primary mt-4">
+                      {editCity ? "Update City" : "Add City"}
+                    </Button>
+                  </Col>
+                </Row>
+              </div>
+            </Tab>
+          </Tabs>
 
-            <Row className="mb-3">
-              <Col>
-                <Button onClick={editCity ? handleUpdateCity : handleAddCity} className="btn btn-primary mt-4">
-                  {editCity ? "Update City" : "Add City"}
-                </Button>
-              </Col>
-            </Row>
-          </div>
-        </Tab>
-      </Tabs>
-
-      <Row>
-        <Col>
-          <div className="tableSheet">
-            <h2>State & City Records</h2>
-            {error && <p style={{ color: "red" }}>{error}</p>}
-            {!loading && !error && (
-              <Table
-                columns={[
-                  { name: "State Name", selector: (row) => row.state_name },
-                  {
-                    name: "City Name",
-                    cell: (row) => (
-                      <ul>
-                        {row.cities.map((city) => (
-                          <li key={city._id}>
-                            {city.city_name}
-                            <button className="editButton" onClick={() => handleEditCity(city)}>
+          <Row>
+            <Col>
+              <div className="tableSheet">
+                <h2>State & City Records</h2>
+                {error && <p style={{ color: "red" }}>{error}</p>}
+                {!loading && !error && (
+                  <Table
+                    columns={[
+                      { name: "State Name", selector: (row) => row.state_name },
+                      {
+                        name: "City Name",
+                        cell: (row) => (
+                          <ul>
+                            {row.cities.map((city) => (
+                              <li key={city._id}>
+                                {city.city_name}
+                                <button className="editButton" onClick={() => handleEditCity(city)}>
+                                  <FaEdit />
+                                </button>
+                                <button className="editButton btn-danger" onClick={() => handleDeleteCity(city._id)}>
+                                  <FaTrashAlt />
+                                </button>
+                              </li>
+                            ))}
+                          </ul>
+                        ),
+                      },
+                      {
+                        name: "Actions",
+                        cell: (row) => (
+                          <div className="d-flex gap-2">
+                            <button className="editButton" onClick={() => handleEditState(row)}>
                               <FaEdit />
                             </button>
-                            <button className="editButton btn-danger" onClick={() => handleDeleteCity(city._id)}>
+                            <button className="editButton btn-danger" onClick={() => handleDeleteState(row._id)}>
                               <FaTrashAlt />
                             </button>
-                          </li>
-                        ))}
-                      </ul>
-                    ),
-                  },
-                  {
-                    name: "Actions",
-                    cell: (row) => (
-                      <div className="d-flex gap-2">
-                        <button className="editButton" onClick={() => handleEditState(row)}>
-                          <FaEdit />
-                        </button>
-                        <button className="editButton btn-danger" onClick={() => handleDeleteState(row._id)}>
-                          <FaTrashAlt />
-                        </button>
-                      </div>
-                    ),
-                  },
-                ]}
-                data={mergedData}
-              />
-            )}
-          </div>
-        </Col>
-      </Row>
-    </Container>
+                          </div>
+                        ),
+                      },
+                    ]}
+                    data={mergedData}
+                  />
+                )}
+              </div>
+            </Col>
+          </Row>
+        </Container>
+      </section>
+    </>
   );
 };
 

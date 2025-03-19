@@ -28,7 +28,7 @@ export default function Header({ toggleSidebar }) {
             <Col className="col-md-6">
               <div style={{ display: "flex", alignItems: "center" }}>
                 {/* Toggle Sidebar Icon */}
-                <button className="hamburger" onClick={toggleSidebar} style={{ marginRight: "10px", background: "none",color: "blue", border: "none", cursor: "pointer" }}>
+                <button className="hamburger" onClick={toggleSidebar}>
                   <GiHamburgerMenu size={24} />
                 </button>
                 <h3>ERP DASHBOARD</h3>
@@ -40,12 +40,7 @@ export default function Header({ toggleSidebar }) {
                   <Nav className="">
                     <Nav.Link href="#home">Home</Nav.Link>
                     <Nav.Link href="#link">
-                      <DarkModeSwitch
-                        style={{ marginBottom: '0rem' }}
-                        checked={isDarkMode}
-                        onChange={toggleDarkMode}
-                        size={20}
-                      />
+                      <DarkModeSwitch style={{ marginBottom: '0rem' }} checked={isDarkMode} onChange={toggleDarkMode} size={20} />
                     </Nav.Link>
                     <NavDropdown title={<span><Image src="/user.png" alt="dropdown icon" style={{ marginRight: "8px" }} width={25} height={25} />  User Name </span>} id="basic-nav-dropdown">
                       <NavDropdown.Item href="#">Change Password</NavDropdown.Item>

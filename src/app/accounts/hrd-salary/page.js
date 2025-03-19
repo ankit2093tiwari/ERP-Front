@@ -4,8 +4,8 @@ import dynamic from "next/dynamic";
 import styles from "@/app/medical/routine-check-up/page.module.css";
 import Table from "@/app/component/DataTable";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
-import { Form, Row, Col, Container, FormLabel, FormSelect, FormControl, Button, Breadcrumb } from "react-bootstrap";
-
+import { Form, Row, Col, Container, FormLabel, FormSelect, FormControl, Button } from "react-bootstrap";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const hrdSallary = () => {
 
@@ -96,10 +96,10 @@ const hrdSallary = () => {
   const data = [
     {
       id: 1,
-      salDate:'20',
-      empcode:'',
-      name:'',
-      actBasic:'',
+      salDate: '20',
+      empcode: '',
+      name: '',
+      actBasic: '',
       basic: "",
       increment: '',
       ve: "300.00",
@@ -107,37 +107,41 @@ const hrdSallary = () => {
       pf: "AKANKSHA",
       lic: 'Remarks',
       salAdv: '24-09-2020',
-      vd:'',
-      esi:'',
+      vd: '',
+      esi: '',
       totalDeb: '',
-      netSalary:'',
+      netSalary: '',
     },
-    
-    
   ];
+
+
+  const breadcrumbItems = [{ label: "Accounts", link: "/accounts/all-module" }, { label: "HRD Salry", link: "null" }]
+
+
   return (
-    <Container>
-       <Row className='mt-1 mb-1'>
-        <Col>
-          <Breadcrumb>
-            <Breadcrumb.Item href="/">Home</Breadcrumb.Item>
-            <Breadcrumb.Item href="/accounts/all-module">
-              Account
-            </Breadcrumb.Item>
-            <Breadcrumb.Item active>HRD Salary</Breadcrumb.Item>
-          </Breadcrumb>
-        </Col>
-      </Row>
-        <Row>
-          <Col>
-          <div className="tableSheet">
-            <h2>HRD Salary Records </h2>
-            <Table columns={columns} data={data} />
-            </div>
-          </Col>
-        </Row>
-        
-    </Container>
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row>
+            <Col>
+            <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
+      </div>
+      <section>
+        <Container>
+          <Row>
+            <Col>
+              <div className="tableSheet">
+                <h2>HRD Salary Records </h2>
+                <Table columns={columns} data={data} />
+              </div>
+            </Col>
+          </Row>
+        </Container>
+      </section>
+    </>
   )
 }
 

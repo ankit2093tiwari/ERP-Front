@@ -7,6 +7,7 @@ import { FaGauge } from "react-icons/fa6";
 import { MdAccountBalance, MdLibraryBooks } from "react-icons/md";
 import { TiContacts } from "react-icons/ti";
 import { RiUserFollowLine } from "react-icons/ri";
+import { Image } from "react-bootstrap";
 
 export default function Sidebar({ isOpen }) {
     const [activeKey, setActiveKey] = useState(null);
@@ -200,16 +201,26 @@ export default function Sidebar({ isOpen }) {
 
     return (
         <div>
-           <div
-                className={`sidebar ${isOpen ? "open" : "closed"}`}
-            >
+            <div className={`sidebar ${isOpen || activeKey ? "open" : "closed"}`} onMouseEnter={() => setActiveKey(true)}
+                onMouseLeave={() => setActiveKey(false)} >
+
+                <div className="sidebar-profile d-flex align-items-center flex-column">
+                    <div className="position-relative">
+                        <Image src="/user4.png" className="img-shadow img-5x mb-2 rounded-circle" alt="Gym Admin Templates" />
+                        <span className="count-dot"></span>
+                    </div>
+                    <div className="text-center">
+                        <h6 className="profile-name text-nowrap text-truncate">User Name</h6>
+                        <span className="badge bg-danger">Principal</span>
+                    </div>
+                </div>
                 <ul>
                     <Accordion activeKey={activeKey} onSelect={(key) => setActiveKey(key === activeKey ? null : key)} className="sidebarAccordion">
                         <Accordion.Item className="nav-item">
                             <Accordion.Header>
                                 <Link href="/" className="nav-link">
                                     <span>
-                                        <FaGauge /> {(isOpen) && "Dashboard"}
+                                        <FaGauge /> {(isOpen || activeKey) &&  "Dashboard"}
                                     </span>
                                 </Link>
                             </Accordion.Header>
@@ -218,7 +229,7 @@ export default function Sidebar({ isOpen }) {
                             <Accordion.Header>
                                 <Link href="/home" className="nav-link">
                                     <span>
-                                        <FaHome /> {(isOpen) && "Home"}
+                                        <FaHome /> {(isOpen || activeKey) && "Home"}
                                     </span>
                                 </Link>
                             </Accordion.Header>
@@ -227,15 +238,15 @@ export default function Sidebar({ isOpen }) {
                             <Accordion.Header>
                                 <span>
                                     <FaGauge />
-                                    {(isOpen) && "Master Entry"}
+                                    {(isOpen || activeKey) &&  "Master Entry"}
                                 </span>
                             </Accordion.Header>
                             <Accordion.Body>
-                                <ul style={{ listStyle: "none", paddingLeft: isOpen ? "20px" : "0" }}>
+                                <ul style={{ listStyle: "none", paddingLeft: isOpen || activeKey ? "20px" : "0" }}>
                                     {masterEntryItems.map((item, index) => (
                                         <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
                                             {item.icon}
-                                            <span style={{ display: isOpen ? "inline" : "none" }}>
+                                            <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>
                                                 <Link href={item.href}>
                                                     {item.title}
                                                 </Link>
@@ -248,17 +259,17 @@ export default function Sidebar({ isOpen }) {
                         <Accordion.Item eventKey="students">
                             <Accordion.Header>
                                 <span style={{ display: "flex", alignItems: "center" }}>
-                                    <FaUserGraduate style={{ marginRight: isOpen ? "10px" : "0" }} />
-                                    {(isOpen) && "Students"}
+                                    <FaUserGraduate style={{ marginRight: isOpen || activeKey ? "10px" : "0" }} />
+                                    {(isOpen || activeKey) &&  "Students"}
                                 </span>
                             </Accordion.Header>
                             <Accordion.Body>
-                                <ul style={{ listStyle: "none", paddingLeft: isOpen ? "20px" : "0" }}>
+                                <ul style={{ listStyle: "none", paddingLeft: isOpen || activeKey ? "20px" : "0" }}>
                                     {studentItems.map((item, index) => (
                                         <li key={index} style={{ padding: "5px 0" }}>
                                             <div style={{ display: "flex", alignItems: "center" }}>
                                                 {item.icon}
-                                                <span style={{ marginLeft: "10px", display: isOpen ? "inline" : "none" }}>
+                                                <span style={{ marginLeft: "10px", display: isOpen || activeKey ? "inline" : "none" }}>
                                                     <Link href={item.href}>{item.title}</Link>
                                                 </span>
                                             </div>

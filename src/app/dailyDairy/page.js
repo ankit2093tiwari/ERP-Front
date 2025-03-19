@@ -17,7 +17,7 @@ import {
 } from "react-bootstrap";
 import axios from "axios";
 
-const DailyDairy = () => {
+const DailyDiary = () => {
   const [data, setData] = useState([]); // Table data
   const [loading, setLoading] = useState(false); // Loading state
   const [error, setError] = useState(""); // Error state
@@ -239,4 +239,4 @@ const DailyDairy = () => {
   );
 };
 
-export default dynamic(() => Promise.resolve(DailyDairy), { ssr: false });
+export default dynamic(() => Promise.resolve(DailyDiary), { ssr: false });

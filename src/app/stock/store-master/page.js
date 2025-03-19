@@ -13,11 +13,11 @@ import {
   FormLabel,
   FormControl,
   Button,
-  Alert,
+  Alert
 } from "react-bootstrap";
 import axios from "axios";
 import Table from "@/app/component/DataTable"; // Ensure the path is correct
-import { copyContent, printContent } from "@/app/utils";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const StoreMaster = () => {
   const [data, setData] = useState([]); // Data for the table
@@ -139,20 +139,41 @@ const StoreMaster = () => {
   };
 
   const handlePrint = async () => {
+    const { jsPDF } = await import("jspdf");
+    const autoTable = (await import("jspdf-autotable")).default;
+
+    const doc = new jsPDF();
     const tableHeaders = [["#", "Store Name"]];
     const tableRows = data.map((row, index) => [
       index + 1,
       row.storeName || "N/A",
     ]);
 
-    printContent(tableHeaders, tableRows);
+    autoTable(doc, {
+      head: tableHeaders,
+      body: tableRows,
+      theme: "grid",
+      styles: { fontSize: 10 },
+      headStyles: { fillColor: [41, 128, 185] },
+    });
+
+    // Open the print dialog instead of directly downloading
+    const pdfBlob = doc.output("blob");
+    const pdfUrl = URL.createObjectURL(pdfBlob);
+    const printWindow = window.open(pdfUrl);
+    printWindow.onload = () => {
+      printWindow.print();
+    };
   };
 
   const handleCopy = () => {
-    const headers = ["#", "Store Name"];
-    const rows = data.map((row, index) => `${index + 1}\t${row.storeName || "N/A"}`);
+    const headers = ["#", "Store Name"].join("\t");
+    const rows = data.map((row, index) => `${index + 1}\t${row.storeName || "N/A"}`).join("\n");
+    const fullData = `${headers}\n${rows}`;
 
-    copyContent(headers, rows);
+    navigator.clipboard.writeText(fullData)
+      .then(() => alert("Copied to clipboard!"))
+      .catch(() => alert("Failed to copy table data to clipboard."));
   };
 
   useEffect(() => {
@@ -194,75 +215,79 @@ const StoreMaster = () => {
       ),
     },
   ];
-
+  const breadcrumbItems = [{ label: "Stock", link: "/stock/all-module" }, { label: "Store Master", link: "null" }]
   return (
-    <Container>
-      <Row className="mt-1 mb-1">
-        <Col>
-          <Breadcrumb>
-            <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-            <Breadcrumb.Item href="/stock/all-module">Stock Module</Breadcrumb.Item>
-            <Breadcrumb.Item active>Store Master</Breadcrumb.Item>
-          </Breadcrumb>
-        </Col>
-      </Row>
-      {successMessage && <Alert variant="success">{successMessage}</Alert>}
-      {error && <Alert variant="danger">{error}</Alert>}
-      <Row>
-        <Col>
-          <Button onClick={onOpen} className="btn btn-primary">
-            <CgAddR /> Add Store
-          </Button>
-          {isPopoverOpen && (
-            <div className="cover-sheet">
-              <div className="studentHeading"><h2>Add Store</h2>
-                <button className='closeForm' onClick={onClose}> X </button>
-              </div>
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
+      </div>
+      <section>
+        <Container>
+          {successMessage && <Alert variant="success">{successMessage}</Alert>}
+          {error && <Alert variant="danger">{error}</Alert>}
+          <Row>
+            <Col>
+              <Button onClick={onOpen} className="btn-add">
+                <CgAddR /> Add Store
+              </Button>
+              {isPopoverOpen && (
+                <div className="cover-sheet">
+                  <div className="studentHeading"><h2>Add Store</h2>
+                    <button className='closeForm' onClick={onClose}> X </button>
+                  </div>
 
-              <Form className="formSheet">
-                <Row className="mb-3">
-                  <Col lg={6}>
-                    <FormLabel className="labelForm">Store Name</FormLabel>
-                    <FormControl
-                      type="text"
-                      placeholder="Enter Store Name"
-                      value={newStore.storeName}
-                      onChange={(e) =>
-                        setNewStore({
-                          ...newStore,
-                          storeName: e.target.value,
-                        })
-                      }
-                    />
-                  </Col>
-                </Row>
-                <Row>
-                  <Col>
-                    <Button onClick={handleAdd} className="btn btn-primary mt-4">
-                      Add Store
-                    </Button>
-                  </Col>
-                </Row>
-              </Form>
-            </div>
-          )}
-        </Col>
-      </Row>
-      <Row>
-        <Col>
-          <div className="tableSheet">
-            <h2>Store Records</h2>
-            {loading ? (
-              <p>Loading...</p>
-            ) : data.length > 0 ? (
-              <Table columns={columns} data={data} handleCopy={handleCopy} handlePrint={handlePrint} />
-            ) : (
-              <p>No stores available.</p>
-            )}
-          </div>
-        </Col>
-      </Row>
-    </Container>
+                  <Form className="formSheet">
+                    <Row className="mb-3">
+                      <Col lg={6}>
+                        <FormLabel className="labelForm">Store Name</FormLabel>
+                        <FormControl
+                          type="text"
+                          placeholder="Enter Store Name"
+                          value={newStore.storeName}
+                          onChange={(e) =>
+                            setNewStore({
+                              ...newStore,
+                              storeName: e.target.value,
+                            })
+                          }
+                        />
+                      </Col>
+                    </Row>
+                    <Row>
+                      <Col>
+                        <Button onClick={handleAdd} className="btn btn-primary mt-4">
+                          Add Store
+                        </Button>
+                      </Col>
+                    </Row>
+                  </Form>
+                </div>
+              )}
+            </Col>
+          </Row>
+          <Row>
+            <Col>
+              <div className="tableSheet">
+                <h2>Store Records</h2>
+                {loading ? (
+                  <p>Loading...</p>
+                ) : data.length > 0 ? (
+                  <Table columns={columns} data={data} handleCopy={handleCopy} handlePrint={handlePrint} />
+                ) : (
+                  <p>No stores available.</p>
+                )}
+              </div>
+            </Col>
+          </Row>
+        </Container >
+      </section>
+    </>
   );
 };
 

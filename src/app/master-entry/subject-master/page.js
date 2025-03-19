@@ -7,6 +7,7 @@ import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
 import { CgAddR } from 'react-icons/cg';
 import axios from "axios";
 import { copyContent, printContent } from "@/app/utils";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const SubjectMaster = () => {
   const [classList, setClassList] = useState([]);
@@ -293,119 +294,125 @@ const SubjectMaster = () => {
     copyContent(headers, rows);
   };
 
+  const breadcrumbItems = [{ label: "Master Entry", link: "/master-entry/all-module" }, { label: "subject-master", link: "null" }]
+
   return (
-    <Container>
-      <Row className="mt-1 mb-1">
-        <Col>
-          <Breadcrumb>
-            <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-            <Breadcrumb.Item href="/master-entry/all-module">Master Entry</Breadcrumb.Item>
-            <Breadcrumb.Item active>Subject Master</Breadcrumb.Item>
-          </Breadcrumb>
-        </Col>
-      </Row>
-      <Button onClick={() => setShowAddForm(!showAddForm)} className="mb-4">
-        <CgAddR /> {showAddForm ? "Close Form" : "Add Subject"}
-      </Button>
-      {showAddForm && (
-        <div className="cover-sheet">
-          <div className="studentHeading">
-            <h2>Add Subject</h2>
-            <button className="closeForm" onClick={() => setShowAddForm(false)}>X</button>
-          </div>
-          <Form className="formSheet">
-            <Row className="mb-3">
-              <Col>
-                <FormLabel>Select Class</FormLabel>
-                <FormSelect
-                  value={selectedClass}
-                  onChange={(e) => {
-                    setSelectedClass(e.target.value);
-                    fetchSections(e.target.value);
-                  }}
-                >
-                  <option value="">Select Class</option>
-                  {classList.map((cls) => (
-                    <option key={cls._id} value={cls._id}>
-                      {cls.class_name}
-                    </option>
-                  ))}
-                </FormSelect>
-              </Col>
-              <Col>
-                <FormLabel>Select Section (Optional)</FormLabel>
-                <FormSelect
-                  value={selectedSection}
-                  onChange={(e) => setSelectedSection(e.target.value)}
-                >
-                  <option value="">Select Section</option>
-                  {sectionList.map((sec) => (
-                    <option key={sec._id} value={sec._id}>
-                      {sec.section_name}
-                    </option>
-                  ))}
-                </FormSelect>
-              </Col>
-            </Row>
-            <Row className="mt-3">
-              <Col>
-                <FormLabel>Enter Subject Name</FormLabel>
-                <FormControl
-                  type="text"
-                  value={subjectName}
-                  onChange={(e) => setSubjectName(e.target.value)}
-                />
-              </Col>
-              <Col>
-                <FormLabel>Select Teacher</FormLabel>
-                <FormSelect
-                  value={selectedEmployee}
-                  onChange={(e) => setSelectedEmployee(e.target.value)}
-                >
-                  <option value="">Select Employee</option>
-                  {employeeList.map((emp) => (
-                    <option key={emp._id} value={emp._id}>
-                      {emp.employee_name}
-                    </option>
-                  ))}
-                </FormSelect>
-              </Col>
-            </Row>
-            <Row className="mt-3">
-              <Col>
-                <Form.Check
-                  type="checkbox"
-                  label="Compulsory Subject"
-                  checked={compulsory}
-                  onChange={(e) => setCompulsory(e.target.checked)}
-                />
-              </Col>
-            </Row>
-            <Row className="mt-3">
-              <Col>
-                <Button onClick={handleAddOrUpdateSubject}>
-                  {editId ? "Update Subject" : "Add Subject"}
-                </Button>
-              </Col>
-            </Row>
-          </Form>
-        </div>
-      )}
-      <Row>
-        <Col>
-          <div className="tableSheet">
-            <h2>Subject Master</h2>
-            {loading ? (
-              <p>Loading...</p>
-            ) : error ? (
-              <p style={{ color: "red" }}>{error}</p>
-            ) : (
-              <Table columns={columns} data={subjectList} handleCopy={handleCopy} handlePrint={handlePrint} />
-            )}
-          </div>
-        </Col>
-      </Row>
-    </Container>
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
+      </div>
+      <section>
+        <Container>
+          <Button onClick={() => setShowAddForm(!showAddForm)} className="btn-add">
+            <CgAddR /> {showAddForm ? "Close Form" : "Add Subject"}
+          </Button>
+          {showAddForm && (
+            <div className="cover-sheet">
+              <div className="studentHeading">
+                <h2>Add Subject</h2>
+                <button className="closeForm" onClick={() => setShowAddForm(false)}>X</button>
+              </div>
+              <Form className="formSheet">
+                <Row className="mb-3">
+                  <Col>
+                    <FormLabel>Select Class</FormLabel>
+                    <FormSelect
+                      value={selectedClass}
+                      onChange={(e) => {
+                        setSelectedClass(e.target.value);
+                        fetchSections(e.target.value);
+                      }}
+                    >
+                      <option value="">Select Class</option>
+                      {classList.map((cls) => (
+                        <option key={cls._id} value={cls._id}>
+                          {cls.class_name}
+                        </option>
+                      ))}
+                    </FormSelect>
+                  </Col>
+                  <Col>
+                    <FormLabel>Select Section (Optional)</FormLabel>
+                    <FormSelect
+                      value={selectedSection}
+                      onChange={(e) => setSelectedSection(e.target.value)}
+                    >
+                      <option value="">Select Section</option>
+                      {sectionList.map((sec) => (
+                        <option key={sec._id} value={sec._id}>
+                          {sec.section_name}
+                        </option>
+                      ))}
+                    </FormSelect>
+                  </Col>
+                </Row>
+                <Row className="mt-3">
+                  <Col>
+                    <FormLabel>Enter Subject Name</FormLabel>
+                    <FormControl
+                      type="text"
+                      value={subjectName}
+                      onChange={(e) => setSubjectName(e.target.value)}
+                    />
+                  </Col>
+                  <Col>
+                    <FormLabel>Select Teacher</FormLabel>
+                    <FormSelect
+                      value={selectedEmployee}
+                      onChange={(e) => setSelectedEmployee(e.target.value)}
+                    >
+                      <option value="">Select Employee</option>
+                      {employeeList.map((emp) => (
+                        <option key={emp._id} value={emp._id}>
+                          {emp.employee_name}
+                        </option>
+                      ))}
+                    </FormSelect>
+                  </Col>
+                </Row>
+                <Row className="mt-3">
+                  <Col>
+                    <Form.Check
+                      type="checkbox"
+                      label="Compulsory Subject"
+                      checked={compulsory}
+                      onChange={(e) => setCompulsory(e.target.checked)}
+                    />
+                  </Col>
+                </Row>
+                <Row className="mt-3">
+                  <Col>
+                    <Button onClick={handleAddOrUpdateSubject}>
+                      {editId ? "Update Subject" : "Add Subject"}
+                    </Button>
+                  </Col>
+                </Row>
+              </Form>
+            </div>
+          )}
+          <Row>
+            <Col>
+              <div className="tableSheet">
+                <h2>Subject Master</h2>
+                {loading ? (
+                  <p>Loading...</p>
+                ) : error ? (
+                  <p style={{ color: "red" }}>{error}</p>
+                ) : (
+                  <Table columns={columns} data={subjectList} handleCopy={handleCopy} handlePrint={handlePrint} />
+                )}
+              </div>
+            </Col>
+          </Row>
+        </Container>
+      </section>
+    </>
   );
 };
 

@@ -17,7 +17,7 @@ import {
 import axios from "axios";
 import Table from "@/app/component/DataTable";
 import { CgAddR } from 'react-icons/cg';
-import { copyContent, printContent } from "@/app/utils";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const ItemCategory = () => {
   const [data, setData] = useState([]);
@@ -117,23 +117,41 @@ const ItemCategory = () => {
   };
 
   const handlePrint = async () => {
+    const { jsPDF } = await import("jspdf");
+    const autoTable = (await import("jspdf-autotable")).default;
 
+    const doc = new jsPDF();
     const tableHeaders = [["#", "Category Name"]];
     const tableRows = data.map((row, index) => [
       index + 1,
       row.categoryName || "N/A",
     ]);
 
-    printContent(tableHeaders, tableRows);
+    autoTable(doc, {
+      head: tableHeaders,
+      body: tableRows,
+      theme: "grid",
+      styles: { fontSize: 10 },
+      headStyles: { fillColor: [41, 128, 185] },
+    });
 
-
+    // Open the print dialog instead of directly downloading
+    const pdfBlob = doc.output("blob");
+    const pdfUrl = URL.createObjectURL(pdfBlob);
+    const printWindow = window.open(pdfUrl);
+    printWindow.onload = () => {
+      printWindow.print();
+    };
   };
 
   const handleCopy = () => {
-    const headers = ["#", "Category Name"];
-    const rows = data.map((row, index) => `${index + 1}\t${row.categoryName || "N/A"}`);
+    const headers = ["#", "Category Name"].join("\t");
+    const rows = data.map((row, index) => `${index + 1}\t${row.categoryName || "N/A"}`).join("\n");
+    const fullData = `${headers}\n${rows}`;
 
-    copyContent(headers, rows);
+    navigator.clipboard.writeText(fullData)
+      .then(() => alert("Copied to clipboard!"))
+      .catch(() => alert("Failed to copy table data to clipboard."));
   };
 
   useEffect(() => {
@@ -182,23 +200,26 @@ const ItemCategory = () => {
       ),
     },
   ];
-
+  const breadcrumbItems = [{ label: "Stock", link: "/stock/all-module" }, { label: "Item Category", link: "null" }]
   return (
+<>
+    <div className="breadcrumbSheet position-relative">
+      <Container>
+        <Row className="mt-1 mb-1">
+          <Col>
+          <BreadcrumbComp items={breadcrumbItems} />
+          </Col>
+        </Row>
+      </Container>
+    </div>
+     
+  <section>
     <Container>
-      <Row className="mt-1 mb-1">
-        <Col>
-          <Breadcrumb>
-            <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-            <Breadcrumb.Item href="/stock/all-module">Stock Module</Breadcrumb.Item>
-            <Breadcrumb.Item active>Item Category</Breadcrumb.Item>
-          </Breadcrumb>
-        </Col>
-      </Row>
-      {successMessage && <Alert variant="success">{successMessage}</Alert>}
-      {error && <Alert variant="danger">{error}</Alert>}
+    { successMessage && <Alert variant="success">{successMessage}</Alert> }
+    { error && <Alert variant="danger">{error}</Alert> }
       <Row>
         <Col>
-          <Button onClick={onOpen} className="btn btn-primary">
+          <Button onClick={onOpen} className="btn-add">
             <CgAddR /> Add Category
           </Button>
           {isPopoverOpen && (
@@ -251,7 +272,9 @@ const ItemCategory = () => {
         </Col>
       </Row>
     </Container>
-  );
+    </section>
+    </>
+    );
 };
 
-export default dynamic(() => Promise.resolve(ItemCategory), { ssr: false });
+export default dynamic(() => Promise.resolve(ItemCategory), {ssr: false });

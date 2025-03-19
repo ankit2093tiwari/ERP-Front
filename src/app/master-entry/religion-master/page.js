@@ -7,6 +7,7 @@ import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
 import { CgAddR } from 'react-icons/cg';
 import axios from "axios";
 import { copyContent, printContent } from "@/app/utils";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const ReligionMasterPage = () => {
   const [data, setData] = useState([]); // Table data
@@ -132,15 +133,15 @@ const ReligionMasterPage = () => {
     }
   };
 
-  const handlePrint =  () => {
- 
+  const handlePrint = () => {
+
     const tableHeaders = [["#", "Religion Name"]];
     const tableRows = data.map((row, index) => [
       index + 1,
       row.religion_name || "N/A",
     ]);
     printContent(tableHeaders, tableRows);
-    
+
   };
 
   const handleCopy = () => {
@@ -154,63 +155,67 @@ const ReligionMasterPage = () => {
     fetchData();
   }, []);
 
+  const breadcrumbItems = [{ label: "Master Entry", link: "/master-entry/all-module" }, { label: "religion-master", link: "null" }]
+
   return (
-    <Container>
-      <Row className='mt-1 mb-1'>
-        <Col>
-          <Breadcrumb>
-            <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-            <Breadcrumb.Item href="/master-entry/all-module">
-              Master Entry
-            </Breadcrumb.Item>
-            <Breadcrumb.Item active>Religion Master</Breadcrumb.Item>
-          </Breadcrumb>
-        </Col>
-      </Row>
-      <Button onClick={() => setShowAddForm(!showAddForm)} className="mb-4">
-        <CgAddR /> {showAddForm ? "Close Form" : "Add Religion"}
-      </Button>
-      {showAddForm && (
-        <div className="cover-sheet">
-          <div className="studentHeading">
-            <h2>Add Document</h2>
-            <button className="closeForm" onClick={() => setShowAddForm(false)}>X</button>
-          </div>
-          <Form className="formSheet">
-            <Row className="mb-3">
-              <Col lg={6}>
-                <FormLabel className="labelForm">Religion Name</FormLabel>
-                <FormControl
-                  type="text"
-                  placeholder="Enter Religion Name"
-                  value={newReligionName}
-                  onChange={(e) => setNewReligionName(e.target.value)}
-                />
-              </Col>
-            </Row>
-            <Row>
-              <Col>
-                <Button onClick={handleAdd}>Add Religion</Button>
-              </Col>
-            </Row>
-          </Form>
-        </div>
-      )}
-      <Row>
-        <Col>
-          <div className="tableSheet">
-            <h2>Religion Master</h2>
-            {loading ? (
-              <p>Loading...</p>
-            ) : error ? (
-              <p style={{ color: "red" }}>{error}</p>
-            ) : (
-              <Table columns={columns} data={data} handleCopy={handleCopy} handlePrint={handlePrint} />
-            )}
-          </div>
-        </Col>
-      </Row>
-    </Container>
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
+      </div>
+      <section>
+        <Container>
+          <Button onClick={() => setShowAddForm(!showAddForm)} className="btn-add">
+            <CgAddR /> {showAddForm ? "Close Form" : "Add Religion"}
+          </Button>
+          {showAddForm && (
+            <div className="cover-sheet">
+              <div className="studentHeading">
+                <h2>Add Religion</h2>
+                <button className="closeForm" onClick={() => setShowAddForm(false)}>X</button>
+              </div>
+              <Form className="formSheet">
+                <Row className="mb-3">
+                  <Col lg={6}>
+                    <FormLabel className="labelForm">Religion Name</FormLabel>
+                    <FormControl
+                      type="text"
+                      placeholder="Enter Religion Name"
+                      value={newReligionName}
+                      onChange={(e) => setNewReligionName(e.target.value)}
+                    />
+                  </Col>
+                </Row>
+                <Row>
+                  <Col>
+                    <Button onClick={handleAdd}>Add Religion</Button>
+                  </Col>
+                </Row>
+              </Form>
+            </div>
+          )}
+          <Row>
+            <Col>
+              <div className="tableSheet">
+                <h2>Religion Master</h2>
+                {loading ? (
+                  <p>Loading...</p>
+                ) : error ? (
+                  <p style={{ color: "red" }}>{error}</p>
+                ) : (
+                  <Table columns={columns} data={data} handleCopy={handleCopy} handlePrint={handlePrint} />
+                )}
+              </div>
+            </Col>
+          </Row>
+        </Container>
+      </section>
+    </>
   );
 };
 

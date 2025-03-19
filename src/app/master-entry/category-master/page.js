@@ -8,6 +8,7 @@ import { Form, Row, Col, Container, FormLabel, FormControl, Button, Breadcrumb }
 import axios from "axios";
 import Table from "@/app/component/DataTable";
 import styles from "@/app/medical/routine-check-up/page.module.css";  // You may need to adjust your CSS paths accordingly
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const CategoryMasterPage = () => {
   const [categories, setCategories] = useState([]); // State for categories
@@ -196,60 +197,65 @@ const CategoryMasterPage = () => {
     fetchCategories();
   }, []);
 
+  const breadcrumbItems = [{ label: "Master Entry", link: "/master-entry/all-module" }, { label: "category-master", link: "null" }]
+
   return (
-    <Container>
-      <Row className='mt-1 mb-1'>
-        <Col>
-          <Breadcrumb>
-            <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-            <Breadcrumb.Item href="/master-entry/all-module">
-              Master Entry
-            </Breadcrumb.Item>
-            <Breadcrumb.Item active>Category Master</Breadcrumb.Item>
-          </Breadcrumb>
-        </Col>
-      </Row>
-
-      <Button
-        onClick={() => setShowAddForm(!showAddForm)}
-        className="btn btn-primary mb-4"
-      >
-        <CgAddR /> Add Category
-      </Button>
-
-      {showAddForm && (
-        <div className="cover-sheet">
-          <div className="studentHeading">
-            <h2>Add New Category</h2>
-            <button className="closeForm" onClick={() => setShowAddForm(false)}>X</button>
-          </div>
-          <Form className="formSheet">
-            <Row className="mb-3">
-              <Col lg={6}>
-                <FormLabel>Category Name</FormLabel>
-                <FormControl
-                  required
-                  type="text"
-                  placeholder="Enter Category Name"
-                  value={newCategoryName}
-                  onChange={(e) => setNewCategoryName(e.target.value)}
-                />
-              </Col>
-            </Row>
-            <Button onClick={handleAddCategory} className="btn btn-primary">
-              Add Category
-            </Button>
-          </Form>
-        </div>
-      )}
-
-      <div className="tableSheet">
-        <h2>Category Records</h2>
-        {loading && <p>Loading...</p>}
-        {error && <p style={{ color: "red" }}>{error}</p>}
-        {!loading && !error && <Table columns={columns} data={categories} handleCopy={handleCopy} handlePrint={handlePrint} />}
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
       </div>
-    </Container>
+      <section>
+        <Container>
+
+          <Button
+            onClick={() => setShowAddForm(!showAddForm)}
+            className="btn-add"
+          >
+            <CgAddR /> Add Category
+          </Button>
+
+          {showAddForm && (
+            <div className="cover-sheet">
+              <div className="studentHeading">
+                <h2>Add New Category</h2>
+                <button className="closeForm" onClick={() => setShowAddForm(false)}>X</button>
+              </div>
+              <Form className="formSheet">
+                <Row className="mb-3">
+                  <Col lg={6}>
+                    <FormLabel>Category Name</FormLabel>
+                    <FormControl
+                      required
+                      type="text"
+                      placeholder="Enter Category Name"
+                      value={newCategoryName}
+                      onChange={(e) => setNewCategoryName(e.target.value)}
+                    />
+                  </Col>
+                </Row>
+                <Button onClick={handleAddCategory} className="btn btn-primary">
+                  Add Category
+                </Button>
+              </Form>
+            </div>
+          )}
+
+          <div className="tableSheet">
+            <h2>Category Records</h2>
+            {loading && <p>Loading...</p>}
+            {error && <p style={{ color: "red" }}>{error}</p>}
+            {!loading && !error && <Table columns={columns} data={categories} handleCopy={handleCopy} handlePrint={handlePrint} />}
+          </div>
+        </Container>
+      </section>
+
+    </>
   );
 };
 

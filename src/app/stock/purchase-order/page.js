@@ -5,6 +5,7 @@ import Table from '@/app/component/DataTable';
 import { Container, Row, Col, Breadcrumb } from 'react-bootstrap';
 import styles from "@/app/students/add-new-student/page.module.css";
 import dynamic from 'next/dynamic';
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const PurchaseMaster = () => {
   const columns = [
@@ -115,32 +116,34 @@ const PurchaseMaster = () => {
       store: '',
     },
   ]);
-
+  const breadcrumbItems = [{ label: "Stock", link: "/stock/all-module" }, { label: "Purchase Order", link: "null" }]
   return (
-    <Container>
-      <Row>
-        <Col>
-          <Breadcrumb>
-            <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-            <Breadcrumb.Item href="/transport">Stock Module</Breadcrumb.Item>
-            <Breadcrumb.Item active>Purchase Master</Breadcrumb.Item>
-          </Breadcrumb>
-        </Col>
-      </Row>
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row>
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
+      </div>
 
-      <Row>
-        <Col>
-        <div className="tableSheet">
-          <h2>Purchase List</h2>
-          <Table columns={columns} data={data} />
-          <div className={styles.buttons} style={{ float: 'right', marginRight: '10px' }}>
-            <button type="button" className="editButton">Previous</button>
-            <button type="button" className="editButton">Next</button>
-          </div>
-          </div>
-        </Col>
-      </Row>
-    </Container>
+      <section>
+        <Container>
+          <Row>
+            <Col>
+              <div className="tableSheet">
+                <h2>Purchase List</h2>
+                <Table columns={columns} data={data} />
+
+              </div>
+            </Col>
+          </Row>
+        </Container>
+      </section>
+    </>
+
   );
 };
 

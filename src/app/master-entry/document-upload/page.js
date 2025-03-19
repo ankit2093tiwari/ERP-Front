@@ -17,6 +17,7 @@ import axios from "axios";
 import Table from "@/app/component/DataTable";
 import styles from "@/app/medical/routine-check-up/page.module.css";
 import { copyContent, printContent } from "@/app/utils";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const DocumentMasterPage = () => {
   const [data, setData] = useState([]); // Documents state
@@ -165,7 +166,7 @@ const DocumentMasterPage = () => {
   const handleCopy = () => {
     const headers = ["#", "Document Name"];
     const rows = data.map((row, index) => `${index + 1}\t${row.document_name || "N/A"}`);
-   
+
     copyContent(headers, rows);
   };
 
@@ -174,57 +175,61 @@ const DocumentMasterPage = () => {
     fetchData();
   }, []);
 
+  const breadcrumbItems = [{ label: "Master Entry", link: "/master-entry/all-module" }, { label: "document-upload", link: "null" }]
+
   return (
-    <Container>
-      <Row className='mt-1 mb-1'>
-        <Col>
-          <Breadcrumb>
-            <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-            <Breadcrumb.Item href="/master-entry/all-module">
-              Master Entry
-            </Breadcrumb.Item>
-            <Breadcrumb.Item active>Document Upload</Breadcrumb.Item>
-          </Breadcrumb>
-        </Col>
-      </Row>
-
-      <Button onClick={() => setShowAddForm(!showAddForm)} className="btn btn-primary mb-4">
-        <CgAddR /> Add Document
-      </Button>
-
-      {showAddForm && (
-        <div className="cover-sheet">
-          <div className="studentHeading">
-            <h2>Add New Document</h2>
-            <button className="closeForm" onClick={() => setShowAddForm(false)}>X</button>
-          </div>
-          <Form className="formSheet">
-            <Row className="mb-3">
-              <Col lg={6}>
-                <FormLabel>Document Name</FormLabel>
-                <FormControl
-                  required
-                  type="text"
-                  placeholder="Enter Document Name"
-                  value={newDocumentName}
-                  onChange={(e) => setNewDocumentName(e.target.value)}
-                />
-              </Col>
-            </Row>
-            <Button onClick={handleAddDocument} className="btn btn-primary">
-              Add Document
-            </Button>
-          </Form>
-        </div>
-      )}
-
-      <div className="tableSheet">
-        <h2>Document Records</h2>
-        {error && <p style={{ color: "red" }}>{error}</p>}
-        {loading && <p>Loading...</p>}
-        {!loading && !error && <Table columns={columns} data={data} handleCopy={handleCopy} handlePrint={handlePrint} />}
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
       </div>
-    </Container>
+      <section>
+        <Container>
+
+          <Button onClick={() => setShowAddForm(!showAddForm)} className="btn-add">
+            <CgAddR /> Add Document
+          </Button>
+
+          {showAddForm && (
+            <div className="cover-sheet">
+              <div className="studentHeading">
+                <h2>Add New Document</h2>
+                <button className="closeForm" onClick={() => setShowAddForm(false)}>X</button>
+              </div>
+              <Form className="formSheet">
+                <Row className="mb-3">
+                  <Col lg={6}>
+                    <FormLabel>Document Name</FormLabel>
+                    <FormControl
+                      required
+                      type="text"
+                      placeholder="Enter Document Name"
+                      value={newDocumentName}
+                      onChange={(e) => setNewDocumentName(e.target.value)}
+                    />
+                  </Col>
+                </Row>
+                <Button onClick={handleAddDocument} className="btn btn-primary">
+                  Add Document
+                </Button>
+              </Form>
+            </div>
+          )}
+
+          <div className="tableSheet">
+            <h2>Document Records</h2>
+            {error && <p style={{ color: "red" }}>{error}</p>}
+            {loading && <p>Loading...</p>}
+            {!loading && !error && <Table columns={columns} data={data} handleCopy={handleCopy} handlePrint={handlePrint} />}
+          </div>
+        </Container>
+      </section>
+    </>
   );
 };
 

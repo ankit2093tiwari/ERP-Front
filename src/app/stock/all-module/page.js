@@ -11,7 +11,9 @@ import { PiTreeStructureLight } from "react-icons/pi";
 import { MdOutlineSubject } from "react-icons/md";
 import { FaChromecast } from "react-icons/fa6";
 import SubCard from "@/app/component/SubCard";
-import Image from "next/image"; 
+import Image from "next/image";
+import { Container, Row, Col, Breadcrumb } from 'react-bootstrap';
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const Page = () => {
   const cardData = [
@@ -70,51 +72,64 @@ const Page = () => {
       description: "Add Basic Details of Return Item",
     },
     {
-        href: "/stock/write-off-entry",
-        icon: <Image src="/module/stock/writeoff.png" className="studentIcon" width={100} height={100} alt="" />,
-        title: "Write Off Entry",
-        description: "Add Basic Details of Write Off Entry",
-      },
-      {
-        href: "/stock/gate-pass",
-        icon: <Image src="/module/stock/pass.png" className="studentIcon" width={100} height={100} alt="" />,
-        title: "Gate Pass",
-        description: "Add Basic Details of Gate Pass",
-      },
-      {
-        href: "/stock/generate-gate-pass",
-        icon: <Image src="/module/stock/generatepass.png" className="studentIcon" width={100} height={100} alt="" />,
-        title: "Generate Gate Pass",
-        description: "generate Slip  of Gate Pass",
-      },
-      {
-        href: "/stock/generate-gate-pass",
-        icon: <Image src="/module/stock/report.png" className="studentIcon" width={100} height={100} alt="" />,
-        title: "Reports",
-        description: "generate Slip  of Gate Pass",
-      },
+      href: "/stock/write-off-entry",
+      icon: <Image src="/module/stock/writeoff.png" className="studentIcon" width={100} height={100} alt="" />,
+      title: "Write Off Entry",
+      description: "Add Basic Details of Write Off Entry",
+    },
+    {
+      href: "/stock/gate-pass",
+      icon: <Image src="/module/stock/pass.png" className="studentIcon" width={100} height={100} alt="" />,
+      title: "Gate Pass",
+      description: "Add Basic Details of Gate Pass",
+    },
+    {
+      href: "/stock/generate-gate-pass",
+      icon: <Image src="/module/stock/generatepass.png" className="studentIcon" width={100} height={100} alt="" />,
+      title: "Generate Gate Pass",
+      description: "generate Slip  of Gate Pass",
+    },
+    {
+      href: "/stock/generate-gate-pass",
+      icon: <Image src="/module/stock/report.png" className="studentIcon" width={100} height={100} alt="" />,
+      title: "Reports",
+      description: "generate Slip  of Gate Pass",
+    },
   ];
-
+  const breadcrumbItems = [{ label: "All Module", link: "null" }]
   return (
-    <div>
-      <div className="studentHeading">
-        <h2>Stock Module</h2>
-        <small>Manage your basic details....</small>
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row>
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
       </div>
-      <div className="cardContainer">
-        {cardData.map((card, index) => (
-          <div className="subCard1" key={index}>
-            <Link href={card.href} className="SubCardLink">
-              <SubCard
-                icon={<div className="iconBack"> {card.icon} </div>}
-                title={<h3>{card.title}</h3>}
-                description={<p>{card.description}</p>}
-              />
-            </Link>
+      <section>
+        <Container>
+          <div className="studentHeading">
+            <h2>Stock Module</h2>
+            <small>Manage your basic details....</small>
           </div>
-        ))}
-      </div>
-    </div>
+          <div className="cardContainer">
+            {cardData.map((card, index) => (
+              <div className="subCard1" key={index}>
+                <Link href={card.href} className="SubCardLink">
+                  <SubCard
+                    icon={<div className="iconBack"> {card.icon} </div>}
+                    title={<h3>{card.title}</h3>}
+                    description={<p>{card.description}</p>}
+                  />
+                </Link>
+              </div>
+            ))}
+          </div>
+        </Container>
+      </section>
+    </>
   );
 };
 
