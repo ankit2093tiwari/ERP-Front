@@ -5,6 +5,7 @@ import axios from "axios";
 import { Form, Row, Col, Container, FormLabel, Button, Breadcrumb, FormSelect } from "react-bootstrap";
 import Table from "@/app/component/DataTable";
 import styles from "@/app/students/assign-roll-no/page.module.css";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const TakeAttendence = () => {
     const [classList, setClassList] = useState([]);
@@ -148,110 +149,114 @@ const TakeAttendence = () => {
 
     const { totalPresent, totalAbsent, totalLeave } = calculateAttendanceSummary();
 
+    const breadcrumbItems = [{ label: "Student Attendance", link: "/studentAttendence/allModule" }, { label: "Take-Attendence", link: "null" }]
+
     return (
-        <Container>
-            <Row className="mt-1 mb-1">
-                <Col>
-                    <Breadcrumb>
-                        <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-                        <Breadcrumb.Item href="/students/all-module">Student Attendance</Breadcrumb.Item>
-                        <Breadcrumb.Item active>Take Attendance</Breadcrumb.Item>
-                    </Breadcrumb>
-                </Col>
-            </Row>
-
-            <div className="cover-sheet">
-                <div className="studentHeading">
-                    <h2>Search Students</h2>
-                </div>
-
-                <Form className="formSheet">
-                    <Row>
+        <>
+            <div className="breadcrumbSheet position-relative">
+                <Container>
+                    <Row className="mt-1 mb-1">
                         <Col>
-                            <FormLabel className="labelForm">Select Class</FormLabel>
-                            <FormSelect value={selectedClass} onChange={handleClassChange}>
-                                <option value="">Select Class</option>
-                                {classList.map((cls) => (
-                                    <option key={cls._id} value={cls._id}>
-                                        {cls.class_name}
-                                    </option>
-                                ))}
-                            </FormSelect>
-                        </Col>
-                        <Col>
-                            <FormLabel className="labelForm">Select Section</FormLabel>
-                            <FormSelect value={selectedSection} onChange={handleSectionChange}>
-                                <option value="">Select Section</option>
-                                {sectionList.map((sec) => (
-                                    <option key={sec._id} value={sec._id}>
-                                        {sec.section_name}
-                                    </option>
-                                ))}
-                            </FormSelect>
-                        </Col>
-                        <Col>
-                            <FormLabel className="labelForm">Select Date</FormLabel>
-                            <Form.Control
-                                type="date"
-                                value={attendanceDate}
-                                onChange={handleDateChange}
-                            />
+                            <BreadcrumbComp items={breadcrumbItems} />
                         </Col>
                     </Row>
-                    <br />
-                    <Row>
-                        <Col>
-                            <Button className="btn btn-primary" onClick={fetchStudents} disabled={loading}>
-                                {loading ? "Loading..." : "Search Students"}
-                            </Button>
-                            {students.length > 0 && (
-                                <Button className="btn btn-success ms-2" onClick={submitAttendance} disabled={submitting}>
-                                    {submitting ? "Submitting..." : "Take Attendance"}
-                                </Button>
-                            )}
-                        </Col>
-                    </Row>
-                </Form>
+                </Container>
             </div>
-
-            <Row>
-                <Col>
-                    <div className="tableSheet">
-                        <h2>Take Student Attendance</h2>
-                        {students.length > 0 ? (
-                            <>
-                                <div className="attendance-summary">
-                                    <p>Total Present: {totalPresent} & Total Absent: {totalAbsent} Total Leave: {totalLeave}</p>
-                                </div>
-                                <Table
-                                    columns={[
-                                        { name: "Roll No", selector: (row) => row.roll_no || "N/A", sortable: true },
-                                        {
-                                            name: "Mark Leave",
-                                            cell: (row) => (
-                                                <FormSelect
-                                                    value={attendanceRecords.find((record) => record.student_id === row._id)?.status || "present"}
-                                                    onChange={(e) => handleAttendanceChange(row._id, e.target.value)}
-                                                >
-                                                    <option value="present">Present</option>
-                                                    <option value="absent">Absent</option>
-                                                    <option value="leave">Leave</option>
-                                                </FormSelect>
-                                            ),
-                                        },
-                                        { name: "Student Name", selector: (row) => `${row.first_name} ${row.middle_name || ""} ${row.last_name}`.trim(), sortable: true },
-                                        { name: "Father Name", selector: (row) => row.father_name || "N/A", sortable: true },
-                                    ]}
-                                    data={students}
-                                />
-                            </>
-                        ) : (
-                            <p className="text-center">No students found.</p>
-                        )}
+            <section>
+                <Container>
+                    <div className="cover-sheet">
+                        <div className="studentHeading">
+                            <h2>Search Students</h2>
+                        </div>
+                        <Form className="formSheet">
+                            <Row>
+                                <Col>
+                                    <FormLabel className="labelForm">Select Class</FormLabel>
+                                    <FormSelect value={selectedClass} onChange={handleClassChange}>
+                                        <option value="">Select Class</option>
+                                        {classList.map((cls) => (
+                                            <option key={cls._id} value={cls._id}>
+                                                {cls.class_name}
+                                            </option>
+                                        ))}
+                                    </FormSelect>
+                                </Col>
+                                <Col>
+                                    <FormLabel className="labelForm">Select Section</FormLabel>
+                                    <FormSelect value={selectedSection} onChange={handleSectionChange}>
+                                        <option value="">Select Section</option>
+                                        {sectionList.map((sec) => (
+                                            <option key={sec._id} value={sec._id}>
+                                                {sec.section_name}
+                                            </option>
+                                        ))}
+                                    </FormSelect>
+                                </Col>
+                                <Col>
+                                    <FormLabel className="labelForm">Select Date</FormLabel>
+                                    <Form.Control
+                                        type="date"
+                                        value={attendanceDate}
+                                        onChange={handleDateChange}
+                                    />
+                                </Col>
+                            </Row>
+                            <br />
+                            <Row>
+                                <Col>
+                                    <Button className="btn btn-primary" onClick={fetchStudents} disabled={loading}>
+                                        {loading ? "Loading..." : "Search Students"}
+                                    </Button>
+                                    {students.length > 0 && (
+                                        <Button className="btn btn-success ms-2" onClick={submitAttendance} disabled={submitting}>
+                                            {submitting ? "Submitting..." : "Take Attendance"}
+                                        </Button>
+                                    )}
+                                </Col>
+                            </Row>
+                        </Form>
                     </div>
-                </Col>
-            </Row>
-        </Container>
+
+                    <Row>
+                        <Col>
+                            <div className="tableSheet">
+                                <h2>Take Student Attendance</h2>
+                                {students.length > 0 ? (
+                                    <>
+                                        <div className="attendance-summary">
+                                            <p>Total Present: {totalPresent} & Total Absent: {totalAbsent} Total Leave: {totalLeave}</p>
+                                        </div>
+                                        <Table
+                                            columns={[
+                                                { name: "Roll No", selector: (row) => row.roll_no || "N/A", sortable: true },
+                                                {
+                                                    name: "Mark Leave",
+                                                    cell: (row) => (
+                                                        <FormSelect
+                                                            value={attendanceRecords.find((record) => record.student_id === row._id)?.status || "present"}
+                                                            onChange={(e) => handleAttendanceChange(row._id, e.target.value)}
+                                                        >
+                                                            <option value="present">Present</option>
+                                                            <option value="absent">Absent</option>
+                                                            <option value="leave">Leave</option>
+                                                        </FormSelect>
+                                                    ),
+                                                },
+                                                { name: "Student Name", selector: (row) => `${row.first_name} ${row.middle_name || ""} ${row.last_name}`.trim(), sortable: true },
+                                                { name: "Father Name", selector: (row) => row.father_name || "N/A", sortable: true },
+                                            ]}
+                                            data={students}
+                                        />
+                                    </>
+                                ) : (
+                                    <p className="text-center">No students found.</p>
+                                )}
+                            </div>
+                        </Col>
+                    </Row>
+                </Container>
+            </section>
+        </>
     );
 };
 

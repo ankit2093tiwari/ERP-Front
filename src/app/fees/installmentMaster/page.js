@@ -17,6 +17,7 @@ import axios from "axios";
 import Table from "@/app/component/DataTable";
 import styles from "@/app/medical/routine-check-up/page.module.css";
 import { copyContent, printContent } from "@/app/utils";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const InstallmentMaster = () => {
   const [data, setData] = useState([]);
@@ -118,7 +119,7 @@ const InstallmentMaster = () => {
   const handleCopy = () => {
     const headers = ["#", "Installment Name"]; // Tab-separated headers
     const rows = data.map((row, index) => `${index + 1}\t${row.installment_name || "N/A"}`);
-    
+
     copyContent(headers, rows);
   };
 
@@ -177,64 +178,70 @@ const InstallmentMaster = () => {
     },
   ];
 
+  const breadcrumbItems = [{ label: "Fee", link: "/fees/all-module" }, { label: "installment-master", link: "null" }]
+
   return (
-    <Container className="">
-      <Row className='mt-1 mb-1'>
-        <Col>
-          <Breadcrumb>
-            <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-            <Breadcrumb.Item href="/installments">Installments</Breadcrumb.Item>
-            <Breadcrumb.Item active>Manage Installments</Breadcrumb.Item>
-          </Breadcrumb>
-        </Col>
-      </Row>
-
-      {/* Add Installment Button */}
-      <Button onClick={() => setIsPopoverOpen(true)} className="btn btn-primary">
-        <CgAddR /> Add Installment
-      </Button>
-
-      {/* Add Installment Popover */}
-      {isPopoverOpen && (
-        <div className="cover-sheet">
-          <div className="studentHeading">
-            <h2>Add New Installment</h2>
-            <button className="closeForm" onClick={() => setIsPopoverOpen(false)}>X</button>
-          </div>
-          <Form className="formSheet">
-            <Row>
-              <Col lg={6}>
-                <FormLabel>Installment Name</FormLabel>
-                <FormControl
-                  type="text"
-                  placeholder="Enter Installment Name"
-                  value={newInstallment}
-                  onChange={(e) => setNewInstallment(e.target.value)}
-                />
-              </Col>
-            </Row>
-            <Button onClick={handleAdd} className="btn btn-primary">
-              Add Installment
-            </Button>
-          </Form>
-        </div>
-      )}
-
-      {/* Installment Records Table */}
-      <div className="tableSheet">
-        <h2>Installment Records</h2>
-        {loading && <p>Loading...</p>}
-        {error && <p>{error}</p>}
-        {!loading && !error && (
-          <Table
-            columns={columns}
-            data={data}
-            handlePrint={handlePrint}
-            handleCopy={handleCopy}
-          />
-        )}
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
       </div>
-    </Container>
+      <section>
+        <Container className="">
+
+          {/* Add Installment Button */}
+          <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
+            <CgAddR /> Add Installment
+          </Button>
+
+          {/* Add Installment Popover */}
+          {isPopoverOpen && (
+            <div className="cover-sheet">
+              <div className="studentHeading">
+                <h2>Add New Installment</h2>
+                <button className="closeForm" onClick={() => setIsPopoverOpen(false)}>X</button>
+              </div>
+              <Form className="formSheet">
+                <Row>
+                  <Col lg={6}>
+                    <FormLabel>Installment Name</FormLabel>
+                    <FormControl
+                      type="text"
+                      placeholder="Enter Installment Name"
+                      value={newInstallment}
+                      onChange={(e) => setNewInstallment(e.target.value)}
+                    />
+                  </Col>
+                </Row>
+                <Button onClick={handleAdd} className="btn btn-primary">
+                  Add Installment
+                </Button>
+              </Form>
+            </div>
+          )}
+
+          {/* Installment Records Table */}
+          <div className="tableSheet">
+            <h2>Installment Records</h2>
+            {loading && <p>Loading...</p>}
+            {error && <p>{error}</p>}
+            {!loading && !error && (
+              <Table
+                columns={columns}
+                data={data}
+                handlePrint={handlePrint}
+                handleCopy={handleCopy}
+              />
+            )}
+          </div>
+        </Container>
+      </section>
+    </>
   );
 };
 

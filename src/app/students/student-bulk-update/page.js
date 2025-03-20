@@ -5,6 +5,7 @@ import axios from "axios";
 import { Form, Row, Col, Container, FormLabel, Button, Breadcrumb, FormSelect } from "react-bootstrap";
 import Table from "@/app/component/DataTable";
 import styles from "@/app/students/assign-roll-no/page.module.css";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const StudentBulkUpdate = () => {
   const [classList, setClassList] = useState([]);
@@ -170,77 +171,83 @@ const StudentBulkUpdate = () => {
     },
   ];
 
+  const breadcrumbItems = [{ label: "students", link: "/students/all-module" }, { label: "student-bulk-update", link: "null" }]
+
   return (
-    <Container>
-      <Row className="mt-1 mb-1">
-        <Col>
-          <Breadcrumb>
-            <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-            <Breadcrumb.Item href="/students/all-module">Student</Breadcrumb.Item>
-            <Breadcrumb.Item active>Student Bulk Update</Breadcrumb.Item>
-          </Breadcrumb>
-        </Col>
-      </Row>
-
-      <div className="cover-sheet">
-        <div className="studentHeading">
-          <h2>Search Students</h2>
-        </div>
-
-        <Form className="formSheet">
-          <Row>
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
             <Col>
-              <FormLabel className="labelForm">Select Class</FormLabel>
-              <FormSelect value={selectedClass} onChange={handleClassChange}>
-                <option value="">Select Class</option>
-                {classList.map((cls) => (
-                  <option key={cls._id} value={cls._id}>
-                    {cls.class_name}
-                  </option>
-                ))}
-              </FormSelect>
-            </Col>
-            <Col>
-              <FormLabel className="labelForm">Select Section</FormLabel>
-              <FormSelect value={selectedSection} onChange={handleSectionChange}>
-                <option value="">Select Section</option>
-                {Array.isArray(sectionList) && sectionList.map((sec) => (
-                  <option key={sec._id} value={sec._id}>
-                    {sec.section_name}
-                  </option>
-                ))}
-              </FormSelect>
+              <BreadcrumbComp items={breadcrumbItems} />
             </Col>
           </Row>
-          <br />
-          <Row>
-            <Col>
-              <Button className="btn btn-primary" onClick={fetchStudents}>
-                Search Students
-              </Button>
-              {showUpdateButton && (
-                <Button className="btn btn-success mt-3" onClick={handleUpdateStudents}>
-                  Update Students
-                </Button>
-              )}
-            </Col>
-          </Row>
-        </Form>
+        </Container>
       </div>
+      <section>
+        <Container>
 
-      <Row>
-        <Col>
-          <div className="tableSheet">
-            <h2>Students Records</h2>
-            {students.length > 0 ? (
-              <Table columns={columns} data={students} />
-            ) : (
-              <p className="text-center">No students found for the selected class and section.</p>
-            )}
+          <div className="cover-sheet">
+            <div className="studentHeading">
+              <h2>Search Students</h2>
+            </div>
+
+            <Form className="formSheet">
+              <Row>
+                <Col>
+                  <FormLabel className="labelForm">Select Class</FormLabel>
+                  <FormSelect value={selectedClass} onChange={handleClassChange}>
+                    <option value="">Select Class</option>
+                    {classList.map((cls) => (
+                      <option key={cls._id} value={cls._id}>
+                        {cls.class_name}
+                      </option>
+                    ))}
+                  </FormSelect>
+                </Col>
+                <Col>
+                  <FormLabel className="labelForm">Select Section</FormLabel>
+                  <FormSelect value={selectedSection} onChange={handleSectionChange}>
+                    <option value="">Select Section</option>
+                    {Array.isArray(sectionList) && sectionList.map((sec) => (
+                      <option key={sec._id} value={sec._id}>
+                        {sec.section_name}
+                      </option>
+                    ))}
+                  </FormSelect>
+                </Col>
+              </Row>
+              <br />
+              <Row>
+                <Col>
+                  <Button className="btn btn-primary" onClick={fetchStudents}>
+                    Search Students
+                  </Button>
+                  {showUpdateButton && (
+                    <Button className="btn btn-success mt-3" onClick={handleUpdateStudents}>
+                      Update Students
+                    </Button>
+                  )}
+                </Col>
+              </Row>
+            </Form>
           </div>
-        </Col>
-      </Row>
-    </Container>
+
+          <Row>
+            <Col>
+              <div className="tableSheet">
+                <h2>Students Records</h2>
+                {students.length > 0 ? (
+                  <Table columns={columns} data={students} />
+                ) : (
+                  <p className="text-center">No students found for the selected class and section.</p>
+                )}
+              </div>
+            </Col>
+          </Row>
+        </Container>
+      </section>
+    </>
   );
 };
 

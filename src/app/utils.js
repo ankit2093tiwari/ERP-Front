@@ -5,38 +5,80 @@ export function capitalizeFirstLetter(val) {
 }
 
 export const copyContent = (headerFields, rowsData) => {
-    const headers = headerFields.join("\t");
-    const rows = rowsData.join("\n");
-    const fullData = `${headers}\n${rows}`;
+  if (typeof window !== "undefined" && navigator.clipboard) {
+      const headers = headerFields.join("\t");
+      const rows = rowsData.join("\n");
+      const fullData = `${headers}\n${rows}`;
 
-    navigator.clipboard.writeText(fullData)
-        .then(() => alert("Copied to clipboard!"))
-        .catch(() => alert("Failed to copy table data to clipboard."));
+      navigator.clipboard.writeText(fullData)
+          .then(() => alert("Copied to clipboard!"))
+          .catch(() => alert("Failed to copy table data to clipboard."));
+  } else {
+      console.error("Clipboard API not available in this environment.");
+  }
 };
 
 export const printContent = async (tableHeaders, tableRows) => {
-    const { jsPDF } = await import("jspdf");
-    const autoTable = (await import("jspdf-autotable")).default;
+  if (typeof window === "undefined") return;  // Prevent server-side execution
 
-    const doc = new jsPDF();
-    
+  const { jsPDF } = await import("jspdf");
+  const autoTable = (await import("jspdf-autotable")).default;
 
-    autoTable(doc, {
+  const doc = new jsPDF();
+  autoTable(doc, {
       head: tableHeaders,
       body: tableRows,
       theme: "grid",
       styles: { fontSize: 10 },
       headStyles: { fillColor: [41, 128, 185] },
-    });
+  });
 
-    // Open the print dialog instead of directly downloading
-    const pdfBlob = doc.output("blob");
-    const pdfUrl = URL.createObjectURL(pdfBlob);
-    const printWindow = window.open(pdfUrl);
-    printWindow.onload = () => {
-      printWindow.print();
-    };
-  };
+  const pdfBlob = doc.output("blob");
+  const pdfUrl = URL.createObjectURL(pdfBlob);
+
+  const printWindow = window.open(pdfUrl);
+  if (printWindow) {
+      printWindow.onload = () => printWindow.print();
+  } else {
+      console.error("Popup blocked! Unable to open print window.");
+  }
+};
+
+
+
+// export const copyContent = (headerFields, rowsData) => {
+//     const headers = headerFields.join("\t");
+//     const rows = rowsData.join("\n");
+//     const fullData = `${headers}\n${rows}`;
+
+//     navigator.clipboard.writeText(fullData)
+//         .then(() => alert("Copied to clipboard!"))
+//         .catch(() => alert("Failed to copy table data to clipboard."));
+// };
+
+// export const printContent = async (tableHeaders, tableRows) => {
+//     const { jsPDF } = await import("jspdf");
+//     const autoTable = (await import("jspdf-autotable")).default;
+
+//     const doc = new jsPDF();
+    
+
+//     autoTable(doc, {
+//       head: tableHeaders,
+//       body: tableRows,
+//       theme: "grid",
+//       styles: { fontSize: 10 },
+//       headStyles: { fillColor: [41, 128, 185] },
+//     });
+
+//     // Open the print dialog instead of directly downloading
+//     const pdfBlob = doc.output("blob");
+//     const pdfUrl = URL.createObjectURL(pdfBlob);
+//     const printWindow = window.open(pdfUrl);
+//     printWindow.onload = () => {
+//       printWindow.print();
+//     };
+//   };
 
 const arrOptions = [
     { value: 1, label: 'Hindi' },

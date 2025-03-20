@@ -72,7 +72,7 @@ const Page = () => {
       description: "Add Basic Details of Cast",
     },
   ];
-  const breadcrumbItems = [{ label: "All Module", link: "null" }]
+  const breadcrumbItems = [{ label: "All Module", link: null }]
 
   return (
     <>

@@ -6,6 +6,7 @@ import Table from "@/app/component/DataTable";
 import { FaTrashAlt, FaEdit } from "react-icons/fa";
 import { Form, Row, Col, Container, Button, Breadcrumb, Modal } from "react-bootstrap";
 import axios from "axios";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const SchoolAccount = () => {
   const [data, setData] = useState([]); // School records data
@@ -119,57 +120,61 @@ const SchoolAccount = () => {
     fetchData();
   }, []);
 
-  return (
-    <Container>
-      <Row className="mt-1 mb-1">
-        <Col>
-          <Breadcrumb>
-            <Breadcrumb.Item href="/">Home</Breadcrumb.Item>
-            <Breadcrumb.Item href="/school/all-module">
-              School
-            </Breadcrumb.Item>
-            <Breadcrumb.Item active>School Account</Breadcrumb.Item>
-          </Breadcrumb>
-        </Col>
-      </Row>
-      <Row>
-        <Col>
-          <div className="tableSheet">
-            <h2>School Account Records</h2>
-            {loading && <p>Loading...</p>}
-            {error && <p style={{ color: "red" }}>{error}</p>}
-            {!loading && !error && <Table columns={columns} data={data} />}
-          </div>
-        </Col>
-      </Row>
+  const breadcrumbItems = [{ label: "Fee", link: "/fees/all-module" }, { label: "school-account", link: "null" }]
 
-      {/* Edit Modal */}
-      <Modal show={showModal} onHide={() => setShowModal(false)}>
-        <Modal.Header closeButton>
-          <Modal.Title>Edit School</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <Form>
-            <Form.Group controlId="schoolName">
-              <Form.Label>School Name</Form.Label>
-              <Form.Control
-                type="text"
-                value={schoolName}
-                onChange={(e) => setSchoolName(e.target.value)}
-              />
-            </Form.Group>
-          </Form>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowModal(false)}>
-            Close
-          </Button>
-          <Button variant="primary" onClick={handleUpdate}>
-            Save Changes
-          </Button>
-        </Modal.Footer>
-      </Modal>
-    </Container>
+  return (
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
+      </div>
+      <section>
+        <Container>
+          <Row>
+            <Col>
+              <div className="tableSheet">
+                <h2>School Account Records</h2>
+                {loading && <p>Loading...</p>}
+                {error && <p style={{ color: "red" }}>{error}</p>}
+                {!loading && !error && <Table columns={columns} data={data} />}
+              </div>
+            </Col>
+          </Row>
+
+          {/* Edit Modal */}
+          <Modal show={showModal} onHide={() => setShowModal(false)}>
+            <Modal.Header closeButton>
+              <Modal.Title>Edit School</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              <Form>
+                <Form.Group controlId="schoolName">
+                  <Form.Label>School Name</Form.Label>
+                  <Form.Control
+                    type="text"
+                    value={schoolName}
+                    onChange={(e) => setSchoolName(e.target.value)}
+                  />
+                </Form.Group>
+              </Form>
+            </Modal.Body>
+            <Modal.Footer>
+              <Button variant="secondary" onClick={() => setShowModal(false)}>
+                Close
+              </Button>
+              <Button variant="primary" onClick={handleUpdate}>
+                Save Changes
+              </Button>
+            </Modal.Footer>
+          </Modal>
+        </Container>
+      </section>
+    </>
   );
 };
 

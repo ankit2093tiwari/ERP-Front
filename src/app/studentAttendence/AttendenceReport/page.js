@@ -5,6 +5,7 @@ import axios from "axios";
 import { Form, Row, Col, Container, FormLabel, Button, Breadcrumb, FormSelect } from "react-bootstrap";
 import Table from "@/app/component/DataTable";
 import styles from "@/app/students/assign-roll-no/page.module.css";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const AttendanceReport = () => {
   const [classList, setClassList] = useState([]);
@@ -78,7 +79,7 @@ const AttendanceReport = () => {
         `https://erp-backend-fy3n.onrender.com/api/attendance/update`,
         { attendance_id: attendanceId, status }
       );
-  
+
       if (response.data.success) {
         // Update the local state to reflect the change
         const updatedReports = attendanceReports.map((report) =>
@@ -119,107 +120,113 @@ const AttendanceReport = () => {
   //   }
   // };
 
+  const breadcrumbItems = [{ label: "Student Attendance", link: "/studentAttendence/allModule" }, { label: "Attendence-Report", link: "null" }]
+
   return (
-    <Container>
-      <Row className="mt-1 mb-1">
-        <Col>
-          <Breadcrumb>
-            <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-            <Breadcrumb.Item href="/students/all-module">Student Attendance</Breadcrumb.Item>
-            <Breadcrumb.Item active>Attendance Report</Breadcrumb.Item>
-          </Breadcrumb>
-        </Col>
-      </Row>
-
-      <div className="cover-sheet">
-        <div className="studentHeading">
-          <h2>Search Students</h2>
-        </div>
-
-        <Form className="formSheet">
-          <Row>
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
             <Col>
-              <FormLabel className="labelForm">Select Class</FormLabel>
-              <FormSelect value={selectedClass} onChange={handleClassChange}>
-                <option value="">Select Class</option>
-                {classList.map((cls) => (
-                  <option key={cls._id} value={cls._id}>
-                    {cls.class_name}
-                  </option>
-                ))}
-              </FormSelect>
-            </Col>
-            <Col>
-              <FormLabel className="labelForm">Select Section</FormLabel>
-              <FormSelect value={selectedSection} onChange={handleSectionChange}>
-                <option value="">Select Section</option>
-                {sectionList.map((sec) => (
-                  <option key={sec._id} value={sec._id}>
-                    {sec.section_name}
-                  </option>
-                ))}
-              </FormSelect>
-            </Col>
-            <Col>
-              <FormLabel className="labelForm">Attendance Date</FormLabel>
-              <Form.Control
-                type="date"
-                value={attendanceDate}
-                onChange={handleAttendanceDateChange}
-              />
+              <BreadcrumbComp items={breadcrumbItems} />
             </Col>
           </Row>
-          <br />
-          <Row>
-            <Col>
-              <Button className="btn btn-primary" onClick={fetchAttendanceReports} disabled={loading}>
-                {loading ? "Loading..." : "Search"}
-              </Button>
-            </Col>
-          </Row>
-        </Form>
+        </Container>
       </div>
+      <section>
+        <Container>
 
-      <Row>
-        <Col>
-          <div className="tableSheet">
-            <h2>Attendance Report</h2>
-            {attendanceReports.length > 0 ? (
-              <Table
-                columns={[
-                  { name: "#", selector: (row, index) => index + 1, sortable: true },
-                  { name: "Roll No", selector: (row) => row.student_id?.roll_no || "N/A", sortable: true },
-                  { name: "Student Name", selector: (row) => `${row.student_id?.first_name} ${row.student_id?.last_name}`.trim(), sortable: true },
-                  { name: "Father Name", selector: (row) => row.student_id?.father_name || "N/A", sortable: true },
-                  { name: "Date", selector: (row) => new Date(row.attendance_date).toLocaleDateString(), sortable: true },
-                  { name: "Status", selector: (row) => row.status || "N/A", sortable: true },
-                  { name: "Taken By", selector: (row) => row.taken_by || "N/A", sortable: true },
-                  {
-                    name: "Action",
-                    cell: (row) => (
-                      <div>
-                        <Button variant="success" size="sm" onClick={() => handleAction(row._id, "Present")}>
-                          Present
-                        </Button>{" "}
-                        <Button variant="danger" size="sm" onClick={() => handleAction(row._id, "Absent")}>
-                          Absent
-                        </Button>{" "}
-                        <Button variant="warning" size="sm" onClick={() => handleAction(row._id, "Leave")}>
-                          Leave
-                        </Button>
-                      </div>
-                    ),
-                  },
-                ]}
-                data={attendanceReports}
-              />
-            ) : (
-              <p className="text-center">No attendance records found.</p>
-            )}
+          <div className="cover-sheet">
+            <div className="studentHeading">
+              <h2>Search Students</h2>
+            </div>
+
+            <Form className="formSheet">
+              <Row>
+                <Col>
+                  <FormLabel className="labelForm">Select Class</FormLabel>
+                  <FormSelect value={selectedClass} onChange={handleClassChange}>
+                    <option value="">Select Class</option>
+                    {classList.map((cls) => (
+                      <option key={cls._id} value={cls._id}>
+                        {cls.class_name}
+                      </option>
+                    ))}
+                  </FormSelect>
+                </Col>
+                <Col>
+                  <FormLabel className="labelForm">Select Section</FormLabel>
+                  <FormSelect value={selectedSection} onChange={handleSectionChange}>
+                    <option value="">Select Section</option>
+                    {sectionList.map((sec) => (
+                      <option key={sec._id} value={sec._id}>
+                        {sec.section_name}
+                      </option>
+                    ))}
+                  </FormSelect>
+                </Col>
+                <Col>
+                  <FormLabel className="labelForm">Attendance Date</FormLabel>
+                  <Form.Control
+                    type="date"
+                    value={attendanceDate}
+                    onChange={handleAttendanceDateChange}
+                  />
+                </Col>
+              </Row>
+              <br />
+              <Row>
+                <Col>
+                  <Button className="btn btn-primary" onClick={fetchAttendanceReports} disabled={loading}>
+                    {loading ? "Loading..." : "Search"}
+                  </Button>
+                </Col>
+              </Row>
+            </Form>
           </div>
-        </Col>
-      </Row>
-    </Container>
+
+          <Row>
+            <Col>
+              <div className="tableSheet">
+                <h2>Attendance Report</h2>
+                {attendanceReports.length > 0 ? (
+                  <Table
+                    columns={[
+                      { name: "#", selector: (row, index) => index + 1, sortable: true },
+                      { name: "Roll No", selector: (row) => row.student_id?.roll_no || "N/A", sortable: true },
+                      { name: "Student Name", selector: (row) => `${row.student_id?.first_name} ${row.student_id?.last_name}`.trim(), sortable: true },
+                      { name: "Father Name", selector: (row) => row.student_id?.father_name || "N/A", sortable: true },
+                      { name: "Date", selector: (row) => new Date(row.attendance_date).toLocaleDateString(), sortable: true },
+                      { name: "Status", selector: (row) => row.status || "N/A", sortable: true },
+                      { name: "Taken By", selector: (row) => row.taken_by || "N/A", sortable: true },
+                      {
+                        name: "Action",
+                        cell: (row) => (
+                          <div>
+                            <Button variant="success" size="sm" onClick={() => handleAction(row._id, "Present")}>
+                              Present
+                            </Button>{" "}
+                            <Button variant="danger" size="sm" onClick={() => handleAction(row._id, "Absent")}>
+                              Absent
+                            </Button>{" "}
+                            <Button variant="warning" size="sm" onClick={() => handleAction(row._id, "Leave")}>
+                              Leave
+                            </Button>
+                          </div>
+                        ),
+                      },
+                    ]}
+                    data={attendanceReports}
+                  />
+                ) : (
+                  <p className="text-center">No attendance records found.</p>
+                )}
+              </div>
+            </Col>
+          </Row>
+        </Container>
+      </section>
+    </>
   );
 };
 

@@ -17,6 +17,7 @@ import axios from "axios";
 import Table from "@/app/component/DataTable";
 import styles from "@/app/medical/routine-check-up/page.module.css";
 import { copyContent, printContent } from "@/app/utils";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const FeeSetting = () => {
   const [data, setData] = useState([]);
@@ -244,80 +245,86 @@ const FeeSetting = () => {
     },
   ];
 
+  const breadcrumbItems = [{ label: "Fee", link: "/fees/all-module" }, { label: "fee-Setting", link: "null" }]
+
   return (
-    <Container className="mt-3">
-      <Row className="mt-1 mb-3">
-        <Col>
-          <Breadcrumb>
-            <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-            <Breadcrumb.Item href="/fee-settings">Fee Settings</Breadcrumb.Item>
-            <Breadcrumb.Item active>Manage Fee Settings</Breadcrumb.Item>
-          </Breadcrumb>
-        </Col>
-      </Row>
-
-      {/* Add Fee Setting Button */}
-      <Button onClick={() => setIsPopoverOpen(true)} className="btn btn-primary mb-4">
-        <CgAddR /> Add Fee Setting
-      </Button>
-
-      {/* Add Fee Setting Popover */}
-      {isPopoverOpen && (
-        <div className="cover-sheet">
-          <div className="studentHeading">
-            <h2>Add New Fee Setting</h2>
-            <button className="closeForm" onClick={() => setIsPopoverOpen(false)}>
-              X
-            </button>
-          </div>
-          <Form className="formSheet">
-            <Row>
-              <Col lg={6}>
-                <FormLabel>Credit Card Charge</FormLabel>
-                <FormControl
-                  type="text"
-                  value={newFeeSetting.credit_card_charge}
-                  onChange={(e) =>
-                    setNewFeeSetting({ ...newFeeSetting, credit_card_charge: e.target.value })
-                  }
-                />
-              </Col>
-              <Col lg={6}>
-                <FormLabel>Debit Card Charge</FormLabel>
-                <FormControl
-                  type="text"
-                  value={newFeeSetting.debit_card_charge}
-                  onChange={(e) =>
-                    setNewFeeSetting({ ...newFeeSetting, debit_card_charge: e.target.value })
-                  }
-                />
-              </Col>
-              <Col lg={6}>
-                <FormLabel>AMEX Charge</FormLabel>
-                <FormControl
-                  type="text"
-                  value={newFeeSetting.amex_charge}
-                  onChange={(e) =>
-                    setNewFeeSetting({ ...newFeeSetting, amex_charge: e.target.value })
-                  }
-                />
-              </Col>
-            </Row>
-            <Button onClick={handleAdd} className="btn btn-primary mt-3">
-              Add Fee Setting
-            </Button>
-          </Form>
-        </div>
-      )}
-
-      {/* Fee Setting Records Table */}
-      <div className="tableSheet">
-        <h2>Fee Setting Records</h2>
-        {loading && <p>Loading...</p>}
-        {error && <p>{error}</p>}
-        {!loading && !error && <Table columns={columns} data={data} handleCopy={handleCopy} handlePrint={handlePrint} />}
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
       </div>
-    </Container>
+      <section>
+        <Container className="mt-3">
+
+          {/* Add Fee Setting Button */}
+          <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
+            <CgAddR /> Add Fee Setting
+          </Button>
+
+          {/* Add Fee Setting Popover */}
+          {isPopoverOpen && (
+            <div className="cover-sheet">
+              <div className="studentHeading">
+                <h2>Add New Fee Setting</h2>
+                <button className="closeForm" onClick={() => setIsPopoverOpen(false)}>
+                  X
+                </button>
+              </div>
+              <Form className="formSheet">
+                <Row>
+                  <Col lg={6}>
+                    <FormLabel>Credit Card Charge</FormLabel>
+                    <FormControl
+                      type="text"
+                      value={newFeeSetting.credit_card_charge}
+                      onChange={(e) =>
+                        setNewFeeSetting({ ...newFeeSetting, credit_card_charge: e.target.value })
+                      }
+                    />
+                  </Col>
+                  <Col lg={6}>
+                    <FormLabel>Debit Card Charge</FormLabel>
+                    <FormControl
+                      type="text"
+                      value={newFeeSetting.debit_card_charge}
+                      onChange={(e) =>
+                        setNewFeeSetting({ ...newFeeSetting, debit_card_charge: e.target.value })
+                      }
+                    />
+                  </Col>
+                  <Col lg={6}>
+                    <FormLabel>AMEX Charge</FormLabel>
+                    <FormControl
+                      type="text"
+                      value={newFeeSetting.amex_charge}
+                      onChange={(e) =>
+                        setNewFeeSetting({ ...newFeeSetting, amex_charge: e.target.value })
+                      }
+                    />
+                  </Col>
+                </Row>
+                <Button onClick={handleAdd} className="btn btn-primary mt-3">
+                  Add Fee Setting
+                </Button>
+              </Form>
+            </div>
+          )}
+
+          {/* Fee Setting Records Table */}
+          <div className="tableSheet">
+            <h2>Fee Setting Records</h2>
+            {loading && <p>Loading...</p>}
+            {error && <p>{error}</p>}
+            {!loading && !error && <Table columns={columns} data={data} handleCopy={handleCopy} handlePrint={handlePrint} />}
+          </div>
+        </Container>
+      </section>
+    </>
   );
 };
 

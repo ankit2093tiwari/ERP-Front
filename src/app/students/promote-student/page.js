@@ -6,6 +6,7 @@ import { Form, Row, Col, Container, FormLabel, Button, Breadcrumb, FormSelect } 
 import Table from "@/app/component/DataTable";
 import styles from "@/app/medical/routine-check-up/page.module.css";
 import { copyContent, printContent } from "@/app/utils";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const PromoteStudentPage = () => {
   const [classList, setClassList] = useState([]);
@@ -178,81 +179,85 @@ const PromoteStudentPage = () => {
     { name: "Roll No", selector: (row) => row.roll_no || "N/A", sortable: true },
   ];
 
+  const breadcrumbItems = [{ label: "students", link: "/students/all-module" }, { label: "promote-student", link: "null" }]
 
 
   return (
-    <Container>
-      <Row className="mt-1 mb-1">
-        <Col>
-          <Breadcrumb>
-            <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-            <Breadcrumb.Item href="/students/all-module">Student</Breadcrumb.Item>
-            <Breadcrumb.Item active>Promote Students</Breadcrumb.Item>
-          </Breadcrumb>
-        </Col>
-      </Row>
-
-      <div className="cover-sheet">
-        <div className="studentHeading">
-          <h2>Promote Students</h2>
-        </div>
-        <Form className="formSheet">
-          <Row>
-            <Col lg={6}>
-              <FormLabel>Select Class</FormLabel>
-              <FormSelect value={selectedClass} onChange={(e) => { setSelectedClass(e.target.value); fetchSections(e.target.value, setSectionList); }}>
-                <option value="">Select Class</option>
-                {classList.map((cls) => <option key={cls._id} value={cls._id}>{cls.class_name}</option>)}
-              </FormSelect>
-            </Col>
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
             <Col>
-              <FormLabel>Select Section</FormLabel>
-              <FormSelect value={selectedSection} onChange={(e) => setSelectedSection(e.target.value)}>
-                <option value="">Select Section</option>
-                {sectionList.map((sec) => <option key={sec._id} value={sec._id}>{sec.section_name}</option>)}
-              </FormSelect>
+              <BreadcrumbComp items={breadcrumbItems} />
             </Col>
           </Row>
-          <br />
-          <Row>
-            <Col>
-              <Button onClick={fetchStudents}>Search Students</Button>
-            </Col>
-          </Row>
-          <br />
-          <Row>
-            <Col>
-              <FormLabel>Select Promoted Class</FormLabel>
-              <FormSelect value={promotedClass} onChange={(e) => { setPromotedClass(e.target.value); fetchSections(e.target.value, setPromotedSectionList); }}>
-                <option value="">Select Class</option>
-                {classList.map((cls) => <option key={cls._id} value={cls._id}>{cls.class_name}</option>)}
-              </FormSelect>
-            </Col>
-            <Col>
-              <FormLabel>Select Promoted Section</FormLabel>
-              <FormSelect value={promotedSection} onChange={(e) => setPromotedSection(e.target.value)}>
-                <option value="">Select Section</option>
-                {promotedSectionList.map((sec) => <option key={sec._id} value={sec._id}>{sec.section_name}</option>)}
-              </FormSelect>
-            </Col>
-            <Row>
-              <Col>
-                <Button onClick={handlePromote} disabled={!selectedStudents.length || !promotedClass || !promotedSection}>Promote Students</Button>
-              </Col>
-            </Row>
-          </Row>
-        </Form>
+        </Container>
       </div>
-
-      <Row>
-        <Col>
-          <div className="tableSheet">
-            <h2>Students Records</h2>
-            {students.length > 0 ? <Table columns={columns} data={students} handlePrint={handlePrint} handleCopy={handleCopy} /> : <p className="text-center">No students found.</p>}
+      <section>
+        <Container>
+          <div className="cover-sheet">
+            <div className="studentHeading">
+              <h2>Promote Students</h2>
+            </div>
+            <Form className="formSheet">
+              <Row>
+                <Col lg={6}>
+                  <FormLabel>Select Class</FormLabel>
+                  <FormSelect value={selectedClass} onChange={(e) => { setSelectedClass(e.target.value); fetchSections(e.target.value, setSectionList); }}>
+                    <option value="">Select Class</option>
+                    {classList.map((cls) => <option key={cls._id} value={cls._id}>{cls.class_name}</option>)}
+                  </FormSelect>
+                </Col>
+                <Col>
+                  <FormLabel>Select Section</FormLabel>
+                  <FormSelect value={selectedSection} onChange={(e) => setSelectedSection(e.target.value)}>
+                    <option value="">Select Section</option>
+                    {sectionList.map((sec) => <option key={sec._id} value={sec._id}>{sec.section_name}</option>)}
+                  </FormSelect>
+                </Col>
+              </Row>
+              <br />
+              <Row>
+                <Col>
+                  <Button onClick={fetchStudents}>Search Students</Button>
+                </Col>
+              </Row>
+              <br />
+              <Row>
+                <Col>
+                  <FormLabel>Select Promoted Class</FormLabel>
+                  <FormSelect value={promotedClass} onChange={(e) => { setPromotedClass(e.target.value); fetchSections(e.target.value, setPromotedSectionList); }}>
+                    <option value="">Select Class</option>
+                    {classList.map((cls) => <option key={cls._id} value={cls._id}>{cls.class_name}</option>)}
+                  </FormSelect>
+                </Col>
+                <Col>
+                  <FormLabel>Select Promoted Section</FormLabel>
+                  <FormSelect value={promotedSection} onChange={(e) => setPromotedSection(e.target.value)}>
+                    <option value="">Select Section</option>
+                    {promotedSectionList.map((sec) => <option key={sec._id} value={sec._id}>{sec.section_name}</option>)}
+                  </FormSelect>
+                </Col>
+                <Row>
+                  <Col>
+                    <Button onClick={handlePromote} disabled={!selectedStudents.length || !promotedClass || !promotedSection}>Promote Students</Button>
+                  </Col>
+                </Row>
+              </Row>
+            </Form>
           </div>
-        </Col>
-      </Row>
-    </Container>
+
+          <Row>
+            <Col>
+              <div className="tableSheet">
+                <h2>Students Records</h2>
+                {students.length > 0 ? <Table columns={columns} data={students} handlePrint={handlePrint} handleCopy={handleCopy} /> : <p className="text-center">No students found.</p>}
+              </div>
+            </Col>
+          </Row>
+        </Container>
+      </section>
+    </>
   );
 };
 

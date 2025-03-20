@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Container, Row, Col, FormLabel, FormSelect, Button, Form, Table } from "react-bootstrap";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const FixedAmount = () => {
     const [classList, setClassList] = useState([]);
@@ -101,90 +102,105 @@ const FixedAmount = () => {
         setLoading(false);
     };
 
+    const breadcrumbItems = [{ label: "Fee", link: "/fees/all-module" }, { label: "fixed-amount", link: "null" }]
+
     return (
-        <Container>
-            <Row className="mt-1 mb-1">
-                <Col>
-                    <h2>Fixed Amount</h2>
-                </Col>
-            </Row>
+        <>
+            <div className="breadcrumbSheet position-relative">
+                <Container>
+                    <Row className="mt-1 mb-1">
+                        <Col>
+                            <BreadcrumbComp items={breadcrumbItems} />
+                        </Col>
+                    </Row>
+                </Container>
+            </div>
+            <section>
+                <Container>
+                    {/* <Row className="mt-1 mb-1">
+                        <Col>
+                            <h2>Fixed Amount</h2>
+                        </Col>
+                    </Row> */}
 
-            <Form>
-                <Row>
-                    <Col>
-                        <FormLabel>Select Class</FormLabel>
-                        <FormSelect value={selectedClass} onChange={handleClassChange}>
-                            <option value="">Select Class</option>
-                            {classList.map((cls) => (
-                                <option key={cls._id} value={cls._id}>{cls.class_name}</option>
-                            ))}
-                        </FormSelect>
-                    </Col>
-                    <Col>
-                        <FormLabel>Select Section</FormLabel>
-                        <FormSelect value={selectedSection} onChange={(e) => setSelectedSection(e.target.value)}>
-                            <option value="">Select Section</option>
-                            {sectionList.map((sec) => (
-                                <option key={sec._id} value={sec._id}>{sec.section_name}</option>
-                            ))}
-                        </FormSelect>
-                    </Col>
-                    <Col>
-                        <FormLabel>Select Installment</FormLabel>
-                        <FormSelect value={selectedInstallment} onChange={handleInstallmentChange}>
-                            <option value="">Select Installment</option>
-                            {installmentList.map((inst) => (
-                                <option key={inst._id} value={inst.installment_name}>{inst.installment_name}</option>
-                            ))}
-                        </FormSelect>
-                    </Col>
-                </Row>
-                <Row>
-                    <Col>
-                        <FormLabel>Transaction Date</FormLabel>
-                        <Form.Control type="date" value={transDate} onChange={(e) => setTransDate(e.target.value)} />
-                    </Col>
-                </Row>
+                    <Form>
+                        <Row>
+                            <Col>
+                                <FormLabel>Select Class</FormLabel>
+                                <FormSelect value={selectedClass} onChange={handleClassChange}>
+                                    <option value="">Select Class</option>
+                                    {classList.map((cls) => (
+                                        <option key={cls._id} value={cls._id}>{cls.class_name}</option>
+                                    ))}
+                                </FormSelect>
+                            </Col>
+                            <Col>
+                                <FormLabel>Select Section</FormLabel>
+                                <FormSelect value={selectedSection} onChange={(e) => setSelectedSection(e.target.value)}>
+                                    <option value="">Select Section</option>
+                                    {sectionList.map((sec) => (
+                                        <option key={sec._id} value={sec._id}>{sec.section_name}</option>
+                                    ))}
+                                </FormSelect>
+                            </Col>
+                            <Col>
+                                <FormLabel>Select Installment</FormLabel>
+                                <FormSelect value={selectedInstallment} onChange={handleInstallmentChange}>
+                                    <option value="">Select Installment</option>
+                                    {installmentList.map((inst) => (
+                                        <option key={inst._id} value={inst.installment_name}>{inst.installment_name}</option>
+                                    ))}
+                                </FormSelect>
+                            </Col>
+                        </Row>
+                        <Row>
+                            <Col>
+                                <FormLabel>Transaction Date</FormLabel>
+                                <Form.Control type="date" value={transDate} onChange={(e) => setTransDate(e.target.value)} />
+                            </Col>
+                        </Row>
 
-                <h5 className="mt-3">Head Wise Details</h5>
-                <Table striped bordered hover>
-                    <thead>
-                        <tr>
-                            <th>S.No.</th>
-                            <th>Particular</th>
-                            <th>Fixed Amount</th>
-                            <th>Remarks</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {heads.map((head, index) => (
-                            <tr key={head._id || index}>
-                                <td>{index + 1}</td>
-                                <td>{head.head_name}</td>
-                                <td>
-                                    <Form.Control
-                                        type="number"
-                                        value={head.fixedAmount}
-                                        onChange={(e) => handleInputChange(index, "fixedAmount", e.target.value)}
-                                    />
-                                </td>
-                                <td>
-                                    <Form.Control
-                                        type="text"
-                                        value={head.remarks}
-                                        onChange={(e) => handleInputChange(index, "remarks", e.target.value)}
-                                    />
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </Table>
+                        <h5 className="mt-3">Head Wise Details</h5>
+                        <Table striped bordered hover>
+                            <thead>
+                                <tr>
+                                    <th>S.No.</th>
+                                    <th>Particular</th>
+                                    <th>Fixed Amount</th>
+                                    <th>Remarks</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {heads.map((head, index) => (
+                                    <tr key={head._id || index}>
+                                        <td>{index + 1}</td>
+                                        <td>{head.head_name}</td>
+                                        <td>
+                                            <Form.Control
+                                                type="number"
+                                                value={head.fixedAmount}
+                                                onChange={(e) => handleInputChange(index, "fixedAmount", e.target.value)}
+                                            />
+                                        </td>
+                                        <td>
+                                            <Form.Control
+                                                type="text"
+                                                value={head.remarks}
+                                                onChange={(e) => handleInputChange(index, "remarks", e.target.value)}
+                                            />
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </Table>
 
-                <Button className="mt-3 btn btn-primary" onClick={handleSubmit} disabled={loading}>
-                    {loading ? "Updating..." : "Update"}
-                </Button>
-            </Form>
-        </Container>
+                        <Button className="mt-3 btn btn-primary" onClick={handleSubmit} disabled={loading}>
+                            {loading ? "Updating..." : "Update"}
+                        </Button>
+                    </Form>
+                </Container>
+            </section>
+        </>
     );
 };
 

@@ -7,6 +7,7 @@ import jsPDF from "jspdf";
 import DataTable from "@/app/component/DataTable"; // Adjust the import path as needed
 import styles from "@/app/students/assign-roll-no/page.module.css";
 import { copyContent, printContent } from "@/app/utils";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const GenerateIdCard = () => {
   const [classList, setClassList] = useState([]);
@@ -217,77 +218,83 @@ const GenerateIdCard = () => {
     },
   ];
 
+  const breadcrumbItems = [{ label: "students", link: "/students/all-module" }, { label: "id-card", link: "null" }]
+
   return (
-    <Container>
-      <Row className="mt-1 mb-1">
-        <Col>
-          <Breadcrumb>
-            <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-            <Breadcrumb.Item href="/students/all-module">Student</Breadcrumb.Item>
-            <Breadcrumb.Item active>Generate ID Card</Breadcrumb.Item>
-          </Breadcrumb>
-        </Col>
-      </Row>
-
-      <div className="cover-sheet">
-        <div className="studentHeading">
-          <h2>Search Students Class Wise</h2>
-        </div>
-        <Form className="formSheet">
-          <Row className="mb-3">
-            <Col lg={6}>
-              <FormLabel>Select Class</FormLabel>
-              <FormSelect value={selectedClass} onChange={(e) => setSelectedClass(e.target.value)}>
-                <option value="">Select Class</option>
-                {classList.map((cls) => (
-                  <option key={cls._id} value={cls._id}>{cls.class_name}</option>
-                ))}
-              </FormSelect>
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
             </Col>
-            <Col lg={6}>
-              <FormLabel>Select Section</FormLabel>
-              <FormSelect value={selectedSection} onChange={(e) => setSelectedSection(e.target.value)}>
-                <option value="">Select Section</option>
-                {sectionList.map((sec) => (
-                  <option key={sec._id} value={sec._id}>{sec.section_name}</option>
-                ))}
-              </FormSelect>
-            </Col>
-            <Row>
-              <Col className="d-flex align-items-end mt-4">
-                <Button variant="primary" onClick={fetchStudents}>Search Students</Button>
-              </Col>
-            </Row>
-            <Row>
-              <Col className="d-flex align-items-center">
-                <Form.Check type="checkbox" checked={selectAll} onChange={handleSelectAll} /><span>Select All Students</span>
-                <Button variant="primary" onClick={generatePDF}>Generate ID Card</Button>
-              </Col>
-            </Row>
           </Row>
-        </Form>
+        </Container>
       </div>
+      <section>
+        <Container>
 
-      <Row>
-        <Col>
-          <div className="tableSheet">
-            <h2>Students Details</h2>
-            {loading ? (
-              <p>Loading...</p>
-            ) : noRecordsFound ? (
-              <Alert variant="info">There is no record to display.</Alert>
-            ) : (
-              <DataTable
-                columns={columns}
-                data={students}
-                handlePrint={handlePrint}
-                handleCopy={handleCopy}
-              />
-            )}
+          <div className="cover-sheet">
+            <div className="studentHeading">
+              <h2>Search Students Class Wise</h2>
+            </div>
+            <Form className="formSheet">
+              <Row className="mb-3">
+                <Col lg={6}>
+                  <FormLabel>Select Class</FormLabel>
+                  <FormSelect value={selectedClass} onChange={(e) => setSelectedClass(e.target.value)}>
+                    <option value="">Select Class</option>
+                    {classList.map((cls) => (
+                      <option key={cls._id} value={cls._id}>{cls.class_name}</option>
+                    ))}
+                  </FormSelect>
+                </Col>
+                <Col lg={6}>
+                  <FormLabel>Select Section</FormLabel>
+                  <FormSelect value={selectedSection} onChange={(e) => setSelectedSection(e.target.value)}>
+                    <option value="">Select Section</option>
+                    {sectionList.map((sec) => (
+                      <option key={sec._id} value={sec._id}>{sec.section_name}</option>
+                    ))}
+                  </FormSelect>
+                </Col>
+                <Row>
+                  <Col className="d-flex align-items-end mt-4">
+                    <Button variant="primary" onClick={fetchStudents}>Search Students</Button>
+                  </Col>
+                </Row>
+                <Row>
+                  <Col className="d-flex align-items-center">
+                    <Form.Check type="checkbox" checked={selectAll} onChange={handleSelectAll} /><span>Select All Students</span>
+                    <Button variant="primary" onClick={generatePDF}>Generate ID Card</Button>
+                  </Col>
+                </Row>
+              </Row>
+            </Form>
           </div>
-        </Col>
-      </Row>
-    </Container>
+
+          <Row>
+            <Col>
+              <div className="tableSheet">
+                <h2>Students Details</h2>
+                {loading ? (
+                  <p>Loading...</p>
+                ) : noRecordsFound ? (
+                  <Alert variant="info">There is no record to display.</Alert>
+                ) : (
+                  <DataTable
+                    columns={columns}
+                    data={students}
+                    handlePrint={handlePrint}
+                    handleCopy={handleCopy}
+                  />
+                )}
+              </div>
+            </Col>
+          </Row>
+        </Container>
+      </section>
+    </>
   );
 };
 

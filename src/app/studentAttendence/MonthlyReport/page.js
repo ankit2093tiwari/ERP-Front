@@ -6,6 +6,7 @@ import { Form, Row, Col, Container, FormLabel, Button, Breadcrumb, FormSelect } 
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import styles from "@/app/students/assign-roll-no/page.module.css";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const MonthlyReport = () => {
   const [classList, setClassList] = useState([]);
@@ -87,80 +88,86 @@ const MonthlyReport = () => {
     doc.save("Attendance_Report.pdf");
   };
 
+  const breadcrumbItems = [{ label: "Student Attendance", link: "/studentAttendence/allModule" }, { label: "Attendence-Report", link: "null" }]
+
   return (
-    <Container>
-      <Row className="mt-1 mb-1">
-        <Col>
-          <Breadcrumb>
-            <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-            <Breadcrumb.Item href="/students/all-module">Student Attendance</Breadcrumb.Item>
-            <Breadcrumb.Item active>Attendance Report</Breadcrumb.Item>
-          </Breadcrumb>
-        </Col>
-      </Row>
-
-      <div className="cover-sheet">
-        <div className="studentHeading">
-          <h2>Search Students</h2>
-        </div>
-
-        <Form className="formSheet">
-          <Row>
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
             <Col>
-              <FormLabel>Select Class</FormLabel>
-              <FormSelect
-                value={selectedClass}
-                onChange={(e) => {
-                  setSelectedClass(e.target.value);
-                  fetchSections(e.target.value);
-                }}
-              >
-                <option value="">Select Class</option>
-                {classList.map((cls) => (
-                  <option key={cls._id} value={cls._id}>
-                    {cls.class_name}
-                  </option>
-                ))}
-              </FormSelect>
-            </Col>
-            <Col>
-              <FormLabel>Select Section</FormLabel>
-              <FormSelect
-                value={selectedSection}
-                onChange={(e) => setSelectedSection(e.target.value)}
-              >
-                <option value="">Select Section</option>
-                {sectionList.map((sec) => (
-                  <option key={sec._id} value={sec._id}>
-                    {sec.section_name}
-                  </option>
-                ))}
-              </FormSelect>
-            </Col>
-            <Col>
-              <FormLabel>Attendance Date</FormLabel>
-              <Form.Control
-                type="date"
-                value={attendanceDate}
-                onChange={(e) => setAttendanceDate(e.target.value)}
-              />
+              <BreadcrumbComp items={breadcrumbItems} />
             </Col>
           </Row>
-          <br />
-          <Row>
-            <Col>
-              <Button
-                className="btn btn-primary"
-                onClick={fetchAttendanceReports}
-                disabled={loading}
-              >
-                {loading ? "Loading..." : "Search & Download PDF"}
-              </Button>
-            </Col>
-          </Row>
-        </Form>
+        </Container>
       </div>
-    </Container>
+      <section>
+        <Container>
+
+          <div className="cover-sheet">
+            <div className="studentHeading">
+              <h2>Search Students</h2>
+            </div>
+
+            <Form className="formSheet">
+              <Row>
+                <Col>
+                  <FormLabel>Select Class</FormLabel>
+                  <FormSelect
+                    value={selectedClass}
+                    onChange={(e) => {
+                      setSelectedClass(e.target.value);
+                      fetchSections(e.target.value);
+                    }}
+                  >
+                    <option value="">Select Class</option>
+                    {classList.map((cls) => (
+                      <option key={cls._id} value={cls._id}>
+                        {cls.class_name}
+                      </option>
+                    ))}
+                  </FormSelect>
+                </Col>
+                <Col>
+                  <FormLabel>Select Section</FormLabel>
+                  <FormSelect
+                    value={selectedSection}
+                    onChange={(e) => setSelectedSection(e.target.value)}
+                  >
+                    <option value="">Select Section</option>
+                    {sectionList.map((sec) => (
+                      <option key={sec._id} value={sec._id}>
+                        {sec.section_name}
+                      </option>
+                    ))}
+                  </FormSelect>
+                </Col>
+                <Col>
+                  <FormLabel>Attendance Date</FormLabel>
+                  <Form.Control
+                    type="date"
+                    value={attendanceDate}
+                    onChange={(e) => setAttendanceDate(e.target.value)}
+                  />
+                </Col>
+              </Row>
+              <br />
+              <Row>
+                <Col>
+                  <Button
+                    className="btn btn-primary"
+                    onClick={fetchAttendanceReports}
+                    disabled={loading}
+                  >
+                    {loading ? "Loading..." : "Search & Download PDF"}
+                  </Button>
+                </Col>
+              </Row>
+            </Form>
+          </div>
+        </Container>
+      </section>
+    </>
   );
 };
 

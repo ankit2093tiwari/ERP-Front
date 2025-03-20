@@ -8,6 +8,8 @@ import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import { Container, Row, Col, Breadcrumb, Button } from "react-bootstrap";
 import axios from "axios";
 import { CgAddR } from "react-icons/cg";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
+
 
 const Studentlist = () => {
   const [data, setData] = useState([]);
@@ -84,37 +86,45 @@ const Studentlist = () => {
     },
   ];
 
+  const breadcrumbItems = [{ label: "students", link: "/students/all-module" }, { label: "studentList", link: "null" }]
+
   return (
-    <Container className={styles.vehicle}>
-      <Row className="mt-1 mb-1">
-        <Col>
-          <Breadcrumb>
-            <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-            <Breadcrumb.Item href="/students">Students</Breadcrumb.Item>
-            <Breadcrumb.Item active>Student List</Breadcrumb.Item>
-          </Breadcrumb>
-        </Col>
-      </Row>
-
-      <div className="d-flex justify-content-between mb-3">
-        <Button href="/students/add-new-student" className="btn-primary">
-          <CgAddR /> Add New Student
-        </Button>
-        <Button href="/students/update-student" className="btn-secondary">
-          <CgAddR /> Update Student
-        </Button>
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
       </div>
+      <section>
+        <Container className={styles.vehicle}>
 
-      <Row>
-        <Col lg={12}>
-          <div className="tableSheet">
-            <h2>Student Records</h2>
-            {error && <p style={{ color: "red" }}>{error}</p>}
-            {!loading && !error && <Table columns={columns} data={data} />}
+          <div className="d-flex justify-content-between mb-3">
+            <Button href="/students/add-new-student" className="btn-add">
+              <CgAddR /> Add New Student
+            </Button>
+            <Button href="/students/update-student" className="btn-add">
+              <CgAddR /> Update Student
+            </Button>
           </div>
-        </Col>
-      </Row>
-    </Container>
+
+          <Row>
+            <Col lg={12}>
+              <div className="tableSheet">
+                <h2>Student Records</h2>
+                {error && <p style={{ color: "red" }}>{error}</p>}
+                {!loading && !error && <Table columns={columns} data={data} />}
+              </div>
+            </Col>
+          </Row>
+        </Container>
+      </section>
+
+    </>
+
   );
 };
 

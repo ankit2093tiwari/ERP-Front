@@ -19,6 +19,7 @@ import styles from "@/app/medical/routine-check-up/page.module.css";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import { copyContent, printContent } from "@/app/utils";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const HeadMasterPage = () => {
   const [data, setData] = useState([]);
@@ -233,75 +234,81 @@ const HeadMasterPage = () => {
     fetchData();
   }, []);
 
+  const breadcrumbItems = [{ label: "Fee", link: "/fees/all-module" }, { label: "head-master", link: "null" }]
+
   return (
-    <Container className="">
-      <Row className="mt-1 mb-1">
-        <Col>
-          <Breadcrumb>
-            <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-            <Breadcrumb.Item href="/head-masters">HeadMasters</Breadcrumb.Item>
-            <Breadcrumb.Item active>Manage HeadMasters</Breadcrumb.Item>
-          </Breadcrumb>
-        </Col>
-      </Row>
-
-      <Button
-        onClick={() => setShowAddForm(!showAddForm)}
-        className="btn btn-primary mb-4"
-      >
-        <CgAddR /> Add HeadMaster
-      </Button>
-
-      {showAddForm && (
-        <div className="cover-sheet">
-          <div className="studentHeading">
-            <h2>Add New HeadMaster</h2>
-            <button className="closeForm" onClick={() => setShowAddForm(false)}>
-              X
-            </button>
-          </div>
-          <Form className="formSheet">
-            <Row>
-              <Col lg={6}>
-                <FormLabel>Head Name</FormLabel>
-                <FormControl
-                  type="text"
-                  value={newHeadMaster.head_name}
-                  onChange={(e) =>
-                    setNewHeadMaster({ ...newHeadMaster, head_name: e.target.value })
-                  }
-                />
-              </Col>
-              <Col lg={6}>
-                <FormLabel>Head Type</FormLabel>
-                <FormControl
-                  as="select"
-                  value={newHeadMaster.head_type}
-                  onChange={(e) =>
-                    setNewHeadMaster({ ...newHeadMaster, head_type: e.target.value })
-                  }
-                >
-                  <option value="">Select Head Type</option>
-                  <option value="Installment Type">Installment Type</option>
-                  <option value="Lifetime">Lifetime</option>
-                </FormControl>
-              </Col>
-            </Row>
-            <Button onClick={handleAdd} className="btn btn-primary">
-              Add HeadMaster
-            </Button>
-          </Form>
-        </div>
-      )}
-
-      <div className="tableSheet">
-        <h2>HeadMaster Records</h2>
-        {loading && <p>Loading...</p>}
-        {error && <p>{error}</p>}
-        {!loading && !error && <Table columns={columns} data={data} handlePrint={handlePrint}
-          handleCopy={handleCopy} />}
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
       </div>
-    </Container>
+      <section>
+        <Container className="">
+
+          <Button
+            onClick={() => setShowAddForm(!showAddForm)}
+            className="btn-add"
+          >
+            <CgAddR /> Add HeadMaster
+          </Button>
+
+          {showAddForm && (
+            <div className="cover-sheet">
+              <div className="studentHeading">
+                <h2>Add New HeadMaster</h2>
+                <button className="closeForm" onClick={() => setShowAddForm(false)}>
+                  X
+                </button>
+              </div>
+              <Form className="formSheet">
+                <Row>
+                  <Col lg={6}>
+                    <FormLabel>Head Name</FormLabel>
+                    <FormControl
+                      type="text"
+                      value={newHeadMaster.head_name}
+                      onChange={(e) =>
+                        setNewHeadMaster({ ...newHeadMaster, head_name: e.target.value })
+                      }
+                    />
+                  </Col>
+                  <Col lg={6}>
+                    <FormLabel>Head Type</FormLabel>
+                    <FormControl
+                      as="select"
+                      value={newHeadMaster.head_type}
+                      onChange={(e) =>
+                        setNewHeadMaster({ ...newHeadMaster, head_type: e.target.value })
+                      }
+                    >
+                      <option value="">Select Head Type</option>
+                      <option value="Installment Type">Installment Type</option>
+                      <option value="Lifetime">Lifetime</option>
+                    </FormControl>
+                  </Col>
+                </Row>
+                <Button onClick={handleAdd} className="btn btn-primary">
+                  Add HeadMaster
+                </Button>
+              </Form>
+            </div>
+          )}
+
+          <div className="tableSheet">
+            <h2>HeadMaster Records</h2>
+            {loading && <p>Loading...</p>}
+            {error && <p>{error}</p>}
+            {!loading && !error && <Table columns={columns} data={data} handlePrint={handlePrint}
+              handleCopy={handleCopy} />}
+          </div>
+        </Container>
+      </section>
+    </>
   );
 };
 

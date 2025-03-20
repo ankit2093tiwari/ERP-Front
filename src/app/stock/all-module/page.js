@@ -96,7 +96,13 @@ const Page = () => {
       description: "generate Slip  of Gate Pass",
     },
   ];
-  const breadcrumbItems = [{ label: "All Module", link: "null" }]
+
+  // const breadcrumbItems = [{ label: "All Module", link: null }]
+
+  // const breadcrumbItems = [{ label: "All Module", link: null }]
+  const breadcrumbItems = [{ label: "All Module", link: "" }];
+
+
   return (
     <>
       <div className="breadcrumbSheet position-relative">

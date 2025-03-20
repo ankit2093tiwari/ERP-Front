@@ -40,7 +40,7 @@ const Page = () => {
     },
   ];
 
-  const breadcrumbItems = [{ label: "All Module", link: "null" }]
+  const breadcrumbItems = [{ label: "All Module", link: null }]
 
 
   return (

@@ -5,6 +5,7 @@ import axios from "axios";
 import { Form, Row, Col, Container, FormLabel, Button, Breadcrumb, FormSelect } from "react-bootstrap";
 import Table from "@/app/component/DataTable";
 import styles from "@/app/students/assign-roll-no/page.module.css";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const AssignRollNo = () => {
   const [classList, setClassList] = useState([]);
@@ -81,7 +82,7 @@ const AssignRollNo = () => {
       return updatedStudents;
     });
   };
-  
+
 
   // const handleRollNoChange = (index, newRollNo) => {
   //   const updatedStudents = [...students];
@@ -161,123 +162,129 @@ const AssignRollNo = () => {
     setLoading(false);
   };
 
+  const breadcrumbItems = [{ label: "students", link: "/students/all-module" }, { label: "assign-roll-no", link: "null" }]
+
   return (
-    <Container>
-      <Row className="mt-1 mb-1">
-        <Col>
-          <Breadcrumb>
-            <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-            <Breadcrumb.Item href="/students/all-module">Student</Breadcrumb.Item>
-            <Breadcrumb.Item active>Assign Roll No</Breadcrumb.Item>
-          </Breadcrumb>
-        </Col>
-      </Row>
-
-      <div className="cover-sheet">
-        <div className="studentHeading">
-          <h2>Search Students</h2>
-        </div>
-
-        <Form className="formSheet">
-          <Row>
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
             <Col>
-              <FormLabel className="labelForm">Select Class</FormLabel>
-              <FormSelect value={selectedClass} onChange={handleClassChange}>
-                <option value="">Select Class</option>
-                {classList.map((cls) => (
-                  <option key={cls._id} value={cls._id}>
-                    {cls.class_name}
-                  </option>
-                ))}
-              </FormSelect>
-            </Col>
-            <Col>
-              <FormLabel className="labelForm">Select Section</FormLabel>
-              <FormSelect value={selectedSection} onChange={handleSectionChange}>
-                <option value="">Select Section</option>
-                {sectionList.map((sec) => (
-                  <option key={sec._id} value={sec._id}>
-                    {sec.section_name}
-                  </option>
-                ))}
-              </FormSelect>
+              <BreadcrumbComp items={breadcrumbItems} />
             </Col>
           </Row>
-
-          <Row className="mt-3">
-            <Col>
-              <FormLabel className="labelForm">Prefix Key (Optional)</FormLabel>
-              <input
-                type="text"
-                className="form-control"
-                value={prefixKey}
-                onChange={(e) => setPrefixKey(e.target.value)}
-                placeholder="Enter Prefix (e.g., A)"
-              />
-            </Col>
-          </Row>
-
-          <br />
-          <Row>
-            <Col>
-              <Button className="btn btn-primary" onClick={fetchStudents} disabled={loading}>
-                {loading ? "Loading..." : "Search Students"}
-              </Button>
-              {showButtons && !isEditing && (
-                <Button className="btn btn-warning mt-3 ms-2" onClick={handleEditRollNo}>
-                  Edit RollNo
-                </Button>
-              )}
-              {isEditing && (
-                <>
-                  <Button className="btn btn-secondary mt-3 ms-2" onClick={handleAutoFillRollNo}>
-                    AutoFill RollNo
-                  </Button>
-                  <Button className="btn btn-success mt-3 ms-2" onClick={handleSaveRollNo} disabled={loading}>
-                    {loading ? "Saving..." : "Save RollNo"}
-                  </Button>
-                </>
-              )}
-            </Col>
-          </Row>
-        </Form>
+        </Container>
       </div>
+      <section>
+        <Container>
 
-      <Row>
-        <Col>
-          <div className="tableSheet">
-            <h2>Students Records</h2>
-            {students.length > 0 ? (
-              <Table
-                columns={[
-                  { name: "Student Name", selector: (row) => `${row.first_name} ${row.middle_name || ""} ${row.last_name}`.trim(), sortable: true },
-                  { name: "Adm No", selector: (row) => row.registration_id || "N/A", sortable: true },
-                  { name: "Gender", selector: (row) => row.gender_name || "N/A", sortable: true },
-                  {
-                    name: "Roll No",
-                    cell: (row, index) =>
-                      isEditing ? (
-                        <input
-                          type="text"
-                          value={row.roll_no || ""}
-                          onChange={(e) => handleRollNoChange(index, e.target.value)}
-                          style={{ width: "60px" }}
-                        />
-                      ) : (
-                        row.roll_no || "N/A"
-                      ),
-                    sortable: true,
-                  },
-                ]}
-                data={students}
-              />
-            ) : (
-              <p className="text-center">No students found.</p>
-            )}
+          <div className="cover-sheet">
+            <div className="studentHeading">
+              <h2>Search Students</h2>
+            </div>
+
+            <Form className="formSheet">
+              <Row>
+                <Col>
+                  <FormLabel className="labelForm">Select Class</FormLabel>
+                  <FormSelect value={selectedClass} onChange={handleClassChange}>
+                    <option value="">Select Class</option>
+                    {classList.map((cls) => (
+                      <option key={cls._id} value={cls._id}>
+                        {cls.class_name}
+                      </option>
+                    ))}
+                  </FormSelect>
+                </Col>
+                <Col>
+                  <FormLabel className="labelForm">Select Section</FormLabel>
+                  <FormSelect value={selectedSection} onChange={handleSectionChange}>
+                    <option value="">Select Section</option>
+                    {sectionList.map((sec) => (
+                      <option key={sec._id} value={sec._id}>
+                        {sec.section_name}
+                      </option>
+                    ))}
+                  </FormSelect>
+                </Col>
+              </Row>
+
+              <Row className="mt-3">
+                <Col>
+                  <FormLabel className="labelForm">Prefix Key (Optional)</FormLabel>
+                  <input
+                    type="text"
+                    className="form-control"
+                    value={prefixKey}
+                    onChange={(e) => setPrefixKey(e.target.value)}
+                    placeholder="Enter Prefix (e.g., A)"
+                  />
+                </Col>
+              </Row>
+
+              <br />
+              <Row>
+                <Col>
+                  <Button className="btn btn-primary" onClick={fetchStudents} disabled={loading}>
+                    {loading ? "Loading..." : "Search Students"}
+                  </Button>
+                  {showButtons && !isEditing && (
+                    <Button className="btn btn-warning mt-3 ms-2" onClick={handleEditRollNo}>
+                      Edit RollNo
+                    </Button>
+                  )}
+                  {isEditing && (
+                    <>
+                      <Button className="btn btn-secondary mt-3 ms-2" onClick={handleAutoFillRollNo}>
+                        AutoFill RollNo
+                      </Button>
+                      <Button className="btn btn-success mt-3 ms-2" onClick={handleSaveRollNo} disabled={loading}>
+                        {loading ? "Saving..." : "Save RollNo"}
+                      </Button>
+                    </>
+                  )}
+                </Col>
+              </Row>
+            </Form>
           </div>
-        </Col>
-      </Row>
-    </Container>
+
+          <Row>
+            <Col>
+              <div className="tableSheet">
+                <h2>Students Records</h2>
+                {students.length > 0 ? (
+                  <Table
+                    columns={[
+                      { name: "Student Name", selector: (row) => `${row.first_name} ${row.middle_name || ""} ${row.last_name}`.trim(), sortable: true },
+                      { name: "Adm No", selector: (row) => row.registration_id || "N/A", sortable: true },
+                      { name: "Gender", selector: (row) => row.gender_name || "N/A", sortable: true },
+                      {
+                        name: "Roll No",
+                        cell: (row, index) =>
+                          isEditing ? (
+                            <input
+                              type="text"
+                              value={row.roll_no || ""}
+                              onChange={(e) => handleRollNoChange(index, e.target.value)}
+                              style={{ width: "60px" }}
+                            />
+                          ) : (
+                            row.roll_no || "N/A"
+                          ),
+                        sortable: true,
+                      },
+                    ]}
+                    data={students}
+                  />
+                ) : (
+                  <p className="text-center">No students found.</p>
+                )}
+              </div>
+            </Col>
+          </Row>
+        </Container>
+      </section>
+    </>
   );
 };
 

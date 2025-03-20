@@ -10,6 +10,7 @@ import styles from "@/app/medical/routine-check-up/page.module.css";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import { copyContent, printContent } from "@/app/utils";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const PettyHeadMaster = () => {
   const [data, setData] = useState([]);
@@ -169,68 +170,73 @@ const PettyHeadMaster = () => {
     fetchData();
   }, []);
 
+  const breadcrumbItems = [{ label: "Fee", link: "/fees/all-module" }, { label: "pettyHeadMaster", link: "null" }]
+
   return (
-    <Container>
-      <Row className="mt-1 mb-1">
-        <Col>
-          <Breadcrumb>
-            <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-            <Breadcrumb.Item href="/petty-heads">Petty Heads</Breadcrumb.Item>
-            <Breadcrumb.Item active>Manage Petty Heads</Breadcrumb.Item>
-          </Breadcrumb>
-        </Col>
-      </Row>
-
-      <Button onClick={() => setShowAddForm(!showAddForm)} className="btn btn-primary">
-        <CgAddR /> Add Petty Head
-      </Button>
-
-      {showAddForm && (
-        <div className="cover-sheet">
-          <div className="studentHeading">
-            <h2>Add New Petty Head</h2>
-            <button className="closeForm" onClick={() => setShowAddForm(false)}>X</button>
-          </div>
-          <Form className="formSheet">
-            <Row>
-              <Col lg={6}>
-                <FormLabel>Petty Head Name</FormLabel>
-                <FormControl
-                  type="text"
-                  placeholder="Enter Petty Head Name"
-                  value={newPettyHead.petty_name}
-                  onChange={(e) => setNewPettyHead({ ...newPettyHead, petty_name: e.target.value })}
-                />
-              </Col>
-              <Col lg={6}>
-                <FormLabel>Head Type</FormLabel>
-                <FormControl
-                  as="select"
-                  value={newPettyHead.head_type}
-                  onChange={(e) => setNewPettyHead({ ...newPettyHead, head_type: e.target.value })}
-                >
-                  <option value="">Select Head Type</option>
-                  <option value="Add">Add</option>
-                  <option value="Subtract">Subtract</option>
-                </FormControl>
-              </Col>
-            </Row>
-            <Button onClick={handleAdd} className="btn btn-primary">
-              Add Petty Head
-            </Button>
-          </Form>
-        </div>
-      )}
-
-      <div className="tableSheet">
-        <h2>Petty Head Records</h2>
-        {loading && <p>Loading...</p>}
-        {error && <p>{error}</p>}
-        {!loading && !error && data.length === 0 && <p>No records found.</p>}
-        {!loading && !error && data.length > 0 && <Table columns={columns} data={data} handlePrint={handlePrint}
-          handleCopy={handleCopy} />}
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
       </div>
-    </Container>
+      <section>
+        <Container>
+          <Button onClick={() => setShowAddForm(!showAddForm)} className="btn-add">
+            <CgAddR /> Add Petty Head
+          </Button>
+
+          {showAddForm && (
+            <div className="cover-sheet">
+              <div className="studentHeading">
+                <h2>Add New Petty Head</h2>
+                <button className="closeForm" onClick={() => setShowAddForm(false)}>X</button>
+              </div>
+              <Form className="formSheet">
+                <Row>
+                  <Col lg={6}>
+                    <FormLabel>Petty Head Name</FormLabel>
+                    <FormControl
+                      type="text"
+                      placeholder="Enter Petty Head Name"
+                      value={newPettyHead.petty_name}
+                      onChange={(e) => setNewPettyHead({ ...newPettyHead, petty_name: e.target.value })}
+                    />
+                  </Col>
+                  <Col lg={6}>
+                    <FormLabel>Head Type</FormLabel>
+                    <FormControl
+                      as="select"
+                      value={newPettyHead.head_type}
+                      onChange={(e) => setNewPettyHead({ ...newPettyHead, head_type: e.target.value })}
+                    >
+                      <option value="">Select Head Type</option>
+                      <option value="Add">Add</option>
+                      <option value="Subtract">Subtract</option>
+                    </FormControl>
+                  </Col>
+                </Row>
+                <Button onClick={handleAdd} className="btn btn-primary">
+                  Add Petty Head
+                </Button>
+              </Form>
+            </div>
+          )}
+
+          <div className="tableSheet">
+            <h2>Petty Head Records</h2>
+            {loading && <p>Loading...</p>}
+            {error && <p>{error}</p>}
+            {!loading && !error && data.length === 0 && <p>No records found.</p>}
+            {!loading && !error && data.length > 0 && <Table columns={columns} data={data} handlePrint={handlePrint}
+              handleCopy={handleCopy} />}
+          </div>
+        </Container>
+      </section>
+    </>
   );
 };
 

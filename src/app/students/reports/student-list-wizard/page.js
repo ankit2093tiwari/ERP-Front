@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { Form, Row, Col, Container, FormLabel, FormSelect, Button, Breadcrumb, Table, FormGroup, FormCheck } from "react-bootstrap";
 import * as XLSX from "xlsx";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const Catalogues = [
   { id: "01", name: "Adm.No." },
@@ -199,170 +200,180 @@ const StudentListWizard = () => {
     }
   };
 
+  const breadcrumbItems = [{ label: "students", link: "/students/reports/all-reports" }, { label: "student-list-wizard", link: "null" }]
+
   return (
-    <Container>
-      <Breadcrumb>
-        <Breadcrumb.Item href="/">Home</Breadcrumb.Item>
-        <Breadcrumb.Item href="/master-entry/school-info">Master Entry</Breadcrumb.Item>
-        <Breadcrumb.Item active>Student List Wizard</Breadcrumb.Item>
-      </Breadcrumb>
-      <div className="cover-sheet">
-        <div className="studentHeading">
-          <h2>Please Select the Check Box to Download the Excel File</h2>
-        </div>
-        <Form className="formSheet">
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
           <Row>
-            <Form.Group as={Col} md="6">
-              <FormLabel className="labelForm">Class</FormLabel>
-              <FormSelect value={student.class_name} onChange={handleClassChange}>
-                <option value="">Select Class</option>
-                {classList.map((item) => (
-                  <option key={item._id} value={item._id}>{item.class_name}</option>
-                ))}
-              </FormSelect>
-            </Form.Group>
-            <Form.Group as={Col} md="6">
-              <FormLabel className="labelForm">Section</FormLabel>
-              <FormSelect value={student.section_name} onChange={(e) => setStudent({ ...student, section_name: e.target.value })}>
-                <option value="">Select Section</option>
-                {sectionList.map((item) => (
-                  <option key={item._id} value={item._id}>{item.section_name}</option>
-                ))}
-              </FormSelect>
-            </Form.Group>
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
           </Row>
-          <Row>
-            <FormGroup as={Col} md="6">
-              <FormLabel className="labelForm">Select Social Category</FormLabel>
-              <FormSelect
-                value={student?.category_name}
-                onChange={handleChange}
-                name="category_name"
-              >
-                <option value="">Select Category</option>
-                {categoryList?.map((categoryItem) => (
-                  <option key={categoryItem?._id} value={categoryItem?._id}>
-                    {categoryItem?.category_name}
-                  </option>
-                ))}
-              </FormSelect>
-            </FormGroup>
-            <Form.Group as={Col} md="6">
-              <FormLabel className="labelForm">Select Religion</FormLabel>
-              <FormSelect
-                value={student?.religion_name}
-                onChange={handleChange}
-                name="religion_name"
-              >
-                <option value="">Select Religion</option>
-                {religionList?.map((religionItem) => (
-                  <option key={religionItem?._id} value={religionItem?._id}>
-                    {religionItem?.religion_name}
-                  </option>
-                ))}
-              </FormSelect>
-            </Form.Group>
-          </Row>
-          <Row>
-            <Form.Group as={Col} md="6">
-              <FormLabel className="labelForm">Select Active/Inactive Status</FormLabel>
-              <FormSelect name="class_name" >
-                <option value="">Active</option>
-                <option value="">Inactive</option>
-
-              </FormSelect>
-            </Form.Group>
-            <Form.Group as={Col} md="6">
-              <FormLabel className="labelForm">  Select Student Type</FormLabel>
-              <FormSelect name="class_name" >
-                <option value="">All</option>
-                <option value="">Day Scholar</option>
-                <option value="">PG</option>
-                <option value="">BUS</option>
-                <option value="">Hostle</option>
-
-              </FormSelect>
-            </Form.Group>
-          </Row>
-          <Row>
-            <Form.Group as={Col} md="6">
-              <FormLabel className="labelForm">Select OrderBy</FormLabel>
-              <FormSelect name="class_name" >
-                <option value="">First Name</option>
-                <option value="">RollNO</option>
-                <option value="">Section</option>
-
-              </FormSelect>
-            </Form.Group>
-            <Form.Group as={Col} md="6">
-              <FormLabel className="labelForm">Select Student Gender</FormLabel>
-              <FormSelect name="class_name" >
-                <option value="">All</option>
-                <option value="">Boy</option>
-                <option value="">Girl</option>
-
-              </FormSelect>
-            </Form.Group>
-          </Row>
-          <Row>
-            <Form.Group as={Col} md="6">
-              <FormLabel className="labelForm">Select TC Submitted</FormLabel>
-              <FormSelect name="class_name" >
-                <option value="">Both</option>
-                <option value="">Yes</option>
-                <option value="">No</option>
-
-              </FormSelect>
-            </Form.Group>
-            <Form.Group as={Col} md="6">
-              <FormLabel className="labelForm">Cast</FormLabel>
-              <FormSelect name="class_name" >
-                <option value="">Select</option>
-              </FormSelect>
-            </Form.Group>
-          </Row>
-          <Button className="mt-4" onClick={handleDownload} disabled={loading}>
-            {loading ? "Downloading..." : "Download"}
-          </Button>
-          {responseMessage && <p className="mt-3">{responseMessage}</p>}
-        </Form>
-
-        <div className="p-2">
-          <FormGroup>
-            <FormCheck
-              type="checkbox"
-              label="Select All"
-              id="selectAll"
-              onChange={handleSelectAll}
-              checked={isCheckAll}
-            />
-          </FormGroup>
-        </div>
-        <Table bordered className="TableWizard">
-          <tbody>
-            {list.reduce((rows, { id, name }, index) => {
-              if (index % 4 === 0) rows.push([]);
-              rows[rows.length - 1].push(
-                <td key={id} width="25%">
-                  <FormGroup>
-                    <FormCheck
-                      type="checkbox"
-                      label={name}
-                      id={id}
-                      onChange={handleClick}
-                      checked={isCheck.includes(id)}
-                    />
-                  </FormGroup>
-                </td>
-              );
-              return rows;
-            }, []).map((row, i) => (
-              <tr key={i}>{row}</tr>
-            ))}
-          </tbody>
-        </Table>
+        </Container>
       </div>
-    </Container>
+      <section>
+        <Container>
+          <div className="cover-sheet">
+            <div className="studentHeading">
+              <h2>Please Select the Check Box to Download the Excel File</h2>
+            </div>
+            <Form className="formSheet">
+              <Row>
+                <Form.Group as={Col} md="6">
+                  <FormLabel className="labelForm">Class</FormLabel>
+                  <FormSelect value={student.class_name} onChange={handleClassChange}>
+                    <option value="">Select Class</option>
+                    {classList.map((item) => (
+                      <option key={item._id} value={item._id}>{item.class_name}</option>
+                    ))}
+                  </FormSelect>
+                </Form.Group>
+                <Form.Group as={Col} md="6">
+                  <FormLabel className="labelForm">Section</FormLabel>
+                  <FormSelect value={student.section_name} onChange={(e) => setStudent({ ...student, section_name: e.target.value })}>
+                    <option value="">Select Section</option>
+                    {sectionList.map((item) => (
+                      <option key={item._id} value={item._id}>{item.section_name}</option>
+                    ))}
+                  </FormSelect>
+                </Form.Group>
+              </Row>
+              <Row>
+                <FormGroup as={Col} md="6">
+                  <FormLabel className="labelForm">Select Social Category</FormLabel>
+                  <FormSelect
+                    value={student?.category_name}
+                    onChange={handleChange}
+                    name="category_name"
+                  >
+                    <option value="">Select Category</option>
+                    {categoryList?.map((categoryItem) => (
+                      <option key={categoryItem?._id} value={categoryItem?._id}>
+                        {categoryItem?.category_name}
+                      </option>
+                    ))}
+                  </FormSelect>
+                </FormGroup>
+                <Form.Group as={Col} md="6">
+                  <FormLabel className="labelForm">Select Religion</FormLabel>
+                  <FormSelect
+                    value={student?.religion_name}
+                    onChange={handleChange}
+                    name="religion_name"
+                  >
+                    <option value="">Select Religion</option>
+                    {religionList?.map((religionItem) => (
+                      <option key={religionItem?._id} value={religionItem?._id}>
+                        {religionItem?.religion_name}
+                      </option>
+                    ))}
+                  </FormSelect>
+                </Form.Group>
+              </Row>
+              <Row>
+                <Form.Group as={Col} md="6">
+                  <FormLabel className="labelForm">Select Active/Inactive Status</FormLabel>
+                  <FormSelect name="class_name" >
+                    <option value="">Active</option>
+                    <option value="">Inactive</option>
+
+                  </FormSelect>
+                </Form.Group>
+                <Form.Group as={Col} md="6">
+                  <FormLabel className="labelForm">  Select Student Type</FormLabel>
+                  <FormSelect name="class_name" >
+                    <option value="">All</option>
+                    <option value="">Day Scholar</option>
+                    <option value="">PG</option>
+                    <option value="">BUS</option>
+                    <option value="">Hostle</option>
+
+                  </FormSelect>
+                </Form.Group>
+              </Row>
+              <Row>
+                <Form.Group as={Col} md="6">
+                  <FormLabel className="labelForm">Select OrderBy</FormLabel>
+                  <FormSelect name="class_name" >
+                    <option value="">First Name</option>
+                    <option value="">RollNO</option>
+                    <option value="">Section</option>
+
+                  </FormSelect>
+                </Form.Group>
+                <Form.Group as={Col} md="6">
+                  <FormLabel className="labelForm">Select Student Gender</FormLabel>
+                  <FormSelect name="class_name" >
+                    <option value="">All</option>
+                    <option value="">Boy</option>
+                    <option value="">Girl</option>
+
+                  </FormSelect>
+                </Form.Group>
+              </Row>
+              <Row>
+                <Form.Group as={Col} md="6">
+                  <FormLabel className="labelForm">Select TC Submitted</FormLabel>
+                  <FormSelect name="class_name" >
+                    <option value="">Both</option>
+                    <option value="">Yes</option>
+                    <option value="">No</option>
+
+                  </FormSelect>
+                </Form.Group>
+                <Form.Group as={Col} md="6">
+                  <FormLabel className="labelForm">Cast</FormLabel>
+                  <FormSelect name="class_name" >
+                    <option value="">Select</option>
+                  </FormSelect>
+                </Form.Group>
+              </Row>
+              <Button className="mt-4" onClick={handleDownload} disabled={loading}>
+                {loading ? "Downloading..." : "Download"}
+              </Button>
+              {responseMessage && <p className="mt-3">{responseMessage}</p>}
+            </Form>
+
+            <div className="p-2">
+              <FormGroup>
+                <FormCheck
+                  type="checkbox"
+                  label="Select All"
+                  id="selectAll"
+                  onChange={handleSelectAll}
+                  checked={isCheckAll}
+                />
+              </FormGroup>
+            </div>
+            <Table bordered className="TableWizard">
+              <tbody>
+                {list.reduce((rows, { id, name }, index) => {
+                  if (index % 4 === 0) rows.push([]);
+                  rows[rows.length - 1].push(
+                    <td key={id} width="25%">
+                      <FormGroup>
+                        <FormCheck
+                          type="checkbox"
+                          label={name}
+                          id={id}
+                          onChange={handleClick}
+                          checked={isCheck.includes(id)}
+                        />
+                      </FormGroup>
+                    </td>
+                  );
+                  return rows;
+                }, []).map((row, i) => (
+                  <tr key={i}>{row}</tr>
+                ))}
+              </tbody>
+            </Table>
+          </div>
+        </Container>
+      </section>
+    </>
   );
 };
 

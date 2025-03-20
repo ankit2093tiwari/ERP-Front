@@ -3,6 +3,8 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Select from "react-select";
 import { Button, Row } from "react-bootstrap";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
+import { Col, Container, FormLabel, Breadcrumb, FormSelect } from "react-bootstrap";
 
 const SchoolOverview = () => {
   const [selectedClass, setSelectedClass] = useState(null);
@@ -95,94 +97,112 @@ const SchoolOverview = () => {
     }
   };
 
+  const breadcrumbItems = [{ label: "students", link: "/students/reports/all-reports" }, { label: "school-overview", link: "null" }]
+
   return (
-    <div className="cover-sheet">
-      <div className="studentHeading">
-        <h2>School Overview</h2>
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
       </div>
-      <div style={{ marginBottom: "20px", padding: "20px" }}>
-        <label>Select Class:</label>
-        <Select
-          options={classOptions}
-          value={selectedClass}
-          onChange={(selected) => setSelectedClass(selected)}
-          placeholder={isFetchingClasses ? "Loading classes..." : "Select a class..."}
-          isDisabled={isFetchingClasses}
-        />
-      </div>
+      <section>
+        <Container>
+          <div className="cover-sheet">
+            <div className="studentHeading">
+              <h2>School Overview</h2>
+            </div>
+            <div style={{ marginBottom: "20px", padding: "20px" }}>
+              <label>Select Class:</label>
+              <Select
+                options={classOptions}
+                value={selectedClass}
+                onChange={(selected) => setSelectedClass(selected)}
+                placeholder={isFetchingClasses ? "Loading classes..." : "Select a class..."}
+                isDisabled={isFetchingClasses}
+              />
+            </div>
 
-      <Button
-        className="btn btn-warning ms-4"
-        onClick={handleSearch}
-        disabled={isLoading || isFetchingClasses}
-      >
-        {isLoading ? "Searching..." : "Search"}
-      </Button>
+            <Button
+              className="btn btn-warning ms-4"
+              onClick={handleSearch}
+              disabled={isLoading || isFetchingClasses}
+            >
+              {isLoading ? "Searching..." : "Search"}
+            </Button>
 
-      <table
-        style={{
-          marginTop: "20px",
-          width: "100%",
-          borderCollapse: "collapse",
-          border: "1px solid black",
-          marginBottom: "40px",
-        }}
-      >
-        <thead>
-          <tr>
-            <th style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>Class</th>
-            <th style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>Section</th>
-            <th style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>Boys</th>
-            <th style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>Girls</th>
-            <th style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>Section Total</th>
-            <th style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>TC</th>
-            <th style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>Dropout</th>
-            <th style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>New</th>
-          </tr>
-        </thead>
-        <tbody>
-          {Object.keys(tableData).length > 0 ? (
-            Object.entries(tableData).map(([className, sections], index) =>
-              Object.entries(sections).map(([sectionName, data], secIndex) => (
-                <tr key={`${index}-${secIndex}`}>
-                  {secIndex === 0 && (
-                    <td
-                      rowSpan={Object.keys(sections).length}
-                      style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}
-                    >
-                      {className}
-                    </td>
-                  )}
-                  <td style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>
-                    {sectionName}
-                  </td>
-                  <td style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>{data.totalBoys}</td>
-                  <td style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>{data.totalGirls}</td>
-                  <td style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>{data.sectionTotal}</td>
-                  <td style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>0</td>
-                  <td style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>{data.dropoutStudents}</td>
-                  <td style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>{data.newStudents}</td>
+            <table
+              style={{
+                marginTop: "20px",
+                width: "100%",
+                borderCollapse: "collapse",
+                border: "1px solid black",
+                marginBottom: "40px",
+              }}
+            >
+              <thead>
+                <tr>
+                  <th style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>Class</th>
+                  <th style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>Section</th>
+                  <th style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>Boys</th>
+                  <th style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>Girls</th>
+                  <th style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>Section Total</th>
+                  <th style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>TC</th>
+                  <th style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>Dropout</th>
+                  <th style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>New</th>
                 </tr>
-              ))
-            )
-          ) : (
-            <tr>
-              <td colSpan="8" style={{ textAlign: "center", padding: "8px", border: "1px solid black" }}>
-                No data to display. Please search for a class.
-              </td>
-            </tr>
-          )}
-        </tbody>
-        <tfoot>
-          <tr>
-            <td colSpan="2" style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>Total</td>
-            <td style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>{totalBoys}</td>
-            <td style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>{totalGirls}</td>
-            <td colSpan="5" style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}></td>
-          </tr>
-        </tfoot>
-      </table>
-    </div>
+              </thead>
+              <tbody>
+                {Object.keys(tableData).length > 0 ? (
+                  Object.entries(tableData).map(([className, sections], index) =>
+                    Object.entries(sections).map(([sectionName, data], secIndex) => (
+                      <tr key={`${index}-${secIndex}`}>
+                        {secIndex === 0 && (
+                          <td
+                            rowSpan={Object.keys(sections).length}
+                            style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}
+                          >
+                            {className}
+                          </td>
+                        )}
+                        <td style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>
+                          {sectionName}
+                        </td>
+                        <td style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>{data.totalBoys}</td>
+                        <td style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>{data.totalGirls}</td>
+                        <td style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>{data.sectionTotal}</td>
+                        <td style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>0</td>
+                        <td style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>{data.dropoutStudents}</td>
+                        <td style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>{data.newStudents}</td>
+                      </tr>
+                    ))
+                  )
+                ) : (
+                  <tr>
+                    <td colSpan="8" style={{ textAlign: "center", padding: "8px", border: "1px solid black" }}>
+                      No data to display. Please search for a class.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colSpan="2" style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>Total</td>
+                  <td style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>{totalBoys}</td>
+                  <td style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>{totalGirls}</td>
+                  <td colSpan="5" style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </Container>
+
+      </section>
+    </>
   );
 };
 

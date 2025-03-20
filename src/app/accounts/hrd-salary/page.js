@@ -115,7 +115,7 @@ const hrdSallary = () => {
   ];
 
 
-  const breadcrumbItems = [{ label: "Accounts", link: "/accounts/all-module" }, { label: "HRD Salry", link: "null" }]
+  const breadcrumbItems = [{ label: "Accounts", link: "/accounts/all-module" }, { label: "HRD Salry", link: null }]
 
 
   return (

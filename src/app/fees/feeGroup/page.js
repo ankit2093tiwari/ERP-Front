@@ -20,6 +20,7 @@ import Table from "@/app/component/DataTable";
 
 import "jspdf-autotable";
 import { copyContent, printContent } from "@/app/utils";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const FeeGroup = () => {
   const [data, setData] = useState([]);
@@ -249,107 +250,113 @@ const FeeGroup = () => {
     fetchClasses();
   }, []);
 
+  const breadcrumbItems = [{ label: "Fee", link: "/fees/all-module" }, { label: "fee-Group", link: "null" }]
+
   return (
-    <Container className="">
-      <Row className="mt-1 mb-1">
-        <Col>
-          <Breadcrumb>
-            <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-            <Breadcrumb.Item href="/fee-groups">Fee Groups</Breadcrumb.Item>
-            <Breadcrumb.Item active>Manage Fee Groups</Breadcrumb.Item>
-          </Breadcrumb>
-        </Col>
-      </Row>
-
-      <Button onClick={() => setIsPopoverOpen(true)} className="btn btn-primary">
-        <CgAddR /> Add Fee Group
-      </Button>
-
-      {isPopoverOpen && (
-        <div className="cover-sheet">
-          <div className="studentHeading">
-            <h2>Add New Fee Group</h2>
-            <button className="closeForm" onClick={() => setIsPopoverOpen(false)}>
-              X
-            </button>
-          </div>
-          <Form className="formSheet">
-            <Row>
-              <Col lg={6}>
-                <FormLabel>Group Name</FormLabel>
-                <FormControl
-                  type="text"
-                  value={newFeeGroup.group_name}
-                  onChange={(e) =>
-                    setNewFeeGroup({ ...newFeeGroup, group_name: e.target.value })
-                  }
-                />
-              </Col>
-              <Col lg={6}>
-                <FormLabel>Class Name</FormLabel>
-                <FormSelect
-                  value={newFeeGroup.class_name}
-                  onChange={(e) => {
-                    setNewFeeGroup({ ...newFeeGroup, class_name: e.target.value });
-                    fetchSections(e.target.value);
-                  }}
-                >
-                  <option value="">Select Class</option>
-                  {classList.map((classItem) => (
-                    <option key={classItem._id} value={classItem._id}>
-                      {classItem.class_name}
-                    </option>
-                  ))}
-                </FormSelect>
-              </Col>
-              <Col lg={6}>
-                <FormLabel>Section Name</FormLabel>
-                <FormSelect
-                  value={newFeeGroup.section_name}
-                  onChange={(e) =>
-                    setNewFeeGroup({ ...newFeeGroup, section_name: e.target.value })
-                  }
-                >
-                  <option value="">Select Section</option>
-                  {sectionList.map((sectionItem) => (
-                    <option key={sectionItem._id} value={sectionItem._id}>
-                      {sectionItem.section_name}
-                    </option>
-                  ))}
-                </FormSelect>
-              </Col>
-              <Col lg={6}>
-                <FormLabel>Late Fine Per Day</FormLabel>
-                <FormControl
-                  type="text"
-                  value={newFeeGroup.late_fine_per_day}
-                  onChange={(e) =>
-                    setNewFeeGroup({ ...newFeeGroup, late_fine_per_day: e.target.value })
-                  }
-                />
-              </Col>
-            </Row>
-            <Button onClick={handleAdd} className="btn btn-primary">
-              Add Fee Group
-            </Button>
-          </Form>
-        </div>
-      )}
-
-      <div className="tableSheet">
-        <h2>Fee Group Records</h2>
-        {loading && <p>Loading...</p>}
-        {error && <p>{error}</p>}
-        {!loading && !error && (
-          <Table
-            columns={columns}
-            data={data}
-            handlePrint={handlePrint}
-            handleCopy={handleCopy}
-          />
-        )}
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
       </div>
-    </Container>
+      <section>
+        <Container className="">
+
+          <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
+            <CgAddR /> Add Fee Group
+          </Button>
+
+          {isPopoverOpen && (
+            <div className="cover-sheet">
+              <div className="studentHeading">
+                <h2>Add New Fee Group</h2>
+                <button className="closeForm" onClick={() => setIsPopoverOpen(false)}>
+                  X
+                </button>
+              </div>
+              <Form className="formSheet">
+                <Row>
+                  <Col lg={6}>
+                    <FormLabel>Group Name</FormLabel>
+                    <FormControl
+                      type="text"
+                      value={newFeeGroup.group_name}
+                      onChange={(e) =>
+                        setNewFeeGroup({ ...newFeeGroup, group_name: e.target.value })
+                      }
+                    />
+                  </Col>
+                  <Col lg={6}>
+                    <FormLabel>Class Name</FormLabel>
+                    <FormSelect
+                      value={newFeeGroup.class_name}
+                      onChange={(e) => {
+                        setNewFeeGroup({ ...newFeeGroup, class_name: e.target.value });
+                        fetchSections(e.target.value);
+                      }}
+                    >
+                      <option value="">Select Class</option>
+                      {classList.map((classItem) => (
+                        <option key={classItem._id} value={classItem._id}>
+                          {classItem.class_name}
+                        </option>
+                      ))}
+                    </FormSelect>
+                  </Col>
+                  <Col lg={6}>
+                    <FormLabel>Section Name</FormLabel>
+                    <FormSelect
+                      value={newFeeGroup.section_name}
+                      onChange={(e) =>
+                        setNewFeeGroup({ ...newFeeGroup, section_name: e.target.value })
+                      }
+                    >
+                      <option value="">Select Section</option>
+                      {sectionList.map((sectionItem) => (
+                        <option key={sectionItem._id} value={sectionItem._id}>
+                          {sectionItem.section_name}
+                        </option>
+                      ))}
+                    </FormSelect>
+                  </Col>
+                  <Col lg={6}>
+                    <FormLabel>Late Fine Per Day</FormLabel>
+                    <FormControl
+                      type="text"
+                      value={newFeeGroup.late_fine_per_day}
+                      onChange={(e) =>
+                        setNewFeeGroup({ ...newFeeGroup, late_fine_per_day: e.target.value })
+                      }
+                    />
+                  </Col>
+                </Row>
+                <Button onClick={handleAdd} className="btn btn-primary">
+                  Add Fee Group
+                </Button>
+              </Form>
+            </div>
+          )}
+
+          <div className="tableSheet">
+            <h2>Fee Group Records</h2>
+            {loading && <p>Loading...</p>}
+            {error && <p>{error}</p>}
+            {!loading && !error && (
+              <Table
+                columns={columns}
+                data={data}
+                handlePrint={handlePrint}
+                handleCopy={handleCopy}
+              />
+            )}
+          </div>
+        </Container>
+      </section>
+    </>
   );
 };
 

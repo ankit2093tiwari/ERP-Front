@@ -17,6 +17,7 @@ import axios from "axios";
 import Table from "@/app/component/DataTable";
 import styles from "@/app/medical/routine-check-up/page.module.css";
 import { copyContent, printContent } from "@/app/utils";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const BankMaster = () => {
   const [data, setData] = useState([]);
@@ -142,76 +143,82 @@ const BankMaster = () => {
   };
 
   const handlePrint = async () => {
-      const tableHeaders = [["#", "Bank Name"]];
-      const tableRows = data.map((row, index) => [
-        index + 1,
-        row.bank_name || "N/A",
-      ]);
+    const tableHeaders = [["#", "Bank Name"]];
+    const tableRows = data.map((row, index) => [
+      index + 1,
+      row.bank_name || "N/A",
+    ]);
 
-       printContent(tableHeaders, tableRows);
-    }
+    printContent(tableHeaders, tableRows);
+  }
 
   const handleCopy = () => {
-      const headers = ["#", "Bank Name"]; 
-      const rows = data.map((row, index) => `${index + 1}\t${row.bank_name || "N/A"}`);
-      copyContent(headers, rows);
-     
-    }
+    const headers = ["#", "Bank Name"];
+    const rows = data.map((row, index) => `${index + 1}\t${row.bank_name || "N/A"}`);
+    copyContent(headers, rows);
+
+  }
 
   useEffect(() => {
     fetchData();
   }, []);
 
+  const breadcrumbItems = [{ label: "Fee", link: "/fees/all-module" }, { label: "bank-master", link: "null" }]
+
   return (
-    <Container className="">
-      <Row className="mt-1 mb-1">
-        <Col>
-          <Breadcrumb>
-            <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-            <Breadcrumb.Item href="/banks">Banks</Breadcrumb.Item>
-            <Breadcrumb.Item active>Manage Banks</Breadcrumb.Item>
-          </Breadcrumb>
-        </Col>
-      </Row>
-
-      <Button onClick={() => setIsPopoverOpen(true)} className="btn btn-primary">
-        <CgAddR /> Add Bank
-      </Button>
-
-      {isPopoverOpen && (
-        <div className="cover-sheet">
-          <div className="studentHeading">
-            <h2>Add New Bank</h2>
-            <button className="closeForm" onClick={() => setIsPopoverOpen(false)}>
-              X
-            </button>
-          </div>
-          <Form className="formSheet">
-            <Row>
-              <Col lg={6}>
-                <FormLabel>Bank Name</FormLabel>
-                <FormControl
-                  type="text"
-                  placeholder="Enter Bank Name"
-                  value={newBank}
-                  onChange={(e) => setNewBank(e.target.value)}
-                />
-              </Col>
-            </Row>
-            <Button onClick={handleAdd} className="btn btn-primary">
-              Add Bank
-            </Button>
-          </Form>
-        </div>
-      )}
-
-      <div className="tableSheet">
-        <h2>Bank Records</h2>
-        {loading && <p>Loading...</p>}
-        {error && <p>{error}</p>}
-        {!loading && !error && <Table columns={columns} data={data} handlePrint={handlePrint} handleCopy={handleCopy} />}
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
       </div>
-    </Container>
+      <section>
+        <Container className="">
+
+          <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
+            <CgAddR /> Add Bank
+          </Button>
+
+          {isPopoverOpen && (
+            <div className="cover-sheet">
+              <div className="studentHeading">
+                <h2>Add New Bank</h2>
+                <button className="closeForm" onClick={() => setIsPopoverOpen(false)}>
+                  X
+                </button>
+              </div>
+              <Form className="formSheet">
+                <Row>
+                  <Col lg={6}>
+                    <FormLabel>Bank Name</FormLabel>
+                    <FormControl
+                      type="text"
+                      placeholder="Enter Bank Name"
+                      value={newBank}
+                      onChange={(e) => setNewBank(e.target.value)}
+                    />
+                  </Col>
+                </Row>
+                <Button onClick={handleAdd} className="btn btn-primary">
+                  Add Bank
+                </Button>
+              </Form>
+            </div>
+          )}
+
+          <div className="tableSheet">
+            <h2>Bank Records</h2>
+            {loading && <p>Loading...</p>}
+            {error && <p>{error}</p>}
+            {!loading && !error && <Table columns={columns} data={data} handlePrint={handlePrint} handleCopy={handleCopy} />}
+          </div>
+        </Container>
+      </section>
+    </>
   );
 };
 

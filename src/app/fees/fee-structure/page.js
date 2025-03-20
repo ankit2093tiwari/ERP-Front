@@ -15,6 +15,7 @@ import {
 } from "react-bootstrap";
 import axios from "axios";
 import Table from "@/app/component/DataTable";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const FeeStructure = () => {
   const [data, setData] = useState([]);
@@ -142,66 +143,72 @@ const FeeStructure = () => {
     },
   ];
 
+  const breadcrumbItems = [{ label: "Fee", link: "/fees/all-module" }, { label: "fee-Structure", link: "null" }]
+
   return (
-    <Container className="mt-3">
-      <Row className="mt-1 mb-3">
-        <Col>
-          <Breadcrumb>
-            <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-            <Breadcrumb.Item href="/fee-settings">Fee Settings</Breadcrumb.Item>
-            <Breadcrumb.Item active>Manage Fee Settings</Breadcrumb.Item>
-          </Breadcrumb>
-        </Col>
-      </Row>
-
-      <Button onClick={() => setIsPopoverOpen(true)} className="btn btn-primary mb-4">
-        <CgAddR /> New Fee
-      </Button>
-
-      {isPopoverOpen && (
-        <div className="cover-sheet">
-          <div className="studentHeading">
-            <h2>Add New Fee</h2>
-            <button className="closeForm" onClick={() => setIsPopoverOpen(false)}>X</button>
-          </div>
-          <Form className="formSheet">
-            <Row>
-              <Col lg={6}>
-                <FormLabel>Group Name</FormLabel>
-                <FormControl as="select" value={newFeeSetting.group_name} onChange={handleGroupChange}>
-                  <option value="">Select Group</option>
-                  {feeGroups.length > 0 ? (
-                    feeGroups.map((group) => (
-                      <option key={group._id} value={group.group_name}>
-                        {group.group_name}
-                      </option>
-                    ))
-                  ) : (
-                    <option disabled>No groups available</option>
-                  )}
-                </FormControl>
-              </Col>
-              <Col lg={6}>
-                <FormLabel>Total Amount</FormLabel>
-                <FormControl type="text" value={newFeeSetting.total_amount} readOnly />
-              </Col>
-            </Row>
-            <Button onClick={handleAdd} className="btn btn-primary mt-3">Add Fee</Button>
-          </Form>
-        </div>
-      )}
-
-      <div className="tableSheet">
-        <h2>Fee Setting Records</h2>
-        {loading && <p>Loading...</p>}
-        {error && <p style={{ color: "red" }}>{error}</p>}
-        {!loading && !error && data.length > 0 ? (
-          <Table columns={columns} data={data} />
-        ) : (
-          !loading && !error && <p>No data available.</p>
-        )}
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
       </div>
-    </Container>
+      <section>
+        <Container className="mt-3">
+
+          <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
+            <CgAddR /> New Fee
+          </Button>
+
+          {isPopoverOpen && (
+            <div className="cover-sheet">
+              <div className="studentHeading">
+                <h2>Add New Fee</h2>
+                <button className="closeForm" onClick={() => setIsPopoverOpen(false)}>X</button>
+              </div>
+              <Form className="formSheet">
+                <Row>
+                  <Col lg={6}>
+                    <FormLabel>Group Name</FormLabel>
+                    <FormControl as="select" value={newFeeSetting.group_name} onChange={handleGroupChange}>
+                      <option value="">Select Group</option>
+                      {feeGroups.length > 0 ? (
+                        feeGroups.map((group) => (
+                          <option key={group._id} value={group.group_name}>
+                            {group.group_name}
+                          </option>
+                        ))
+                      ) : (
+                        <option disabled>No groups available</option>
+                      )}
+                    </FormControl>
+                  </Col>
+                  <Col lg={6}>
+                    <FormLabel>Total Amount</FormLabel>
+                    <FormControl type="text" value={newFeeSetting.total_amount} readOnly />
+                  </Col>
+                </Row>
+                <Button onClick={handleAdd} className="btn btn-primary mt-3">Add Fee</Button>
+              </Form>
+            </div>
+          )}
+
+          <div className="tableSheet">
+            <h2>Fee Setting Records</h2>
+            {loading && <p>Loading...</p>}
+            {error && <p style={{ color: "red" }}>{error}</p>}
+            {!loading && !error && data.length > 0 ? (
+              <Table columns={columns} data={data} />
+            ) : (
+              !loading && !error && <p>No data available.</p>
+            )}
+          </div>
+        </Container>
+      </section>
+    </>
   );
 };
 

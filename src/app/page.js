@@ -19,16 +19,18 @@ import { MdOutlineLibraryBooks, MdOutlineAccountTree } from "react-icons/md";
 import { FiUsers } from "react-icons/fi";
 import { PiUserGear } from "react-icons/pi";
 import { VscLibrary } from "react-icons/vsc";
-import ReactApexChart from "react-apexcharts";
+import dynamic from 'next/dynamic';
 import { Table, Container } from "react-bootstrap";
 import Image from "next/image";
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 
+// Dynamically import ReactApexChart with SSR disabled
+const ReactApexChart = dynamic(() => import('react-apexcharts'), { ssr: false });
+
 const Dashboard = () => {
   const router = useRouter();
-
   const [dashboardData, setDashboardData] = useState([]);
 
   // Simulated API Data
@@ -54,21 +56,8 @@ const Dashboard = () => {
     fetchDashboardData();
   }, []);
 
-  // Function to update data dynamically (for demonstration)
-  // const updateData = () => {
-  //   setDashboardData((prevData) =>
-  //     prevData.map((item) => ({
-  //       ...item,
-  //       count: Math.floor(Math.random() * 1000) + 1, // Randomize counts
-  //     }))
-  //   );
-  // };
-
-  // ******************************************************************************************
-  // *****Radial Chart Start
-  // ******************************************************************************************
-  const [state, setState] = React.useState({
-
+  // Radial Chart State
+  const [state, setState] = useState({
     series: [67],
     options: {
       chart: {
@@ -102,31 +91,24 @@ const Dashboard = () => {
         type: 'gradient',
         gradient: {
           shade: 'dark',
-          shadeIntensity: 0.4, // Increased intensity
+          shadeIntensity: 0.4,
           inverseColors: false,
           opacityFrom: 1,
           opacityTo: 1,
-          stops: [0, 50, 100], // Smooth transition
-          colors: ['#3498db', '#1abc9c', '#2ecc71'] // Blue → Teal → Green
+          stops: [0, 50, 100],
+          colors: ['#3498db', '#1abc9c', '#2ecc71']
         },
       },
       stroke: {
         dashArray: 4,
-        colors: ['#333'] // Border stroke color
+        colors: ['#333']
       },
       labels: ['Attendance'],
     },
   });
 
-
-  // ******************************************************************************************
-  // *****Radial Chart End
-  // ******************************************************************************************
-  // ***********************************************************************************8
-  // *****************Bar chart start********************
-
-  const [payroll, setpayroll] = React.useState({
-
+  // Bar Chart State
+  const [payroll, setPayroll] = useState({
     series: [{
       name: 'Inflation',
       data: [2.3, 3.1, 4.0, 10.1, 4.0, 3.6, 3.2, 2.3, 1.4, 0.8, 0.5, 0.2]
@@ -140,7 +122,7 @@ const Dashboard = () => {
         bar: {
           borderRadius: 6,
           dataLabels: {
-            position: 'top', // top, center, bottom
+            position: 'top',
           },
         }
       },
@@ -155,7 +137,6 @@ const Dashboard = () => {
           colors: ["#6a637e"]
         }
       },
-
       xaxis: {
         categories: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
         position: 'top',
@@ -194,7 +175,6 @@ const Dashboard = () => {
             return val + "%";
           }
         }
-
       },
       title: {
         text: 'Monthly Inflation in Argentina, 2002',
@@ -208,18 +188,16 @@ const Dashboard = () => {
     },
   });
 
-  // ***********************************************************************************8
-  // *****************Bar chart End********************
-
   const [value, onChange] = useState(new Date());
-  const breadcrumbItems = [{ label: "Dashboard", link: "null" }]
+  const breadcrumbItems = [{ label: "Dashboard", link: "null" }];
+
   return (
     <>
       <div className="breadcrumbSheet position-relative">
         <Container>
           <Row>
             <Col>
-            <BreadcrumbComp items={breadcrumbItems} />
+              <BreadcrumbComp items={breadcrumbItems} />
             </Col>
           </Row>
         </Container>
@@ -310,15 +288,13 @@ const Dashboard = () => {
               </Col>
               <Col lg={3}>
                 <div className="card overflow-hidden pt-2 mb-3 shadow-none">
-                  {/* <div className="card-header">
-                  <h5 className="fw-normal mb-1 fw-bold text-start"> Attendance </h5>
-                </div> */}
                   <div className="card-body position-relative z-1">
                     <div>
                       <div id="chart">
-                        <ReactApexChart options={state.options} series={state.series} type="radialBar" height={450} />
+                        {typeof window !== 'undefined' && (
+                          <ReactApexChart options={state.options} series={state.series} type="radialBar" height={450} />
+                        )}
                       </div>
-                      <div id="html-dist"></div>
                     </div>
                   </div>
                 </div>
@@ -338,9 +314,10 @@ const Dashboard = () => {
                   <div className="card-body position-relative z-1">
                     <div>
                       <div id="chart">
-                        <ReactApexChart options={payroll.options} series={payroll.series} type="bar" height={300} />
+                        {typeof window !== 'undefined' && (
+                          <ReactApexChart options={payroll.options} series={payroll.series} type="bar" height={300} />
+                        )}
                       </div>
-                      <div id="html-dist"></div>
                     </div>
                   </div>
                 </div>
@@ -355,20 +332,17 @@ const Dashboard = () => {
                       <a aria-current="page" href="#" className="d-flex align-items-center justify-content-between">
                         <div className="d-flex align-items-center gap-3">
                           <span className="d-inline-flex align-items-center justify-content-center font-normal bg-card overflow-hidden">
-                            <img role="img" src="/user.webp" alt="Web Development" />
+                            <Image role="img" src="/user.webp" width={100} height={100} alt="Web Development" />
                           </span>
                           <div>
                             <p className="pb-2">Web Development <span>40+ Courses</span></p>
                           </div>
                         </div>
-                        {/* <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true" role="img" className="w-5 h-5 text-gray-500 iconify iconify--heroicons" width="1em" height="1em" viewBox="0 0 20 20">
-                        <path fill="currentColor" fill-rule="evenodd" d="M8.22 5.22a.75.75 0 0 1 1.06 0l4.25 4.25a.75.75 0 0 1 0 1.06l-4.25 4.25a.75.75 0 0 1-1.06-1.06L11.94 10L8.22 6.28a.75.75 0 0 1 0-1.06" clip-rule="evenodd"></path>
-                      </svg> */}
                       </a>
                       <a aria-current="page" href="#" className="d-flex align-items-center justify-content-between">
                         <div className="d-flex align-items-start gap-3">
                           <span className="d-inline-flex align-items-center justify-content-center font-normal bg-card overflow-hidden">
-                            <img role="img" src="/user.webp" alt="Graphic Design" />
+                            <Image role="img" src="/user.webp" width={100} height={100} alt="Graphic Design" />
                           </span>
                           <div>
                             <p className="pb-2">Graphic Design <span>40+ Courses</span></p>
@@ -378,7 +352,7 @@ const Dashboard = () => {
                       <a aria-current="page" href="#" className="d-flex align-items-center justify-content-between">
                         <div className="d-flex align-items-center gap-3">
                           <span className="d-inline-flex align-items-center justify-content-center font-normal bg-card overflow-hidden">
-                            <img role="img" src="/user.webp" alt="UI/UX Design" />
+                            <Image role="img" src="/user.webp" width={100} height={100} alt="UI/UX Design" />
                           </span>
                           <div>
                             <p className="pb-2">UI/UX Design <span>10+ Courses</span></p>
@@ -388,22 +362,20 @@ const Dashboard = () => {
                       <a aria-current="page" href="#" className="d-flex align-items-center justify-content-between">
                         <div className="d-flex align-items-center gap-3">
                           <span className="d-inline-flex align-items-center justify-content-center font-normal bg-card overflow-hidden">
-                            <img role="img" src="/user.webp" alt="3D Animation &amp; Modeling" />
+                            <Image role="img" src="/user.webp" width={100} height={100} alt="3D Animation &amp; Modeling" />
                           </span>
                           <div>
                             <p className="pb-2">3D Animation &amp; Modeling  <span>30+ Courses</span></p>
-
                           </div>
                         </div>
                       </a>
                       <a aria-current="page" href="#" className="d-flex align-items-center justify-content-between">
                         <div className="d-flex align-items-center gap-3">
                           <span className="d-inline-flex align-items-center justify-content-center font-normal bg-card overflow-hidden">
-                            <img role="img" src="/user.webp" alt="Digital Marketing" />
+                            <Image role="img" src="/user.webp" width={100} height={100} alt="Digital Marketing" />
                           </span>
                           <div>
                             <p className="pb-2">Digital Marketing <span>80+ Courses</span></p>
-
                           </div>
                         </div>
                       </a>
@@ -432,7 +404,7 @@ const Dashboard = () => {
                         <tr>
                           <td>
                             <div className="d-flex align-items-center">
-                              <Image alt="users" width={40} height={40} className="rounded-circle" src="/user-1.jpg" />
+                              <Image alt="users" width={40} height={40} className="rounded-circle" src="/user.webp" />
                               <div className="profileTable">
                                 <h6> Sunil Joshi </h6>
                                 <span> Class IV </span>
@@ -443,7 +415,7 @@ const Dashboard = () => {
                         <tr>
                           <td>
                             <div className="d-flex align-items-center">
-                              <Image alt="users" width={40} height={40} className="rounded-circle" src="/user-1.jpg" />
+                              <Image alt="users" width={40} height={40} className="rounded-circle" src="/user.webp" />
                               <div className="profileTable">
                                 <h6> Sunil Joshi </h6>
                                 <span> Class IV </span>
@@ -454,7 +426,7 @@ const Dashboard = () => {
                         <tr>
                           <td>
                             <div className="d-flex align-items-center">
-                              <Image alt="users" width={40} height={40} className="rounded-circle" src="/user-1.jpg" />
+                              <Image alt="users" width={40} height={40} className="rounded-circle" src="/user.webp" />
                               <div className="profileTable">
                                 <h6> Sunil Joshi </h6>
                                 <span> Class IV </span>
@@ -465,7 +437,7 @@ const Dashboard = () => {
                         <tr>
                           <td>
                             <div className="d-flex align-items-center">
-                              <Image alt="users" width={40} height={40} className="rounded-circle" src="/user-1.jpg" />
+                              <Image alt="users" width={40} height={40} className="rounded-circle" src="/user.webp" />
                               <div className="profileTable">
                                 <h6> Sunil Joshi </h6>
                                 <span> Class IV </span>
@@ -526,16 +498,10 @@ const Dashboard = () => {
               <Col lg={12}>
                 <div className="card overflow-hidden pt-2 mb-3 shadow-none">
                   <div className="card-header">
-
-
                   </div>
                 </div>
               </Col>
             </Row>
-
-
-
-
             <div className="studentCardDetails">
               {dashboardData.map((card, index) => (
                 <Card1
@@ -553,6 +519,5 @@ const Dashboard = () => {
     </>
   );
 };
-const domContainer = document.querySelector('#app');
 
 export default Dashboard;

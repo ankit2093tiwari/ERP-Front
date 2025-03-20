@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Form, FormGroup, Button, Breadcrumb } from "react-bootstrap";
 import axios from "axios";
 import { jsPDF } from "jspdf";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const CertificateWizard = () => {
   const [student, setStudent] = useState(null);
@@ -32,7 +33,7 @@ const CertificateWizard = () => {
         );
         if (studentData) {
           setStudent(studentData);
-        } 
+        }
       } else {
         setError("Failed to fetch student data.");
       }
@@ -68,83 +69,91 @@ const CertificateWizard = () => {
     doc.save(`${selectedCertificate.toLowerCase().replace(/ /g, "_")}_certificate_${student.registration_id}.pdf`);
   };
 
+  
+  const breadcrumbItems = [{ label: "students", link: "/students/reports/all-reports" }, { label: "certificate-wizard", link: "null" }]
+
   return (
-    <Container>
-      <Row className="mt-1 mb-1">
-        <Col>
-          <Breadcrumb>
-            <Breadcrumb.Item href="/">Home</Breadcrumb.Item>
-            <Breadcrumb.Item href="/students/all-module">Student</Breadcrumb.Item>
-            <Breadcrumb.Item active>Generate Certificates</Breadcrumb.Item>
-          </Breadcrumb>
-        </Col>
-      </Row>
+    <>
 
-      <Row>
-        <Col>
-          <div className="cover-sheet">
-            <div className="studentHeading">
-              <h2>Certificate Wizard</h2>
-            </div>
-            <Form className="formSheet">
-              <Row className="mb-3">
-                <Col lg={12}>
-                  <FormGroup>
-                    <Form.Label>Type Adm No For Search Student & Enter*</Form.Label>
-                    <Form.Control
-                      type="text"
-                      value={registrationId}
-                      onChange={(e) => setRegistrationId(e.target.value)}
-                      placeholder="Enter Registration ID"
-                    />
-                  </FormGroup>
-                </Col>
-              </Row>
-              {error && <div className="text-danger">{error}</div>}
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
+      </div>
+      <section>
+        <Container>
 
-              <Row className="mb-3">
-                <Col lg={12}>
-                  <div>
-                    <h3>Select Certificate</h3>
-                    <Form.Check
-                      type="radio"
-                      label="Bonafide Certificate"
-                      name="certificate"
-                      value="Bonafide"
-                      checked={selectedCertificate === "Bonafide"}
-                      onChange={(e) => setSelectedCertificate(e.target.value)}
-                    />
-                    <Form.Check
-                      type="radio"
-                      label="Character Certificate"
-                      name="certificate"
-                      value="Character"
-                      checked={selectedCertificate === "Character"}
-                      onChange={(e) => setSelectedCertificate(e.target.value)}
-                    />
-                    <Form.Check
-                      type="radio"
-                      label="Confirmation of Date of Birth"
-                      name="certificate"
-                      value="Date of Birth Confirmation"
-                      checked={selectedCertificate === "Date of Birth Confirmation"}
-                      onChange={(e) => setSelectedCertificate(e.target.value)}
-                    />
-                  </div>
-                </Col>
-              </Row>
-              <Button
-                className="btn btn-warning mt-3 ms-2"
-                onClick={generateCertificatePDF}
-                disabled={!student || !selectedCertificate}
-              >
-                Generate and Download Certificate
-              </Button>
-            </Form>
-          </div>
-        </Col>
-      </Row>
-    </Container>
+          <Row>
+            <Col>
+              <div className="cover-sheet">
+                <div className="studentHeading">
+                  <h2>Certificate Wizard</h2>
+                </div>
+                <Form className="formSheet">
+                  <Row className="mb-3">
+                    <Col lg={12}>
+                      <FormGroup>
+                        <Form.Label>Type Adm No For Search Student & Enter*</Form.Label>
+                        <Form.Control
+                          type="text"
+                          value={registrationId}
+                          onChange={(e) => setRegistrationId(e.target.value)}
+                          placeholder="Enter Registration ID"
+                        />
+                      </FormGroup>
+                    </Col>
+                  </Row>
+                  {error && <div className="text-danger">{error}</div>}
+
+                  <Row className="mb-3">
+                    <Col lg={12}>
+                      <div>
+                        <h3>Select Certificate</h3>
+                        <Form.Check
+                          type="radio"
+                          label="Bonafide Certificate"
+                          name="certificate"
+                          value="Bonafide"
+                          checked={selectedCertificate === "Bonafide"}
+                          onChange={(e) => setSelectedCertificate(e.target.value)}
+                        />
+                        <Form.Check
+                          type="radio"
+                          label="Character Certificate"
+                          name="certificate"
+                          value="Character"
+                          checked={selectedCertificate === "Character"}
+                          onChange={(e) => setSelectedCertificate(e.target.value)}
+                        />
+                        <Form.Check
+                          type="radio"
+                          label="Confirmation of Date of Birth"
+                          name="certificate"
+                          value="Date of Birth Confirmation"
+                          checked={selectedCertificate === "Date of Birth Confirmation"}
+                          onChange={(e) => setSelectedCertificate(e.target.value)}
+                        />
+                      </div>
+                    </Col>
+                  </Row>
+                  <Button
+                    className="btn btn-warning mt-3 ms-2"
+                    onClick={generateCertificatePDF}
+                    disabled={!student || !selectedCertificate}
+                  >
+                    Generate and Download Certificate
+                  </Button>
+                </Form>
+              </div>
+            </Col>
+          </Row>
+        </Container>
+      </section>
+    </>
   );
 };
 
