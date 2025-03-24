@@ -15,6 +15,7 @@ import {
 } from "react-bootstrap";
 import axios from "axios";
 import { CgAddR } from "react-icons/cg";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const RouteMaster = () => {
   const [data, setData] = useState([]);
@@ -144,92 +145,101 @@ const RouteMaster = () => {
     setRoute({ ...route, pickupPoints: updatedPoints });
   };
 
+  const breadcrumbItems = [{ label: "Transport", link: "/Transport/all-module" }, { label: "Route Master", link: "null" }]
+
   return (
-    <Container>
-      <Breadcrumb>
-        <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-        <Breadcrumb.Item href="/Transport/all-module">Transport</Breadcrumb.Item>
-        <Breadcrumb.Item active>Route Master</Breadcrumb.Item>
-      </Breadcrumb>
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
+      </div>
+      <section>
+        <Container>
+          <Button onClick={() => setShowAddForm(true)} className="btn-add">
+            <CgAddR />  Add Route
+          </Button>
+          {showAddForm && (
+            <div className="cover-sheet">
+              <div className="studentHeading"><h2>Existing Route Records</h2>
+                <button className="closeForm" onClick={() => setShowAddForm(false)}>X</button>
+              </div>
+              <Form className="formSheet">
+                <Row className="mb-3">
+                  <Col md={6}>
+                    <FormLabel className="labelForm">Vehicle No</FormLabel>
+                    <FormControl
+                      type="text"
+                      placeholder="Enter Vehicle No"
+                      value={route.vehicleNo}
+                      onChange={(e) => setRoute({ ...route, vehicleNo: e.target.value })}
+                    />
+                  </Col>
+                  <Col md={6}>
+                    <FormLabel>Route Name</FormLabel>
+                    <FormControl
+                      type="text"
+                      placeholder="Enter Route Name"
+                      value={route.routeName}
+                      onChange={(e) => setRoute({ ...route, routeName: e.target.value })}
+                    />
+                  </Col>
+                </Row>
+                <FormLabel>Pickup Points</FormLabel>
+                {route.pickupPoints.map((pickup, index) => (
+                  <Row key={index} className="mb-3">
+                    <Col md={6}>
+                      <FormControl
+                        type="text"
+                        placeholder="Pickup Point"
+                        value={pickup.point}
+                        onChange={(e) => handlePickupChange(index, "point", e.target.value)}
+                      />
+                    </Col>
+                    <Col md={4}>
+                      <FormControl
+                        type="text"
+                        placeholder="Amount"
+                        value={pickup.amount}
+                        onChange={(e) => handlePickupChange(index, "amount", e.target.value)}
+                      />
+                    </Col>
+                    <Col md={2}>
+                      <Button variant="danger" onClick={() => removePickupPoint(index)} >
+                        Remove
+                      </Button>
+                    </Col>
+                  </Row>
+                ))}
+                <Button onClick={addPickupPoint}>Add Pickup Point</Button>
+                <Button onClick={handleAdd} className="mt-3">Save Route</Button>
+              </Form>
+            </div>
+          )}
+          <Row>
+            <Col>
+              <div className="tableSheet">
+                <h2>Existing Route Records</h2>
+                {loading ? (
+                  <p>Loading...</p>
+                ) : error ? (
+                  <p style={{ color: "red" }}>{error}</p>
+                ) : data.length > 0 ? (
+                  <Table columns={columns} data={data} />
+                ) : (
+                  <p>No data available.</p>
+                )}
 
-      <Button onClick={() => setShowAddForm(true)} className="btn btn-primary mb-4">
-        <CgAddR />  Add Route
-      </Button>
-      {showAddForm && (
-        <div className="cover-sheet">
-          <div className="studentHeading"><h2>Existing Route Records</h2>
-            <button className="closeForm" onClick={() => setShowAddForm(false)}>X</button>
-          </div>
-          <Form className="formSheet">
-            <Row className="mb-3">
-              <Col md={6}>
-                <FormLabel className="labelForm">Vehicle No</FormLabel>
-                <FormControl
-                  type="text"
-                  placeholder="Enter Vehicle No"
-                  value={route.vehicleNo}
-                  onChange={(e) => setRoute({ ...route, vehicleNo: e.target.value })}
-                />
-              </Col>
-              <Col md={6}>
-                <FormLabel>Route Name</FormLabel>
-                <FormControl
-                  type="text"
-                  placeholder="Enter Route Name"
-                  value={route.routeName}
-                  onChange={(e) => setRoute({ ...route, routeName: e.target.value })}
-                />
-              </Col>
-            </Row>
-            <FormLabel>Pickup Points</FormLabel>
-            {route.pickupPoints.map((pickup, index) => (
-              <Row key={index} className="mb-3">
-                <Col md={6}>
-                  <FormControl
-                    type="text"
-                    placeholder="Pickup Point"
-                    value={pickup.point}
-                    onChange={(e) => handlePickupChange(index, "point", e.target.value)}
-                  />
-                </Col>
-                <Col md={4}>
-                  <FormControl
-                    type="text"
-                    placeholder="Amount"
-                    value={pickup.amount}
-                    onChange={(e) => handlePickupChange(index, "amount", e.target.value)}
-                  />
-                </Col>
-                <Col md={2}>
-                  <Button variant="danger" onClick={() => removePickupPoint(index)} >
-                    Remove
-                  </Button>
-                </Col>
-              </Row>
-            ))}
-            <Button onClick={addPickupPoint}>Add Pickup Point</Button>
-            <Button onClick={handleAdd} className="mt-3">Save Route</Button>
-          </Form>
-        </div>
-      )}
-      <Row>
-        <Col>
-          <div className="tableSheet">
-            <h2>Existing Route Records</h2>
-            {loading ? (
-              <p>Loading...</p>
-            ) : error ? (
-              <p style={{ color: "red" }}>{error}</p>
-            ) : data.length > 0 ? (
-              <Table columns={columns} data={data} />
-            ) : (
-              <p>No data available.</p>
-            )}
-
-          </div>
-        </Col>
-      </Row>
-    </Container>
+              </div>
+            </Col>
+          </Row>
+        </Container>
+      </section>
+    </>
   );
 };
 

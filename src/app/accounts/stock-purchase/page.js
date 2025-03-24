@@ -116,29 +116,29 @@ const StockPurchase = () => {
   const breadcrumbItems = [{ label: "Accounts", link: "/accounts/all-module" }, { label: "Stock Purchase", link: "null" }]
 
   return (
-<>
-    <div className="breadcrumbSheet position-relative">
+    <>
+      <div className="breadcrumbSheet position-relative">
         <Container>
           <Row>
             <Col>
-            <BreadcrumbComp items={breadcrumbItems} />
+              <BreadcrumbComp items={breadcrumbItems} />
             </Col>
           </Row>
         </Container>
       </div>
-    <Container>
-      
-      <section>
-        <Row>
-          <Col>
-            <div className="tableSheet">
-              <h2>Stock Purchase Records</h2>
-              <Table columns={columns} data={data} />
-            </div>
-          </Col>
-        </Row>
-      </section>
-    </Container>
+      <Container>
+
+        <section>
+          <Row>
+            <Col>
+              <div className="tableSheet">
+                <h2>Stock Purchase Records</h2>
+                <Table columns={columns} data={data} />
+              </div>
+            </Col>
+          </Row>
+        </section>
+      </Container>
     </>
   );
 };

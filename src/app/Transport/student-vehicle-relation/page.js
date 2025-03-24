@@ -6,6 +6,7 @@ import styles from "@/app/students/add-new-student/page.module.css"
 import { Container, Row, Col, Breadcrumb, Form, FormLabel, FormGroup, FormControl, FormSelect, Button } from 'react-bootstrap';
 import dynamic from 'next/dynamic';
 import { CgAddR } from 'react-icons/cg';
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const StudentVehicle = () => {
 
@@ -55,7 +56,7 @@ const StudentVehicle = () => {
         }}>
           <button className='editButton'
             onClick={() => handleEdit(row.id)}>
-             <FaEdit />
+            <FaEdit />
           </button>
           <button className="editButton btn-danger"
             onClick={() => handleDelete(row.id)} >
@@ -147,81 +148,85 @@ const StudentVehicle = () => {
     console.log("Form Data Submitted:", formData);
   };
 
-  return (
-    <Container>
-      <Row>
-        <Col>
-          <Breadcrumb>
-            <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-            <Breadcrumb.Item href="/transport/all-module">
-              Transport
-            </Breadcrumb.Item>
-            <Breadcrumb.Item active>Student Vehicle Relation</Breadcrumb.Item>
-          </Breadcrumb>
-        </Col>
-      </Row>
-      <Row>
-        <Col>
-        <Button onClick={onOpen} className="btn btn-primary">
-            <CgAddR /> New Transport</Button>
-          {isPopoverOpen && (
+  const breadcrumbItems = [{ label: "Transport", link: "/Transport/all-module" }, { label: "Student Vehicle Relation", link: "null" }]
 
-            <div className="cover-sheet">
-              <div className="studentHeading"><h2>Add Expenses</h2>
-              <button className='closeForm' onClick={onClose}> X </button>
+  return (
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
+      </div>
+      <section>
+        <Container>
+          <Row>
+            <Col>
+              <Button onClick={onOpen} className="btn-add">
+                <CgAddR /> New Transport</Button>
+              {isPopoverOpen && (
+
+                <div className="cover-sheet">
+                  <div className="studentHeading"><h2>Add Expenses</h2>
+                    <button className='closeForm' onClick={onClose}> X </button>
+                  </div>
+                  <Form onSubmit={handleSubmit} className='formSheet'>
+                    <Row className="mb-3">
+                      <FormGroup as={Col} lg="4" controlId="validationCustom01">
+                        <FormLabel className="labelForm">Student Name</FormLabel>
+                        <FormSelect value={formData.studentName} onChange={handleChange} required>
+                          <option>Nothing selected</option>
+                          <option value="1">ADITYA PAL</option>
+                          <option value="2">ANISHA CHAUBEY</option>
+                          <option value="3">ALISHA KHAN</option>
+                          <option value="4">DIVYANSH BIND</option>
+                          <option value="5">MANVI SRIVASTAVA</option>
+                          <option value="6">NAMAN SINGH</option>
+                        </FormSelect>
+                      </FormGroup>
+                      <FormGroup as={Col} lg="4" controlId="validationCustom02">
+                        <FormLabel className="labelForm">Pickup-Point</FormLabel>
+                        <FormControl
+                          required
+                          type="text"
+                          value={formData.pickupPoint}
+                          onChange={handleChange}
+                        />
+                      </FormGroup>
+                      <FormGroup as={Col} lg="4">
+                        <FormLabel className="labelForm">Vehicle Route(No/Seats)</FormLabel>
+                        <FormSelect value={formData.studentName} onChange={handleChange} required>
+                          <option>Select</option>
+                          <option value="1">24</option>
+                          <option value="2">34</option>
+                          <option value="3">52</option>
+                        </FormSelect>
+                      </FormGroup>
+                    </Row>
+                    <Button type="submit" id="submit" className='btn btn-primary mt-4' onSubmit={handleSubmit}>Submit</Button>
+                  </Form>
+                </div>
+              )}
+            </Col>
+          </Row>
+          <Row>
+            <Col>
+              <div className="tableSheet">
+                <h2>Existing Transport Records</h2>
+                <Table columns={columns} data={data} />
+                <div className={styles.buttons} style={{ float: 'right', marginRight: '10px' }}>
+                  <button type="button" className="editButton">Previous</button>
+                  <button type="button" className="editButton">Next</button>
+                </div>
               </div>
-              <Form onSubmit={handleSubmit} className='formSheet'>
-                <Row className="mb-3">
-                  <FormGroup as={Col} lg="4" controlId="validationCustom01">
-                    <FormLabel className="labelForm">Student Name</FormLabel>
-                    <FormSelect value={formData.studentName} onChange={handleChange} required>
-                      <option>Nothing selected</option>
-                      <option value="1">ADITYA PAL</option>
-                      <option value="2">ANISHA CHAUBEY</option>
-                      <option value="3">ALISHA KHAN</option>
-                      <option value="4">DIVYANSH BIND</option>
-                      <option value="5">MANVI SRIVASTAVA</option>
-                      <option value="6">NAMAN SINGH</option>
-                    </FormSelect>
-                  </FormGroup>
-                  <FormGroup as={Col} lg="4" controlId="validationCustom02">
-                    <FormLabel className="labelForm">Pickup-Point</FormLabel>
-                    <FormControl
-                      required
-                      type="text"
-                      value={formData.pickupPoint}
-                      onChange={handleChange}
-                    />
-                  </FormGroup>
-                  <FormGroup as={Col} lg="4">
-                    <FormLabel className="labelForm">Vehicle Route(No/Seats)</FormLabel>
-                    <FormSelect value={formData.studentName} onChange={handleChange} required>
-                      <option>Select</option>
-                      <option value="1">24</option>
-                      <option value="2">34</option>
-                      <option value="3">52</option>
-                    </FormSelect>
-                  </FormGroup>
-                </Row>
-                <Button type="submit" id="submit" className='btn btn-primary mt-4' onSubmit={handleSubmit}>Submit</Button>
-              </Form>
-            </div>
-          )}
-        </Col>
-      </Row>
-      <Row>
-        <Col>
-        <div className="tableSheet">
-          <h2>Existing Transport Records</h2>
-          <Table columns={columns} data={data} />
-          <div className={styles.buttons} style={{ float: 'right', marginRight: '10px' }}>
-            <button type="button" className="editButton">Previous</button>
-            <button type="button" className="editButton">Next</button>
-          </div>
-          </div>
-        </Col>
-      </Row>
-    </Container>
+            </Col>
+          </Row>
+        </Container>
+      </section>
+    </>
   );
 };
 

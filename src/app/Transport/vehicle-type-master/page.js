@@ -7,6 +7,7 @@ import { Form, Row, Col, Container, FormLabel, FormControl, Button, Breadcrumb, 
 import axios from "axios";
 import { CgAddR } from "react-icons/cg";
 import { copyContent, printContent } from "@/app/utils";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const VehicleRecords = () => {
   const [data, setData] = useState([]);
@@ -144,66 +145,75 @@ const VehicleRecords = () => {
     fetchData();
   }, []);
 
+  const breadcrumbItems = [{ label: "Transport", link: "/Transport/all-module" }, { label: "Vehicle Type Master", link: "null" }]
+
   return (
-    <Container>
-      <Breadcrumb>
-        <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-        <Breadcrumb.Item href="/Transport/all-module">Transport</Breadcrumb.Item>
-        <Breadcrumb.Item active>Vehicle Master</Breadcrumb.Item>
-      </Breadcrumb>
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
+      </div>
+      <section>
+        <Container>
+          <Button onClick={() => setShowAddForm(true)} className="btn-add">
+            <CgAddR /> Add Vehicle
+          </Button>
+          {showAddForm && (
+            <div className="cover-sheet">
+              <div className="studentHeading">
+                <h2>Add Vehicle Type</h2>
+                <button className="closeForm" onClick={() => setShowAddForm(false)}>X</button>
+              </div>
+              <Form className="formSheet">
+                <Row className="mb-3">
+                  <Col>
+                    <FormLabel className="labelForm">Vehicle Type</FormLabel>
+                    <FormControl
+                      type="text"
+                      placeholder="Enter Vehicle Type"
+                      value={newVehicle.type_name}
+                      onChange={(e) => setNewVehicle({ type_name: e.target.value })}
+                    />
+                  </Col>
+                </Row>
+                <Row>
+                  <Col>
+                    <Button onClick={handleAdd} className="btn btn-primary mt-4">Add Vehicle</Button>
+                  </Col>
+                </Row>
+              </Form>
+            </div>
+          )}
 
-      <Button onClick={() => setShowAddForm(true)} className="btn btn-primary mb-4">
-        <CgAddR /> Add Vehicle
-      </Button>
-      {showAddForm && (
-        <div className="cover-sheet">
-          <div className="studentHeading">
-            <h2>Add Vehicle Type</h2>
-            <button className="closeForm" onClick={() => setShowAddForm(false)}>X</button>
-          </div>
-          <Form className="formSheet">
-            <Row className="mb-3">
-              <Col>
-                <FormLabel className="labelForm">Vehicle Type</FormLabel>
-                <FormControl
-                  type="text"
-                  placeholder="Enter Vehicle Type"
-                  value={newVehicle.type_name}
-                  onChange={(e) => setNewVehicle({ type_name: e.target.value })}
-                />
-              </Col>
-            </Row>
-            <Row>
-              <Col>
-                <Button onClick={handleAdd} className="btn btn-primary mt-4">Add Vehicle</Button>
-              </Col>
-            </Row>
-          </Form>
-        </div>
-      )}
+          <Row>
+            <Col>
+              <div className="tableSheet">
+                <h2>Vehicle Records</h2>
+                {loading ? <p>Loading...</p> : error ? <p style={{ color: "red" }}>{error}</p> : data.length > 0 ? <Table columns={columns} data={data} handleCopy={handleCopy} handlePrint={handlePrint} /> : <p>No data available.</p>}
+              </div>
+            </Col>
+          </Row>
 
-      <Row>
-        <Col>
-          <div className="tableSheet">
-            <h2>Vehicle Records</h2>
-            {loading ? <p>Loading...</p> : error ? <p style={{ color: "red" }}>{error}</p> : data.length > 0 ? <Table columns={columns} data={data} handleCopy={handleCopy} handlePrint={handlePrint} /> : <p>No data available.</p>}
-          </div>
-        </Col>
-      </Row>
-
-      {/* Error Modal */}
-      <Modal show={showErrorModal} onHide={() => setShowErrorModal(false)} centered>
-        <Modal.Header closeButton>
-          <Modal.Title>Error</Modal.Title>
-        </Modal.Header>
-        <Modal.Body>
-          <p style={{ color: "red" }}>{errorMessage}</p>
-        </Modal.Body>
-        <Modal.Footer>
-          <Button variant="secondary" onClick={() => setShowErrorModal(false)}>Close</Button>
-        </Modal.Footer>
-      </Modal>
-    </Container>
+          {/* Error Modal */}
+          <Modal show={showErrorModal} onHide={() => setShowErrorModal(false)} centered>
+            <Modal.Header closeButton>
+              <Modal.Title>Error</Modal.Title>
+            </Modal.Header>
+            <Modal.Body>
+              <p style={{ color: "red" }}>{errorMessage}</p>
+            </Modal.Body>
+            <Modal.Footer>
+              <Button variant="secondary" onClick={() => setShowErrorModal(false)}>Close</Button>
+            </Modal.Footer>
+          </Modal>
+        </Container>
+      </section>
+    </>
   );
 };
 

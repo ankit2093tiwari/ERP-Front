@@ -94,17 +94,6 @@ const SchoolInfo = () => {
       </div>
       <section>
         <Container>
-          {/* <Row className="mt-1 mb-1">
-            <Col>
-              <Breadcrumb>
-                <Breadcrumb.Item href="/">Home</Breadcrumb.Item>
-                <Breadcrumb.Item href="/master-entry/school-info">
-                  Master Entry
-                </Breadcrumb.Item>
-                <Breadcrumb.Item active>School Information</Breadcrumb.Item>
-              </Breadcrumb>
-            </Col>
-          </Row> */}
           <Row>
             <Col>
               <div className="cover-sheet">

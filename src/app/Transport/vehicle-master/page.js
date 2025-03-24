@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import Table from "@/app/component/DataTable"; // Ensure this path is correct
-import { FaEdit, FaTrashAlt, FaSave} from "react-icons/fa";
+import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
 import {
   Form,
   Row,
@@ -15,6 +15,7 @@ import {
 } from "react-bootstrap";
 import axios from "axios";
 import { CgAddR } from "react-icons/cg";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const VehicleRecords = () => {
   const [data, setData] = useState([]); // Table data
@@ -46,11 +47,11 @@ const VehicleRecords = () => {
         <div className="d-flex gap-2">
           {editRowId === row._id ? (
             <button className="editButton btn-success" onClick={() => handleUpdate(row._id)}>
-              <FaSave /> 
+              <FaSave />
             </button>
           ) : (
             <button className="editButton" onClick={() => handleEditClick(row._id, row)}>
-              <FaEdit /> 
+              <FaEdit />
             </button>
           )}
           <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
@@ -145,101 +146,108 @@ const VehicleRecords = () => {
     fetchData();
   }, []);
 
+  const breadcrumbItems = [{ label: "Transport", link: "/Transport/all-module" }, { label: "Vehicle Master", link: "null" }]
+
   return (
-    <Container>
-      
-        <Breadcrumb>
-            <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-            <Breadcrumb.Item href="/Transport/all-module">
-              Transport
-            </Breadcrumb.Item>
-            <Breadcrumb.Item active>Vehicle Master</Breadcrumb.Item>
-        </Breadcrumb>
-      {/* Add Vehicle Form */}
-           <Button onClick={() => setShowAddForm(true)} className="btn btn-primary mb-4">
-             <CgAddR /> Add Vehicle
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
+      </div>
+      <section>
+        <Container>
+          {/* Add Vehicle Form */}
+          <Button onClick={() => setShowAddForm(true)} className="btn-add">
+            <CgAddR /> Add Vehicle
           </Button>
           {showAddForm && (
             <div className="cover-sheet">
-                <div className="studentHeading"><h2>Add Vehicle Type</h2>
-                  <button className="closeForm" onClick={() => setShowAddForm(false)}>X</button>
-                </div>
-                  <Form className="formSheet">
-                    <Row className="mb-3">
-                        <Col lg={4}>
-                              <FormLabel className="labelForm">Vehicle Type</FormLabel>
-                              <FormControl
-                                type="text"
-                                placeholder="Enter Vehicle Type"
-                                value={newVehicle.vehicle_type}
-                                onChange={(e) =>
-                                  setNewVehicle({
-                                    ...newVehicle,
-                                    vehicle_type: e.target.value,
-                                  })
-                                }
-                              />
-                        </Col>
-                        <Col lg={4}>
-                              <FormLabel className="labelForm">Vehicle No</FormLabel>
-                              <FormControl
-                                type="text"
-                                placeholder="Enter Vehicle No"
-                                value={newVehicle.vehicle_no}
-                                onChange={(e) =>
-                                  setNewVehicle({
-                                    ...newVehicle,
-                                    vehicle_no: e.target.value,
-                                  })
-                                }
-                              />
-                        </Col>
-                        <Col lg={4}>
-                              <FormLabel className="labelForm">Driver Name</FormLabel>
-                              <FormControl
-                                type="text"
-                                placeholder="Enter Driver Name"
-                                value={newVehicle.driver.driver_name}
-                                onChange={(e) =>
-                                  setNewVehicle({
-                                    ...newVehicle,
-                                    driver: {
-                                      ...newVehicle.driver,
-                                      driver_name: e.target.value,
-                                    },
-                                  })
-                                }
-                              />
-                        </Col>
-                    </Row>
-                    <Row>
-                      <Col>
-                        <Button onClick={handleAdd} className="btn btn-primary mt-4">Add Vehicle</Button>
-                      </Col>
-                    </Row>
-                  </Form>
+              <div className="studentHeading"><h2>Add Vehicle Type</h2>
+                <button className="closeForm" onClick={() => setShowAddForm(false)}>X</button>
               </div>
+              <Form className="formSheet">
+                <Row className="mb-3">
+                  <Col lg={4}>
+                    <FormLabel className="labelForm">Vehicle Type</FormLabel>
+                    <FormControl
+                      type="text"
+                      placeholder="Enter Vehicle Type"
+                      value={newVehicle.vehicle_type}
+                      onChange={(e) =>
+                        setNewVehicle({
+                          ...newVehicle,
+                          vehicle_type: e.target.value,
+                        })
+                      }
+                    />
+                  </Col>
+                  <Col lg={4}>
+                    <FormLabel className="labelForm">Vehicle No</FormLabel>
+                    <FormControl
+                      type="text"
+                      placeholder="Enter Vehicle No"
+                      value={newVehicle.vehicle_no}
+                      onChange={(e) =>
+                        setNewVehicle({
+                          ...newVehicle,
+                          vehicle_no: e.target.value,
+                        })
+                      }
+                    />
+                  </Col>
+                  <Col lg={4}>
+                    <FormLabel className="labelForm">Driver Name</FormLabel>
+                    <FormControl
+                      type="text"
+                      placeholder="Enter Driver Name"
+                      value={newVehicle.driver.driver_name}
+                      onChange={(e) =>
+                        setNewVehicle({
+                          ...newVehicle,
+                          driver: {
+                            ...newVehicle.driver,
+                            driver_name: e.target.value,
+                          },
+                        })
+                      }
+                    />
+                  </Col>
+                </Row>
+                <Row>
+                  <Col>
+                    <Button onClick={handleAdd} className="btn btn-primary mt-4">Add Vehicle</Button>
+                  </Col>
+                </Row>
+              </Form>
+            </div>
           )}
-      
 
-      {/* Table Section */ }
-  <Row>
-    <Col>
-    <div className="tableSheet">
-      <h2>Vehicle Records</h2>
-      {loading ? (
-        <p>Loading...</p>
-      ) : error ? (
-        <p style={{ color: "red" }}>{error}</p>
-      ) : data.length > 0 ? (
-        <Table columns={columns} data={data} />
-      ) : (
-        <p>No data available.</p>
-      )}
-      </div>
-    </Col>
-  </Row>
-    </Container >
+
+          {/* Table Section */}
+          <Row>
+            <Col>
+              <div className="tableSheet">
+                <h2>Vehicle Records</h2>
+                {loading ? (
+                  <p>Loading...</p>
+                ) : error ? (
+                  <p style={{ color: "red" }}>{error}</p>
+                ) : data.length > 0 ? (
+                  <Table columns={columns} data={data} />
+                ) : (
+                  <p>No data available.</p>
+                )}
+              </div>
+            </Col>
+          </Row>
+        </Container >
+      </section>
+    </>
   );
 };
 

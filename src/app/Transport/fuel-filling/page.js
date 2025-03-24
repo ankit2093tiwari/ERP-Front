@@ -6,8 +6,9 @@ import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import { Container, Row, Col, Breadcrumb, Form, FormLabel, FormGroup, FormControl, FormSelect, Button } from 'react-bootstrap';
 import dynamic from 'next/dynamic';
 import { CgAddR } from 'react-icons/cg';
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
-const FuelFilling = () => {    
+const FuelFilling = () => {
   const columns = [
     {
       name: '#',
@@ -65,7 +66,7 @@ const FuelFilling = () => {
           <button className="editButton btn-danger"
             onClick={() => handleDelete(row.id)}
           >
-           <FaTrashAlt />
+            <FaTrashAlt />
           </button>
         </div>
       ),
@@ -161,129 +162,133 @@ const FuelFilling = () => {
     console.log("Form Data Submitted:", formData);
   };
 
+  const breadcrumbItems = [{ label: "Transport", link: "/Transport/all-module" }, { label: "Fuel Filling", link: "null" }]
+
   return (
-    <Container className={styles.vehicle}>
-      <Row className='mt-1 mb-1'>
-        <Col>
-          <Breadcrumb>
-            <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-            <Breadcrumb.Item href="/transport/all-module">
-              Transport
-            </Breadcrumb.Item>
-            <Breadcrumb.Item active>Fuel Filling</Breadcrumb.Item>
-          </Breadcrumb>
-        </Col>
-      </Row>
-      <Row>
-        <Col>
-        <Button onClick={onOpen} className="btn btn-primary">
-            <CgAddR/> New Expenses 
-          </Button>
-          {isPopoverOpen && (
-            <div className="cover-sheet">
-              <div className="studentHeading"><h2>Add Expenses</h2>
-              <button className='closeForm' onClick={onClose}> X </button>
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
+      </div>
+      <section>
+        <Container className={styles.vehicle}>
+          <Row>
+            <Col>
+              <Button onClick={onOpen} className="btn-add">
+                <CgAddR /> New Expenses
+              </Button>
+              {isPopoverOpen && (
+                <div className="cover-sheet">
+                  <div className="studentHeading"><h2>Add Expenses</h2>
+                    <button className='closeForm' onClick={onClose}> X </button>
+                  </div>
+                  <Form onSubmit={handleSubmit} className='formSheet'>
+                    <Row className="mb-3">
+                      <FormGroup as={Col} lg="4" controlId="validationCustom01">
+                        <FormLabel className="labelForm">Vehicle No</FormLabel>
+                        <FormSelect value={formData.vehicleNo} onChange={handleChange} required>
+                          <option>Select Type</option>
+                          <option value="1">VAN</option>
+                          <option value="2">AUTO RICKSHAW</option>
+                          <option value="3">RICKSHAW</option>
+                          <option value="4">BUS</option>
+                        </FormSelect>
+                      </FormGroup>
+                      <FormGroup as={Col} lg="4" controlId="validationCustom02">
+                        <FormLabel className="labelForm">Filled Station</FormLabel>
+                        <FormControl
+                          required
+                          type="text"
+                          value={formData.filledStation}
+                          onChange={handleChange}
+                        />
+                      </FormGroup>
+                      <FormGroup as={Col} lg="4" controlId="validationCustom03">
+                        <FormLabel className="labelForm">Quantity Of Diesel/Petrol/CNG</FormLabel>
+                        <FormControl
+                          required
+                          type="text"
+                          value={formData.quantity}
+                          onChange={handleChange}
+                        />
+                      </FormGroup>
+                    </Row>
+                    <Row className='mb-3'>
+                      <FormGroup as={Col} lg="4" controlId="validationCustom04">
+                        <FormLabel className="labelForm">Previous Reading</FormLabel>
+                        <FormControl
+                          required
+                          type="text"
+                          value={formData.previousReading}
+                          onChange={handleChange}
+                        />
+                      </FormGroup>
+
+                      <FormGroup as={Col} lg="4" controlId="validationCustom05">
+                        <FormLabel className="labelForm">Amount Per Litre</FormLabel>
+                        <FormControl
+                          required
+                          type="text"
+                          value={formData.amountPerLitre}
+                          onChange={handleChange}
+                        />
+                      </FormGroup>
+                      <FormGroup as={Col} lg="4" controlId="validationCustom06">
+                        <FormLabel className="labelForm">New Reading</FormLabel>
+                        <FormControl
+                          required
+                          type="text"
+                          value={formData.newReading}
+                          onChange={handleChange}
+                        />
+                      </FormGroup>
+                    </Row>
+                    <Row className='mb-3'>
+                      <FormGroup as={Col} lg="4" controlId="validationCustom07">
+                        <FormLabel className="labelForm">Total Amount</FormLabel>
+                        <FormControl
+                          required
+                          type="text"
+                          value={formData.totalAmount}
+                          onChange={handleChange}
+                        />
+                      </FormGroup>
+                      <FormGroup as={Col} lg="4" controlId="validationCustom08">
+                        <FormLabel className="labelForm">Date</FormLabel><br />
+                        <FormControl
+                          required
+                          type="date"
+                          value={formData.date}
+                          onChange={handleChange}
+                        />
+                      </FormGroup>
+                    </Row>
+                    <Button type="submit" id="submit" className='btn btn-primary mt-4' onSubmit={handleSubmit}>Add Expenses</Button>
+                  </Form>
+                </div>
+              )}
+            </Col>
+          </Row>
+          <Row>
+            <Col>
+              <div className="tableSheet">
+                <h2>Vehicle Expenses Records</h2>
+                <Table columns={columns} data={data} />
+                <div className={styles.buttons} style={{ float: 'right', marginRight: '10px' }}>
+                  <button type="button" className="editButton">Previous</button>
+                  <button type="button" className="editButton">Next</button>
+                </div>
               </div>
-              <Form onSubmit={handleSubmit} className='formSheet'>
-                <Row className="mb-3">
-                  <FormGroup as={Col} lg="4" controlId="validationCustom01">
-                    <FormLabel className="labelForm">Vehicle No</FormLabel>
-                    <FormSelect value={formData.vehicleNo} onChange={handleChange} required>
-                      <option>Select Type</option>
-                      <option value="1">VAN</option>
-                      <option value="2">AUTO RICKSHAW</option>
-                      <option value="3">RICKSHAW</option>
-                      <option value="4">BUS</option>
-                    </FormSelect>
-                  </FormGroup>
-                  <FormGroup as={Col} lg="4" controlId="validationCustom02">
-                    <FormLabel className="labelForm">Filled Station</FormLabel>
-                    <FormControl
-                      required
-                      type="text"
-                      value={formData.filledStation}
-                      onChange={handleChange}
-                    />
-                  </FormGroup>
-                  <FormGroup as={Col} lg="4" controlId="validationCustom03">
-                    <FormLabel className="labelForm">Quantity Of Diesel/Petrol/CNG</FormLabel>
-                    <FormControl
-                      required
-                      type="text"
-                      value={formData.quantity}
-                      onChange={handleChange}
-                    />
-                  </FormGroup>
-                </Row>
-                <Row className='mb-3'>
-                  <FormGroup as={Col} lg="4" controlId="validationCustom04">
-                    <FormLabel className="labelForm">Previous Reading</FormLabel>
-                    <FormControl
-                      required
-                      type="text"
-                      value={formData.previousReading}
-                      onChange={handleChange}
-                    />
-                </FormGroup>
-               
-                  <FormGroup as={Col} lg="4" controlId="validationCustom05">
-                    <FormLabel className="labelForm">Amount Per Litre</FormLabel>
-                    <FormControl
-                      required
-                      type="text"
-                      value={formData.amountPerLitre}
-                      onChange={handleChange}
-                    />
-                  </FormGroup>
-                  <FormGroup as={Col} lg="4" controlId="validationCustom06">
-                    <FormLabel className="labelForm">New Reading</FormLabel>
-                    <FormControl
-                      required
-                      type="text"
-                      value={formData.newReading}
-                      onChange={handleChange}
-                    />
-                  </FormGroup>
-                </Row>
-                <Row className='mb-3'>
-                  <FormGroup as={Col} lg="4" controlId="validationCustom07">
-                    <FormLabel className="labelForm">Total Amount</FormLabel>
-                    <FormControl
-                      required
-                      type="text"
-                      value={formData.totalAmount}
-                      onChange={handleChange}
-                    />
-                  </FormGroup>
-                  <FormGroup as={Col} lg="4" controlId="validationCustom08">
-                    <FormLabel className="labelForm">Date</FormLabel><br />
-                    <FormControl
-                      required
-                      type="date"
-                      value={formData.date}
-                      onChange={handleChange}
-                    />
-                  </FormGroup>
-                </Row>
-                <Button type="submit" id="submit" className='btn btn-primary mt-4' onSubmit={handleSubmit}>Add Expenses</Button>
-              </Form>
-            </div>
-          )}
-        </Col>
-      </Row>
-      <Row>
-        <Col>
-          <div className="tableSheet">
-          <h2>Vehicle Expenses Records</h2>
-          <Table columns={columns} data={data} />
-          <div className={styles.buttons} style={{ float: 'right', marginRight: '10px' }}>
-            <button type="button" className="editButton">Previous</button>
-            <button type="button" className="editButton">Next</button>
-          </div>
-        </div>
-      </Col>
-    </Row>
-     </Container >
+            </Col>
+          </Row>
+        </Container >
+      </section>
+    </>
   );
 };
 

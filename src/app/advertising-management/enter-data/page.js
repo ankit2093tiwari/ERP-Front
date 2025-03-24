@@ -17,6 +17,7 @@ import {
 } from "react-bootstrap";
 import axios from "axios";
 import { CgAddR } from "react-icons/cg";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const AdvertisementPage = () => {
   const [data, setData] = useState([]); // Table data
@@ -126,7 +127,7 @@ const AdvertisementPage = () => {
     try {
       const form = new FormData();
       Object.entries(formData).forEach(([key, value]) => form.append(key, value));
-  
+
       const response = await axios.post(
         "https://erp-backend-fy3n.onrender.com/api/advertisements",
         form,
@@ -134,7 +135,7 @@ const AdvertisementPage = () => {
           headers: { "Content-Type": "multipart/form-data" }, // Set headers explicitly
         }
       );
-  
+
       setData((prevData) => [...prevData, response.data]); // Update table data
       setFormData({
         advertisement_type: "",
@@ -154,7 +155,7 @@ const AdvertisementPage = () => {
       );
     }
   };
-  
+
 
   // Edit an advertisement
   const handleEdit = async (id) => {
@@ -209,81 +210,96 @@ const AdvertisementPage = () => {
     fetchAdvertisementTypes();
   }, []);
 
-  return (
-    <Container className={styles.formContainer}>
-      <Form action="/upload" encType="multipart/form-data" method="POST" className={styles.form}>
-        <Button onClick={() => setShowAddForm(!showAddForm)} className={`mb-4 ${styles.search}`}>
-          <CgAddR /> Add New Advertisement
-        </Button>
+  const breadcrumbItems = [{ label: "Advertising Management", link: "/advertising-management/all-module" }, { label: "Enter Data", link: "null" }]
 
-        {showAddForm && (
-          <div className="mb-4">
-            <Row className="mb-3">
-              <Col lg={6}>
-                <FormLabel>Advertisement Type</FormLabel>
-                <FormSelect
-                  name="advertisement_type"
-                  value={formData.advertisement_type}
-                  onChange={handleChange}
-                >
-                  <option value="">Select Advertisement Type</option>
-                  {advertisementTypes.map((type) => (
-                    <option key={type._id} value={type._id}>
-                      {type.type_name}
-                    </option>
-                  ))}
-                </FormSelect>
-              </Col>
-              <Col lg={6}>
-                <FormLabel>Publish Date</FormLabel>
-                <FormControl type="date" name="publish_date" value={formData.publish_date} onChange={handleChange} />
-              </Col>
-              <Col lg={6}>
-                <FormLabel>Advertisement Name</FormLabel>
-                <FormControl
-                  type="text"
-                  name="advertisement_name"
-                  value={formData.advertisement_name}
-                  onChange={handleChange}
-                />
-              </Col>
-              <Col lg={6}>
-                <FormLabel>Size</FormLabel>
-                <FormControl type="text" name="size" value={formData.size} onChange={handleChange} />
-              </Col>
-              <Col lg={6}>
-                <FormLabel>Page No</FormLabel>
-                <FormControl type="text" name="page_no" value={formData.page_no} onChange={handleChange} />
-              </Col>
-              <Col lg={6}>
-                <FormLabel>File</FormLabel>
-                <FormControl type="file" name="file" onChange={handleChange} />
-              </Col>
-              <Col lg={6}>
-                <FormLabel>Amount</FormLabel>
-                <FormControl type="text" name="amount" value={formData.amount} onChange={handleChange} />
-              </Col>
-              <Col lg={6}>
-                <FormLabel>Remark</FormLabel>
-                <FormControl as="textarea" rows={1} name="remark" value={formData.remark} onChange={handleChange} />
+  return (
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row>
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
+      </div>
+      <section>
+        <Container className={styles.formContainer}>
+          <Form action="/upload" encType="multipart/form-data" method="POST" className={styles.form}>
+            <Button onClick={() => setShowAddForm(!showAddForm)} className={`mb-4 ${styles.search}`}>
+              <CgAddR /> Add New Advertisement
+            </Button>
+
+            {showAddForm && (
+              <div className="mb-4">
+                <Row className="mb-3">
+                  <Col lg={6}>
+                    <FormLabel>Advertisement Type</FormLabel>
+                    <FormSelect
+                      name="advertisement_type"
+                      value={formData.advertisement_type}
+                      onChange={handleChange}
+                    >
+                      <option value="">Select Advertisement Type</option>
+                      {advertisementTypes.map((type) => (
+                        <option key={type._id} value={type._id}>
+                          {type.type_name}
+                        </option>
+                      ))}
+                    </FormSelect>
+                  </Col>
+                  <Col lg={6}>
+                    <FormLabel>Publish Date</FormLabel>
+                    <FormControl type="date" name="publish_date" value={formData.publish_date} onChange={handleChange} />
+                  </Col>
+                  <Col lg={6}>
+                    <FormLabel>Advertisement Name</FormLabel>
+                    <FormControl
+                      type="text"
+                      name="advertisement_name"
+                      value={formData.advertisement_name}
+                      onChange={handleChange}
+                    />
+                  </Col>
+                  <Col lg={6}>
+                    <FormLabel>Size</FormLabel>
+                    <FormControl type="text" name="size" value={formData.size} onChange={handleChange} />
+                  </Col>
+                  <Col lg={6}>
+                    <FormLabel>Page No</FormLabel>
+                    <FormControl type="text" name="page_no" value={formData.page_no} onChange={handleChange} />
+                  </Col>
+                  <Col lg={6}>
+                    <FormLabel>File</FormLabel>
+                    <FormControl type="file" name="file" onChange={handleChange} />
+                  </Col>
+                  <Col lg={6}>
+                    <FormLabel>Amount</FormLabel>
+                    <FormControl type="text" name="amount" value={formData.amount} onChange={handleChange} />
+                  </Col>
+                  <Col lg={6}>
+                    <FormLabel>Remark</FormLabel>
+                    <FormControl as="textarea" rows={1} name="remark" value={formData.remark} onChange={handleChange} />
+                  </Col>
+                </Row>
+                <Button onClick={handleAdd} className={styles.search}>
+                  Add Advertisement
+                </Button>
+              </div>
+            )}
+
+            <Row>
+              <Col>
+                <h2 style={{ fontSize: "22px" }}>Advertisement Records</h2>
+                {loading && <p>Loading...</p>}
+                {error && <p style={{ color: "red" }}>{error}</p>}
+                {!loading && !error && <Table columns={columns} data={data} />}
               </Col>
             </Row>
-            <Button onClick={handleAdd} className={styles.search}>
-              Add Advertisement
-            </Button>
-          </div>
-        )}
-
-        <Row>
-          <Col>
-            <h2 style={{ fontSize: "22px" }}>Advertisement Records</h2>
-            {loading && <p>Loading...</p>}
-            {error && <p style={{ color: "red" }}>{error}</p>}
-            {!loading && !error && <Table columns={columns} data={data} />}
-          </Col>
-        </Row>
-      </Form>
-    </Container>
+          </Form>
+        </Container>
+      </section>
+    </>
   );
 };
 

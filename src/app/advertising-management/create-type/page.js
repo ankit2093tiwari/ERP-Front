@@ -16,6 +16,7 @@ import {
   Table,
 } from "react-bootstrap";
 import axios from "axios";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const CreateType = () => {
   const [data, setData] = useState([]); // Table data
@@ -119,86 +120,101 @@ const CreateType = () => {
     fetchData();
   }, []);
 
-  return (
-    <Container className={styles.formContainer}>
-      <Form className={styles.form}>
-        {/* Add New Type Button */}
-        <Button
-          onClick={() => setShowForm(!showForm)}
-          className={`mb-4 ${styles.search}`}
-        >
-          <CgAddR /> New Type
-        </Button>
+  const breadcrumbItems = [{ label: "Advertising Management", link: "/advertising-management/all-module" }, { label: "Create Type", link: "null" }]
 
-        {/* Add Type Form */}
-        {showForm && (
-          <div className="mb-4">
-            <Row className="mb-3">
-              <Col lg={6}>
-                <FormLabel>Type Name</FormLabel>
-                <FormControl
-                  type="text"
-                  placeholder="Enter Type Name"
-                  value={newTypeName}
-                  onChange={(e) => setNewTypeName(e.target.value)}
-                />
-              </Col>
-            </Row>
+  return (
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row>
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
+      </div>
+      <section>
+        <Container className={styles.formContainer}>
+          <Form className={styles.form}>
+            {/* Add New Type Button */}
+            <Button
+              onClick={() => setShowForm(!showForm)}
+              className={`mb-4 ${styles.search}`}
+            >
+              <CgAddR /> New Type
+            </Button>
+
+            {/* Add Type Form */}
+            {showForm && (
+              <div className="mb-4">
+                <Row className="mb-3">
+                  <Col lg={6}>
+                    <FormLabel>Type Name</FormLabel>
+                    <FormControl
+                      type="text"
+                      placeholder="Enter Type Name"
+                      value={newTypeName}
+                      onChange={(e) => setNewTypeName(e.target.value)}
+                    />
+                  </Col>
+                </Row>
+                <Row>
+                  <Col>
+                    <Button onClick={handleAdd} className={styles.search}>
+                      Add Type
+                    </Button>
+                  </Col>
+                </Row>
+              </div>
+            )}
+
+            {/* Table Section */}
             <Row>
               <Col>
-                <Button onClick={handleAdd} className={styles.search}>
-                  Add Type
-                </Button>
+                <h2 style={{ fontSize: "22px" }}>Advertising Type Records</h2>
+                {loading && <p>Loading...</p>}
+                {error && <p style={{ color: "red" }}>{error}</p>}
+                {!loading && !error && (
+                  <Table bordered>
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>Type Name</th>
+                        <th>Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {data.map((row, index) => (
+                        <tr key={row._id}>
+                          <td>{index + 1}</td>
+                          <td>{row.type_name || "N/A"}</td>
+                          <td>
+                            <div className="d-flex gap-2">
+                              <button
+                                className="editButton"
+                                onClick={() => handleEdit(row._id)}
+                              >
+                                <FaEdit />
+                              </button>
+                              <button
+                                className="editButton btn-danger"
+                                onClick={() => handleDelete(row._id)}
+                              >
+                                <FaTrashAlt />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </Table>
+                )}
               </Col>
             </Row>
-          </div>
-        )}
-
-        {/* Table Section */}
-        <Row>
-          <Col>
-            <h2 style={{ fontSize: "22px" }}>Advertising Type Records</h2>
-            {loading && <p>Loading...</p>}
-            {error && <p style={{ color: "red" }}>{error}</p>}
-            {!loading && !error && (
-              <Table bordered>
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Type Name</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.map((row, index) => (
-                    <tr key={row._id}>
-                      <td>{index + 1}</td>
-                      <td>{row.type_name || "N/A"}</td>
-                      <td>
-                        <div className="d-flex gap-2">
-                          <button
-                            className="editButton"
-                            onClick={() => handleEdit(row._id)}
-                          >
-                            <FaEdit />
-                          </button>
-                          <button
-                            className="editButton btn-danger"
-                            onClick={() => handleDelete(row._id)}
-                          >
-                            <FaTrashAlt />
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </Table>
-            )}
-          </Col>
-        </Row>
-      </Form>
-    </Container>
+          </Form>
+        </Container>
+      </section>
+    </>
   );
 };
 
