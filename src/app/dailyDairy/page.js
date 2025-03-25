@@ -16,6 +16,7 @@ import {
   Alert,
 } from "react-bootstrap";
 import axios from "axios";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const DailyDiary = () => {
   const [data, setData] = useState([]); // Table data
@@ -160,82 +161,97 @@ const DailyDiary = () => {
     fetchTeachers();
   }, []);
 
+  const breadcrumbItems = [{ label: "Daily Dairy", link: "/dailyDairy" }]
+
   return (
-    <Container className={styles.formContainer}>
-      <Form className={styles.form}>
-        <Button
-          onClick={() => setShowAddForm(!showAddForm)}
-          className={`mb-4 ${styles.search}`}
-        >
-          Add Entry
-        </Button>
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
+      </div>
+      <section>
+        <Container className={styles.formContainer}>
+          <Form className={styles.form}>
+            <Button
+              onClick={() => setShowAddForm(!showAddForm)}
+              className={`mb-4 ${styles.search}`}
+            >
+              Add Entry
+            </Button>
 
-        {success && <Alert variant="success">{success}</Alert>}
-        {error && <Alert variant="danger">{error}</Alert>}
+            {success && <Alert variant="success">{success}</Alert>}
+            {error && <Alert variant="danger">{error}</Alert>}
 
-        {/* Add Form */}
-        {showAddForm && (
-          <div className="mb-4">
-            <Row className="mb-3">
-              <Col lg={4}>
-                <FormLabel>Entry Date</FormLabel>
-                <FormControl
-                  type="date"
-                  value={newEntry.entryDate}
-                  onChange={(e) =>
-                    setNewEntry({ ...newEntry, entryDate: e.target.value })
-                  }
-                />
-              </Col>
-              <Col lg={4}>
-                <FormLabel>Teacher Name</FormLabel>
-                <FormControl
-                  as="select"
-                  value={newEntry.teacherName}
-                  onChange={(e) =>
-                    setNewEntry({ ...newEntry, teacherName: e.target.value })
-                  }
-                >
-                  <option value="">Select Teacher</option>
-                  {teachers.map((teacher) => (
-                    <option key={teacher._id} value={teacher._id}>
-                      {teacher.first_name} {teacher.last_name}
-                    </option>
-                  ))}
-                </FormControl>
-              </Col>
-              <Col lg={4}>
-                <FormLabel>Work Details</FormLabel>
-                <FormControl
-                  type="text"
-                  placeholder="Enter Work Details"
-                  value={newEntry.workDetails}
-                  onChange={(e) =>
-                    setNewEntry({ ...newEntry, workDetails: e.target.value })
-                  }
-                />
-              </Col>
-            </Row>
+            {/* Add Form */}
+            {showAddForm && (
+              <div className="mb-4">
+                <Row className="mb-3">
+                  <Col lg={4}>
+                    <FormLabel>Entry Date</FormLabel>
+                    <FormControl
+                      type="date"
+                      value={newEntry.entryDate}
+                      onChange={(e) =>
+                        setNewEntry({ ...newEntry, entryDate: e.target.value })
+                      }
+                    />
+                  </Col>
+                  <Col lg={4}>
+                    <FormLabel>Teacher Name</FormLabel>
+                    <FormControl
+                      as="select"
+                      value={newEntry.teacherName}
+                      onChange={(e) =>
+                        setNewEntry({ ...newEntry, teacherName: e.target.value })
+                      }
+                    >
+                      <option value="">Select Teacher</option>
+                      {teachers.map((teacher) => (
+                        <option key={teacher._id} value={teacher._id}>
+                          {teacher.first_name} {teacher.last_name}
+                        </option>
+                      ))}
+                    </FormControl>
+                  </Col>
+                  <Col lg={4}>
+                    <FormLabel>Work Details</FormLabel>
+                    <FormControl
+                      type="text"
+                      placeholder="Enter Work Details"
+                      value={newEntry.workDetails}
+                      onChange={(e) =>
+                        setNewEntry({ ...newEntry, workDetails: e.target.value })
+                      }
+                    />
+                  </Col>
+                </Row>
+                <Row>
+                  <Col>
+                    <Button onClick={handleAdd} className={styles.search}>
+                      Add Entry
+                    </Button>
+                  </Col>
+                </Row>
+              </div>
+            )}
+
+            {/* Table Section */}
             <Row>
               <Col>
-                <Button onClick={handleAdd} className={styles.search}>
-                  Add Entry
-                </Button>
+                <h2 style={{ fontSize: "22px" }}>Daily Dairy Records</h2>
+                {loading && <p>Loading...</p>}
+                {!loading && <Table columns={columns} data={data} />}
               </Col>
             </Row>
-          </div>
-        )}
-
-        {/* Table Section */}
-        <Row>
-          <Col>
-            <h2 style={{ fontSize: "22px" }}>Daily Dairy Records</h2>
-            {loading && <p>Loading...</p>}
-            {!loading && <Table columns={columns} data={data} />}
-          </Col>
-        </Row>
-      </Form>
-    </Container>
+          </Form>
+        </Container>
+      </section>
+    </>
   );
 };
 

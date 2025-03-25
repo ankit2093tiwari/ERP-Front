@@ -6,6 +6,8 @@ import styles from "@/app/medical/routine-check-up/page.module.css";
 import Table from "@/app/component/DataTable";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import axios from "axios";
+import { Form, Row, Col, Container, FormLabel, FormSelect, FormControl, Button, Breadcrumb } from "react-bootstrap";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const NoticeRecord = () => {
   const [data, setData] = useState([]);
@@ -88,13 +90,28 @@ const NoticeRecord = () => {
     fetchData();
   }, []);
 
+  const breadcrumbItems = [{ label: "Notice", link: "/notice/all-module" }, { label: "Notice Record", link: "null" }]
+
   return (
-    <div className={styles.formContainer}>
-      <h2>Notice Records</h2>
-      {loading && <p>Loading...</p>}
-      {error && <p>{error}</p>}
-      {!loading && !error && <Table columns={columns} data={data || []} />}
-    </div>
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
+      </div>
+      <section>
+        <div className={styles.formContainer}>
+          <h2>Notice Records</h2>
+          {loading && <p>Loading...</p>}
+          {error && <p>{error}</p>}
+          {!loading && !error && <Table columns={columns} data={data || []} />}
+        </div>
+      </section>
+    </>
   );
 };
 

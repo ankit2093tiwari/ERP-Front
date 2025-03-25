@@ -8,6 +8,7 @@ import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import { Form, Row, Col, Container, FormLabel, FormControl, Button, FormSelect, Breadcrumb } from "react-bootstrap";
 import axios from "axios";
 import { CgAddR } from 'react-icons/cg';
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const AddDoctorProfile = () => {
   const [data, setData] = useState([]); // Table data
@@ -147,116 +148,120 @@ const AddDoctorProfile = () => {
     fetchSpecialists();
   }, []);
 
+  const breadcrumbItems = [{ label: "Medical", link: "/medical/all-module" }, { label: "Add Doctor Profile", link: "null" }]
+
   return (
-    <Container>
-      <Row className='mt-1 mb-1'>
-        <Col>
-          <Breadcrumb>
-            <Breadcrumb.Item href="/">Home</Breadcrumb.Item>
-            <Breadcrumb.Item href="/medical/all-module">
-              Medical
-            </Breadcrumb.Item>
-            <Breadcrumb.Item active>Add Doctor Profile</Breadcrumb.Item>
-          </Breadcrumb>
-        </Col>
-      </Row>
-      <Button onClick={onOpen} className="btn btn-primary">
-         <CgAddR /> Add Doctor Profile
-      </Button>
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
+      </div>
+      <section>
+        <Container>
+          <Button onClick={onOpen} className="btn-add">
+            <CgAddR /> Add Doctor Profile
+          </Button>
 
-      {isPopoverOpen && (
+          {isPopoverOpen && (
 
-<div className="cover-sheet">
-  <div className="studentHeading"><h2>Add Doctor Profile</h2>
-  <button className='closeForm' onClick={onClose}> X </button>
-  </div>
-  <Form className="formSheet">
-            <Row className="mb-3">
-              <Col lg={6}>
-                <FormLabel className="labelForm">Doctor Name</FormLabel>
-                <FormControl
-                  type="text"
-                  placeholder="Enter Doctor Name"
-                  value={formValues.doctor_name}
-                  onChange={(e) => setFormValues({ ...formValues, doctor_name: e.target.value })}
-                />
-              </Col>
-              <Col lg={6}>
-                <FormLabel className="labelForm">Mobile No</FormLabel>
-                <FormControl
-                  type="text"
-                  placeholder="Enter Mobile Number"
-                  value={formValues.mobile_no}
-                  onChange={(e) => setFormValues({ ...formValues, mobile_no: e.target.value })}
-                />
-              </Col>
-            </Row>
-            <Row className="mb-3">
-              <Col lg={6}>
-                <FormLabel className="labelForm">Email ID</FormLabel>
-                <FormControl
-                  type="email"
-                  placeholder="Enter Email ID"
-                  value={formValues.email_id}
-                  onChange={(e) => setFormValues({ ...formValues, email_id: e.target.value })}
-                />
-              </Col>
-              <Col lg={6}>
-                <FormLabel className="labelForm">Address</FormLabel>
-                <FormControl
-                  type="text"
-                  placeholder="Enter Address"
-                  value={formValues.address}
-                  onChange={(e) => setFormValues({ ...formValues, address: e.target.value })}
-                />
-              </Col>
-            </Row>
-            <Row className="mb-3">
-              <Col lg={6}>
-                <FormLabel className="labelForm">Specialist</FormLabel>
-                <FormSelect
-                  value={formValues.specialist}
-                  onChange={(e) => setFormValues({ ...formValues, specialist: e.target.value })}
-                >
-                  <option value="">Select</option>
-                  {specialistOptions.map((option) => (
-                    <option key={option._id} value={option._id}>
-                      {option.check_up_type}
-                    </option>
-                  ))}
-                </FormSelect>
-              </Col>
-              <Col lg={6}>
-                <FormLabel className="labelForm">Description</FormLabel>
-                <FormControl
-                  as="textarea"
-                  placeholder="Enter Description"
-                  value={formValues.description}
-                  onChange={(e) => setFormValues({ ...formValues, description: e.target.value })}
-                />
-              </Col>
-            </Row>
-            <Button className="btn btn-primary mt-4" onClick={handleAdd}>
-              Submit
-            </Button>
-            </Form>
-          </div>
-        )}
-
-        {/* Table Section */}
-        <Row>
-          <Col>
-          <div className="tableSheet">
-            <h2>Doctor Profile Records</h2>
-            {loading && <p>Loading...</p>}
-            {error && <p style={{ color: "red" }}>{error}</p>}
-            {!loading && !error && <Table columns={columns} data={data} />}
-
+            <div className="cover-sheet">
+              <div className="studentHeading"><h2>Add Doctor Profile</h2>
+                <button className='closeForm' onClick={onClose}> X </button>
+              </div>
+              <Form className="formSheet">
+                <Row className="mb-3">
+                  <Col lg={6}>
+                    <FormLabel className="labelForm">Doctor Name</FormLabel>
+                    <FormControl
+                      type="text"
+                      placeholder="Enter Doctor Name"
+                      value={formValues.doctor_name}
+                      onChange={(e) => setFormValues({ ...formValues, doctor_name: e.target.value })}
+                    />
+                  </Col>
+                  <Col lg={6}>
+                    <FormLabel className="labelForm">Mobile No</FormLabel>
+                    <FormControl
+                      type="text"
+                      placeholder="Enter Mobile Number"
+                      value={formValues.mobile_no}
+                      onChange={(e) => setFormValues({ ...formValues, mobile_no: e.target.value })}
+                    />
+                  </Col>
+                </Row>
+                <Row className="mb-3">
+                  <Col lg={6}>
+                    <FormLabel className="labelForm">Email ID</FormLabel>
+                    <FormControl
+                      type="email"
+                      placeholder="Enter Email ID"
+                      value={formValues.email_id}
+                      onChange={(e) => setFormValues({ ...formValues, email_id: e.target.value })}
+                    />
+                  </Col>
+                  <Col lg={6}>
+                    <FormLabel className="labelForm">Address</FormLabel>
+                    <FormControl
+                      type="text"
+                      placeholder="Enter Address"
+                      value={formValues.address}
+                      onChange={(e) => setFormValues({ ...formValues, address: e.target.value })}
+                    />
+                  </Col>
+                </Row>
+                <Row className="mb-3">
+                  <Col lg={6}>
+                    <FormLabel className="labelForm">Specialist</FormLabel>
+                    <FormSelect
+                      value={formValues.specialist}
+                      onChange={(e) => setFormValues({ ...formValues, specialist: e.target.value })}
+                    >
+                      <option value="">Select</option>
+                      {specialistOptions.map((option) => (
+                        <option key={option._id} value={option._id}>
+                          {option.check_up_type}
+                        </option>
+                      ))}
+                    </FormSelect>
+                  </Col>
+                  <Col lg={6}>
+                    <FormLabel className="labelForm">Description</FormLabel>
+                    <FormControl
+                      as="textarea"
+                      placeholder="Enter Description"
+                      value={formValues.description}
+                      onChange={(e) => setFormValues({ ...formValues, description: e.target.value })}
+                    />
+                  </Col>
+                </Row>
+                <Button className="btn btn-primary mt-4" onClick={handleAdd}>
+                  Submit
+                </Button>
+              </Form>
             </div>
-          </Col>
-        </Row>
-     
-    </Container>
+          )}
+
+          {/* Table Section */}
+          <Row>
+            <Col>
+              <div className="tableSheet">
+                <h2>Doctor Profile Records</h2>
+                {loading && <p>Loading...</p>}
+                {error && <p style={{ color: "red" }}>{error}</p>}
+                {!loading && !error && <Table columns={columns} data={data} />}
+
+              </div>
+            </Col>
+          </Row>
+
+        </Container>
+      </section>
+    </>
   );
 };
 

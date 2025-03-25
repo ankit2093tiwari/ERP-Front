@@ -6,6 +6,7 @@ import Table from "@/app/component/DataTable";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import { Form, Row, Col, Container, FormLabel, FormSelect, FormControl, Button, Breadcrumb } from "react-bootstrap";
 import { CgAddR } from 'react-icons/cg';
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const FineMaster = () => {
   const columns = [
@@ -64,39 +65,43 @@ const FineMaster = () => {
     }
   };
 
+  const breadcrumbItems = [{ label: "Library", link: "/library/all-module" }, { label: "Fine Master", link: "null" }]
+
   return (
-    <Container className="">
-       <Row className='mt-1 mb-1'>
-                    <Col>
-                      <Breadcrumb>
-                        <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-                        <Breadcrumb.Item href="/library/all-module">
-                          Library
-                        </Breadcrumb.Item>
-                        <Breadcrumb.Item active>Fine Master</Breadcrumb.Item>
-                      </Breadcrumb>
-                    </Col>
-                  </Row>
-      <div className="cover-sheet">
-        <div className="studentHeading">
-          <h2>Fine Master </h2> </div>
-        <Form className="formSheet">
-          <Row>
-            <Col lg={4}>
-              <FormLabel className={styles.class}>Per day fine of Teacher </FormLabel>
-              <FormControl required type="text" />
-            </Col>
-            <Col lg={4}>
-              <FormLabel className={styles.class}>Per day fine of Student</FormLabel>
-              <FormControl required type="text" />
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
             </Col>
           </Row>
-          <Row>
-            <Col><Button className={styles.search}>Update Fine</Button></Col>
-          </Row>
-        </Form>
+        </Container>
       </div>
-    </Container>
+      <section>
+        <Container className="">
+          <div className="cover-sheet">
+            <div className="studentHeading">
+              <h2>Fine Master </h2> </div>
+            <Form className="formSheet">
+              <Row>
+                <Col lg={4}>
+                  <FormLabel className={styles.class}>Per day fine of Teacher </FormLabel>
+                  <FormControl required type="text" />
+                </Col>
+                <Col lg={4}>
+                  <FormLabel className={styles.class}>Per day fine of Student</FormLabel>
+                  <FormControl required type="text" />
+                </Col>
+              </Row>
+              <Row>
+                <Col><Button className={styles.search}>Update Fine</Button></Col>
+              </Row>
+            </Form>
+          </div>
+        </Container>
+      </section>
+    </>
   )
 }
 

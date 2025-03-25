@@ -6,6 +6,7 @@ import { CgAddR } from 'react-icons/cg';
 import { Form, Row, Col, Container, FormLabel, FormControl, Button, Breadcrumb } from "react-bootstrap";
 import Table from "@/app/component/DataTable";
 import styles from "@/app/medical/routine-check-up/page.module.css";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const Appointment = () => {
   const [showAddForm, setShowAddForm] = useState(false);
@@ -75,75 +76,84 @@ const Appointment = () => {
     }
   };
 
+  const breadcrumbItems = [{ label: "Appointment", link: "/appointment" }]
+
   return (
-    <Container className={styles.formContainer}>
-      <Breadcrumb>
-        <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-        <Breadcrumb.Item href="/appointments">Appointments</Breadcrumb.Item>
-        <Breadcrumb.Item active>Appointment Records</Breadcrumb.Item>
-      </Breadcrumb>
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
+      </div>
+      <section>
+        <Container className={styles.formContainer}>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <Button onClick={() => setShowAddForm(true)} className="btn btn-primary mb-4">
+                <CgAddR /> Add Appointment
+              </Button>
 
-      <Row className="mt-1 mb-1">
-        <Col>
-          <Button onClick={() => setShowAddForm(true)} className="btn btn-primary mb-4">
-            <CgAddR /> Add Appointment
-          </Button>
+              {showAddForm && (
+                <div className="cover-sheet">
+                  <div className="studentHeading">
+                    <h2>Add New Appointment</h2>
+                    <button className="closeForm" onClick={() => setShowAddForm(false)}>
+                      X
+                    </button>
+                  </div>
+                  <Form className="formSheet">
+                    <Row className="mb-3">
+                      <Col lg={6}>
+                        <FormLabel>Student</FormLabel>
+                        <FormControl
+                          type="text"
+                          value={newAppointment.student}
+                          onChange={(e) =>
+                            setNewAppointment({ ...newAppointment, student: e.target.value })
+                          }
+                        />
+                      </Col>
+                      <Col lg={6}>
+                        <FormLabel>Class</FormLabel>
+                        <FormControl
+                          type="text"
+                          value={newAppointment.class}
+                          onChange={(e) =>
+                            setNewAppointment({ ...newAppointment, class: e.target.value })
+                          }
+                        />
+                      </Col>
+                      <Col lg={6}>
+                        <FormLabel>Personal Name</FormLabel>
+                        <FormControl
+                          type="text"
+                          value={newAppointment.personalName}
+                          onChange={(e) =>
+                            setNewAppointment({ ...newAppointment, personalName: e.target.value })
+                          }
+                        />
+                      </Col>
+                    </Row>
+                    <Button onClick={() => setShowAddForm(false)} className="btn btn-primary">
+                      Add Appointment
+                    </Button>
+                  </Form>
+                </div>
+              )}
 
-          {showAddForm && (
-            <div className="cover-sheet">
-              <div className="studentHeading">
-                <h2>Add New Appointment</h2>
-                <button className="closeForm" onClick={() => setShowAddForm(false)}>
-                  X
-                </button>
+              <div className="tableSheet">
+                <h2>Appointment Records</h2>
+                <Table columns={columns} data={data} />
               </div>
-              <Form className="formSheet">
-                <Row className="mb-3">
-                  <Col lg={6}>
-                    <FormLabel>Student</FormLabel>
-                    <FormControl
-                      type="text"
-                      value={newAppointment.student}
-                      onChange={(e) =>
-                        setNewAppointment({ ...newAppointment, student: e.target.value })
-                      }
-                    />
-                  </Col>
-                  <Col lg={6}>
-                    <FormLabel>Class</FormLabel>
-                    <FormControl
-                      type="text"
-                      value={newAppointment.class}
-                      onChange={(e) =>
-                        setNewAppointment({ ...newAppointment, class: e.target.value })
-                      }
-                    />
-                  </Col>
-                  <Col lg={6}>
-                    <FormLabel>Personal Name</FormLabel>
-                    <FormControl
-                      type="text"
-                      value={newAppointment.personalName}
-                      onChange={(e) =>
-                        setNewAppointment({ ...newAppointment, personalName: e.target.value })
-                      }
-                    />
-                  </Col>
-                </Row>
-                <Button onClick={() => setShowAddForm(false)} className="btn btn-primary">
-                  Add Appointment
-                </Button>
-              </Form>
-            </div>
-          )}
-
-          <div className="tableSheet">
-            <h2>Appointment Records</h2>
-            <Table columns={columns} data={data} />
-          </div>
-        </Col>
-      </Row>
-    </Container>
+            </Col>
+          </Row>
+        </Container>
+      </section>
+    </>
   );
 };
 

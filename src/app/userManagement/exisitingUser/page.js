@@ -7,6 +7,7 @@ import Table from "@/app/component/DataTable";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import { Form, Row, Col, Container, FormLabel, Button } from "react-bootstrap";
 import axios from "axios";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const ExisitingUser = () => {
   const [data, setData] = useState([]); // User data
@@ -108,19 +109,34 @@ const ExisitingUser = () => {
     },
   ];
 
+  const breadcrumbItems = [{ label: "User Management", link: "/userManagement/all-module" }, { label: "Existing User", link: "null" }]
+
   return (
-    <Container className={styles.formContainer}>
-      <Form className={styles.form}>
-        <Row>
-          <Col>
-            <h2 style={{ fontSize: "22px" }}>Existing User Records</h2>
-            {loading && <p>Loading...</p>}
-            {error && <p style={{ color: "red" }}>{error}</p>}
-            {!loading && !error && <Table columns={columns} data={data} />}
-          </Col>
-        </Row>
-      </Form>
-    </Container>
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
+      </div>
+      <section>
+        <Container className={styles.formContainer}>
+          <Form className={styles.form}>
+            <Row>
+              <Col>
+                <h2 style={{ fontSize: "22px" }}>Existing User Records</h2>
+                {loading && <p>Loading...</p>}
+                {error && <p style={{ color: "red" }}>{error}</p>}
+                {!loading && !error && <Table columns={columns} data={data} />}
+              </Col>
+            </Row>
+          </Form>
+        </Container>
+      </section>
+    </>
   );
 };
 

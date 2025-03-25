@@ -6,6 +6,7 @@ import Table from "@/app/component/DataTable";
 import { FaEye, FaEdit, FaTrashAlt } from "react-icons/fa";
 import { Form, Row, Col, Container, FormLabel, FormSelect, FormControl, Button, Breadcrumb } from "react-bootstrap";
 import { CgAddR } from 'react-icons/cg';
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const IssueBook = () => {
   const columns = [
@@ -87,100 +88,100 @@ const IssueBook = () => {
   const [showResults, setShowResults] = React.useState(false)
   const onClick = () => setShowResults(true)
 
-
+  const breadcrumbItems = [{ label: "Library", link: "/library/all-module" }, { label: "Issue Book", link: "null" }]
 
   return (
-    <Container className="">
-       <Row className='mt-1 mb-1'>
-                    <Col>
-                      <Breadcrumb>
-                        <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-                        <Breadcrumb.Item href="/library/all-module">
-                          Library
-                        </Breadcrumb.Item>
-                        <Breadcrumb.Item active>Issue Book</Breadcrumb.Item>
-                      </Breadcrumb>
-                    </Col>
-                  </Row>
-      <button onClick={onClick} className={`mb-4 ${styles.search}`} id="submit">  <CgAddR />  Issue Book </button>
-      {showResults ?
-        <div className="cover-sheet">
-          <div className="studentHeading"><h2>Issue Books</h2></div>
-          <Form className="formSheet">
-            <Row className="mb-3">
-              <Col lg={4}>
-                <FormLabel className="labelForm">Bar Code</FormLabel>
-                <FormControl required type="text" />
-              </Col>
-              <Col lg={4}>
-                <FormLabel className="labelForm">Book Name</FormLabel>
-                <FormSelect>
-                  <option>Select</option>
-                  <option value="1">Comic Book </option>
-                  <option value="2">Book Title</option>
-                  <option value="2">Thor Thunder</option>
-                </FormSelect>
-              </Col>
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
+      </div>
+      <section>
+        <Container className="">
+          <button onClick={onClick} className={`mb-4 ${styles.search}`} id="submit">  <CgAddR />  Issue Book </button>
+          {showResults ?
+            <div className="cover-sheet">
+              <div className="studentHeading"><h2>Issue Books</h2></div>
+              <Form className="formSheet">
+                <Row className="mb-3">
+                  <Col lg={4}>
+                    <FormLabel className="labelForm">Bar Code</FormLabel>
+                    <FormControl required type="text" />
+                  </Col>
+                  <Col lg={4}>
+                    <FormLabel className="labelForm">Book Name</FormLabel>
+                    <FormSelect>
+                      <option>Select</option>
+                      <option value="1">Comic Book </option>
+                      <option value="2">Book Title</option>
+                      <option value="2">Thor Thunder</option>
+                    </FormSelect>
+                  </Col>
 
-              <Col lg={4}>
-                <FormLabel className="labelForm">Accession No</FormLabel>
-                <FormControl required type="text" />
-              </Col>
-            </Row>
-            <Row className="mb-3">
-              <Col><Button className="btn btn-primary mt-4"> Search Book</Button></Col>
-            </Row>
-            <hr />
-            <Row>
-              <Col lg={4}>
-                <FormLabel className="labelForm">Issue To</FormLabel>
-                <FormSelect>
-                  <option>Select</option>
-                  <option value="1">Faculty</option>
-                  <option value="2">Student</option>
-                </FormSelect>
-              </Col>
-              <Col lg={4}>
-                <FormLabel className="labelForm">Item Issue Period</FormLabel>
-                <FormSelect>
-                  <option>Select</option>
-                  <option value="1">1 Day</option>
-                  <option value="2">2 Days</option>
-                  <option value="3">3 Days</option>
-                  <option value="4">4 Days</option>
-                  <option value="5">5 Days</option>
-                  <option value="6">6 Days</option>
-                  <option value="7">7 Days</option>
-                </FormSelect>
-              </Col>
+                  <Col lg={4}>
+                    <FormLabel className="labelForm">Accession No</FormLabel>
+                    <FormControl required type="text" />
+                  </Col>
+                </Row>
+                <Row className="mb-3">
+                  <Col><Button className="btn btn-primary mt-4"> Search Book</Button></Col>
+                </Row>
+                <hr />
+                <Row>
+                  <Col lg={4}>
+                    <FormLabel className="labelForm">Issue To</FormLabel>
+                    <FormSelect>
+                      <option>Select</option>
+                      <option value="1">Faculty</option>
+                      <option value="2">Student</option>
+                    </FormSelect>
+                  </Col>
+                  <Col lg={4}>
+                    <FormLabel className="labelForm">Item Issue Period</FormLabel>
+                    <FormSelect>
+                      <option>Select</option>
+                      <option value="1">1 Day</option>
+                      <option value="2">2 Days</option>
+                      <option value="3">3 Days</option>
+                      <option value="4">4 Days</option>
+                      <option value="5">5 Days</option>
+                      <option value="6">6 Days</option>
+                      <option value="7">7 Days</option>
+                    </FormSelect>
+                  </Col>
 
-              <Col lg={4}>
-                <FormLabel className="labelForm">Book Issue Date</FormLabel>
-                <FormControl required type="date" disabled />
-              </Col>
+                  <Col lg={4}>
+                    <FormLabel className="labelForm">Book Issue Date</FormLabel>
+                    <FormControl required type="date" disabled />
+                  </Col>
 
-            </Row>
-
-
-            <Row className="mb-3">
-              <Col><Button className="btn btn-primary mt-4"> Issue Book</Button></Col>
-            </Row>
-
-          </Form>
-        </div>
-        : null}
-
-      <Row>
-        <Col>
-          <div className="tableSheet">
-            <h2>Issued Books Records </h2>
-            <Table columns={columns} data={data} />
-          </div>
-        </Col>
-      </Row>
+                </Row>
 
 
-    </Container>
+                <Row className="mb-3">
+                  <Col><Button className="btn btn-primary mt-4"> Issue Book</Button></Col>
+                </Row>
+
+              </Form>
+            </div>
+            : null}
+
+          <Row>
+            <Col>
+              <div className="tableSheet">
+                <h2>Issued Books Records </h2>
+                <Table columns={columns} data={data} />
+              </div>
+            </Col>
+          </Row>
+        </Container>
+      </section>
+    </>
   )
 }
 

@@ -10,6 +10,7 @@ import { Form, Row, Col, Container, FormLabel, FormControl, Button, Breadcrumb }
 import axios from "axios";
 import { CgAddR } from 'react-icons/cg';
 import { copyContent, printContent } from "@/app/utils";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const AddLibraryGroup = () => {
   const [data, setData] = useState([]);
@@ -141,55 +142,59 @@ const AddLibraryGroup = () => {
     fetchData();
   }, []);
 
+  const breadcrumbItems = [{ label: "Library", link: "/library/all-module" }, { label: "Group Master", link: "null" }]
+
+
   return (
-    <Container className="">
-      <Row className='mt-1 mb-1'>
-        <Col>
-          <Breadcrumb>
-            <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-            <Breadcrumb.Item href="/library/all-module">
-              Library
-            </Breadcrumb.Item>
-            <Breadcrumb.Item active>Add Group</Breadcrumb.Item>
-          </Breadcrumb>
-        </Col>
-      </Row>
-
-      <Button onClick={onOpen} className="btn btn-primary">
-        <CgAddR /> Add Group
-      </Button>
-      {isPopoverOpen && (
-
-        <div className="cover-sheet">
-          <div className="studentHeading"><h2> Add New Group</h2>
-            <button className='closeForm' onClick={onClose}> X </button></div>
-          <Form className="formSheet">
-            <Row>
-              <Col lg={6}>
-                <FormLabel className="labelForm">Group Name</FormLabel>
-                <FormControl
-                  type="text"
-                  placeholder="Enter Group Name"
-                  value={newGroupName}
-                  onChange={(e) => setNewGroupName(e.target.value)}
-                />
-              </Col>
-            </Row>
-            <Button onClick={handleAdd} className="btn btn-primary">
-              Add Group
-            </Button>
-          </Form>
-        </div>
-      )}
-
-
-      <div className="tableSheet">
-        <h2>Group Records</h2>
-        {loading && <p>Loading...</p>}
-        {error && <p>{error}</p>}
-        {!loading && !error && <Table columns={columns} data={data} handleCopy={handleCopy} handlePrint={handlePrint} />}
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
       </div>
-    </Container>
+      <section>
+        <Container className="">
+          <Button onClick={onOpen} className="btn-add">
+            <CgAddR /> Add Group
+          </Button>
+          {isPopoverOpen && (
+
+            <div className="cover-sheet">
+              <div className="studentHeading"><h2> Add New Group</h2>
+                <button className='closeForm' onClick={onClose}> X </button></div>
+              <Form className="formSheet">
+                <Row>
+                  <Col lg={6}>
+                    <FormLabel className="labelForm">Group Name</FormLabel>
+                    <FormControl
+                      type="text"
+                      placeholder="Enter Group Name"
+                      value={newGroupName}
+                      onChange={(e) => setNewGroupName(e.target.value)}
+                    />
+                  </Col>
+                </Row>
+                <Button onClick={handleAdd} className="btn btn-primary">
+                  Add Group
+                </Button>
+              </Form>
+            </div>
+          )}
+
+
+          <div className="tableSheet">
+            <h2>Group Records</h2>
+            {loading && <p>Loading...</p>}
+            {error && <p>{error}</p>}
+            {!loading && !error && <Table columns={columns} data={data} handleCopy={handleCopy} handlePrint={handlePrint} />}
+          </div>
+        </Container>
+      </section>
+    </>
   );
 };
 

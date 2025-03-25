@@ -6,6 +6,7 @@ import Table from "@/app/component/DataTable";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import { Form, Row, Col, Container, FormLabel, FormControl, Button } from "react-bootstrap";
 import axios from "axios";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const AddCheckUp = () => {
   const [data, setData] = useState([]); // Table data
@@ -116,57 +117,72 @@ const AddCheckUp = () => {
     fetchData();
   }, []);
 
-  return (
-    <Container className={styles.formContainer}>
-      <Form className={styles.form}>
-        <Button
-          onClick={() => setShowAddForm(!showAddForm)}
-          className={`mb-4 ${styles.search}`}
-        >
-          Add Check-Up Type
-        </Button>
+  const breadcrumbItems = [{ label: "Medical", link: "/medical/all-module" }, { label: "Add CheckUp Type", link: "null" }]
 
-        {/* Add Form */}
-        {showAddForm && (
-          <div className="mb-4">
-            <Row className="mb-3">
-              <Col lg={6}>
-                <FormLabel>Check-Up Type</FormLabel>
-                <FormControl
-                  type="text"
-                  placeholder="Enter Check-Up Type"
-                  value={newCheckUpType}
-                  onChange={(e) => setNewCheckUpType(e.target.value)}
-                />
-              </Col>
-            </Row>
+  return (
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
+      </div>
+      <section>
+        <Container className={styles.formContainer}>
+          <Form className={styles.form}>
+            <Button
+              onClick={() => setShowAddForm(!showAddForm)}
+              className={`mb-4 ${styles.search}`}
+            >
+              Add Check-Up Type
+            </Button>
+
+            {/* Add Form */}
+            {showAddForm && (
+              <div className="mb-4">
+                <Row className="mb-3">
+                  <Col lg={6}>
+                    <FormLabel>Check-Up Type</FormLabel>
+                    <FormControl
+                      type="text"
+                      placeholder="Enter Check-Up Type"
+                      value={newCheckUpType}
+                      onChange={(e) => setNewCheckUpType(e.target.value)}
+                    />
+                  </Col>
+                </Row>
+                <Row>
+                  <Col>
+                    <Button onClick={handleAdd} className={styles.search}>
+                      Add Check-Up Type
+                    </Button>
+                  </Col>
+                </Row>
+              </div>
+            )}
+
+            {/* Table Section */}
             <Row>
               <Col>
-                <Button onClick={handleAdd} className={styles.search}>
-                  Add Check-Up Type
-                </Button>
+                <h2 style={{ fontSize: "22px" }}>Check-Up Type Records</h2>
+                {loading && <p>Loading...</p>}
+                {error && <p style={{ color: "red" }}>{error}</p>}
+                {!loading && !error && (
+                  <Table
+                    columns={columns}
+                    data={data.map((row) => ({ ...row, key: row._id }))}
+                  // Make sure to include a unique key for each row
+                  />
+                )}
               </Col>
             </Row>
-          </div>
-        )}
-
-        {/* Table Section */}
-        <Row>
-          <Col>
-            <h2 style={{ fontSize: "22px" }}>Check-Up Type Records</h2>
-            {loading && <p>Loading...</p>}
-            {error && <p style={{ color: "red" }}>{error}</p>}
-            {!loading && !error && (
-              <Table
-                columns={columns}
-                data={data.map((row) => ({ ...row, key: row._id }))}
-                // Make sure to include a unique key for each row
-              />
-            )}
-          </Col>
-        </Row>
-      </Form>
-    </Container>
+          </Form>
+        </Container>
+      </section>
+    </>
   );
 };
 

@@ -5,7 +5,8 @@ import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import { CgAddR } from 'react-icons/cg';
 import { Form, Row, Col, Container, FormLabel, FormControl, Button, Breadcrumb } from "react-bootstrap";
 import Table from "@/app/component/DataTable";
-import styles from "@/app/medical/routine-check-up/page.module.css"; // Make sure the styles are consistent
+import styles from "@/app/medical/routine-check-up/page.module.css";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const Complaint = () => {
   const [showAddForm, setShowAddForm] = useState(false);
@@ -66,75 +67,84 @@ const Complaint = () => {
     }
   };
 
+  const breadcrumbItems = [{ label: "Complaints", link: "/complaints" }]
+
   return (
-    <Container className={`${styles.formContainer} ${styles.complaintBackground}`}>
-      <Breadcrumb>
-        <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-        <Breadcrumb.Item href="/complaints">Complaints</Breadcrumb.Item>
-        <Breadcrumb.Item active>Complaint Records</Breadcrumb.Item>
-      </Breadcrumb>
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
+      </div>
+      <section>
+        <Container className={`${styles.formContainer} ${styles.complaintBackground}`}>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <Button onClick={() => setShowAddForm(true)} className="btn btn-primary mb-4">
+                <CgAddR /> Add Complaint
+              </Button>
 
-      <Row className="mt-1 mb-1">
-        <Col>
-          <Button onClick={() => setShowAddForm(true)} className="btn btn-primary mb-4">
-            <CgAddR /> Add Complaint
-          </Button>
+              {showAddForm && (
+                <div className="cover-sheet">
+                  <div className="studentHeading">
+                    <h2>Add New Complaint</h2>
+                    <button className="closeForm" onClick={() => setShowAddForm(false)}>
+                      X
+                    </button>
+                  </div>
+                  <Form className="formSheet">
+                    <Row className="mb-3">
+                      <Col lg={6}>
+                        <FormLabel>Student Details</FormLabel>
+                        <FormControl
+                          type="text"
+                          value={newComplaint.studentDetail}
+                          onChange={(e) =>
+                            setNewComplaint({ ...newComplaint, studentDetail: e.target.value })
+                          }
+                        />
+                      </Col>
+                      <Col lg={6}>
+                        <FormLabel>Class Section</FormLabel>
+                        <FormControl
+                          type="text"
+                          value={newComplaint.classSection}
+                          onChange={(e) =>
+                            setNewComplaint({ ...newComplaint, classSection: e.target.value })
+                          }
+                        />
+                      </Col>
+                      <Col lg={6}>
+                        <FormLabel>Complaint Date</FormLabel>
+                        <FormControl
+                          type="date"
+                          value={newComplaint.complaintDate}
+                          onChange={(e) =>
+                            setNewComplaint({ ...newComplaint, complaintDate: e.target.value })
+                          }
+                        />
+                      </Col>
+                    </Row>
+                    <Button onClick={() => setShowAddForm(false)} className="btn btn-primary">
+                      Add Complaint
+                    </Button>
+                  </Form>
+                </div>
+              )}
 
-          {showAddForm && (
-            <div className="cover-sheet">
-              <div className="studentHeading">
-                <h2>Add New Complaint</h2>
-                <button className="closeForm" onClick={() => setShowAddForm(false)}>
-                  X
-                </button>
+              <div className="tableSheet">
+                <h2>Complaint Records</h2>
+                <Table columns={columns} data={data} />
               </div>
-              <Form className="formSheet">
-                <Row className="mb-3">
-                  <Col lg={6}>
-                    <FormLabel>Student Details</FormLabel>
-                    <FormControl
-                      type="text"
-                      value={newComplaint.studentDetail}
-                      onChange={(e) =>
-                        setNewComplaint({ ...newComplaint, studentDetail: e.target.value })
-                      }
-                    />
-                  </Col>
-                  <Col lg={6}>
-                    <FormLabel>Class Section</FormLabel>
-                    <FormControl
-                      type="text"
-                      value={newComplaint.classSection}
-                      onChange={(e) =>
-                        setNewComplaint({ ...newComplaint, classSection: e.target.value })
-                      }
-                    />
-                  </Col>
-                  <Col lg={6}>
-                    <FormLabel>Complaint Date</FormLabel>
-                    <FormControl
-                      type="date"
-                      value={newComplaint.complaintDate}
-                      onChange={(e) =>
-                        setNewComplaint({ ...newComplaint, complaintDate: e.target.value })
-                      }
-                    />
-                  </Col>
-                </Row>
-                <Button onClick={() => setShowAddForm(false)} className="btn btn-primary">
-                  Add Complaint
-                </Button>
-              </Form>
-            </div>
-          )}
-
-          <div className="tableSheet">
-            <h2>Complaint Records</h2>
-            <Table columns={columns} data={data} />
-          </div>
-        </Col>
-      </Row>
-    </Container>
+            </Col>
+          </Row>
+        </Container>
+      </section>
+    </>
   );
 };
 

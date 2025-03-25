@@ -6,6 +6,7 @@ import Table from "@/app/component/DataTable";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import { Form, Row, Col, Container, FormLabel, FormSelect, FormControl, Button, Breadcrumb } from "react-bootstrap";
 import { CgAddR } from 'react-icons/cg';
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const NewBookSuggestion = () => {
   const columns = [
@@ -116,104 +117,105 @@ const NewBookSuggestion = () => {
   const [showResults, setShowResults] = React.useState(false)
   const onClick = () => setShowResults(true)
 
-
+  const breadcrumbItems = [{ label: "Library", link: "/library/all-module" }, { label: "New Book Suggestion", link: "null" }]
 
   return (
-    <Container className="">
-       <Row className='mt-1 mb-1'>
-                    <Col>
-                      <Breadcrumb>
-                        <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-                        <Breadcrumb.Item href="/library/all-module">
-                          Library
-                        </Breadcrumb.Item>
-                        <Breadcrumb.Item active>New Book Suggestion</Breadcrumb.Item>
-                      </Breadcrumb>
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
+      </div>
+      <section>
+        <Container className="">
+          <button onClick={onClick} className={`mb-4 ${styles.search}`} id="submit">  <CgAddR />  Add New Suggestion  </button>
+          {showResults ?
+            <div className="cover-sheet">
+              <div className="studentHeading"><h2>Add New Suggestion</h2></div>
+              <Form className="formSheet">
+
+                <div className="result">
+                  <Row className="mb-3">
+                    <Col lg={4}>
+                      <FormLabel className={styles.class}>Item Group</FormLabel>
+                      <FormSelect>
+                        <option>Select</option>
+                        <option value="1">School Books</option>
+                        <option value="2">Current Affairs</option>
+                        <option value="3">Comic Book</option>
+                      </FormSelect>
+                    </Col>
+                    <Col lg={4}>
+                      <FormLabel className={styles.class}>Subject</FormLabel>
+                      <FormControl required type="text" />
+                    </Col>
+
+                    <Col lg={4}>
+                      <FormLabel className={styles.class}>Item Category</FormLabel>
+                      <FormSelect>
+                        <option>Select</option>
+                        <option value="1">Central Library</option>
+                        <option value="2">Information Technology</option>
+                      </FormSelect>
+                    </Col>
+                  </Row><br />
+                  <Row>
+                    <Col lg={4}>
+                      <FormLabel className={styles.class}>Publisher Name</FormLabel>
+                      <FormControl required type="text" />
+                    </Col>
+
+                    <Col lg={4}>
+                      <FormLabel className={styles.class}>Item Name</FormLabel>
+                      <FormControl required type="text" />
+                    </Col>
+                    <Col lg={4}>
+                      <FormLabel className={styles.class}>Publication Year</FormLabel>
+                      <FormControl required type="text" />
                     </Col>
                   </Row>
-      <button onClick={onClick} className={`mb-4 ${styles.search}`} id="submit">  <CgAddR />  Add New Suggestion  </button>
-      {showResults ?
-        <div className="cover-sheet">
-          <div className="studentHeading"><h2>Add New Suggestion</h2></div>
-          <Form className="formSheet">
+                  <br />
+                  <Row>
+                    <Col lg={4}>
+                      <FormLabel className={styles.class}>Item Language</FormLabel>
+                      <FormControl required type="text" />
+                    </Col>
+                    <Col lg={4}>
+                      <FormLabel className={styles.class}>Edition</FormLabel>
+                      <FormControl required type="text" />
+                    </Col>
 
-            <div className="result">
-              <Row className="mb-3">
-                <Col lg={4}>
-                  <FormLabel className={styles.class}>Item Group</FormLabel>
-                  <FormSelect>
-                    <option>Select</option>
-                    <option value="1">School Books</option>
-                    <option value="2">Current Affairs</option>
-                    <option value="3">Comic Book</option>
-                  </FormSelect>
-                </Col>
-                <Col lg={4}>
-                  <FormLabel className={styles.class}>Subject</FormLabel>
-                  <FormControl required type="text" />
-                </Col>
-
-                <Col lg={4}>
-                  <FormLabel className={styles.class}>Item Category</FormLabel>
-                  <FormSelect>
-                    <option>Select</option>
-                    <option value="1">Central Library</option>
-                    <option value="2">Information Technology</option>
-                  </FormSelect>
-                </Col>
-              </Row><br />
-              <Row>
-                <Col lg={4}>
-                  <FormLabel className={styles.class}>Publisher Name</FormLabel>
-                  <FormControl required type="text" />
-                </Col>
-
-                <Col lg={4}>
-                  <FormLabel className={styles.class}>Item Name</FormLabel>
-                  <FormControl required type="text" />
-                </Col>
-                <Col lg={4}>
-                  <FormLabel className={styles.class}>Publication Year</FormLabel>
-                  <FormControl required type="text" />
-                </Col>
-              </Row>
-              <br />
-              <Row>
-                <Col lg={4}>
-                  <FormLabel className={styles.class}>Item Language</FormLabel>
-                  <FormControl required type="text" />
-                </Col>
-                <Col lg={4}>
-                  <FormLabel className={styles.class}>Edition</FormLabel>
-                  <FormControl required type="text" />
-                </Col>
-
-                <Col lg={4}>
-                  <FormLabel className={styles.class}>Author Name </FormLabel>
-                  <FormControl required type="text" />
-                </Col>
-              </Row>
-              <br />
-              <Row className="mb-3">
-                <Col><Button className="btn btn-primary mt-4"> Add New Suggestion</Button></Col>
-              </Row>
+                    <Col lg={4}>
+                      <FormLabel className={styles.class}>Author Name </FormLabel>
+                      <FormControl required type="text" />
+                    </Col>
+                  </Row>
+                  <br />
+                  <Row className="mb-3">
+                    <Col><Button className="btn btn-primary mt-4"> Add New Suggestion</Button></Col>
+                  </Row>
+                </div>
+              </Form>
             </div>
-          </Form>
-        </div>
-        : null}
+            : null}
 
 
-      <br />
-      <Row>
-        <Col>
-          <div className="tableSheet">
-            <h2>Library Publisher Records </h2>
-            <Table columns={columns} data={data} />
-          </div>
-        </Col>
-      </Row>
-
-    </Container>
+          <br />
+          <Row>
+            <Col>
+              <div className="tableSheet">
+                <h2>Library Publisher Records </h2>
+                <Table columns={columns} data={data} />
+              </div>
+            </Col>
+          </Row>
+        </Container>
+      </section>
+    </>
   )
 }
 

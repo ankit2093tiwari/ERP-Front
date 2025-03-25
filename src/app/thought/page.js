@@ -8,6 +8,7 @@ import { Form, Row, Col, Container, FormLabel, FormControl, Button, Breadcrumb }
 import axios from "axios";
 import Table from "@/app/component/DataTable";
 import styles from "@/app/medical/routine-check-up/page.module.css";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const Thought = () => {
   const [data, setData] = useState([]);
@@ -97,60 +98,66 @@ const Thought = () => {
     fetchData();
   }, []);
 
+  const breadcrumbItems = [{ label: "Thought", link: "/thought" }]
+
   return (
-    <Container>
-      <Row className='mt-1 mb-1'>
-        <Col>
-          <Breadcrumb>
-            <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-            <Breadcrumb.Item href="/master-entry/all-module">Master Entry</Breadcrumb.Item>
-            <Breadcrumb.Item active>Thought Records</Breadcrumb.Item>
-          </Breadcrumb>
-        </Col>
-      </Row>
-      
-      <Button onClick={() => setShowAddForm(true)} className="btn btn-primary mb-4">
-        <CgAddR /> Add Thought
-      </Button>
-
-      {showAddForm && (
-        <div className="cover-sheet">
-          <div className="studentHeading">
-            <h2>Add New Thought</h2>
-            <button className="closeForm" onClick={() => setShowAddForm(false)}>X</button>
-          </div>
-          <Form className="formSheet">
-            <Row className="mb-3">
-              <Col lg={6}>
-                <FormLabel>Date</FormLabel>
-                <FormControl
-                  type="date"
-                  value={newThought.date}
-                  onChange={(e) => setNewThought({ ...newThought, date: e.target.value })}
-                />
-              </Col>
-              <Col lg={6}>
-                <FormLabel>Thought Name</FormLabel>
-                <FormControl
-                  type="text"
-                  placeholder="Enter Thought Name"
-                  value={newThought.thought_name}
-                  onChange={(e) => setNewThought({ ...newThought, thought_name: e.target.value })}
-                />
-              </Col>
-            </Row>
-            <Button onClick={handleAdd} className="btn btn-primary">Add Thought</Button>
-          </Form>
-        </div>
-      )}
-
-      <div className="tableSheet">
-        <h2>Thought Records</h2>
-        {loading && <p>Loading...</p>}
-        {error && <p style={{ color: "red" }}>{error}</p>}
-        {!loading && !error && <Table columns={columns} data={data} />}
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
       </div>
-    </Container>
+      <section>
+        <Container>
+
+          <Button onClick={() => setShowAddForm(true)} className="btn-add">
+            <CgAddR /> Add Thought
+          </Button>
+
+          {showAddForm && (
+            <div className="cover-sheet">
+              <div className="studentHeading">
+                <h2>Add New Thought</h2>
+                <button className="closeForm" onClick={() => setShowAddForm(false)}>X</button>
+              </div>
+              <Form className="formSheet">
+                <Row className="mb-3">
+                  <Col lg={6}>
+                    <FormLabel>Date</FormLabel>
+                    <FormControl
+                      type="date"
+                      value={newThought.date}
+                      onChange={(e) => setNewThought({ ...newThought, date: e.target.value })}
+                    />
+                  </Col>
+                  <Col lg={6}>
+                    <FormLabel>Thought Name</FormLabel>
+                    <FormControl
+                      type="text"
+                      placeholder="Enter Thought Name"
+                      value={newThought.thought_name}
+                      onChange={(e) => setNewThought({ ...newThought, thought_name: e.target.value })}
+                    />
+                  </Col>
+                </Row>
+                <Button onClick={handleAdd} className="btn btn-primary">Add Thought</Button>
+              </Form>
+            </div>
+          )}
+
+          <div className="tableSheet">
+            <h2>Thought Records</h2>
+            {loading && <p>Loading...</p>}
+            {error && <p style={{ color: "red" }}>{error}</p>}
+            {!loading && !error && <Table columns={columns} data={data} />}
+          </div>
+        </Container>
+      </section>
+    </>
   );
 };
 

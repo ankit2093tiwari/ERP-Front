@@ -9,6 +9,7 @@ import { Form, Row, Col, Container, FormLabel, FormControl, Button, Breadcrumb, 
 import axios from "axios";
 import { CgAddR } from 'react-icons/cg';
 import { copyContent } from "@/app/utils";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const BookCategory = () => {
   const [data, setData] = useState([]);
@@ -137,58 +138,64 @@ const BookCategory = () => {
     },
   ];
 
+  const breadcrumbItems = [{ label: "Library", link: "/library/all-module" }, { label: "Category Master", link: "null" }]
+
   return (
-    <Container>
-      <Row className='mt-1 mb-1'>
-        <Col>
-          <Breadcrumb>
-            <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-            <Breadcrumb.Item href="/library/all-module">Library</Breadcrumb.Item>
-            <Breadcrumb.Item active>Book Categories</Breadcrumb.Item>
-          </Breadcrumb>
-        </Col>
-      </Row>
-
-      <Button onClick={() => setIsPopoverOpen(true)} className="btn btn-primary">
-        <CgAddR /> Add Book Group
-      </Button>
-      {isPopoverOpen && (
-        <div className="cover-sheet">
-          <div className="studentHeading">
-            <h2>Add New Group</h2>
-            <button className='closeForm' onClick={() => setIsPopoverOpen(false)}> X </button>
-          </div>
-          <Form className="formSheet">
-            <Row>
-              <Col lg={6}>
-                <FormLabel className="labelForm">Group Name</FormLabel>
-                <FormControl
-                  type="text"
-                  placeholder="Enter Group Name"
-                  value={newGroupName}
-                  onChange={(e) => setNewGroupName(e.target.value)}
-                />
-              </Col>
-            </Row>
-            <Button onClick={handleAdd} className="btn btn-success mt-2">Add Group</Button>
-          </Form>
-        </div>
-      )}
-
-      <div className="tableSheet">
-        <h2>Book Group Records</h2>
-        {loading && <p>Loading...</p>}
-        {error && <Alert variant="danger">{error}</Alert>}
-        {!loading && !error && (
-          <Table
-            columns={columns}
-            data={data}
-            handleCopy={handleCopy}
-            handlePrint={handlePrint}
-          />
-        )}
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
       </div>
-    </Container>
+      <section>
+        <Container>
+
+          <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
+            <CgAddR /> Add Book Group
+          </Button>
+          {isPopoverOpen && (
+            <div className="cover-sheet">
+              <div className="studentHeading">
+                <h2>Add New Group</h2>
+                <button className='closeForm' onClick={() => setIsPopoverOpen(false)}> X </button>
+              </div>
+              <Form className="formSheet">
+                <Row>
+                  <Col lg={6}>
+                    <FormLabel className="labelForm">Group Name</FormLabel>
+                    <FormControl
+                      type="text"
+                      placeholder="Enter Group Name"
+                      value={newGroupName}
+                      onChange={(e) => setNewGroupName(e.target.value)}
+                    />
+                  </Col>
+                </Row>
+                <Button onClick={handleAdd} className="btn btn-success mt-2">Add Group</Button>
+              </Form>
+            </div>
+          )}
+
+          <div className="tableSheet">
+            <h2>Book Group Records</h2>
+            {loading && <p>Loading...</p>}
+            {error && <Alert variant="danger">{error}</Alert>}
+            {!loading && !error && (
+              <Table
+                columns={columns}
+                data={data}
+                handleCopy={handleCopy}
+                handlePrint={handlePrint}
+              />
+            )}
+          </div>
+        </Container>
+      </section>
+    </>
   );
 };
 

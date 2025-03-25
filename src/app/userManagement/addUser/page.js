@@ -7,6 +7,7 @@ import Table from "@/app/component/DataTable";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import { Form, Row, Col, Container, FormLabel, FormControl, Button, FormSelect } from "react-bootstrap";
 import axios from "axios";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const AddUser = () => {
   const [data, setData] = useState([]); // Table data
@@ -174,94 +175,109 @@ const AddUser = () => {
     fetchData();
   }, []);
 
-  return (
-    <Container className={styles.formContainer}>
-      <Form className={styles.form}>
-        <Button onClick={() => setShowAddForm(!showAddForm)} className={`mb-4 ${styles.search}`}>
-          Add User
-        </Button>
+  const breadcrumbItems = [{ label: "User Management", link: "/userManagement/all-module" }, { label: "Add User", link: "null" }]
 
-        {/* Add Form */}
-        {showAddForm && (
-          <div className="mb-4">
-            <Row className="mb-3">
-              <Col lg={6}>
-                <FormLabel>User Type</FormLabel>
-                <FormSelect name="user_type" value={newUser.user_type} onChange={handleChange}>
-                  <option value="">Select</option>
-                  <option value="1">Fees</option>
-                  <option value="2">Other</option>
-                </FormSelect>
-              </Col>
-              <Col lg={6}>
-                <FormLabel>Username</FormLabel>
-                <FormControl
-                  required
-                  type="text"
-                  name="username"
-                  placeholder="User Name"
-                  value={newUser.username}
-                  onChange={handleChange}
-                />
-              </Col>
-            </Row>
-            <Row className="mb-3">
-              <Col lg={6}>
-                <FormLabel>Status</FormLabel>
-                <FormSelect name="status" value={newUser.status} onChange={handleChange}>
-                  <option value="">Select</option>
-                  <option value="1">Active</option>
-                  <option value="2">Inactive</option>
-                </FormSelect>
-              </Col>
-              <Col lg={6}>
-                <FormLabel>Password</FormLabel>
-                <FormControl
-                  required
-                  type="password"
-                  name="password"
-                  value={newUser.password}
-                  onChange={handleChange}
-                />
-              </Col>
-            </Row>
-            <Row>
-              <Col lg={6}>
-                <FormLabel>Full Name</FormLabel>
-                <FormControl
-                  required
-                  type="text"
-                  name="full_name"
-                  value={newUser.full_name}
-                  onChange={handleChange}
-                />
-              </Col>
-              <Col lg={6}>
-                <FormLabel>Upload User Image</FormLabel>
-                <FormControl type="file" name="image" onChange={handleChange} />
-              </Col>
-            </Row>
+  return (
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
+      </div>
+      <section>
+        <Container className={styles.formContainer}>
+          <Form className={styles.form}>
+            <Button onClick={() => setShowAddForm(!showAddForm)} className={`mb-4 ${styles.search}`}>
+              Add User
+            </Button>
+
+            {/* Add Form */}
+            {showAddForm && (
+              <div className="mb-4">
+                <Row className="mb-3">
+                  <Col lg={6}>
+                    <FormLabel>User Type</FormLabel>
+                    <FormSelect name="user_type" value={newUser.user_type} onChange={handleChange}>
+                      <option value="">Select</option>
+                      <option value="1">Fees</option>
+                      <option value="2">Other</option>
+                    </FormSelect>
+                  </Col>
+                  <Col lg={6}>
+                    <FormLabel>Username</FormLabel>
+                    <FormControl
+                      required
+                      type="text"
+                      name="username"
+                      placeholder="User Name"
+                      value={newUser.username}
+                      onChange={handleChange}
+                    />
+                  </Col>
+                </Row>
+                <Row className="mb-3">
+                  <Col lg={6}>
+                    <FormLabel>Status</FormLabel>
+                    <FormSelect name="status" value={newUser.status} onChange={handleChange}>
+                      <option value="">Select</option>
+                      <option value="1">Active</option>
+                      <option value="2">Inactive</option>
+                    </FormSelect>
+                  </Col>
+                  <Col lg={6}>
+                    <FormLabel>Password</FormLabel>
+                    <FormControl
+                      required
+                      type="password"
+                      name="password"
+                      value={newUser.password}
+                      onChange={handleChange}
+                    />
+                  </Col>
+                </Row>
+                <Row>
+                  <Col lg={6}>
+                    <FormLabel>Full Name</FormLabel>
+                    <FormControl
+                      required
+                      type="text"
+                      name="full_name"
+                      value={newUser.full_name}
+                      onChange={handleChange}
+                    />
+                  </Col>
+                  <Col lg={6}>
+                    <FormLabel>Upload User Image</FormLabel>
+                    <FormControl type="file" name="image" onChange={handleChange} />
+                  </Col>
+                </Row>
+                <Row>
+                  <Col>
+                    <Button onClick={handleAdd} className={styles.search}>
+                      Add User
+                    </Button>
+                  </Col>
+                </Row>
+              </div>
+            )}
+
+            {/* Table Section */}
             <Row>
               <Col>
-                <Button onClick={handleAdd} className={styles.search}>
-                  Add User
-                </Button>
+                <h2 style={{ fontSize: "22px" }}>User Records</h2>
+                {loading && <p>Loading...</p>}
+                {error && <p style={{ color: "red" }}>{error}</p>}
+                {!loading && !error && <Table columns={columns} data={data} />}
               </Col>
             </Row>
-          </div>
-        )}
-
-        {/* Table Section */}
-        <Row>
-          <Col>
-            <h2 style={{ fontSize: "22px" }}>User Records</h2>
-            {loading && <p>Loading...</p>}
-            {error && <p style={{ color: "red" }}>{error}</p>}
-            {!loading && !error && <Table columns={columns} data={data} />}
-          </Col>
-        </Row>
-      </Form>
-    </Container>
+          </Form>
+        </Container>
+      </section>
+    </>
   );
 };
 

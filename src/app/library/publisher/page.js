@@ -6,6 +6,7 @@ import Table from "@/app/component/DataTable";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import { Form, Row, Col, Container, FormLabel, FormControl, Button } from "react-bootstrap";
 import axios from "axios";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const Publisher = () => {
   const [data, setData] = useState([]);
@@ -126,8 +127,10 @@ const Publisher = () => {
         });
         setData((prevData) =>
           prevData.map((row) =>
-            row._id === id ? { ...row, 
-              publisherName: updatedName, publisherPhoneNo: updatedPhoneNo } : row
+            row._id === id ? {
+              ...row,
+              publisherName: updatedName, publisherPhoneNo: updatedPhoneNo
+            } : row
           )
         );
       } catch {
@@ -151,99 +154,117 @@ const Publisher = () => {
     fetchData();
   }, []);
 
+  const breadcrumbItems = [{ label: "Library", link: "/library/all-module" }, { label: "Publisher Master", link: "null" }]
+
+
   return (
-    <Container className={styles.formContainer}>
-      <Form className={styles.form}>
-        <Button onClick={() => setShowAddForm(!showAddForm)} className={`mb-4 ${styles.search}`}>
-          Add Publisher
-        </Button>
-        {showAddForm && (
-          <div className="mb-4">
-            <Row>
-              <Col lg={6}>
-                <FormLabel>Publisher Name</FormLabel>
-                <FormControl
-                  type="text"
-                  value={newPublisher.
-                    publisherName}
-                  onChange={(e) => setNewPublisher({ ...newPublisher, 
-                    publisherName: e.target.value })}
-                />
-              </Col>
-              <Col lg={6}>
-                <FormLabel>Phone No.</FormLabel>
-                <FormControl
-                  type="text"
-                  value={newPublisher.publisherPhoneNo}
-                  onChange={(e) => setNewPublisher({ ...newPublisher, publisherPhoneNo: e.target.value })}
-                />
-              </Col>
-            </Row>
-            <Row>
-              <Col lg={6}>
-                <FormLabel>Registration No.</FormLabel>
-                <FormControl
-                  type="text"
-                  value={newPublisher.publisherRegistrationNo}
-                  onChange={(e) => setNewPublisher({ ...newPublisher, publisherRegistrationNo: e.target.value })}
-                />
-              </Col>
-              <Col lg={6}>
-                <FormLabel>Fax No.</FormLabel>
-                <FormControl
-                  type="text"
-                  value={newPublisher.publisherFaxNo}
-                  onChange={(e) => setNewPublisher({ ...newPublisher, publisherFaxNo: e.target.value })}
-                />
-              </Col>
-            </Row>
-            <Row>
-              <Col lg={6}>
-                <FormLabel>Location</FormLabel>
-                <FormControl
-                  type="text"
-                  value={newPublisher.publisherLocation}
-                  onChange={(e) => setNewPublisher({ ...newPublisher, publisherLocation: e.target.value })}
-                />
-              </Col>
-              <Col lg={6}>
-                <FormLabel>Tax Ident No.</FormLabel>
-                <FormControl
-                  type="text"
-                  value={newPublisher.taxIdentNo}
-                  onChange={(e) => setNewPublisher({ ...newPublisher, taxIdentNo: e.target.value })}
-                />
-              </Col>
-            </Row>
-            <Row>
-              <Col lg={6}>
-                <FormLabel>Mobile No.</FormLabel>
-                <FormControl
-                  type="text"
-                  value={newPublisher.publisherMobileNo}
-                  onChange={(e) => setNewPublisher({ ...newPublisher, publisherMobileNo: e.target.value })}
-                />
-              </Col>
-              <Col lg={6}>
-                <FormLabel>Email</FormLabel>
-                <FormControl
-                  type="email"
-                  value={newPublisher.publisherEmail}
-                  onChange={(e) => setNewPublisher({ ...newPublisher, publisherEmail: e.target.value })}
-                />
-              </Col>
-            </Row>
-            <Button onClick={handleAdd} className={styles.search}>
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
+      </div>
+      <section>
+        <Container className={styles.formContainer}>
+          <Form className={styles.form}>
+            <Button onClick={() => setShowAddForm(!showAddForm)} className={`mb-4 ${styles.search}`}>
               Add Publisher
             </Button>
-          </div>
-        )}
-        <h2>Publisher Records</h2>
-        {loading && <p>Loading...</p>}
-        {error && <p>{error}</p>}
-        {!loading && !error && <Table columns={columns} data={data} />}
-      </Form>
-    </Container>
+            {showAddForm && (
+              <div className="mb-4">
+                <Row>
+                  <Col lg={6}>
+                    <FormLabel>Publisher Name</FormLabel>
+                    <FormControl
+                      type="text"
+                      value={newPublisher.
+                        publisherName}
+                      onChange={(e) => setNewPublisher({
+                        ...newPublisher,
+                        publisherName: e.target.value
+                      })}
+                    />
+                  </Col>
+                  <Col lg={6}>
+                    <FormLabel>Phone No.</FormLabel>
+                    <FormControl
+                      type="text"
+                      value={newPublisher.publisherPhoneNo}
+                      onChange={(e) => setNewPublisher({ ...newPublisher, publisherPhoneNo: e.target.value })}
+                    />
+                  </Col>
+                </Row>
+                <Row>
+                  <Col lg={6}>
+                    <FormLabel>Registration No.</FormLabel>
+                    <FormControl
+                      type="text"
+                      value={newPublisher.publisherRegistrationNo}
+                      onChange={(e) => setNewPublisher({ ...newPublisher, publisherRegistrationNo: e.target.value })}
+                    />
+                  </Col>
+                  <Col lg={6}>
+                    <FormLabel>Fax No.</FormLabel>
+                    <FormControl
+                      type="text"
+                      value={newPublisher.publisherFaxNo}
+                      onChange={(e) => setNewPublisher({ ...newPublisher, publisherFaxNo: e.target.value })}
+                    />
+                  </Col>
+                </Row>
+                <Row>
+                  <Col lg={6}>
+                    <FormLabel>Location</FormLabel>
+                    <FormControl
+                      type="text"
+                      value={newPublisher.publisherLocation}
+                      onChange={(e) => setNewPublisher({ ...newPublisher, publisherLocation: e.target.value })}
+                    />
+                  </Col>
+                  <Col lg={6}>
+                    <FormLabel>Tax Ident No.</FormLabel>
+                    <FormControl
+                      type="text"
+                      value={newPublisher.taxIdentNo}
+                      onChange={(e) => setNewPublisher({ ...newPublisher, taxIdentNo: e.target.value })}
+                    />
+                  </Col>
+                </Row>
+                <Row>
+                  <Col lg={6}>
+                    <FormLabel>Mobile No.</FormLabel>
+                    <FormControl
+                      type="text"
+                      value={newPublisher.publisherMobileNo}
+                      onChange={(e) => setNewPublisher({ ...newPublisher, publisherMobileNo: e.target.value })}
+                    />
+                  </Col>
+                  <Col lg={6}>
+                    <FormLabel>Email</FormLabel>
+                    <FormControl
+                      type="email"
+                      value={newPublisher.publisherEmail}
+                      onChange={(e) => setNewPublisher({ ...newPublisher, publisherEmail: e.target.value })}
+                    />
+                  </Col>
+                </Row>
+                <Button onClick={handleAdd} className={styles.search}>
+                  Add Publisher
+                </Button>
+              </div>
+            )}
+            <h2>Publisher Records</h2>
+            {loading && <p>Loading...</p>}
+            {error && <p>{error}</p>}
+            {!loading && !error && <Table columns={columns} data={data} />}
+          </Form>
+        </Container>
+      </section>
+    </>
   );
 };
 

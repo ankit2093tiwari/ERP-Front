@@ -8,6 +8,7 @@ import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import { Form, Row, Col, Container, FormLabel, FormSelect, FormControl, Button, Breadcrumb } from "react-bootstrap";
 import { CgAddR } from 'react-icons/cg';
 import axios from "axios";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const RoutineCheckUp = () => {
   const [data, setData] = useState([]); // Routine Checkup Records
@@ -127,100 +128,100 @@ const RoutineCheckUp = () => {
     fetchDoctors();
   }, []);
 
+  const breadcrumbItems = [{ label: "Medical", link: "/medical/all-module" }, { label: "Routine CheckUp", link: "null" }]
+
   return (
-    <Container>
-      <Row className='mt-1 mb-1'>
-        <Col>
-          <Breadcrumb>
-            <Breadcrumb.Item href="/">Home</Breadcrumb.Item>
-            <Breadcrumb.Item href="/medical/all-module">
-              Medical
-            </Breadcrumb.Item>
-            <Breadcrumb.Item active> Routine Check up </Breadcrumb.Item>
-          </Breadcrumb>
-        </Col>
-      </Row>
-
-
-
-      
-      <Button onClick={onOpen} className="btn btn-primary mb-4"> <CgAddR /> Add Routine Check up  </Button>
-      {isPopoverOpen ?
-         <div className="cover-sheet">
-         <div className="studentHeading"><h2>Add Routine Check up</h2> 
-         <button className='closeForm' onClick={onClose}> X </button></div>
-           <Form className="formSheet">
-            <Row className="mb-3">
-              <Col lg={6}>
-                <FormLabel className="labelForm">Today Date</FormLabel>
-                <FormControl
-                  type="date"
-                  value={formValues.date || ""}
-                  onChange={(e) => setFormValues({ ...formValues, date: e.target.value })}
-                />
-              </Col>
-              <Col lg={6}>
-                <FormLabel className="labelForm">Doctor Name</FormLabel>
-                <FormSelect
-                  value={formValues.doctor?._id || ""}
-                  onChange={(e) =>
-                    setFormValues({
-                      ...formValues,
-                      doctor: doctors.find((doc) => doc._id === e.target.value),
-                    })
-                  }
-                >
-                  <option value="">Select</option>
-                  {doctors.map((doc) => (
-                    <option key={doc._id} value={doc._id}>
-                      {doc.doctor_name}
-                    </option>
-                  ))}
-                </FormSelect>
-              </Col>
-            </Row>
-            <Row className="mb-3">
-              <Col lg={6}>
-                <FormLabel className="labelForm">Checkup For</FormLabel>
-                <FormSelect
-                  value={formValues.check_up_for || ""}
-                  onChange={(e) => setFormValues({ ...formValues, check_up_for: e.target.value })}>
-                  <option value="">Select</option>
-                  <option value="Staff">Staff</option>
-                  <option value="Student">Student</option>
-                </FormSelect>
-              </Col>
-              <Col lg={6}>
-                <FormLabel className="labelForm">Remarks</FormLabel>
-                <FormControl
-                  type="text"
-                  placeholder="Enter Remarks"
-                  value={formValues.remark || ""}
-                  onChange={(e) => setFormValues({ ...formValues, remark: e.target.value })}
-                />
-              </Col>
-            </Row>
-            <Button className="btn btn-primary mt-4" onClick={handleSubmit}>
-              {editMode ? "Update" : "Submit"}
-            </Button>
-            </Form>
-          </div>
-        : null }
-
-        {/* Table Section */}
-        <Row>
-          <Col>
-          <div className="tableSheet">
-            <h2>Routine Checkup Records</h2>
-            {loading && <p>Loading...</p>}
-            {error && <p style={{ color: "red" }}>{error}</p>}
-            {!loading && !error && <Table columns={columns} data={data} />}
-
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
+      </div>
+      <section>
+        <Container>
+          <Button onClick={onOpen} className="btn-add"> <CgAddR /> Add Routine Check up  </Button>
+          {isPopoverOpen ?
+            <div className="cover-sheet">
+              <div className="studentHeading"><h2>Add Routine Check up</h2>
+                <button className='closeForm' onClick={onClose}> X </button></div>
+              <Form className="formSheet">
+                <Row className="mb-3">
+                  <Col lg={6}>
+                    <FormLabel className="labelForm">Today Date</FormLabel>
+                    <FormControl
+                      type="date"
+                      value={formValues.date || ""}
+                      onChange={(e) => setFormValues({ ...formValues, date: e.target.value })}
+                    />
+                  </Col>
+                  <Col lg={6}>
+                    <FormLabel className="labelForm">Doctor Name</FormLabel>
+                    <FormSelect
+                      value={formValues.doctor?._id || ""}
+                      onChange={(e) =>
+                        setFormValues({
+                          ...formValues,
+                          doctor: doctors.find((doc) => doc._id === e.target.value),
+                        })
+                      }
+                    >
+                      <option value="">Select</option>
+                      {doctors.map((doc) => (
+                        <option key={doc._id} value={doc._id}>
+                          {doc.doctor_name}
+                        </option>
+                      ))}
+                    </FormSelect>
+                  </Col>
+                </Row>
+                <Row className="mb-3">
+                  <Col lg={6}>
+                    <FormLabel className="labelForm">Checkup For</FormLabel>
+                    <FormSelect
+                      value={formValues.check_up_for || ""}
+                      onChange={(e) => setFormValues({ ...formValues, check_up_for: e.target.value })}>
+                      <option value="">Select</option>
+                      <option value="Staff">Staff</option>
+                      <option value="Student">Student</option>
+                    </FormSelect>
+                  </Col>
+                  <Col lg={6}>
+                    <FormLabel className="labelForm">Remarks</FormLabel>
+                    <FormControl
+                      type="text"
+                      placeholder="Enter Remarks"
+                      value={formValues.remark || ""}
+                      onChange={(e) => setFormValues({ ...formValues, remark: e.target.value })}
+                    />
+                  </Col>
+                </Row>
+                <Button className="btn btn-primary mt-4" onClick={handleSubmit}>
+                  {editMode ? "Update" : "Submit"}
+                </Button>
+              </Form>
             </div>
-          </Col>
-        </Row>
-    
-    </Container>
+            : null}
+
+          {/* Table Section */}
+          <Row>
+            <Col>
+              <div className="tableSheet">
+                <h2>Routine Checkup Records</h2>
+                {loading && <p>Loading...</p>}
+                {error && <p style={{ color: "red" }}>{error}</p>}
+                {!loading && !error && <Table columns={columns} data={data} />}
+
+              </div>
+            </Col>
+          </Row>
+
+        </Container>
+      </section>
+    </>
   );
 };
 

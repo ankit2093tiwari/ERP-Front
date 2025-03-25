@@ -8,6 +8,7 @@ import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import { Form, Row, Col, Container, FormLabel, FormControl, Button, Breadcrumb } from "react-bootstrap";
 import axios from "axios";
 import { CgAddR } from 'react-icons/cg';
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const RackAndShelfManager = () => {
   const [data, setData] = useState([]);
@@ -118,64 +119,69 @@ const RackAndShelfManager = () => {
     fetchData();
   }, []);
 
+  const breadcrumbItems = [{ label: "Library", link: "/library/all-module" }, { label: "Rack Master", link: "null" }]
+
   return (
-    <Container>
-      <Row className="mt-1 mb-1">
-        <Col>
-          <Breadcrumb>
-            <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-            <Breadcrumb.Item href="/library/all-module">Library</Breadcrumb.Item>
-            <Breadcrumb.Item active>Rack & Shelf</Breadcrumb.Item>
-          </Breadcrumb>
-        </Col>
-      </Row>
-
-      <Button onClick={() => setIsPopoverOpen(!isPopoverOpen)} className="btn btn-primary">
-        <CgAddR /> Add Rack / Shelf
-      </Button>
-      {isPopoverOpen && (
-        <div className="cover-sheet">
-          <div className="studentHeading">
-            <h2>Add Rack / Shelf</h2>
-            <button className="closeForm" onClick={() => setIsPopoverOpen(false)}>
-              X
-            </button>
-          </div>
-          <Form className="formSheet">
-            <Row>
-              <Col lg={6}>
-                <FormLabel className="labelForm">Rack Name</FormLabel>
-                <FormControl
-                  type="text"
-                  placeholder="Enter Rack Name"
-                  value={newRackName}
-                  onChange={(e) => setNewRackName(e.target.value)}
-                />
-              </Col>
-              <Col lg={6}>
-                <FormLabel className="labelForm">Shelf Name</FormLabel>
-                <FormControl
-                  type="text"
-                  placeholder="Enter Shelf Name"
-                  value={newShelfName}
-                  onChange={(e) => setNewShelfName(e.target.value)}
-                />
-              </Col>
-            </Row>
-            <Button onClick={handleAdd} className="btn btn-primary mt-3">
-              Add Rack / Shelf
-            </Button>
-          </Form>
-        </div>
-      )}
-
-      <div className="tableSheet mt-4">
-        <h2>Rack & Shelf Records</h2>
-        {loading && <p>Loading...</p>}
-        {error && <p>{error}</p>}
-        {!loading && !error && <Table columns={columns} data={data} />}
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
       </div>
-    </Container>
+      <section>
+        <Container>
+          <Button onClick={() => setIsPopoverOpen(!isPopoverOpen)} className="btn-add">
+            <CgAddR /> Add Rack / Shelf
+          </Button>
+          {isPopoverOpen && (
+            <div className="cover-sheet">
+              <div className="studentHeading">
+                <h2>Add Rack / Shelf</h2>
+                <button className="closeForm" onClick={() => setIsPopoverOpen(false)}>
+                  X
+                </button>
+              </div>
+              <Form className="formSheet">
+                <Row>
+                  <Col lg={6}>
+                    <FormLabel className="labelForm">Rack Name</FormLabel>
+                    <FormControl
+                      type="text"
+                      placeholder="Enter Rack Name"
+                      value={newRackName}
+                      onChange={(e) => setNewRackName(e.target.value)}
+                    />
+                  </Col>
+                  <Col lg={6}>
+                    <FormLabel className="labelForm">Shelf Name</FormLabel>
+                    <FormControl
+                      type="text"
+                      placeholder="Enter Shelf Name"
+                      value={newShelfName}
+                      onChange={(e) => setNewShelfName(e.target.value)}
+                    />
+                  </Col>
+                </Row>
+                <Button onClick={handleAdd} className="btn btn-primary mt-3">
+                  Add Rack / Shelf
+                </Button>
+              </Form>
+            </div>
+          )}
+
+          <div className="tableSheet mt-4">
+            <h2>Rack & Shelf Records</h2>
+            {loading && <p>Loading...</p>}
+            {error && <p>{error}</p>}
+            {!loading && !error && <Table columns={columns} data={data} />}
+          </div>
+        </Container>
+      </section>
+    </>
   );
 };
 
