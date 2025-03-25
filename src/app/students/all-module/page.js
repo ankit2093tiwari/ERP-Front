@@ -19,25 +19,25 @@ const Page = () => {
   const cardData = [
     {
       href: "/students/add-new-student",
-      icon: '<Image src="/module/student/students.png" className="studentIcon" width={100} height={100} alt="" />',
+      icon: <Image src="/module/student/students.png" className="studentIcon" width={100} height={100} alt="" />,
       title: "New Student",
       description: "Add Basic Details Of New Student",
     },
     {
       href: "/students/update-student",
-      icon: '<Image src="/module/student/updateStudent.png" className="studentIcon" width={100} height={100} alt="" />',
+      icon: <Image src="/module/student/updateStudent.png" className="studentIcon" width={100} height={100} alt="" />,
       title: "Update Student",
       description: "Update Basic Details Of Student",
     },
     {
       href: "/students/assign-roll-no",
-      icon: '<Image src="/module/student/assignroll.png" className="studentIcon" width={100} height={100} alt="" />',
+      icon: <Image src="/module/student/assignroll.png" className="studentIcon" width={100} height={100} alt="" />,
       title: "Assign RollNo",
       description: "Assign Roll No To Student",
     },
     {
       href: "/students/promote-student",
-      icon: '<Image src="/module/student/promoteStudent.png" className="studentIcon" width={100} height={100} alt="" />',
+      icon: <Image src="/module/student/promoteStudent.png" className="studentIcon" width={100} height={100} alt="" />,
       title: "Promote Student",
       description: "Promote Student To Next Session",
     },
@@ -49,7 +49,7 @@ const Page = () => {
     },
     {
       href: "/students/id-card",
-      icon: '<Image src="/module/student/report.png" className="studentIcon" width={100} height={100} alt="" />',
+      icon: <Image src="/module/student/report.png" className="studentIcon" width={100} height={100} alt="" />,
       title: "ID Card",
       description: "Generate Id Card Of Student",
     },
