@@ -11,15 +11,15 @@ import { Container,Row, Col } from "react-bootstrap";
 const Page = () => {
   const cardData = [
     {
-      href: "/hrd/add-notice",
+      href: "/hrd/departmentMaster",
       icon: <Image src="/module/hrd/designationMaster.png" className="studentIcon" width={100} height={100} alt="" />,
-      title: "Designation Master",
+      title: "Department Master",
       description: "Add Basic Details Of Notice",
     },
     {
-      href: "/hrd/notice-records",
+      href: "/hrd/designationMaster",
       icon: <Image src="/module/hrd/allowance.png" className="studentIcon" width={100} height={100} alt="" />,
-      title: "Allowance Master",
+      title: "Designation Master",
       description: "Check Basic Details Of Notice",
     },
     {
@@ -37,7 +37,7 @@ const Page = () => {
     {
       href: "/hrd/notice-records",
       icon: <Image src="/module/hrd/departmentMaster.png" className="studentIcon" width={100} height={100} alt="" />,
-      title: "Department Master",
+      title: "Allowance Master",
       description: "Check Basic Details Of Notice",
     },
     {
