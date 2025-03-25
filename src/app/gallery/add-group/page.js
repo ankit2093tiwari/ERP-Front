@@ -17,6 +17,7 @@ import {
 import axios from "axios";
 import Table from "@/app/component/DataTable";
 import { CgAddR } from 'react-icons/cg';
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const AddGalleryGroup = () => {
   const [data, setData] = useState([]); // Gallery group data
@@ -27,8 +28,8 @@ const AddGalleryGroup = () => {
   const [newGroup, setNewGroup] = useState({ groupName: "" }); // Form values
 
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-    const onOpen = () => setIsPopoverOpen(true);
-    const onClose = () => setIsPopoverOpen(false);
+  const onOpen = () => setIsPopoverOpen(true);
+  const onClose = () => setIsPopoverOpen(false);
 
   // Fetch gallery groups
   const fetchData = async () => {
@@ -151,78 +152,82 @@ const AddGalleryGroup = () => {
     },
   ];
 
+  const breadcrumbItems = [{ label: "Gallery", link: "/gallery/all-module" }, { label: "Add Group", link: "null" }]
+
   return (
-    <Container>
-      <Row className='mt-1 mb-1'>
-              <Col>
-                <Breadcrumb>
-                  <Breadcrumb.Item href="/">Home</Breadcrumb.Item>
-                  <Breadcrumb.Item href="/gallery/all-module">
-                    Gallery
-                  </Breadcrumb.Item>
-                  <Breadcrumb.Item active>Add Group</Breadcrumb.Item>
-                </Breadcrumb>
-              </Col>
-            </Row>
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
+      </div>
+      <section>
+        <Container>
 
-      {successMessage && <Alert variant="success">{successMessage}</Alert>}
-      {error && <Alert variant="danger">{error}</Alert>}
+          {successMessage && <Alert variant="success">{successMessage}</Alert>}
+          {error && <Alert variant="danger">{error}</Alert>}
 
-      <Row>
-        <Col>
-        <Button onClick={onOpen} className="btn btn-primary">
-        <CgAddR />  Add Group
-          </Button>
-          {isPopoverOpen && (
-            <div className="cover-sheet">
-              <div className="studentHeading"><h2>Add Gallery Group</h2> 
-              <button className='closeForm' onClick={onClose}> X </button>
+          <Row>
+            <Col>
+              <Button onClick={onOpen} className="btn-add">
+                <CgAddR />  Add Group
+              </Button>
+              {isPopoverOpen && (
+                <div className="cover-sheet">
+                  <div className="studentHeading"><h2>Add Gallery Group</h2>
+                    <button className='closeForm' onClick={onClose}> X </button>
+                  </div>
+                  <Form className="formSheet">
+                    <Row className="mb-3">
+                      <Col lg={6}>
+                        <FormLabel className="labelForm">Group Name</FormLabel>
+                        <FormControl
+                          type="text"
+                          placeholder="Enter Group Name"
+                          value={newGroup.groupName}
+                          onChange={(e) =>
+                            setNewGroup({
+                              ...newGroup,
+                              groupName: e.target.value,
+                            })
+                          }
+                        />
+                      </Col>
+                    </Row>
+                    <Row>
+                      <Col>
+                        <Button onClick={handleAdd} className="btn btn-primary mt-4">
+                          Add Group
+                        </Button>
+                      </Col>
+                    </Row>
+                  </Form>
+                </div>
+              )}
+            </Col>
+          </Row>
+
+          <Row>
+            <Col>
+              <div className="tableSheet">
+                <h2>Gallery Groups</h2>
+                {loading ? (
+                  <p>Loading...</p>
+                ) : data.length > 0 ? (
+                  <Table columns={columns} data={data} />
+                ) : (
+                  <p>No groups available.</p>
+                )}
               </div>
-              <Form className="formSheet">
-                <Row className="mb-3">
-                  <Col lg={6}>
-                    <FormLabel className="labelForm">Group Name</FormLabel>
-                    <FormControl
-                      type="text"
-                      placeholder="Enter Group Name"
-                      value={newGroup.groupName}
-                      onChange={(e) =>
-                        setNewGroup({
-                          ...newGroup,
-                          groupName: e.target.value,
-                        })
-                      }
-                    />
-                  </Col>
-                </Row>
-                <Row>
-                  <Col>
-                    <Button onClick={handleAdd} className="btn btn-primary mt-4">
-                      Add Group
-                    </Button>
-                  </Col>
-                </Row>
-              </Form>
-            </div>
-          )}
-        </Col>
-      </Row>
-
-      <Row>
-        <Col>
-          <div className="tableSheet">
-            <h2>Gallery Groups</h2>
-            {loading ? (
-              <p>Loading...</p>
-            ) : data.length > 0 ? (
-              <Table columns={columns} data={data} />
-            ) : (
-              <p>No groups available.</p>
-            )}
-          </div>
-        </Col>
-      </Row>
-    </Container>
+            </Col>
+          </Row>
+        </Container>
+      </section>
+    </>
   );
 };
 

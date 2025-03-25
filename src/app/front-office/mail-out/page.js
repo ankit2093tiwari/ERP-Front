@@ -7,6 +7,7 @@ import dynamic from 'next/dynamic';
 import { CgAddR } from 'react-icons/cg';
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import "react-datepicker/dist/react-datepicker.css";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const MailOut = () => {
   const [formData, setFormData] = useState({
@@ -62,7 +63,7 @@ const MailOut = () => {
           <button className='editButton'
             onClick={() => handleEdit(row.id)}
           >
-              <FaEdit />
+            <FaEdit />
           </button>
           <button className="editButton btn-danger"
             onClick={() => handleDelete(row.id)}
@@ -107,9 +108,9 @@ const MailOut = () => {
 
   const [startDate, setStartDate] = useState(new Date());
 
-     const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-     const onOpen = () => setIsPopoverOpen(true);
-     const onClose = () => setIsPopoverOpen(false);
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const onOpen = () => setIsPopoverOpen(true);
+  const onClose = () => setIsPopoverOpen(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -117,25 +118,38 @@ const MailOut = () => {
     setIsPopoverOpen(false);
   };
 
+  const breadcrumbItems = [{ label: "Front Office", link: "/front-office/all-module" }, { label: "Mail Out", link: "null" }]
+
   return (
-    <Container>
-      <Row className='mt-1 mb-1'>
-        <Col>
-          <Breadcrumb>
-            <Breadcrumb.Item href="/">Home</Breadcrumb.Item>
-            <Breadcrumb.Item href="/front-office/all-module">
-              Front Office
-            </Breadcrumb.Item>
-            <Breadcrumb.Item active>Mail Out</Breadcrumb.Item>
-          </Breadcrumb>
-        </Col>
-      </Row>
-      
-      <button onClick={onOpen} type='button' className='btn btn-primary'>
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
+      </div>
+      <section>
+        <Container>
+          <Row className='mt-1 mb-1'>
+            <Col>
+              <Breadcrumb>
+                <Breadcrumb.Item href="/">Home</Breadcrumb.Item>
+                <Breadcrumb.Item href="/front-office/all-module">
+                  Front Office
+                </Breadcrumb.Item>
+                <Breadcrumb.Item active>Mail Out</Breadcrumb.Item>
+              </Breadcrumb>
+            </Col>
+          </Row>
+
+          <button onClick={onOpen} type='button' className='btn btn-primary'>
             <CgAddR />New Mail</button>
           {isPopoverOpen && (
-          <div className="cover-sheet">
-            <div className="studentHeading"><h2>New Mail</h2>  <button className='closeForm' onClick={onClose}> X </button> </div>
+            <div className="cover-sheet">
+              <div className="studentHeading"><h2>New Mail</h2>  <button className='closeForm' onClick={onClose}> X </button> </div>
               <Form onSubmit={handleSubmit} className="formSheet">
                 <Row className="mb-3">
                   <FormGroup as={Col} md="4" controlId="validationCustom02">
@@ -155,15 +169,15 @@ const MailOut = () => {
                       <option value="4">Nikhil</option>
                     </FormSelect>
                   </FormGroup>
-                
+
                   <FormGroup as={Col} md="4" controlId="validationCustom08">
-                  <FormLabel className="labelForm" value={formData.date} onChange={handleChange} required>Date</FormLabel>
+                    <FormLabel className="labelForm" value={formData.date} onChange={handleChange} required>Date</FormLabel>
                     <FormControl
                       required
                       type="date"
                     />
                   </FormGroup>
-                  </Row>
+                </Row>
                 <Row className='mb-3'>
                   <FormGroup as={Col} md="4" controlId="validationCustom07">
                     <FormLabel className="labelForm" value={formData.mode} onChange={handleChange} required>Mode</FormLabel>
@@ -174,7 +188,7 @@ const MailOut = () => {
                       <option value="3">Courier</option>
                     </FormSelect>
                   </FormGroup>
-               
+
                   <FormGroup as={Col} md="4" controlId="validationCustom03">
                     <FormLabel className="labelForm" value={formData.fromF} onChange={handleChange} required>To</FormLabel>
                     <FormControl
@@ -208,7 +222,7 @@ const MailOut = () => {
                       <option value="3">Shashi</option>
                     </FormSelect>
                   </FormGroup>
-                
+
                   <FormGroup as={Col} md="4" controlId="validationCustom16">
                     <FormLabel className="labelForm" value={formData.remark} onChange={handleChange} required>Remark</FormLabel>
                     <FormControl
@@ -221,20 +235,22 @@ const MailOut = () => {
               </Form>
             </div>
           )}
-        
-      <Row>
-        <Col>
-        <div className="tableSheet">
-          <h2>Mail Out Records</h2>
-          <Table columns={columns} data={data} />
-          <div className={styles.buttons} style={{ float: 'right', marginRight: '10px' }}>
-            <button type="button" className="editButton">Previous</button>
-            <button type="button" className="editButton">Next</button>
-          </div>
-          </div>
-        </Col>
-      </Row>
-    </Container>
+
+          <Row>
+            <Col>
+              <div className="tableSheet">
+                <h2>Mail Out Records</h2>
+                <Table columns={columns} data={data} />
+                <div className={styles.buttons} style={{ float: 'right', marginRight: '10px' }}>
+                  <button type="button" className="editButton">Previous</button>
+                  <button type="button" className="editButton">Next</button>
+                </div>
+              </div>
+            </Col>
+          </Row>
+        </Container>
+      </section>
+    </>
   );
 };
 

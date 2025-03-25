@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import styles from "@/app/master-entry/school-info/page.module.css";
 import Preview from "@/app/component/Preview";
 import { Container, Row, Col, Breadcrumb, Form, FormLabel, FormGroup, FormControl, Button } from "react-bootstrap";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const GatePassEntry = () => {
   const [showPreview, setShowPreview] = useState(false);
@@ -35,22 +36,35 @@ const GatePassEntry = () => {
   const togglePreview = () => {
     setShowPreview((prev) => !prev);
   };
+
+  const breadcrumbItems = [{ label: "Front Office", link: "/front-office/all-module" }, { label: "Gate Pass", link: "null" }]
+
   return (
     <>
-      <Container>
-        <Row>
-          <Col>
-            <Breadcrumb>
-              <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-              <Breadcrumb.Item href="/transport">Front Office Module</Breadcrumb.Item>
-              <Breadcrumb.Item active>Gate Pass Entry</Breadcrumb.Item>
-            </Breadcrumb>
-          </Col>
-        </Row>
-        <Row>
-          <Col>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
+      </div>
+      <section>
+        <Container>
+          <Row>
+            <Col>
+              <Breadcrumb>
+                <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
+                <Breadcrumb.Item href="/transport">Front Office Module</Breadcrumb.Item>
+                <Breadcrumb.Item active>Gate Pass Entry</Breadcrumb.Item>
+              </Breadcrumb>
+            </Col>
+          </Row>
+          <Row>
+            <Col>
 
-            
+
               <div className="cover-sheet">
                 <div className="studentHeading"><h2>Gate Pass Entry</h2>  </div>
                 <Form className="formSheet" onSubmit={handleSubmit}>
@@ -103,7 +117,7 @@ const GatePassEntry = () => {
                         required
                         type="text"
                         value={formData.companyDetails}
-                        onChange={handleChange}  />
+                        onChange={handleChange} />
                     </FormGroup>
                     <FormGroup as={Col} md="6" controlId="validationCustom02">
                       <FormLabel className="labelForm">Item In Details *</FormLabel>
@@ -122,7 +136,7 @@ const GatePassEntry = () => {
                         required
                         type="text"
                         value={formData.emailId}
-                        onChange={handleChange}/>
+                        onChange={handleChange} />
                     </FormGroup>
                   </Row>
                   <Row className="mb-3">
@@ -138,13 +152,14 @@ const GatePassEntry = () => {
                 </Form>
               </div>
 
-            <div className={styles.buttons}>
-              <Button className={styles.btnn} type="button" onClick={togglePreview}>Preview</Button>
-              <Button className={styles.btnn} type="submit">Submit</Button>
-            </div>
-          </Col>
-        </Row>
-      </Container>
+              <div className={styles.buttons}>
+                <Button className={styles.btnn} type="button" onClick={togglePreview}>Preview</Button>
+                <Button className={styles.btnn} type="submit">Submit</Button>
+              </div>
+            </Col>
+          </Row>
+        </Container>
+      </section>
     </>
   );
 };

@@ -8,6 +8,7 @@ import { FaTrashAlt } from "react-icons/fa";
 import { Form, Row, Col, Container, Button, Breadcrumb } from "react-bootstrap";
 import Image from "next/image";
 import axios from "axios";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const ImageRecord = () => {
   const [data, setData] = useState([]); // Image records data
@@ -98,31 +99,35 @@ const ImageRecord = () => {
     fetchData();
   }, []);
 
-  return (
-    <Container>
-       <Row className='mt-1 mb-1'>
-              <Col>
-                <Breadcrumb>
-                  <Breadcrumb.Item href="/">Home</Breadcrumb.Item>
-                  <Breadcrumb.Item href="/gallery/all-module">
-                    Gallery
-                  </Breadcrumb.Item>
-                  <Breadcrumb.Item active>Images Records</Breadcrumb.Item>
-                </Breadcrumb>
-              </Col>
-            </Row>
-      <Row>
-        <Col>
-        <div className="tableSheet">
-          <h2>Images Records</h2>
-          {loading && <p>Loading...</p>}
-          {error && <p style={{ color: "red" }}>{error}</p>}
-          {!loading && !error && <Table columns={columns} data={data} />}
+  const breadcrumbItems = [{ label: "Gallery", link: "/gallery/all-module" }, { label: "Image Record", link: "null" }]
 
-          </div>
-        </Col>
-      </Row>
-    </Container>
+  return (
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
+      </div>
+      <section>
+        <Container>
+          <Row>
+            <Col>
+              <div className="tableSheet">
+                <h2>Images Records</h2>
+                {loading && <p>Loading...</p>}
+                {error && <p style={{ color: "red" }}>{error}</p>}
+                {!loading && !error && <Table columns={columns} data={data} />}
+
+              </div>
+            </Col>
+          </Row>
+        </Container>
+      </section>
+    </>
   );
 };
 
