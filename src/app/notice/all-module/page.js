@@ -1,8 +1,6 @@
 "use client";
 import React from "react";
 import Link from "next/link";
-import { RiSchoolLine } from "react-icons/ri";
-import { SiGoogleclassroom } from "react-icons/si";
 import SubCard from "@/app/component/SubCard";
 import Image from "next/image";
 import BreadcrumbComp from "@/app/component/Breadcrumb";

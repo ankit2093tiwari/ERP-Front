@@ -2,15 +2,6 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { RiSchoolLine } from "react-icons/ri";
-import { SiGoogleclassroom } from "react-icons/si";
-import { LiaCitySolid } from "react-icons/lia";
-import { SlCalender } from "react-icons/sl";
-import { HiOutlineDocumentPlus } from "react-icons/hi2";
-import { TbCategoryPlus } from "react-icons/tb";
-import { PiTreeStructureLight } from "react-icons/pi";
-import { MdOutlineSubject } from "react-icons/md";
-import { FaChromecast } from "react-icons/fa6";
 import SubCard from "@/app/component/SubCard";
 import { Container, Row, Col, } from "react-bootstrap";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
