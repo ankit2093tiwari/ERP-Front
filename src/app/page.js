@@ -327,7 +327,7 @@ const Dashboard = () => {
                   <div className="card-header">
                     <h5 className="fw-normal mb-1 fw-bold text-start">Top Categories  </h5>
                   </div>
-                  <div className="card-body position-relative z-1">
+                  <div className="card-body position-relative z-1 categories-box-wrap text-start">
                     <div className="space-y-5">
                       <a aria-current="page" href="#" className="d-flex align-items-center justify-content-between">
                         <div className="d-flex align-items-center gap-3">

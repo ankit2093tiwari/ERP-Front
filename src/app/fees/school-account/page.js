@@ -7,6 +7,7 @@ import { FaTrashAlt, FaEdit } from "react-icons/fa";
 import { Form, Row, Col, Container, Button, Breadcrumb, Modal } from "react-bootstrap";
 import axios from "axios";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import { copyContent, printContent } from "@/app/utils";
 
 const SchoolAccount = () => {
   const [data, setData] = useState([]); // School records data
@@ -85,6 +86,23 @@ const SchoolAccount = () => {
     setShowModal(true);
   };
 
+  const handleCopy = () => {
+    const headers = ["#", "School Name"];
+    const rows = data.map((row, index) => `${index + 1}\t${row.school_name || "N/A"}`);
+    copyContent(headers, rows);
+
+  }
+
+   const handlePrint = async () => {
+      const tableHeaders = [["#", "School Name"]];
+      const tableRows = data.map((row, index) => [
+        index + 1,
+        row.school_name || "N/A",
+      ]);
+  
+      printContent(tableHeaders, tableRows);
+    }
+
   // Handle update school
   const handleUpdate = async () => {
     if (!selectedSchool) return;
@@ -107,6 +125,7 @@ const SchoolAccount = () => {
             row._id === selectedSchool._id ? { ...row, school_name: schoolName } : row
           )
         );
+        fetchData();
         setShowModal(false); // Close the modal
       }
     } catch (error) {
@@ -141,7 +160,7 @@ const SchoolAccount = () => {
                 <h2>School Account Records</h2>
                 {loading && <p>Loading...</p>}
                 {error && <p style={{ color: "red" }}>{error}</p>}
-                {!loading && !error && <Table columns={columns} data={data} />}
+                {!loading && !error && <Table columns={columns} data={data} handleCopy={handleCopy} handlePrint={handlePrint}/>}
               </div>
             </Col>
           </Row>

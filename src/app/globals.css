@@ -221,9 +221,9 @@ section
 {
   padding: 10px 20px;
 }
-.accordion-item:first-of-type>.accordion-header .accordion-button {
+/* .accordion-item:first-of-type>.accordion-header .accordion-button {
   border-radius: 1px !important;
-}
+} */
 .sidebarAccordion .accordion-item {
   border-radius: 0px !important;
   border: none;
@@ -995,6 +995,13 @@ input::-webkit-inner-spin-button {
   overflow-y: auto;
   padding-right: 20px;
 }
+.categories-box-wrap
+{
+  max-height: 340px;
+  overflow-y: auto;
+  padding-right: 20px;
+}
+
 
 .notice-box-wrap .notice-list {
   border-bottom: 1px solid #ededed;
@@ -1071,6 +1078,7 @@ input::-webkit-inner-spin-button {
 
 .space-y-5 a img {
   width: 54px;
+  height: 54px;
   background: #eee;
   border-radius: 8px;
 }
