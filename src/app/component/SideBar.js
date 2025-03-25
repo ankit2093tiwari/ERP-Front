@@ -155,9 +155,9 @@ export default function Sidebar({ isOpen }) {
         { title: "Notice Records", href: "/notice/noticeRecords", icon: <FaAngleDoubleRight /> },
     ];
     const hrdItems = [
-        { title: "All Modules", href: "/hrd/all-module", icon: <FaAngleDoubleRight /> },
-        { title: "Create Type", href: "/hrd/create-type", icon: <FaAngleDoubleRight /> },
-        { title: "Enter Data", href: "/hrd/enter-data", icon: <FaAngleDoubleRight /> },
+        { title: "All Modules", href: "/hrd/allModule", icon: <FaAngleDoubleRight /> },
+        { title: "Department Master", href: "/hrd/departmentMaster", icon: <FaAngleDoubleRight /> },
+        { title: "Designation Master", href: "/hrd/designationMaster", icon: <FaAngleDoubleRight /> },
     ];
     const libraryItems = [
         { title: "All Modules", href: "/library/all-module", icon: <FaAngleDoubleRight /> },
