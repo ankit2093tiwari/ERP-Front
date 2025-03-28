@@ -81,13 +81,12 @@ const Complaint = () => {
         </Container>
       </div>
       <section>
-        <Container className={`${styles.formContainer} ${styles.complaintBackground}`}>
+        <Container>
+          <Button onClick={() => setShowAddForm(true)} className="btn-add">
+            <CgAddR /> Add Complaint
+          </Button>
           <Row className="mt-1 mb-1">
             <Col>
-              <Button onClick={() => setShowAddForm(true)} className="btn btn-primary mb-4">
-                <CgAddR /> Add Complaint
-              </Button>
-
               {showAddForm && (
                 <div className="cover-sheet">
                   <div className="studentHeading">
@@ -99,7 +98,7 @@ const Complaint = () => {
                   <Form className="formSheet">
                     <Row className="mb-3">
                       <Col lg={6}>
-                        <FormLabel>Student Details</FormLabel>
+                        <FormLabel className="labelForm">Student Details</FormLabel>
                         <FormControl
                           type="text"
                           value={newComplaint.studentDetail}
@@ -109,7 +108,7 @@ const Complaint = () => {
                         />
                       </Col>
                       <Col lg={6}>
-                        <FormLabel>Class Section</FormLabel>
+                        <FormLabel className="labelForm">Class Section</FormLabel>
                         <FormControl
                           type="text"
                           value={newComplaint.classSection}
@@ -119,7 +118,7 @@ const Complaint = () => {
                         />
                       </Col>
                       <Col lg={6}>
-                        <FormLabel>Complaint Date</FormLabel>
+                        <FormLabel className="labelForm">Complaint Date</FormLabel>
                         <FormControl
                           type="date"
                           value={newComplaint.complaintDate}

@@ -127,7 +127,7 @@ const Thought = () => {
               <Form className="formSheet">
                 <Row className="mb-3">
                   <Col lg={6}>
-                    <FormLabel>Date</FormLabel>
+                    <FormLabel className="labelForm">Date</FormLabel>
                     <FormControl
                       type="date"
                       value={newThought.date}
@@ -135,7 +135,7 @@ const Thought = () => {
                     />
                   </Col>
                   <Col lg={6}>
-                    <FormLabel>Thought Name</FormLabel>
+                    <FormLabel className="labelForm">Thought Name</FormLabel>
                     <FormControl
                       type="text"
                       placeholder="Enter Thought Name"

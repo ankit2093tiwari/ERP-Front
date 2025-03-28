@@ -161,7 +161,7 @@ const DailyDiary = () => {
     fetchTeachers();
   }, []);
 
-  const breadcrumbItems = [{ label: "Daily Dairy", link: "/dailyDairy" }]
+  const breadcrumbItems = [{ label: "Daily Diary", link: "/dailyDiary" }]
 
   return (
     <>

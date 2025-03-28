@@ -24,7 +24,7 @@ const Page = () => {
       href: "/front-office/address-book",
       icon: <Image src="/module/frontoffice/addressbook.png" className="studentIcon" width={100} height={100} alt="" />,
       title: "Address Book",
-      description: "Assign Roll No To Student",
+      description: "Assign AddressBook",
     },
   ];
 

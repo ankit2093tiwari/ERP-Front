@@ -9,7 +9,7 @@ import { Container, Row, Col } from "react-bootstrap";
 const Page = () => {
   const cardData = [
     {
-      href: "/user-management/add-user",
+      href: "/userManagement/addUser",
       icon: <Image src="/module/user/addUser.png" className="studentIcon" width={100} height={100} alt="" />,
       title: "Add User",
       description: "Add Basic Details Of Notice",

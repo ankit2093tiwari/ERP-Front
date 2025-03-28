@@ -92,13 +92,19 @@ const ImportantSMS = () => {
         </Container>
       </div>
       <section>
-        <Container className={styles.formContainer}>
+        <Container>
           <Form className={styles.form}>
             <Row>
               <Col>
-                <h2 style={{ fontSize: '22px' }}>Important SMS Details</h2>
-                <Table columns={columns} data={data} />
-
+                {/* <div className="cover-sheet">
+                  <div className="studentHeading">
+                    <h2>Important SMS Details</h2>
+                  </div>
+                </div> */}
+                <div className="tableSheet">
+                  <h2>Important SMS Details</h2>
+                  <Table columns={columns} data={data} />
+                </div>
               </Col>
             </Row>
           </Form>

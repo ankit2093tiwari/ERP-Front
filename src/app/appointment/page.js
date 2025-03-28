@@ -1,29 +1,26 @@
 "use client";
 import React, { useState } from "react";
 import dynamic from "next/dynamic";
-import { FaEdit, FaTrashAlt } from "react-icons/fa";
-import { CgAddR } from 'react-icons/cg';
-import { Form, Row, Col, Container, FormLabel, FormControl, Button, Breadcrumb } from "react-bootstrap";
+import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
+import { CgAddR } from "react-icons/cg";
+import {
+  Form,
+  Row,
+  Col,
+  Container,
+  FormLabel,
+  FormControl,
+  Button,
+  Breadcrumb,
+} from "react-bootstrap";
 import Table from "@/app/component/DataTable";
 import styles from "@/app/medical/routine-check-up/page.module.css";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const Appointment = () => {
   const [showAddForm, setShowAddForm] = useState(false);
-  const [newAppointment, setNewAppointment] = useState({
-    student: "",
-    class: "",
-    personalName: "",
-    whomeToMeet: "",
-    timeDuration: "",
-    action: "",
-    emailId: "",
-    purpose: "",
-    remark: "",
-  });
-
-  // Static data for the table
-  const data = [
+  const [editId, setEditId] = useState(null);
+  const [appointments, setAppointments] = useState([
     {
       id: 1,
       student: "John Doe",
@@ -36,47 +33,69 @@ const Appointment = () => {
       purpose: "Routine check-up",
       remark: "None",
     },
-    {
-      id: 2,
-      student: "Jane Doe",
-      class: "12th",
-      personalName: "Jane",
-      whomeToMeet: "Dr. Lee",
-      timeDuration: "45 minutes",
-      action: "Check-up",
-      emailId: "jane@example.com",
-      purpose: "Routine check-up",
-      remark: "N/A",
-    },
-  ];
+  ]);
+  const [newAppointment, setNewAppointment] = useState({
+    student: "",
+    class: "",
+    personalName: "",
+    whomeToMeet: "",
+    timeDuration: "",
+    action: "",
+    emailId: "",
+    purpose: "",
+    remark: "",
+  });
 
   const columns = [
     { name: "#", selector: (row) => row.id, sortable: true, width: "80px" },
-    { name: "Student", selector: (row) => row.student, sortable: false },
-    { name: "Class", selector: (row) => row.class, sortable: false },
-    { name: "Personal Name", selector: (row) => row.personalName, sortable: false },
-    { name: "Whom to Meet", selector: (row) => row.whomeToMeet, sortable: false },
-    { name: "Time Duration", selector: (row) => row.timeDuration, sortable: false },
-    { name: "Action", selector: (row) => row.action, sortable: false },
-    { name: "Email Id", selector: (row) => row.emailId, sortable: false },
-    { name: "Purpose", selector: (row) => row.purpose, sortable: false },
-    { name: "Remark", selector: (row) => row.remark, sortable: false },
+    { name: "Student", selector: (row) => row.student, sortable: true },
+    { name: "Class", selector: (row) => row.class, sortable: true },
+    { name: "Personal Name", selector: (row) => row.personalName, sortable: true },
+    { name: "Whom to Meet", selector: (row) => row.whomeToMeet, sortable: true },
+    { name: "Time Duration", selector: (row) => row.timeDuration, sortable: true },
+    { name: "Action", selector: (row) => row.action, sortable: true },
+    { name: "Email Id", selector: (row) => row.emailId, sortable: true },
+    { name: "Purpose", selector: (row) => row.purpose, sortable: true },
+    { name: "Remark", selector: (row) => row.remark, sortable: true },
+    {
+      name: "Actions",
+      cell: (row) => (
+        <div className="d-flex gap-2">
+          <Button className="btn-warning btn-sm" onClick={() => handleEdit(row.id)}>
+            <FaEdit />
+          </Button>
+          <Button className="btn-danger btn-sm" onClick={() => handleDelete(row.id)}>
+            <FaTrashAlt />
+          </Button>
+        </div>
+      ),
+    },
   ];
 
   const handleEdit = (id) => {
-    const item = data.find((row) => row.id === id);
-    const updatedName = prompt("Enter new name:", item.name);
-
-    // Updating logic (for static data in this case, you can directly modify the state if needed)
+    setEditId(id);
+    const item = appointments.find((row) => row.id === id);
+    setNewAppointment(item);
+    setShowAddForm(true);
   };
 
   const handleDelete = (id) => {
     if (confirm("Are you sure you want to delete this entry?")) {
-      // Remove item from static data
+      setAppointments(appointments.filter((row) => row.id !== id));
     }
   };
 
-  const breadcrumbItems = [{ label: "Appointment", link: "/appointment" }]
+  const handleSave = () => {
+    if (editId) {
+      setAppointments(
+        appointments.map((row) => (row.id === editId ? { ...newAppointment, id: editId } : row))
+      );
+      setEditId(null);
+    } else {
+      setAppointments([...appointments, { ...newAppointment, id: appointments.length + 1 }]);
+    }
+    setShowAddForm(false);
+  };
 
   return (
     <>
@@ -84,23 +103,25 @@ const Appointment = () => {
         <Container>
           <Row className="mt-1 mb-1">
             <Col>
-              <BreadcrumbComp items={breadcrumbItems} />
+              <BreadcrumbComp items={[{ label: "Appointment", link: "/appointment" }]} />
             </Col>
           </Row>
         </Container>
       </div>
+
       <section>
-        <Container className={styles.formContainer}>
-          <Row className="mt-1 mb-1">
+        <Container >
+          <Button onClick={() => setShowAddForm(true)} className="btn-add">
+            <CgAddR /> {editId ? "Edit Appointment" : "Add Appointment"}
+          </Button>
+          <Row className="mt-3 mb-3">
             <Col>
-              <Button onClick={() => setShowAddForm(true)} className="btn btn-primary mb-4">
-                <CgAddR /> Add Appointment
-              </Button>
+
 
               {showAddForm && (
                 <div className="cover-sheet">
                   <div className="studentHeading">
-                    <h2>Add New Appointment</h2>
+                    <h2>{editId ? "Edit Appointment" : "Add New Appointment"}</h2>
                     <button className="closeForm" onClick={() => setShowAddForm(false)}>
                       X
                     </button>
@@ -108,38 +129,24 @@ const Appointment = () => {
                   <Form className="formSheet">
                     <Row className="mb-3">
                       <Col lg={6}>
-                        <FormLabel>Student</FormLabel>
+                        <FormLabel className="labelForm">Student</FormLabel>
                         <FormControl
                           type="text"
                           value={newAppointment.student}
-                          onChange={(e) =>
-                            setNewAppointment({ ...newAppointment, student: e.target.value })
-                          }
+                          onChange={(e) => setNewAppointment({ ...newAppointment, student: e.target.value })}
                         />
                       </Col>
                       <Col lg={6}>
-                        <FormLabel>Class</FormLabel>
+                        <FormLabel className="labelForm">Class</FormLabel>
                         <FormControl
                           type="text"
                           value={newAppointment.class}
-                          onChange={(e) =>
-                            setNewAppointment({ ...newAppointment, class: e.target.value })
-                          }
-                        />
-                      </Col>
-                      <Col lg={6}>
-                        <FormLabel>Personal Name</FormLabel>
-                        <FormControl
-                          type="text"
-                          value={newAppointment.personalName}
-                          onChange={(e) =>
-                            setNewAppointment({ ...newAppointment, personalName: e.target.value })
-                          }
+                          onChange={(e) => setNewAppointment({ ...newAppointment, class: e.target.value })}
                         />
                       </Col>
                     </Row>
-                    <Button onClick={() => setShowAddForm(false)} className="btn btn-primary">
-                      Add Appointment
+                    <Button onClick={handleSave} className="btn btn-success">
+                      <FaSave /> {editId ? "Update" : "Save"}
                     </Button>
                   </Form>
                 </div>
@@ -147,7 +154,7 @@ const Appointment = () => {
 
               <div className="tableSheet">
                 <h2>Appointment Records</h2>
-                <Table columns={columns} data={data} />
+                <Table columns={columns} data={appointments} />
               </div>
             </Col>
           </Row>

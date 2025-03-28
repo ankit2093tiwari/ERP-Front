@@ -12,32 +12,71 @@ const ConcessionEntry = () => {
   const [classOptions, setClassOptions] = useState([]);
   const [selectedClass, setSelectedClass] = useState("");
   const [concessionType, setConcessionType] = useState("");
-  const [feeGroup, setFeeGroup] = useState("PG to Prep");
+  const [concessionTypeOptions, setConcessionTypeOptions] = useState([]);
+  const [feeGroups, setFeeGroups] = useState([]);
+  const [feeGroup, setFeeGroup] = useState("");
   const [loading, setLoading] = useState(false);
-  const [installments, setInstallments] = useState([
-    { month: "April", actualFee: 200, discountPercent: 0, discountAmount: 0, totalAmount: 200 },
-    { month: "May", actualFee: 200, discountPercent: 0, discountAmount: 0, totalAmount: 200 },
-    { month: "June", actualFee: 200, discountPercent: 0, discountAmount: 0, totalAmount: 200 },
-  ]);
+  const [installments, setInstallments] = useState([]);
   const [studentDetails, setStudentDetails] = useState(null);
 
   // Fetch student options based on search term
+  // useEffect(() => {
+  //   const fetchStudents = async () => {
+  //     if (searchTerm.length >= 2) {
+  //       setLoading(true);
+  //       try {
+  //         const response = await axios.get(
+  //           `${process.env.NEXT_PUBLIC_SITE_URL}/api/students/search?search_term=${searchTerm}`
+  //         );
+          
+  //         if (response?.data?.success) {
+  //           const options = response.data.data.map(student => ({
+  //             value: student._id,
+  //             label: `${student.first_name} ${student.last_name || ""} - ${student.father_name} (ID: ${student.registration_id})`,
+  //             class: student.class_name?._id || student.class_name,
+  //             className: student.class_name?.class_name || "",
+  //             feeGroup: student.fee_group || ""
+  //           }));
+  //           setStudentOptions(options);
+  //         }
+  //       } catch (error) {
+  //         console.error("Error searching students:", error);
+  //       } finally {
+  //         setLoading(false);
+  //       }
+  //     }
+  //   };
+
+  //   const debounceTimer = setTimeout(() => {
+  //     fetchStudents();
+  //   }, 500);
+
+  //   return () => clearTimeout(debounceTimer);
+  // }, [searchTerm]);
   useEffect(() => {
     const fetchStudents = async () => {
       if (searchTerm.length >= 2) {
         setLoading(true);
         try {
-          const response = await axios.get(
-            `${process.env.NEXT_PUBLIC_SITE_URL}/api/students/search?search_term=${searchTerm}`
-          );
-          
+          const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/students/search`, {
+            params: {
+              name: searchTerm,
+              father_name: "",  // Add filters dynamically if needed
+              registration_id: "",
+              class_name: selectedClass || "",
+              section_name: "",
+              religion_name: "",
+              caste_name: "",
+            },
+          });
+  
           if (response?.data?.success) {
             const options = response.data.data.map(student => ({
               value: student._id,
               label: `${student.first_name} ${student.last_name || ""} - ${student.father_name} (ID: ${student.registration_id})`,
               class: student.class_name?._id || student.class_name,
               className: student.class_name?.class_name || "",
-              feeGroup: student.fee_group || "PG to Prep"
+              feeGroup: student.fee_group || ""
             }));
             setStudentOptions(options);
           }
@@ -48,20 +87,27 @@ const ConcessionEntry = () => {
         }
       }
     };
-
+  
     const debounceTimer = setTimeout(() => {
       fetchStudents();
     }, 500);
-
+  
     return () => clearTimeout(debounceTimer);
-  }, [searchTerm]);
+  }, [searchTerm, selectedClass]);
+  
 
   // Fetch class options
   useEffect(() => {
     const fetchClasses = async () => {
       try {
-        const response = await axios.get(`${process.env.NEXT_PUBLIC_SITE_URL}/api/all-classes`);
-        setClassOptions(response.data?.data || []);
+        const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/all-classes`);
+        if (response.data?.data) {
+          setClassOptions(response.data.data);
+          // If there's only one class, select it by default
+          if (response.data.data.length === 1) {
+            setSelectedClass(response.data.data[0]._id);
+          }
+        }
       } catch (error) {
         console.error("Error fetching classes:", error);
       }
@@ -69,6 +115,71 @@ const ConcessionEntry = () => {
 
     fetchClasses();
   }, []);
+
+  // Fetch fee groups
+  useEffect(() => {
+    const fetchFeeGroups = async () => {
+      try {
+        const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/all-fee-groups`);
+        if (response.data?.data) {
+          setFeeGroups(response.data.data);
+          // If there's only one fee group, select it by default
+          if (response.data.data.length === 1) {
+            setFeeGroup(response.data.data[0]._id);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching fee groups:", error);
+      }
+    };
+
+    fetchFeeGroups();
+  }, []);
+
+  // Fetch concession types
+  useEffect(() => {
+    const fetchConcessionTypes = async () => {
+      try {
+        const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/all-concessions`);
+        if (response.data?.data) {
+          setConcessionTypeOptions(response.data.data);
+        }
+      } catch (error) {
+        console.error("Error fetching concession types:", error);
+      }
+    };
+
+    fetchConcessionTypes();
+  }, []);
+
+  // Fetch installments when class or fee group changes
+  useEffect(() => {
+    const fetchInstallments = async () => {
+      if (selectedClass && feeGroup) {
+        try {
+          const classId = typeof selectedClass === 'object' ? selectedClass.value : selectedClass;
+          const response = await axios.get(
+            `https://erp-backend-fy3n.onrender.com/api/installments?class_id=${classId}&fee_group=${feeGroup}`
+          );
+          
+          if (response?.data?.success) {
+            const fetchedInstallments = response.data.data.map(installment => ({
+              month: installment.name,
+              actualFee: installment.amount,
+              discountPercent: 0,
+              discountAmount: 0,
+              totalAmount: installment.amount
+            }));
+            setInstallments(fetchedInstallments);
+          }
+        } catch (error) {
+          console.error("Error fetching installments:", error);
+        }
+      }
+    };
+
+    fetchInstallments();
+  }, [selectedClass, feeGroup]);
 
   const handleStudentSelect = async (selectedOption) => {
     setSelectedStudent(selectedOption);
@@ -85,7 +196,7 @@ const ConcessionEntry = () => {
           
           // Set class and fee group from student data
           setSelectedClass(student.class_name?._id || student.class_name);
-          setFeeGroup(student.fee_group || "PG to Prep");
+          setFeeGroup(student.fee_group || "");
           
           // If class is populated, get the class name
           if (student.class_name?.class_name) {
@@ -100,7 +211,7 @@ const ConcessionEntry = () => {
       }
     } else {
       setSelectedClass("");
-      setFeeGroup("PG to Prep");
+      setFeeGroup("");
       setStudentDetails(null);
     }
   };
@@ -109,11 +220,14 @@ const ConcessionEntry = () => {
     const newInstallments = [...installments];
     const discountPercent = parseFloat(value) || 0;
     
+    // Ensure discount is between 0 and 100
+    const validatedDiscount = Math.min(100, Math.max(0, discountPercent));
+    
     newInstallments[index] = {
       ...newInstallments[index],
-      discountPercent,
-      discountAmount: (newInstallments[index].actualFee * discountPercent) / 100,
-      totalAmount: newInstallments[index].actualFee - (newInstallments[index].actualFee * discountPercent) / 100
+      discountPercent: validatedDiscount,
+      discountAmount: (newInstallments[index].actualFee * validatedDiscount) / 100,
+      totalAmount: newInstallments[index].actualFee - (newInstallments[index].actualFee * validatedDiscount) / 100
     };
     
     setInstallments(newInstallments);
@@ -122,32 +236,37 @@ const ConcessionEntry = () => {
   const handleConcessionTypeChange = (value) => {
     setConcessionType(value);
     
-    // Apply full or half concession automatically
-    if (value === "Full Concession") {
-      const updatedInstallments = installments.map(installment => ({
-        ...installment,
-        discountPercent: 100,
-        discountAmount: installment.actualFee,
-        totalAmount: 0
-      }));
-      setInstallments(updatedInstallments);
-    } else if (value === "Half Concession") {
-      const updatedInstallments = installments.map(installment => ({
-        ...installment,
-        discountPercent: 50,
-        discountAmount: installment.actualFee * 0.5,
-        totalAmount: installment.actualFee * 0.5
-      }));
-      setInstallments(updatedInstallments);
-    } else if (value === "Custom Concession") {
-      // Reset to no discount for custom
-      const updatedInstallments = installments.map(installment => ({
-        ...installment,
-        discountPercent: 0,
-        discountAmount: 0,
-        totalAmount: installment.actualFee
-      }));
-      setInstallments(updatedInstallments);
+    // Find the selected concession type details
+    const selectedConcession = concessionTypeOptions.find(ct => ct._id === value);
+    
+    if (selectedConcession) {
+      // Apply concession based on type
+      if (selectedConcession.type === "full") {
+        const updatedInstallments = installments.map(installment => ({
+          ...installment,
+          discountPercent: 100,
+          discountAmount: installment.actualFee,
+          totalAmount: 0
+        }));
+        setInstallments(updatedInstallments);
+      } else if (selectedConcession.type === "half") {
+        const updatedInstallments = installments.map(installment => ({
+          ...installment,
+          discountPercent: 50,
+          discountAmount: installment.actualFee * 0.5,
+          totalAmount: installment.actualFee * 0.5
+        }));
+        setInstallments(updatedInstallments);
+      } else if (selectedConcession.type === "custom") {
+        // For custom concession, keep the existing values or set to 0 if first time
+        const updatedInstallments = installments.map(installment => ({
+          ...installment,
+          discountPercent: installment.discountPercent || 0,
+          discountAmount: installment.discountAmount || 0,
+          totalAmount: installment.totalAmount || installment.actualFee
+        }));
+        setInstallments(updatedInstallments);
+      }
     }
   };
 
@@ -160,7 +279,7 @@ const ConcessionEntry = () => {
         concession_type: concessionType,
         fee_group: feeGroup,
         installments: installments,
-        academic_year: new Date().getFullYear() // Add current academic year
+        academic_year: new Date().getFullYear()
       };
 
       const response = await axios.post(
@@ -174,7 +293,7 @@ const ConcessionEntry = () => {
         setSelectedStudent(null);
         setSelectedClass("");
         setConcessionType("");
-        setFeeGroup("PG to Prep");
+        setFeeGroup("");
         setInstallments(installments.map(i => ({
           ...i,
           discountPercent: 0,
@@ -189,6 +308,15 @@ const ConcessionEntry = () => {
       alert("Error applying concession. Please try again.");
     }
   };
+
+  // Calculate totals for the table footer
+  const totals = installments.reduce((acc, installment) => {
+    return {
+      actualFee: acc.actualFee + installment.actualFee,
+      discountAmount: acc.discountAmount + installment.discountAmount,
+      totalAmount: acc.totalAmount + installment.totalAmount
+    };
+  }, { actualFee: 0, discountAmount: 0, totalAmount: 0 });
 
   return (
     <Container className="mt-4">
@@ -207,6 +335,7 @@ const ConcessionEntry = () => {
                 isLoading={loading}
                 placeholder="Type to search students..."
                 isClearable
+                value={selectedStudent}
               />
             </Form.Group>
           </Col>
@@ -240,7 +369,7 @@ const ConcessionEntry = () => {
                 value={typeof selectedClass === 'object' ? selectedClass.value : selectedClass}
                 onChange={(e) => setSelectedClass(e.target.value)}
                 required
-                disabled={!!selectedStudent} // Disable if student is selected
+                disabled={!!selectedStudent}
               >
                 <option value="">Select Class</option>
                 {classOptions.map((classItem) => (
@@ -260,10 +389,12 @@ const ConcessionEntry = () => {
                 onChange={(e) => setFeeGroup(e.target.value)}
                 required
               >
-                <option value="PG to Prep">PG to Prep</option>
-                <option value="Group A">Group A</option>
-                <option value="Group B">Group B</option>
-                <option value="Group C">Group C</option>
+                <option value="">Select Fee Group</option>
+                {feeGroups.map((group) => (
+                  <option key={group._id} value={group._id}>
+                    {group.name}
+                  </option>
+                ))}
               </Form.Control>
             </Form.Group>
           </Col>
@@ -281,21 +412,25 @@ const ConcessionEntry = () => {
                 required
               >
                 <option value="">Select Concession Type</option>
-                <option value="Full Concession">Full Concession</option>
-                <option value="Half Concession">Half Concession</option>
-                <option value="Custom Concession">Custom Concession</option>
+                {concessionTypeOptions.map((type) => (
+                  <option key={type._id} value={type._id}>
+                    {type.name} ({type.type})
+                  </option>
+                ))}
               </Form.Control>
             </Form.Group>
           </Col>
         </Row>
 
-        {/* Installments Table (only shown for Custom Concession) */}
-        {concessionType === "Custom Concession" && (
+        {/* Installments Table (only shown for custom concession) */}
+        {concessionType && concessionTypeOptions.find(ct => 
+          ct._id === concessionType && ct.type === "custom"
+        ) && installments.length > 0 && (
           <Row className="mb-4">
             <Col md={12}>
               <h5>Installments Amount</h5>
-              <p>Enter Discount %</p>
-              <Table bordered>
+              <p>Enter Discount % (0-100)</p>
+              <Table bordered striped>
                 <thead>
                   <tr>
                     <th>Month</th>
@@ -309,7 +444,7 @@ const ConcessionEntry = () => {
                   {installments.map((installment, index) => (
                     <tr key={index}>
                       <td>{installment.month}</td>
-                      <td>{installment.actualFee}</td>
+                      <td>{installment.actualFee.toFixed(2)}</td>
                       <td>
                         <Form.Control
                           type="number"
@@ -317,13 +452,23 @@ const ConcessionEntry = () => {
                           onChange={(e) => handleDiscountChange(index, e.target.value)}
                           min="0"
                           max="100"
+                          step="0.01"
                         />
                       </td>
-                      <td>{installment.discountAmount}</td>
-                      <td>{installment.totalAmount}</td>
+                      <td>{installment.discountAmount.toFixed(2)}</td>
+                      <td>{installment.totalAmount.toFixed(2)}</td>
                     </tr>
                   ))}
                 </tbody>
+                <tfoot>
+                  <tr>
+                    <th>Total</th>
+                    <th>{totals.actualFee.toFixed(2)}</th>
+                    <th></th>
+                    <th>{totals.discountAmount.toFixed(2)}</th>
+                    <th>{totals.totalAmount.toFixed(2)}</th>
+                  </tr>
+                </tfoot>
               </Table>
             </Col>
           </Row>
