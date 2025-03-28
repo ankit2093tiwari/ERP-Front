@@ -11,7 +11,14 @@ import { Image } from "react-bootstrap";
 
 export default function Sidebar({ isOpen }) {
     const [activeKey, setActiveKey] = useState(null);
+    const [sidebarHover, setSidebarHover] = useState(false);
 
+    // Function to handle accordion toggle
+    const handleAccordionToggle = (key) => {
+        setActiveKey(activeKey === key ? null : key);
+    };
+
+    // ... (keep all your item arrays the same)
     const masterEntryItems = [
         { title: "All Modules", href: "/master-entry/all-module", icon: <FaAngleDoubleRight /> },
         { title: "School Info", href: "/master-entry/school-info", icon: <FaAngleDoubleRight /> },
@@ -199,11 +206,14 @@ export default function Sidebar({ isOpen }) {
         { title: "Existing Users", href: "/userManagement/exisitingUser", icon: <FaAngleDoubleRight /> },
     ];
 
+
     return (
         <div>
-            <div className={`sidebar ${isOpen || activeKey ? "open" : "closed"}`} onMouseEnter={() => setActiveKey(true)}
-                onMouseLeave={() => setActiveKey(false)} >
-
+            <div
+                className={`sidebar ${isOpen || sidebarHover ? "open" : "closed"}`}
+                onMouseEnter={() => setSidebarHover(true)}
+                onMouseLeave={() => setSidebarHover(false)}
+            >
                 <div className="sidebar-profile d-flex align-items-center flex-column">
                     <div className="position-relative">
                         <Image src="/user.png" className="img-shadow img-5x mb-2 rounded-circle" alt="Gym Admin Templates" />
@@ -215,38 +225,42 @@ export default function Sidebar({ isOpen }) {
                     </div>
                 </div>
                 <ul>
-                    <Accordion activeKey={activeKey} onSelect={(key) => setActiveKey(key === activeKey ? null : key)} className="sidebarAccordion">
-                        <Accordion.Item className="nav-item">
+                    <Accordion activeKey={activeKey} onSelect={handleAccordionToggle} className="sidebarAccordion">
+                        {/* Single items */}
+                        <Accordion.Item eventKey="dashboard" className="nav-item">
                             <Accordion.Header>
                                 <Link href="/" className="nav-link">
                                     <span>
-                                        <FaGauge /> {(isOpen || activeKey) &&  "Dashboard"}
+                                        <FaGauge /> {(isOpen || sidebarHover) && "Dashboard"}
                                     </span>
                                 </Link>
                             </Accordion.Header>
                         </Accordion.Item>
-                        <Accordion.Item className="nav-item">
+
+                        <Accordion.Item eventKey="home" className="nav-item">
                             <Accordion.Header>
                                 <Link href="/home" className="nav-link">
                                     <span>
-                                        <FaHome /> {(isOpen || activeKey) && "Home"}
+                                        <FaHome /> {(isOpen || sidebarHover) && "Home"}
                                     </span>
                                 </Link>
                             </Accordion.Header>
                         </Accordion.Item>
+
+                        {/* Master Entry */}
                         <Accordion.Item eventKey="masterEntry">
                             <Accordion.Header>
                                 <span>
                                     <FaGauge />
-                                    {(isOpen || activeKey) &&  "Master Entry"}
+                                    {(isOpen || sidebarHover) && "Master Entry"}
                                 </span>
                             </Accordion.Header>
                             <Accordion.Body>
-                                <ul style={{ listStyle: "none", paddingLeft: isOpen || activeKey ? "20px" : "0" }}>
+                                <ul style={{ listStyle: "none", paddingLeft: (isOpen || sidebarHover) ? "20px" : "0" }}>
                                     {masterEntryItems.map((item, index) => (
                                         <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
                                             {item.icon}
-                                            <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>
+                                            <span style={{ display: (isOpen || sidebarHover) ? "inline" : "none" }}>
                                                 <Link href={item.href}>
                                                     {item.title}
                                                 </Link>
@@ -256,24 +270,26 @@ export default function Sidebar({ isOpen }) {
                                 </ul>
                             </Accordion.Body>
                         </Accordion.Item>
+
+                        {/* Students */}
                         <Accordion.Item eventKey="students">
                             <Accordion.Header>
                                 <span style={{ display: "flex", alignItems: "center" }}>
-                                    <FaUserGraduate style={{ marginRight: isOpen || activeKey ? "10px" : "0" }} />
-                                    {(isOpen || activeKey) &&  "Students"}
+                                    <FaUserGraduate style={{ marginRight: (isOpen || sidebarHover) ? "10px" : "0" }} />
+                                    {(isOpen || sidebarHover) && "Students"}
                                 </span>
                             </Accordion.Header>
                             <Accordion.Body>
-                                <ul style={{ listStyle: "none", paddingLeft: isOpen || activeKey ? "20px" : "0" }}>
+                                <ul style={{ listStyle: "none", paddingLeft: (isOpen || sidebarHover) ? "20px" : "0" }}>
                                     {studentItems.map((item, index) => (
                                         <li key={index} style={{ padding: "5px 0" }}>
                                             <div style={{ display: "flex", alignItems: "center" }}>
                                                 {item.icon}
-                                                <span style={{ marginLeft: "10px", display: isOpen || activeKey ? "inline" : "none" }}>
+                                                <span style={{ marginLeft: "10px", display: (isOpen || sidebarHover) ? "inline" : "none" }}>
                                                     <Link href={item.href}>{item.title}</Link>
                                                 </span>
                                             </div>
-                                            {item.children && item.isOpen && (
+                                            {item.children && activeKey === "students" && (
                                                 <ul style={{ listStyle: "none", paddingLeft: "20px" }}>
                                                     {item.children.map((child, childIndex) => (
                                                         <li key={childIndex} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
@@ -290,19 +306,21 @@ export default function Sidebar({ isOpen }) {
                                 </ul>
                             </Accordion.Body>
                         </Accordion.Item>
+
+                        {/* Transport */}
                         <Accordion.Item eventKey="transport">
                             <Accordion.Header>
                                 <span style={{ display: "flex", alignItems: "center" }}>
-                                    <FaBus style={{ marginRight: isOpen || activeKey ? "10px" : "0" }} />
-                                    {(isOpen || activeKey) && "Transport"}
+                                    <FaBus style={{ marginRight: (isOpen || sidebarHover) ? "10px" : "0" }} />
+                                    {(isOpen || sidebarHover) && "Transport"}
                                 </span>
                             </Accordion.Header>
                             <Accordion.Body>
-                                <ul style={{ listStyle: "none", paddingLeft: isOpen || activeKey ? "20px" : "0" }}>
+                                <ul style={{ listStyle: "none", paddingLeft: (isOpen || sidebarHover) ? "20px" : "0" }}>
                                     {transportItems.map((item, index) => (
                                         <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
                                             {item.icon}
-                                            <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>
+                                            <span style={{ display: (isOpen || sidebarHover) ? "inline" : "none" }}>
                                                 <Link href={item.href}>
                                                     {item.title}
                                                 </Link>
@@ -312,6 +330,7 @@ export default function Sidebar({ isOpen }) {
                                 </ul>
                             </Accordion.Body>
                         </Accordion.Item>
+
                         <Accordion.Item eventKey="fee">
                             <Accordion.Header>
                                 <span style={{ display: "flex", alignItems: "center" }}>
