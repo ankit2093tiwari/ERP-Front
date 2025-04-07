@@ -204,15 +204,13 @@ const FixedAmount = () => {
             case "classWise":
                 return (
                     <div className="text-center py-5">
-                        <h4>Class Wise View</h4>
-                        <p>This view would show class-wise fixed amounts</p>
+                        <h4>Class Wise</h4>                       
                     </div>
                 );
             case "studentWise":
                 return (
                     <div className="text-center py-5">
-                        <h4>Student Wise View</h4>
-                        <p>This view would show student-wise fixed amounts</p>
+                        <h4>Student Wise</h4>
                     </div>
                 );
             default:
