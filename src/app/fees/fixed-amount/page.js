@@ -4,6 +4,8 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Container, Row, Col, FormLabel, FormSelect, Button, Form, Table } from "react-bootstrap";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import { FaSave } from "react-icons/fa";
+import styles from "@/app/medical/routine-check-up/page.module.css";
 
 const FixedAmount = () => {
     const [classList, setClassList] = useState([]);
@@ -15,6 +17,7 @@ const FixedAmount = () => {
     const [heads, setHeads] = useState([]);
     const [transDate, setTransDate] = useState(new Date().toISOString().split("T")[0]);
     const [loading, setLoading] = useState(false);
+    const [viewType, setViewType] = useState("installmentWise"); // Default to Installment Wise
 
     useEffect(() => {
         fetchData();
@@ -72,8 +75,6 @@ const FixedAmount = () => {
     };
 
     const handleSubmit = async () => {
-        console.log('heads', heads);
-
         if (!selectedClass || !selectedSection || !selectedInstallment || !transDate || heads.length === 0) {
             alert("Please fill all fields.");
             return;
@@ -82,10 +83,10 @@ const FixedAmount = () => {
         const payload = {
             class: selectedClass,
             section: selectedSection,
-            installment: selectedInstallment, // Ensure this is the _id of the installment
+            installment: selectedInstallment,
             transactionDate: transDate,
             particulars: heads.map(({ _id, fixedAmount, remarks }) => ({
-                head: _id, // Ensure this is the _id of the head
+                head: _id,
                 fixedAmount: Number(fixedAmount) || 0,
                 remarks: remarks || "",
             })),
@@ -102,7 +103,122 @@ const FixedAmount = () => {
         setLoading(false);
     };
 
-    const breadcrumbItems = [{ label: "Fee", link: "/fees/all-module" }, { label: "fixed-amount", link: "null" }]
+    const breadcrumbItems = [{ label: "Fee", link: "/fees/all-module" }, { label: "fixed-amount", link: "null" }];
+
+    const renderForm = () => {
+        switch(viewType) {
+            case "installmentWise":
+                return (
+                    <>
+                        <Form className="formSheet">
+                            <Row>
+                                <Col lg={3}>
+                                    <FormLabel className={styles.labelForm}>Class</FormLabel>
+                                    <FormSelect
+                                        value={selectedClass}
+                                        onChange={handleClassChange}
+                                        className={styles.formControl}
+                                    >
+                                        <option value="">Select Class</option>
+                                        {classList.map((cls) => (
+                                            <option key={cls._id} value={cls._id}>{cls.class_name}</option>
+                                        ))}
+                                    </FormSelect>
+                                </Col>
+                                <Col lg={3}>
+                                    <FormLabel className={styles.labelForm}>Section</FormLabel>
+                                    <FormSelect
+                                        value={selectedSection}
+                                        onChange={(e) => setSelectedSection(e.target.value)}
+                                        className={styles.formControl}
+                                    >
+                                        <option value="">Select Section</option>
+                                        {sectionList.map((sec) => (
+                                            <option key={sec._id} value={sec._id}>{sec.section_name}</option>
+                                        ))}
+                                    </FormSelect>
+                                </Col>
+                                <Col lg={3}>
+                                    <FormLabel className={styles.labelForm}>Installment</FormLabel>
+                                    <FormSelect
+                                        value={selectedInstallment}
+                                        onChange={handleInstallmentChange}
+                                        className={styles.formControl}
+                                    >
+                                        <option value="">Select Installment</option>
+                                        {installmentList.map((inst) => (
+                                            <option key={inst._id} value={inst.installment_name}>{inst.installment_name}</option>
+                                        ))}
+                                    </FormSelect>
+                                </Col>
+                                <Col lg={3}>
+                                    <FormLabel className={styles.labelForm}>Trans Date</FormLabel>
+                                    <Form.Control
+                                        type="date"
+                                        value={transDate}
+                                        onChange={(e) => setTransDate(e.target.value)}
+                                        className={styles.formControl}
+                                    />
+                                </Col>
+                            </Row>
+                        </Form>
+                        <div className="tableSheet">
+                            <h5>Head Wise Details</h5>
+                            <Table bordered className="mt-3">
+                                <thead className={styles.tableHead}>
+                                    <tr>
+                                        <th>S.No.</th>
+                                        <th>Particulars</th>
+                                        <th>Fixed Amount</th>
+                                        <th>Remarks</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {heads.map((head, index) => (
+                                        <tr key={head._id || index}>
+                                            <td>{index + 1}</td>
+                                            <td>{head.head_name}</td>
+                                            <td>
+                                                <Form.Control
+                                                    type="number"
+                                                    value={head.fixedAmount}
+                                                    onChange={(e) => handleInputChange(index, "fixedAmount", e.target.value)}
+                                                    className={styles.formControl}
+                                                />
+                                            </td>
+                                            <td>
+                                                <Form.Control
+                                                    type="text"
+                                                    value={head.remarks}
+                                                    onChange={(e) => handleInputChange(index, "remarks", e.target.value)}
+                                                    className={styles.formControl}
+                                                />
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </Table>
+                        </div>
+                    </>
+                );
+            case "classWise":
+                return (
+                    <div className="text-center py-5">
+                        <h4>Class Wise View</h4>
+                        <p>This view would show class-wise fixed amounts</p>
+                    </div>
+                );
+            case "studentWise":
+                return (
+                    <div className="text-center py-5">
+                        <h4>Student Wise View</h4>
+                        <p>This view would show student-wise fixed amounts</p>
+                    </div>
+                );
+            default:
+                return null;
+        }
+    };
 
     return (
         <>
@@ -115,89 +231,73 @@ const FixedAmount = () => {
                     </Row>
                 </Container>
             </div>
+
             <section>
                 <Container>
-                    {/* <Row className="mt-1 mb-1">
-                        <Col>
+                    <div className="cover-sheet">
+                        <div className="studentHeading">
                             <h2>Fixed Amount</h2>
-                        </Col>
-                    </Row> */}
+                        </div>
+                        <div className="mb-4 ms-4 me-4">
+                            <div className="d-flex gap-3 mb-3">
+                                <div className="form-check">
+                                    <input 
+                                        className="form-check-input" 
+                                        type="radio" 
+                                        name="feeType" 
+                                        id="installmentWise" 
+                                        checked={viewType === "installmentWise"}
+                                        onChange={() => setViewType("installmentWise")}
+                                    />
+                                    <label className="form-check-label" htmlFor="installmentWise">
+                                        Installment Wise
+                                    </label>
+                                </div>
+                                <div className="form-check">
+                                    <input 
+                                        className="form-check-input" 
+                                        type="radio" 
+                                        name="feeType" 
+                                        id="classWise" 
+                                        checked={viewType === "classWise"}
+                                        onChange={() => setViewType("classWise")}
+                                    />
+                                    <label className="form-check-label" htmlFor="classWise">
+                                        Class Wise
+                                    </label>
+                                </div>
+                                <div className="form-check">
+                                    <input 
+                                        className="form-check-input" 
+                                        type="radio" 
+                                        name="feeType" 
+                                        id="studentWise" 
+                                        checked={viewType === "studentWise"}
+                                        onChange={() => setViewType("studentWise")}
+                                    />
+                                    <label className="form-check-label" htmlFor="studentWise">
+                                        Student Wise
+                                    </label>
+                                </div>
+                            </div>
 
-                    <Form>
-                        <Row>
-                            <Col>
-                                <FormLabel>Select Class</FormLabel>
-                                <FormSelect value={selectedClass} onChange={handleClassChange}>
-                                    <option value="">Select Class</option>
-                                    {classList.map((cls) => (
-                                        <option key={cls._id} value={cls._id}>{cls.class_name}</option>
-                                    ))}
-                                </FormSelect>
-                            </Col>
-                            <Col>
-                                <FormLabel>Select Section</FormLabel>
-                                <FormSelect value={selectedSection} onChange={(e) => setSelectedSection(e.target.value)}>
-                                    <option value="">Select Section</option>
-                                    {sectionList.map((sec) => (
-                                        <option key={sec._id} value={sec._id}>{sec.section_name}</option>
-                                    ))}
-                                </FormSelect>
-                            </Col>
-                            <Col>
-                                <FormLabel>Select Installment</FormLabel>
-                                <FormSelect value={selectedInstallment} onChange={handleInstallmentChange}>
-                                    <option value="">Select Installment</option>
-                                    {installmentList.map((inst) => (
-                                        <option key={inst._id} value={inst.installment_name}>{inst.installment_name}</option>
-                                    ))}
-                                </FormSelect>
-                            </Col>
-                        </Row>
-                        <Row>
-                            <Col>
-                                <FormLabel>Transaction Date</FormLabel>
-                                <Form.Control type="date" value={transDate} onChange={(e) => setTransDate(e.target.value)} />
-                            </Col>
-                        </Row>
+                            {renderForm()}
 
-                        <h5 className="mt-3">Head Wise Details</h5>
-                        <Table striped bordered hover>
-                            <thead>
-                                <tr>
-                                    <th>S.No.</th>
-                                    <th>Particular</th>
-                                    <th>Fixed Amount</th>
-                                    <th>Remarks</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {heads.map((head, index) => (
-                                    <tr key={head._id || index}>
-                                        <td>{index + 1}</td>
-                                        <td>{head.head_name}</td>
-                                        <td>
-                                            <Form.Control
-                                                type="number"
-                                                value={head.fixedAmount}
-                                                onChange={(e) => handleInputChange(index, "fixedAmount", e.target.value)}
-                                            />
-                                        </td>
-                                        <td>
-                                            <Form.Control
-                                                type="text"
-                                                value={head.remarks}
-                                                onChange={(e) => handleInputChange(index, "remarks", e.target.value)}
-                                            />
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </Table>
-
-                        <Button className="mt-3 btn btn-primary" onClick={handleSubmit} disabled={loading}>
-                            {loading ? "Updating..." : "Update"}
-                        </Button>
-                    </Form>
+                            {viewType === "installmentWise" && (
+                                <div className="d-flex justify-content-end mt-4">
+                                    <Button
+                                        variant="primary"
+                                        onClick={handleSubmit}
+                                        disabled={loading}
+                                        style={{ minWidth: '120px' }}
+                                        className={styles.btnPrimary}
+                                    >
+                                        <FaSave /> {loading ? "Updating..." : "Update"}
+                                    </Button>
+                                </div>
+                            )}
+                        </div>
+                    </div>
                 </Container>
             </section>
         </>
