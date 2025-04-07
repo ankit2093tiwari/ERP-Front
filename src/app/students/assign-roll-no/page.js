@@ -162,7 +162,7 @@ const AssignRollNo = () => {
     setLoading(false);
   };
 
-  const breadcrumbItems = [{ label: "students", link: "/students/all-module" }, { label: "assign-roll-no", link: "null" }]
+  const breadcrumbItems = [{ label: "Students", link: "/students/all-module" }, { label: "Assign-roll-no", link: "null" }]
 
   return (
     <>

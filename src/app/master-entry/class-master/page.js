@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { Form, Row, Col, Container, FormLabel, FormControl, Button, Breadcrumb, Tabs, Tab } from "react-bootstrap";
+import { Form, Row, Col, Container, FormLabel, FormControl, Button, Breadcrumb } from "react-bootstrap";
 import axios from "axios";
 import Table from "@/app/component/DataTable";
 import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
@@ -10,18 +10,20 @@ import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const ClassMasterPage = () => {
-  const [data, setData] = useState([]); // State for class data
-  const [newClassName, setNewClassName] = useState(""); // New class name state
-  const [newClassCode, setNewClassCode] = useState(""); // New class code state
-  const [selectedClass, setSelectedClass] = useState(""); // Selected class state for section
-  const [newSectionName, setNewSectionName] = useState(""); // New section name
-  const [newSectionCode, setNewSectionCode] = useState(""); // New section code
-  const [showAddForm, setShowAddForm] = useState(false); // Toggle add form visibility
-  const [loading, setLoading] = useState(false); // Loading state
-  const [error, setError] = useState(""); // Error state
-  const [formErrors, setFormErrors] = useState({}); // Field-specific errors
-  const [editingClass, setEditingClass] = useState(null); // State to track the class being edited
-  const [editingSection, setEditingSection] = useState(null); // State to track the section being 
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [isClassFormOpen, setIsClassFormOpen] = useState(false);
+  const [isSectionFormOpen, setIsSectionFormOpen] = useState(false);
+  const [editingClass, setEditingClass] = useState(null);
+  const [editingSection, setEditingSection] = useState(null);
+  const [formData, setFormData] = useState({
+    class_name: "",
+    class_code: "",
+    section_name: "",
+    section_code: "",
+    class_id: ""
+  });
 
   const columns = [
     {
@@ -37,18 +39,18 @@ const ClassMasterPage = () => {
           {editingClass && editingClass._id === row._id ? (
             <FormControl
               type="text"
-              value={newClassName}
-              onChange={(e) => setNewClassName(e.target.value)}
+              value={formData.class_name}
+              onChange={(e) => setFormData({...formData, class_name: e.target.value})}
             />
           ) : (
             row.class_name || "N/A"
           )}
           {editingClass && editingClass._id === row._id ? (
-            <button className="editButton ms-2" onClick={handleUpdateClass}>
+            <button className="editButton ms-2" onClick={() => handleUpdateClass(row._id)}>
               <FaSave />
             </button>
           ) : (
-            <button className="editButton ms-2" onClick={() => handleEdit(row)}>
+            <button className="editButton ms-2" onClick={() => handleEditClass(row)}>
               <FaEdit />
             </button>
           )}
@@ -66,8 +68,8 @@ const ClassMasterPage = () => {
           {editingClass && editingClass._id === row._id ? (
             <FormControl
               type="text"
-              value={newClassCode}
-              onChange={(e) => setNewClassCode(e.target.value)}
+              value={formData.class_code}
+              onChange={(e) => setFormData({...formData, class_code: e.target.value})}
             />
           ) : (
             row.class_code || "N/A"
@@ -87,20 +89,20 @@ const ClassMasterPage = () => {
                   <>
                     <FormControl
                       type="text"
-                      value={newSectionCode}
-                      onChange={(e) => setNewSectionCode(e.target.value)}
+                      value={formData.section_code}
+                      onChange={(e) => setFormData({...formData, section_code: e.target.value})}
                     />
                     <FormControl
                       type="text"
-                      value={newSectionName}
-                      onChange={(e) => setNewSectionName(e.target.value)}
+                      value={formData.section_name}
+                      onChange={(e) => setFormData({...formData, section_name: e.target.value})}
                     />
                   </>
                 ) : (
                   `${section.section_code} - ${section.section_name}`
                 )}
                 {editingSection && editingSection._id === section._id ? (
-                  <button className="editButton ms-2" onClick={handleUpdateSection}>
+                  <button className="editButton ms-2" onClick={() => handleUpdateSection(section._id)}>
                     <FaSave />
                   </button>
                 ) : (
@@ -122,20 +124,16 @@ const ClassMasterPage = () => {
     },
   ];
 
-  // Fetch class data and sections together
   const fetchData = async () => {
     setLoading(true);
     setError("");
     try {
-      // Fetch classes
       const classResponse = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-classes");
       const classes = classResponse.data.data;
 
-      // Fetch all sections
       const sectionResponse = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-sections");
       const sections = sectionResponse.data.data;
 
-      // Merge sections into corresponding classes
       const updatedData = classes.map((classItem) => {
         const classSections = sections
           .filter((section) => section.class._id === classItem._id)
@@ -157,185 +155,130 @@ const ClassMasterPage = () => {
     }
   };
 
-  // Handle adding a new class
   const handleAddClass = async () => {
-    const errors = {};
-    if (!newClassName.trim()) {
-      errors.class_name = "Class name is required.";
-    }
-    if (!newClassCode.trim()) {
-      errors.class_code = "Class code is required.";
-    }
-    if (Object.keys(errors).length > 0) {
-      setFormErrors(errors);
+    if (!formData.class_name.trim() || !formData.class_code.trim()) {
+      setError("Both class name and code are required");
       return;
     }
 
     try {
-      const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/add-class", {
-        class_name: newClassName,
-        class_code: newClassCode,
+      await axios.post("https://erp-backend-fy3n.onrender.com/api/add-class", {
+        class_name: formData.class_name,
+        class_code: formData.class_code,
       });
-
-      // Append the new class to the state array
-      setData((prevData) => [...prevData, response.data]);
-      setNewClassName(""); // Reset class name input
-      setNewClassCode(""); // Reset class code input
-      setFormErrors({});
       fetchData();
+      setFormData({...formData, class_name: "", class_code: ""});
+      setIsClassFormOpen(false);
     } catch (err) {
       console.error("Error adding class:", err);
       setError("Failed to add class. Please try again later.");
     }
   };
 
-  // Handle updating an existing class
-  const handleUpdateClass = async () => {
-    if (!editingClass) return;
-
-    const errors = {};
-    if (!newClassName.trim()) {
-      errors.class_name = "Class name is required.";
-    }
-    if (!newClassCode.trim()) {
-      errors.class_code = "Class code is required.";
-    }
-    if (Object.keys(errors).length > 0) {
-      setFormErrors(errors);
-      return;
-    }
-
-    try {
-      const response = await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-class/${editingClass._id}`, {
-        class_name: newClassName,
-        class_code: newClassCode,
-      });
-
-      const updatedData = data.map((classItem) =>
-        classItem._id === editingClass._id ? response.data : classItem
-      );
-      setData(updatedData);
-      setEditingClass(null);
-      setNewClassName(""); // Reset class name input
-      setNewClassCode(""); // Reset class code input
-      setFormErrors({});
-      fetchData();
-    } catch (err) {
-      console.error("Error updating class:", err);
-      setError("Failed to update class. Please try again later.");
-    }
-  };
-
-  // Handle deleting a class
-  const handleDeleteClass = async (id) => {
-    try {
-      await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-class/${id}`);
-      setData(data.filter((classItem) => classItem._id !== id));
-    } catch (err) {
-      console.error("Error deleting class:", err);
-      setError("Failed to delete class. Please try again later.");
-    }
-  };
-
-  // Handle adding a new section to the selected class
   const handleAddSection = async () => {
-    const errors = {};
-    if (!newSectionName.trim()) {
-      errors.section_name = "Section name is required.";
-    }
-    if (!newSectionCode.trim()) {
-      errors.section_code = "Section code is required.";
-    }
-    if (Object.keys(errors).length > 0) {
-      setFormErrors(errors);
+    if (!formData.class_id || !formData.section_name.trim() || !formData.section_code.trim()) {
+      setError("Class, section name and code are required");
       return;
     }
 
     try {
-      const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/add-sections", {
-        class_name: selectedClass,
-        section_name: newSectionName,
-        section_code: newSectionCode,
+      await axios.post("https://erp-backend-fy3n.onrender.com/api/add-sections", {
+        class_name: formData.class_id,
+        section_name: formData.section_name,
+        section_code: formData.section_code,
       });
-
-      // Clear inputs and update section list
-      setNewSectionName("");
-      setNewSectionCode("");
-      fetchData(); // Fetch updated class data
+      fetchData();
+      setFormData({...formData, section_name: "", section_code: "", class_id: ""});
+      setIsSectionFormOpen(false);
     } catch (err) {
       console.error("Error adding section:", err);
       setError("Failed to add section. Please try again later.");
     }
   };
 
-  // Handle editing a section
-  const handleEditSection = (section) => {
-    setEditingSection(section);
-    setNewSectionName(section.section_name);
-    setNewSectionCode(section.section_code);
+  const handleEditClass = (classItem) => {
+    setEditingClass(classItem);
+    setFormData({
+      ...formData,
+      class_name: classItem.class_name || "",
+      class_code: classItem.class_code || ""
+    });
   };
 
-  // Handle updating a section
-  const handleUpdateSection = async () => {
-    if (!editingSection) return;
+  const handleEditSection = (section) => {
+    setEditingSection(section);
+    setFormData({
+      ...formData,
+      section_name: section.section_name || "",
+      section_code: section.section_code || ""
+    });
+  };
 
-    const errors = {};
-    if (!newSectionName.trim()) {
-      errors.section_name = "Section name is required.";
-    }
-    if (!newSectionCode.trim()) {
-      errors.section_code = "Section code is required.";
-    }
-    if (Object.keys(errors).length > 0) {
-      setFormErrors(errors);
+  const handleUpdateClass = async (id) => {
+    if (!formData.class_name.trim() || !formData.class_code.trim()) {
+      setError("Both class name and code are required");
       return;
     }
 
     try {
-      const response = await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-sections/${editingSection._id}`, {
-        section_name: newSectionName,
-        section_code: newSectionCode,
+      await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-class/${id}`, {
+        class_name: formData.class_name,
+        class_code: formData.class_code,
       });
-
-      // Update the section in the state
-      const updatedData = data.map((classItem) => {
-        const updatedSections = classItem.sections.map((section) =>
-          section._id === editingSection._id ? response.data : section
-        );
-        return { ...classItem, sections: updatedSections };
-      });
-
-      setData(updatedData);
-      setEditingSection(null);
-      setNewSectionName("");
-      setNewSectionCode("");
-      setFormErrors({});
       fetchData();
+      setEditingClass(null);
+      setFormData({...formData, class_name: "", class_code: ""});
+    } catch (err) {
+      console.error("Error updating class:", err);
+      setError("Failed to update class. Please try again later.");
+    }
+  };
+
+  const handleUpdateSection = async (id) => {
+    if (!formData.section_name.trim() || !formData.section_code.trim()) {
+      setError("Both section name and code are required");
+      return;
+    }
+
+    try {
+      await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-sections/${id}`, {
+        section_name: formData.section_name,
+        section_code: formData.section_code,
+      });
+      fetchData();
+      setEditingSection(null);
+      setFormData({...formData, section_name: "", section_code: ""});
     } catch (err) {
       console.error("Error updating section:", err);
       setError("Failed to update section. Please try again later.");
     }
   };
 
-  // Handle deleting a section
-  const handleDeleteSection = async (id) => {
-    try {
-      await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-sections/${id}`);
-      fetchData(); // Fetch updated class data
-    } catch (err) {
-      console.error("Error deleting section:", err);
-      setError("Failed to delete section. Please try again later.");
+  const handleDeleteClass = async (id) => {
+    if (confirm("Are you sure you want to delete this class and all its sections?")) {
+      try {
+        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-class/${id}`);
+        fetchData();
+      } catch (err) {
+        console.error("Error deleting class:", err);
+        setError("Failed to delete class. Please try again later.");
+      }
     }
   };
 
-  // Edit functionality for class
-  const handleEdit = (classItem) => {
-    setEditingClass(classItem);
-    setNewClassName(classItem.class_name);
-    setNewClassCode(classItem.class_code);
+  const handleDeleteSection = async (id) => {
+    if (confirm("Are you sure you want to delete this section?")) {
+      try {
+        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-sections/${id}`);
+        fetchData();
+      } catch (err) {
+        console.error("Error deleting section:", err);
+        setError("Failed to delete section. Please try again later.");
+      }
+    }
   };
 
-  const handlePrint = async () => {
+  const handlePrint = () => {
     const tableHeaders = [["#", "Class Name", "Class Code", "Sections"]];
     const tableRows = data.map((row, index) => {
       const sections = row.sections
@@ -343,31 +286,27 @@ const ClassMasterPage = () => {
         .join(", ");
       return [index + 1, row.class_name || "N/A", row.class_code || "N/A", sections || "No sections"];
     });
-
     printContent(tableHeaders, tableRows);
-
-
   };
 
   const handleCopy = () => {
-    // const headers = "#\tClass Name\tClass Code\tSections";
     const headers = ["#", "Class Name", "Class Code", "Sections"];
     const rows = data.map((row, index) => {
       const sections = row.sections
         .map((section) => `${section.section_code} - ${section.section_name}`);
       return `${index + 1}\t${row.class_name || "N/A"}\t${row.class_code || "N/A"}\t${sections || "No sections"}`;
     });
-
     copyContent(headers, rows);
   };
-
-
 
   useEffect(() => {
     fetchData();
   }, []);
 
-  const breadcrumbItems = [{ label: "Master Entry", link: "/master-entry/all-module" }, { label: "class-master", link: "null" }]
+  const breadcrumbItems = [
+    { label: "Master Entry", link: "/master-entry/all-module" },
+    { label: "class-master", link: "null" }
+  ];
 
   return (
     <>
@@ -382,70 +321,99 @@ const ClassMasterPage = () => {
       </div>
       <section>
         <Container>
-          {/* <Row className="mt-1 mb-1">
-        <Col>
-          <Breadcrumb>
-            <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-            <Breadcrumb.Item href="/master-entry/all-module">Master Entry</Breadcrumb.Item>
-            <Breadcrumb.Item active>Class Master</Breadcrumb.Item>
-          </Breadcrumb>
-        </Col>
-      </Row> */}
+          <div className="d-flex gap-2 mb-3">
+            <Button
+              onClick={() => setIsClassFormOpen(true)}
+              className="btn-add"
+            >
+              <CgAddR /> Add Class
+            </Button>
+            <Button
+              onClick={() => setIsSectionFormOpen(true)}
+              className="btn-add"
+            >
+              <CgAddR /> Add Section
+            </Button>
+          </div>
 
-          <Tabs id="uncontrolled-tab-example" className="mb-3 TabButton" defaultActiveKey={null}>
-            <Tab eventKey="home" title={<span><CgAddR /> {editingClass ? "Update Class" : "New Class"}</span>} className="cover-sheet">
+          {isClassFormOpen && (
+            <div className="cover-sheet">
               <div className="studentHeading">
-                <h2> {editingClass ? "Update Class" : "Add New Class"} </h2>
-                <button className="closeForm" onClick={() => setShowAddForm(false)}>X</button>
+                <h2>{editingClass ? "Update Class" : "Add New Class"}</h2>
+                <button
+                  className="closeForm"
+                  onClick={() => {
+                    setIsClassFormOpen(false);
+                    setError("");
+                    setFormData({...formData, class_name: "", class_code: ""});
+                    setEditingClass(null);
+                  }}
+                >
+                  X
+                </button>
               </div>
-              <div className="formSheet">
+              <Form className="formSheet">
                 <Row className="mb-3">
                   <Col lg={6}>
                     <FormLabel className="labelForm">Class Name</FormLabel>
                     <FormControl
-                      required
                       type="text"
                       placeholder="Enter Class Name"
-                      value={newClassName}
-                      onChange={(e) => setNewClassName(e.target.value)}
+                      value={formData.class_name}
+                      onChange={(e) =>
+                        setFormData({...formData, class_name: e.target.value})
+                      }
                     />
-                    {formErrors.class_name && <div className="text-danger">{formErrors.class_name}</div>}
                   </Col>
                   <Col lg={6}>
                     <FormLabel className="labelForm">Class Code</FormLabel>
                     <FormControl
-                      required
                       type="text"
                       placeholder="Enter Class Code"
-                      value={newClassCode}
-                      onChange={(e) => setNewClassCode(e.target.value)}
+                      value={formData.class_code}
+                      onChange={(e) =>
+                        setFormData({...formData, class_code: e.target.value})
+                      }
                     />
-                    {formErrors.class_code && <div className="text-danger">{formErrors.class_code}</div>}
                   </Col>
                 </Row>
+                {error && <div className="text-danger mb-3">{error}</div>}
+                <Button 
+                  onClick={editingClass ? () => handleUpdateClass(editingClass._id) : handleAddClass} 
+                  className="btn btn-primary"
+                >
+                  {editingClass ? "Update Class" : "Add Class"}
+                </Button>
+              </Form>
+            </div>
+          )}
 
-                <Row className="mb-3">
-                  <Col>
-                    <Button onClick={editingClass ? handleUpdateClass : handleAddClass} className="btn btn-primary mt-4">
-                      {editingClass ? "Update Class" : "Add Class"}
-                    </Button>
-                  </Col>
-                </Row>
-              </div>
-            </Tab>
-
-            <Tab eventKey="profile" title={<span><CgAddR /> New Section </span>} className="cover-sheet">
+          {isSectionFormOpen && (
+            <div className="cover-sheet">
               <div className="studentHeading">
-                <h2> Add New Section </h2>
+                <h2>{editingSection ? "Update Section" : "Add New Section"}</h2>
+                <button
+                  className="closeForm"
+                  onClick={() => {
+                    setIsSectionFormOpen(false);
+                    setError("");
+                    setFormData({...formData, section_name: "", section_code: "", class_id: ""});
+                    setEditingSection(null);
+                  }}
+                >
+                  X
+                </button>
               </div>
-              <div className="formSheet">
-                <Row>
-                  <Col lg={6}>
+              <Form className="formSheet">
+                <Row className="mb-3">
+                  <Col lg={12}>
                     <FormLabel className="labelForm">Select Class</FormLabel>
                     <FormControl
                       as="select"
-                      value={selectedClass}
-                      onChange={(e) => setSelectedClass(e.target.value)}
+                      value={formData.class_id}
+                      onChange={(e) =>
+                        setFormData({...formData, class_id: e.target.value})
+                      }
                     >
                       <option value="">Select Class</option>
                       {data.map((classItem) => (
@@ -456,56 +424,60 @@ const ClassMasterPage = () => {
                     </FormControl>
                   </Col>
                 </Row>
-
-                <Row>
+                <Row className="mb-3">
                   <Col lg={6}>
                     <FormLabel className="labelForm">Section Code</FormLabel>
                     <FormControl
-                      required
                       type="text"
                       placeholder="Section Code"
-                      value={newSectionCode}
-                      onChange={(e) => setNewSectionCode(e.target.value)}
+                      value={formData.section_code}
+                      onChange={(e) =>
+                        setFormData({...formData, section_code: e.target.value})
+                      }
                     />
-                    {formErrors.section_code && <div className="text-danger">{formErrors.section_code}</div>}
                   </Col>
                   <Col lg={6}>
                     <FormLabel className="labelForm">Section Name</FormLabel>
                     <FormControl
-                      required
                       type="text"
                       placeholder="Section Name"
-                      value={newSectionName}
-                      onChange={(e) => setNewSectionName(e.target.value)}
+                      value={formData.section_name}
+                      onChange={(e) =>
+                        setFormData({...formData, section_name: e.target.value})
+                      }
                     />
-                    {formErrors.section_name && <div className="text-danger">{formErrors.section_name}</div>}
                   </Col>
                 </Row>
+                {error && <div className="text-danger mb-3">{error}</div>}
+                <Button 
+                  onClick={editingSection ? () => handleUpdateSection(editingSection._id) : handleAddSection} 
+                  className="btn btn-primary"
+                >
+                  {editingSection ? "Update Section" : "Add Section"}
+                </Button>
+              </Form>
+            </div>
+          )}
 
-                <Row className="mb-3">
-                  <Col>
-                    <Button onClick={editingSection ? handleUpdateSection : handleAddSection} className="btn btn-primary mt-4">
-                      {editingSection ? "Update Section" : "Add Section"}
-                    </Button>
-                  </Col>
-                </Row>
-              </div>
-            </Tab>
-          </Tabs>
-
-          <Row>
-            <Col>
-              <div className="tableSheet">
-                <h2>Class Records</h2>
-                {error && <p style={{ color: "red" }}>{error}</p>}
-                {!loading && !error && <Table columns={columns} data={data} handleCopy={handleCopy} handlePrint={handlePrint} />}
-              </div>
-            </Col>
-          </Row>
+          <div className="tableSheet">
+            <h2>Class Records</h2>
+            {loading ? (
+              <p>Loading...</p>
+            ) : error ? (
+              <p style={{ color: "red" }}>{error}</p>
+            ) : (
+              <Table
+                columns={columns}
+                data={data}
+                handleCopy={handleCopy}
+                handlePrint={handlePrint}
+              />
+            )}
+          </div>
         </Container>
       </section>
     </>
   );
 };
 
-export default ClassMasterPage;
+export default dynamic(() => Promise.resolve(ClassMasterPage), { ssr: false });

@@ -157,7 +157,7 @@ const FeeStructure = () => {
         </Container>
       </div>
       <section>
-        <Container className="mt-3">
+        <Container>
 
           <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
             <CgAddR /> New Fee
@@ -172,7 +172,7 @@ const FeeStructure = () => {
               <Form className="formSheet">
                 <Row>
                   <Col lg={6}>
-                    <FormLabel>Group Name</FormLabel>
+                    <FormLabel className="labelForm">Group Name</FormLabel>
                     <FormControl as="select" value={newFeeSetting.group_name} onChange={handleGroupChange}>
                       <option value="">Select Group</option>
                       {feeGroups.length > 0 ? (
@@ -187,7 +187,7 @@ const FeeStructure = () => {
                     </FormControl>
                   </Col>
                   <Col lg={6}>
-                    <FormLabel>Total Amount</FormLabel>
+                    <FormLabel className="labelForm">Total Amount</FormLabel>
                     <FormControl type="text" value={newFeeSetting.total_amount} readOnly />
                   </Col>
                 </Row>
