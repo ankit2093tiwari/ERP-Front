@@ -21,7 +21,7 @@ const PettyHeadMaster = () => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [newPettyHead, setNewPettyHead] = useState({
     petty_name: "",
-    head_type: "", // default is empty, can be set to 'Add' or 'Subtract'
+    head_type: "",
   });
 
   const columns = [
@@ -84,19 +84,15 @@ const PettyHeadMaster = () => {
       row.petty_name || "N/A",
       row.head_type || "N/A",
     ]);
-
     printContent(tableHeaders, tableRows);
-
   };
 
   const handleCopy = () => {
     const headers = ["#", "Petty Head Name", "Head Type"];
     const rows = data.map((row, index) => `${index + 1}\t${row.petty_name || "N/A"}\t${row.head_type || "N/A"}`);
-
     copyContent(headers, rows);
   };
 
-  // Fetch PettyHeads
   const fetchData = async () => {
     setLoading(true);
     setError("");
@@ -105,18 +101,17 @@ const PettyHeadMaster = () => {
       if (response.data && response.data.pettyHeads && response.data.pettyHeads.length > 0) {
         setData(response.data.pettyHeads);
       } else {
-        setData([]); // Set empty array if no records are found
+        setData([]);
         setError("No records found.");
       }
     } catch (err) {
-      setData([]); // Set empty array if there's an error fetching data
+      setData([]);
       setError("Failed to fetch petty heads.");
     } finally {
       setLoading(false);
     }
   };
 
-  // Add new PettyHead
   const handleAdd = async () => {
     if (newPettyHead.petty_name.trim() && newPettyHead.head_type.trim()) {
       try {
@@ -124,7 +119,7 @@ const PettyHeadMaster = () => {
         setData((prevData) => [...prevData, response.data.pettyHead]);
         setNewPettyHead({ petty_name: "", head_type: "" });
         setShowAddForm(false);
-        fetchData(); // Fetch data again after adding new petty head
+        fetchData();
       } catch (err) {
         setError("Failed to add petty head.");
       }
@@ -133,7 +128,6 @@ const PettyHeadMaster = () => {
     }
   };
 
-  // Edit PettyHead
   const handleEdit = (id, field, value) => {
     setEditingId(id);
     setEditedData({ ...editedData, [id]: { ...editedData[id], [field]: value } });
@@ -152,7 +146,6 @@ const PettyHeadMaster = () => {
     }
   };
 
-  // Delete PettyHead
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this petty head?")) {
       try {
@@ -165,7 +158,6 @@ const PettyHeadMaster = () => {
     }
   };
 
-  // Fetch data on component mount
   useEffect(() => {
     fetchData();
   }, []);
@@ -185,7 +177,7 @@ const PettyHeadMaster = () => {
       </div>
       <section>
         <Container>
-          <Button onClick={() => setShowAddForm(!showAddForm)} className="btn-add">
+          <Button onClick={() => setShowAddForm(true)} className="btn-add">
             <CgAddR /> Add Petty Head
           </Button>
 
@@ -193,12 +185,14 @@ const PettyHeadMaster = () => {
             <div className="cover-sheet">
               <div className="studentHeading">
                 <h2>Add New Petty Head</h2>
-                <button className="closeForm" onClick={() => setShowAddForm(false)}>X</button>
+                <button className="closeForm" onClick={() => setShowAddForm(false)}>
+                  X
+                </button>
               </div>
               <Form className="formSheet">
                 <Row>
                   <Col lg={6}>
-                    <FormLabel>Petty Head Name</FormLabel>
+                    <FormLabel className="labelForm">Petty Head Name</FormLabel>
                     <FormControl
                       type="text"
                       placeholder="Enter Petty Head Name"
@@ -207,7 +201,7 @@ const PettyHeadMaster = () => {
                     />
                   </Col>
                   <Col lg={6}>
-                    <FormLabel>Head Type</FormLabel>
+                    <FormLabel className="labelForm">Head Type</FormLabel>
                     <FormControl
                       as="select"
                       value={newPettyHead.head_type}
@@ -219,20 +213,26 @@ const PettyHeadMaster = () => {
                     </FormControl>
                   </Col>
                 </Row>
-                <Button onClick={handleAdd} className="btn btn-primary">
+                <Button onClick={handleAdd} className="btn btn-primary mt-3">
                   Add Petty Head
                 </Button>
               </Form>
             </div>
           )}
 
-          <div className="tableSheet">
+          <div className="tableSheet mt-4">
             <h2>Petty Head Records</h2>
             {loading && <p>Loading...</p>}
             {error && <p>{error}</p>}
             {!loading && !error && data.length === 0 && <p>No records found.</p>}
-            {!loading && !error && data.length > 0 && <Table columns={columns} data={data} handlePrint={handlePrint}
-              handleCopy={handleCopy} />}
+            {!loading && !error && data.length > 0 && (
+              <Table 
+                columns={columns} 
+                data={data} 
+                handlePrint={handlePrint}
+                handleCopy={handleCopy} 
+              />
+            )}
           </div>
         </Container>
       </section>

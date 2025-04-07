@@ -86,11 +86,11 @@ const FineMaster = () => {
             <Form className="formSheet">
               <Row>
                 <Col lg={4}>
-                  <FormLabel className={styles.class}>Per day fine of Teacher </FormLabel>
+                  <FormLabel className="labelForm">Per day fine of Teacher </FormLabel>
                   <FormControl required type="text" />
                 </Col>
                 <Col lg={4}>
-                  <FormLabel className={styles.class}>Per day fine of Student</FormLabel>
+                  <FormLabel className="labelForm">Per day fine of Student</FormLabel>
                   <FormControl required type="text" />
                 </Col>
               </Row>

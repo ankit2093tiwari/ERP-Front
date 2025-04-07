@@ -1,11 +1,21 @@
 "use client";
-
 import React, { useState, useEffect } from "react";
-import { Form, Row, Col, Container, FormLabel, FormControl, Button, Breadcrumb, FormSelect } from "react-bootstrap";
-import Table from "@/app/component/DataTable";
+import dynamic from "next/dynamic";
 import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
-import { CgAddR } from 'react-icons/cg';
+import { CgAddR } from "react-icons/cg";
+import {
+  Form,
+  Row,
+  Col,
+  Container,
+  FormLabel,
+  FormControl,
+  Button,
+  FormSelect,
+  FormCheck,
+} from "react-bootstrap";
 import axios from "axios";
+import Table from "@/app/component/DataTable";
 import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 
@@ -16,36 +26,43 @@ const SubjectMaster = () => {
   const [subjectList, setSubjectList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [showAddForm, setShowAddForm] = useState(false);
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [editingId, setEditingId] = useState(null);
 
-  const [selectedClass, setSelectedClass] = useState("");
-  const [selectedSection, setSelectedSection] = useState("");
-  const [subjectName, setSubjectName] = useState("");
-  const [compulsory, setCompulsory] = useState(false);
-  const [selectedEmployee, setSelectedEmployee] = useState("");
-  const [editId, setEditId] = useState(null);
+  // Form states
+  const [formData, setFormData] = useState({
+    class_name: "",
+    section_name: "",
+    subject_name: "",
+    compulsory: false,
+    employee: "",
+  });
 
-  // States for editable fields
-  const [editableClass, setEditableClass] = useState("");
-  const [editableSection, setEditableSection] = useState("");
-  const [editableSubjectName, setEditableSubjectName] = useState("");
-  const [editableCompulsory, setEditableCompulsory] = useState(false);
-  const [editableEmployee, setEditableEmployee] = useState("");
+  // Editable states
+  const [editedData, setEditedData] = useState({
+    class_name: "",
+    section_name: "",
+    subject_name: "",
+    compulsory: false,
+    employee: "",
+  });
 
   const columns = [
     {
       name: "#",
       selector: (row, index) => index + 1,
       width: "80px",
+      sortable: false,
     },
     {
       name: "Class Name",
-      selector: (row) => row.class_name?.class_name || "N/A",
       cell: (row) =>
-        editId === row._id ? (
+        editingId === row._id ? (
           <FormSelect
-            value={editableClass}
-            onChange={(e) => setEditableClass(e.target.value)}
+            value={editedData.class_name}
+            onChange={(e) =>
+              setEditedData({ ...editedData, class_name: e.target.value })
+            }
           >
             <option value="">Select Class</option>
             {classList.map((cls) => (
@@ -61,12 +78,13 @@ const SubjectMaster = () => {
     },
     {
       name: "Section Name",
-      selector: (row) => row.section_name?.section_name || "N/A",
       cell: (row) =>
-        editId === row._id ? (
+        editingId === row._id ? (
           <FormSelect
-            value={editableSection}
-            onChange={(e) => setEditableSection(e.target.value)}
+            value={editedData.section_name}
+            onChange={(e) =>
+              setEditedData({ ...editedData, section_name: e.target.value })
+            }
           >
             <option value="">Select Section</option>
             {sectionList.map((sec) => (
@@ -82,21 +100,23 @@ const SubjectMaster = () => {
     },
     {
       name: "Subject & Teacher",
-      selector: (row) =>
-        `${row.subject_details.subject_name} - ${row.subject_details.employee?.employee_name}`,
       cell: (row) =>
-        editId === row._id ? (
+        editingId === row._id ? (
           <div>
             <FormControl
               type="text"
-              value={editableSubjectName}
-              onChange={(e) => setEditableSubjectName(e.target.value)}
+              value={editedData.subject_name}
+              onChange={(e) =>
+                setEditedData({ ...editedData, subject_name: e.target.value })
+              }
               placeholder="Subject Name"
+              className="mb-2"
             />
             <FormSelect
-              value={editableEmployee}
-              onChange={(e) => setEditableEmployee(e.target.value)}
-              className="mt-2"
+              value={editedData.employee}
+              onChange={(e) =>
+                setEditedData({ ...editedData, employee: e.target.value })
+              }
             >
               <option value="">Select Teacher</option>
               {employeeList.map((emp) => (
@@ -113,14 +133,15 @@ const SubjectMaster = () => {
     },
     {
       name: "Compulsory",
-      selector: (row) => (row.subject_details.compulsory ? "Yes" : "No"),
       cell: (row) =>
-        editId === row._id ? (
-          <Form.Check
+        editingId === row._id ? (
+          <FormCheck
             type="checkbox"
             label="Compulsory"
-            checked={editableCompulsory}
-            onChange={(e) => setEditableCompulsory(e.target.checked)}
+            checked={editedData.compulsory}
+            onChange={(e) =>
+              setEditedData({ ...editedData, compulsory: e.target.checked })
+            }
           />
         ) : (
           row.subject_details.compulsory ? "Yes" : "No"
@@ -131,18 +152,37 @@ const SubjectMaster = () => {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
-          {editId === row._id ? (
-            <button className="editButton btn-success" onClick={() => handleSave(row._id)}>
-              <FaSave />
-            </button>
+          {editingId === row._id ? (
+            <>
+              <button
+                className="editButton"
+                onClick={() => handleUpdate(row._id)}
+              >
+                <FaSave />
+              </button>
+              <button
+                className="editButton btn-danger"
+                onClick={() => handleDelete(row._id)}
+              >
+                <FaTrashAlt />
+              </button>
+            </>
           ) : (
-            <button className="editButton" onClick={() => handleEdit(row)}>
-              <FaEdit />
-            </button>
+            <>
+              <button
+                className="editButton"
+                onClick={() => handleEdit(row)}
+              >
+                <FaEdit />
+              </button>
+              <button
+                className="editButton btn-danger"
+                onClick={() => handleDelete(row._id)}
+              >
+                <FaTrashAlt />
+              </button>
+            </>
           )}
-          <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
-            <FaTrashAlt />
-          </button>
         </div>
       ),
     },
@@ -156,7 +196,9 @@ const SubjectMaster = () => {
 
   const fetchClasses = async () => {
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-classes");
+      const response = await axios.get(
+        "https://erp-backend-fy3n.onrender.com/api/all-classes"
+      );
       setClassList(response.data.data || []);
     } catch (error) {
       console.error("Failed to fetch classes", error);
@@ -165,7 +207,9 @@ const SubjectMaster = () => {
 
   const fetchSections = async (classId) => {
     try {
-      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/sections/class/${classId}`);
+      const response = await axios.get(
+        `https://erp-backend-fy3n.onrender.com/api/sections/class/${classId}`
+      );
       setSectionList(response.data.data || []);
     } catch (error) {
       console.error("Failed to fetch sections", error);
@@ -174,7 +218,9 @@ const SubjectMaster = () => {
 
   const fetchEmployees = async () => {
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-employee");
+      const response = await axios.get(
+        "https://erp-backend-fy3n.onrender.com/api/all-employee"
+      );
       setEmployeeList(response.data.data || []);
     } catch (error) {
       console.error("Failed to fetch employees", error);
@@ -185,7 +231,9 @@ const SubjectMaster = () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-subject");
+      const response = await axios.get(
+        "https://erp-backend-fy3n.onrender.com/api/all-subject"
+      );
       setSubjectList(response.data.data || []);
     } catch (error) {
       console.error("Failed to fetch subjects", error);
@@ -195,83 +243,94 @@ const SubjectMaster = () => {
     }
   };
 
-  const handleAddOrUpdateSubject = async () => {
-    if (!selectedClass || !subjectName || !selectedEmployee) {
+  const handleAdd = async () => {
+    if (!formData.class_name || !formData.subject_name || !formData.employee) {
       alert("Please fill all required fields");
       return;
     }
 
     const subjectData = {
-      class_name: selectedClass,
-      section_name: selectedSection || null,
-      subject_name: subjectName,
-      compulsory,
-      employee: selectedEmployee,
+      class_name: formData.class_name,
+      section_name: formData.section_name || null,
+      subject_name: formData.subject_name,
+      compulsory: formData.compulsory,
+      employee: formData.employee,
     };
 
     try {
-      if (editId) {
-        await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-subject/${editId}`, subjectData);
-      } else {
-        await axios.post("https://erp-backend-fy3n.onrender.com/api/create-subject", subjectData);
-      }
+      await axios.post(
+        "https://erp-backend-fy3n.onrender.com/api/create-subject",
+        subjectData
+      );
       fetchSubjects();
       resetForm();
+      setIsPopoverOpen(false);
     } catch (error) {
-      console.error("Error adding/updating subject", error);
+      console.error("Error adding subject", error);
+      setError("Failed to add subject. Please try again later.");
     }
   };
 
   const handleEdit = (subject) => {
-    setEditId(subject._id);
-    setEditableClass(subject.class_name?._id || "");
-    setEditableSection(subject.section_name?._id || "");
-    setEditableSubjectName(subject.subject_details.subject_name);
-    setEditableCompulsory(subject.subject_details.compulsory);
-    setEditableEmployee(subject.subject_details.employee?._id || "");
+    setEditingId(subject._id);
+    setEditedData({
+      class_name: subject.class_name?._id || "",
+      section_name: subject.section_name?._id || "",
+      subject_name: subject.subject_details.subject_name,
+      compulsory: subject.subject_details.compulsory,
+      employee: subject.subject_details.employee?._id || "",
+    });
     fetchSections(subject.class_name?._id);
   };
 
-  const handleSave = async (id) => {
-    const subjectData = {
-      class_name: editableClass,
-      section_name: editableSection || null,
-      subject_name: editableSubjectName,
-      compulsory: editableCompulsory,
-      employee: editableEmployee,
-    };
-
+  const handleUpdate = async (id) => {
     try {
-      await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-subject/${id}`, subjectData);
+      await axios.put(
+        `https://erp-backend-fy3n.onrender.com/api/update-subject/${id}`,
+        {
+          class_name: editedData.class_name,
+          section_name: editedData.section_name || null,
+          subject_name: editedData.subject_name,
+          compulsory: editedData.compulsory,
+          employee: editedData.employee,
+        }
+      );
       fetchSubjects();
-      setEditId(null);
+      setEditingId(null);
     } catch (error) {
       console.error("Error updating subject", error);
+      setError("Failed to update subject. Please try again later.");
     }
   };
 
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this subject?")) {
       try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-subject/${id}`);
+        await axios.delete(
+          `https://erp-backend-fy3n.onrender.com/api/delete-subject/${id}`
+        );
         fetchSubjects();
       } catch (error) {
         console.error("Error deleting subject", error);
+        setError("Failed to delete subject. Please try again later.");
       }
     }
   };
 
   const resetForm = () => {
-    setSelectedClass("");
-    setSelectedSection("");
-    setSubjectName("");
-    setCompulsory(false);
-    setSelectedEmployee("");
-    setEditId(null);
+    setFormData({
+      class_name: "",
+      section_name: "",
+      subject_name: "",
+      compulsory: false,
+      employee: "",
+    });
   };
 
   const handlePrint = async () => {
-    const tableHeaders = [["#", "Class Name", "Section Name", "Subject & Teacher", "Compulsory"]];
+    const tableHeaders = [
+      ["#", "Class Name", "Section Name", "Subject & Teacher", "Compulsory"],
+    ];
     const tableRows = subjectList.map((row, index) => [
       index + 1,
       row.class_name?.class_name || "N/A",
@@ -285,16 +344,21 @@ const SubjectMaster = () => {
 
   const handleCopy = () => {
     const headers = ["#", "Class Name", "Section Name", "Subject & Teacher", "Compulsory"];
-    const rows = subjectList
-      .map((row, index) =>
-        `${index + 1}\t${row.class_name?.class_name || "N/A"}\t${row.section_name?.section_name || "N/A"}\t${row.subject_details.subject_name
-        } - ${row.subject_details.employee?.employee_name}\t${row.subject_details.compulsory ? "Yes" : "No"}`
-      );
+    const rows = subjectList.map((row, index) =>
+      `${index + 1}\t${row.class_name?.class_name || "N/A"}\t${
+        row.section_name?.section_name || "N/A"
+      }\t${row.subject_details.subject_name} - ${
+        row.subject_details.employee?.employee_name
+      }\t${row.subject_details.compulsory ? "Yes" : "No"}`
+    );
 
     copyContent(headers, rows);
   };
 
-  const breadcrumbItems = [{ label: "Master Entry", link: "/master-entry/all-module" }, { label: "subject-master", link: "null" }]
+  const breadcrumbItems = [
+    { label: "Master Entry", link: "/master-entry/all-module" },
+    { label: "subject-master", link: "null" },
+  ];
 
   return (
     <>
@@ -309,23 +373,35 @@ const SubjectMaster = () => {
       </div>
       <section>
         <Container>
-          <Button onClick={() => setShowAddForm(!showAddForm)} className="btn-add">
-            <CgAddR /> {showAddForm ? "Close Form" : "Add Subject"}
+          <Button
+            onClick={() => setIsPopoverOpen(true)}
+            className="btn-add"
+          >
+            <CgAddR /> Add Subject
           </Button>
-          {showAddForm && (
+
+          {isPopoverOpen && (
             <div className="cover-sheet">
               <div className="studentHeading">
-                <h2>Add Subject</h2>
-                <button className="closeForm" onClick={() => setShowAddForm(false)}>X</button>
+                <h2>Add New Subject</h2>
+                <button
+                  className="closeForm"
+                  onClick={() => {
+                    setIsPopoverOpen(false);
+                    setError("");
+                  }}
+                >
+                  X
+                </button>
               </div>
               <Form className="formSheet">
                 <Row className="mb-3">
-                  <Col>
-                    <FormLabel>Select Class</FormLabel>
+                  <Col lg={6}>
+                    <FormLabel className="labelForm">Select Class</FormLabel>
                     <FormSelect
-                      value={selectedClass}
+                      value={formData.class_name}
                       onChange={(e) => {
-                        setSelectedClass(e.target.value);
+                        setFormData({ ...formData, class_name: e.target.value });
                         fetchSections(e.target.value);
                       }}
                     >
@@ -337,11 +413,13 @@ const SubjectMaster = () => {
                       ))}
                     </FormSelect>
                   </Col>
-                  <Col>
-                    <FormLabel>Select Section (Optional)</FormLabel>
+                  <Col lg={6}>
+                    <FormLabel className="labelForm">Select Section (Optional)</FormLabel>
                     <FormSelect
-                      value={selectedSection}
-                      onChange={(e) => setSelectedSection(e.target.value)}
+                      value={formData.section_name}
+                      onChange={(e) =>
+                        setFormData({ ...formData, section_name: e.target.value })
+                      }
                     >
                       <option value="">Select Section</option>
                       {sectionList.map((sec) => (
@@ -352,22 +430,26 @@ const SubjectMaster = () => {
                     </FormSelect>
                   </Col>
                 </Row>
-                <Row className="mt-3">
-                  <Col>
-                    <FormLabel>Enter Subject Name</FormLabel>
+                <Row className="mb-3">
+                  <Col lg={6}>
+                    <FormLabel className="labelForm">Subject Name</FormLabel>
                     <FormControl
                       type="text"
-                      value={subjectName}
-                      onChange={(e) => setSubjectName(e.target.value)}
+                      value={formData.subject_name}
+                      onChange={(e) =>
+                        setFormData({ ...formData, subject_name: e.target.value })
+                      }
                     />
                   </Col>
-                  <Col>
-                    <FormLabel>Select Teacher</FormLabel>
+                  <Col lg={6}>
+                    <FormLabel className="labelForm">Teacher</FormLabel>
                     <FormSelect
-                      value={selectedEmployee}
-                      onChange={(e) => setSelectedEmployee(e.target.value)}
+                      value={formData.employee}
+                      onChange={(e) =>
+                        setFormData({ ...formData, employee: e.target.value })
+                      }
                     >
-                      <option value="">Select Employee</option>
+                      <option value="">Select Teacher</option>
                       {employeeList.map((emp) => (
                         <option key={emp._id} value={emp._id}>
                           {emp.employee_name}
@@ -376,44 +458,44 @@ const SubjectMaster = () => {
                     </FormSelect>
                   </Col>
                 </Row>
-                <Row className="mt-3">
+                <Row className="mb-3">
                   <Col>
-                    <Form.Check
+                    <FormCheck
                       type="checkbox"
                       label="Compulsory Subject"
-                      checked={compulsory}
-                      onChange={(e) => setCompulsory(e.target.checked)}
+                      checked={formData.compulsory}
+                      onChange={(e) =>
+                        setFormData({ ...formData, compulsory: e.target.checked })
+                      }
                     />
                   </Col>
                 </Row>
-                <Row className="mt-3">
-                  <Col>
-                    <Button onClick={handleAddOrUpdateSubject}>
-                      {editId ? "Update Subject" : "Add Subject"}
-                    </Button>
-                  </Col>
-                </Row>
+                <Button onClick={handleAdd} className="btn btn-primary">
+                  Add Subject
+                </Button>
               </Form>
             </div>
           )}
-          <Row>
-            <Col>
-              <div className="tableSheet">
-                <h2>Subject Master</h2>
-                {loading ? (
-                  <p>Loading...</p>
-                ) : error ? (
-                  <p style={{ color: "red" }}>{error}</p>
-                ) : (
-                  <Table columns={columns} data={subjectList} handleCopy={handleCopy} handlePrint={handlePrint} />
-                )}
-              </div>
-            </Col>
-          </Row>
+
+          <div className="tableSheet">
+            <h2>Subject Master</h2>
+            {loading ? (
+              <p>Loading...</p>
+            ) : error ? (
+              <p style={{ color: "red" }}>{error}</p>
+            ) : (
+              <Table
+                columns={columns}
+                data={subjectList}
+                handleCopy={handleCopy}
+                handlePrint={handlePrint}
+              />
+            )}
+          </div>
         </Container>
       </section>
     </>
   );
 };
 
-export default SubjectMaster;
+export default dynamic(() => Promise.resolve(SubjectMaster), { ssr: false });

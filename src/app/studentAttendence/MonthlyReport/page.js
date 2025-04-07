@@ -112,7 +112,7 @@ const MonthlyReport = () => {
             <Form className="formSheet">
               <Row>
                 <Col>
-                  <FormLabel>Select Class</FormLabel>
+                  <FormLabel className="labelForm">Select Class</FormLabel>
                   <FormSelect
                     value={selectedClass}
                     onChange={(e) => {
@@ -129,7 +129,7 @@ const MonthlyReport = () => {
                   </FormSelect>
                 </Col>
                 <Col>
-                  <FormLabel>Select Section</FormLabel>
+                  <FormLabel className="labelForm">Select Section</FormLabel>
                   <FormSelect
                     value={selectedSection}
                     onChange={(e) => setSelectedSection(e.target.value)}
@@ -143,7 +143,7 @@ const MonthlyReport = () => {
                   </FormSelect>
                 </Col>
                 <Col>
-                  <FormLabel>Attendance Date</FormLabel>
+                  <FormLabel className="labelForm">Attendance Date</FormLabel>
                   <Form.Control
                     type="date"
                     value={attendanceDate}

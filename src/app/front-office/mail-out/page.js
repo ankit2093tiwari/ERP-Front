@@ -1,15 +1,53 @@
 "use client";
 import React, { useState } from 'react';
 import Table from '@/app/component/DataTable';
-import styles from "@/app/students/add-new-student/page.module.css"
-import { Container, Row, Col, Breadcrumb, Form, FormLabel, FormGroup, FormControl, FormSelect, Button } from 'react-bootstrap';
-import dynamic from 'next/dynamic';
-import { CgAddR } from 'react-icons/cg';
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
-import "react-datepicker/dist/react-datepicker.css";
+import { CgAddR } from 'react-icons/cg';
+import { Container, Row, Col, Form, FormLabel, FormControl, FormSelect, Button } from 'react-bootstrap';
+import dynamic from 'next/dynamic';
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const MailOut = () => {
+  const [data, setData] = useState([
+    {
+      id: 1,
+      mailNo: '001',
+      forWhom: 'Anokhi',
+      date: '2023-05-15',
+      mode: 'General Post',
+      fromF: 'Company A',
+      courierName: '',
+      address: '123 Main St',
+      sender: 'Neha',
+      remark: 'Urgent'
+    },
+    {
+      id: 2,
+      mailNo: '002',
+      forWhom: 'Anshika',
+      date: '2023-05-16',
+      mode: 'General Post',
+      fromF: 'Company B',
+      courierName: '',
+      address: '456 Oak Ave',
+      sender: 'Nupul',
+      remark: 'Confidential'
+    },
+    {
+      id: 3,
+      mailNo: '003',
+      forWhom: 'Anil',
+      date: '2023-05-17',
+      mode: 'Courier',
+      fromF: 'Company C',
+      courierName: 'Fast Delivery',
+      address: '789 Pine Rd',
+      sender: 'Neelesh',
+      remark: 'Fragile'
+    },
+  ]);
+
+  const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState({
     mailNo: '',
     forWhom: '',
@@ -22,11 +60,6 @@ const MailOut = () => {
     remark: '',
   });
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
-
   const columns = [
     {
       name: '#',
@@ -35,39 +68,43 @@ const MailOut = () => {
       width: '70px',
     },
     {
+      name: 'Mail No',
+      selector: row => row.mailNo || "N/A",
+      sortable: true,
+    },
+    {
       name: 'From',
-      selector: row => row.from,
+      selector: row => row.fromF || "N/A",
       sortable: true,
     },
     {
       name: 'For Whom',
-      selector: row => row.forWhom,
+      selector: row => row.forWhom || "N/A",
+      sortable: true,
+    },
+    {
+      name: 'Date',
+      selector: row => row.date || "N/A",
       sortable: true,
     },
     {
       name: 'Mode',
-      selector: row => row.mode,
+      selector: row => row.mode || "N/A",
       sortable: true,
     },
     {
-      name: 'Sent By',
-      selector: row => row.sender,
+      name: 'Sender',
+      selector: row => row.sender || "N/A",
       sortable: true,
     },
     {
-      name: 'Action',
+      name: 'Actions',
       cell: row => (
-        <div style={{
-          display: 'flex',
-        }}>
-          <button className='editButton'
-            onClick={() => handleEdit(row.id)}
-          >
+        <div className="d-flex gap-2">
+          <button className="editButton" onClick={() => handleEdit(row.id)}>
             <FaEdit />
           </button>
-          <button className="editButton btn-danger"
-            onClick={() => handleDelete(row.id)}
-          >
+          <button className="editButton btn-danger" onClick={() => handleDelete(row.id)}>
             <FaTrashAlt />
           </button>
         </div>
@@ -75,50 +112,52 @@ const MailOut = () => {
     }
   ];
 
-  const data = [
-    {
-      id: 1,
-      from: 'from1',
-      forWhom: 'Anokhi',
-      mode: 'General Post',
-      sender: 'Neha',
-    },
-    {
-      id: 2,
-      from: 'from2',
-      forWhom: 'Anshika',
-      mode: 'General Post',
-      sender: 'Nupul',
-    },
-    {
-      id: 3,
-      from: 'from3',
-      forWhom: 'Anil',
-      mode: 'Courier',
-      sender: 'Neelesh',
-    },
-    {
-      id: 4,
-      from: 'from4',
-      forWhom: 'Anu',
-      mode: 'General Post',
-      sender: 'Nitin',
-    },
-  ];
-
-  const [startDate, setStartDate] = useState(new Date());
-
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const onOpen = () => setIsPopoverOpen(true);
-  const onClose = () => setIsPopoverOpen(false);
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
-    setIsPopoverOpen(false);
+    const newEntry = {
+      id: data.length + 1,
+      ...formData
+    };
+    setData([...data, newEntry]);
+    setShowAddForm(false);
+    setFormData({
+      mailNo: '',
+      forWhom: '',
+      date: '',
+      mode: '',
+      fromF: '',
+      courierName: '',
+      address: '',
+      sender: '',
+      remark: '',
+    });
   };
 
-  const breadcrumbItems = [{ label: "Front Office", link: "/front-office/all-module" }, { label: "Mail Out", link: "null" }]
+  const handleEdit = (id) => {
+    const item = data.find(row => row.id === id);
+    const updatedForWhom = prompt("Enter recipient:", item.forWhom);
+    if (updatedForWhom) {
+      setData(data.map(row => 
+        row.id === id ? {...row, forWhom: updatedForWhom} : row
+      ));
+    }
+  };
+
+  const handleDelete = (id) => {
+    if (confirm("Are you sure you want to delete this mail record?")) {
+      setData(data.filter(row => row.id !== id));
+    }
+  };
+
+  const breadcrumbItems = [
+    { label: "Front Office", link: "/front-office/all-module" }, 
+    { label: "Mail Out", link: "null" }
+  ];
 
   return (
     <>
@@ -133,121 +172,145 @@ const MailOut = () => {
       </div>
       <section>
         <Container>
-          <Row className='mt-1 mb-1'>
-            <Col>
-              <Breadcrumb>
-                <Breadcrumb.Item href="/">Home</Breadcrumb.Item>
-                <Breadcrumb.Item href="/front-office/all-module">
-                  Front Office
-                </Breadcrumb.Item>
-                <Breadcrumb.Item active>Mail Out</Breadcrumb.Item>
-              </Breadcrumb>
-            </Col>
-          </Row>
-
-          <button onClick={onOpen} type='button' className='btn btn-primary'>
-            <CgAddR />New Mail</button>
-          {isPopoverOpen && (
+          <Button onClick={() => setShowAddForm(true)} className="btn-add">
+            <CgAddR /> New Mail
+          </Button>
+          
+          {showAddForm && (
             <div className="cover-sheet">
-              <div className="studentHeading"><h2>New Mail</h2>  <button className='closeForm' onClick={onClose}> X </button> </div>
+              <div className="studentHeading">
+                <h2>New Mail</h2>
+                <button className="closeForm" onClick={() => setShowAddForm(false)}>
+                  X
+                </button>
+              </div>
               <Form onSubmit={handleSubmit} className="formSheet">
-                <Row className="mb-3">
-                  <FormGroup as={Col} md="4" controlId="validationCustom02">
-                    <FormLabel className="labelForm" value={formData.mailNo} onChange={handleChange} required>Mail No</FormLabel>
+                <Row>
+                  <Col lg={4}>
+                    <FormLabel className="labelForm">Mail No</FormLabel>
                     <FormControl
+                      type="text"
+                      name="mailNo"
+                      value={formData.mailNo}
+                      onChange={handleChange}
+                      placeholder="Enter Mail Number"
                       required
-                      type="number"
                     />
-                  </FormGroup>
-                  <FormGroup as={Col} md="4" controlId="validationCustom01">
-                    <FormLabel className="labelForm" value={formData.forWhom} onChange={handleChange} required>For Whom</FormLabel>
-                    <FormSelect>
-                      <option>Select</option>
-                      <option value="1">Anshika</option>
-                      <option value="2">Ashu</option>
-                      <option value="3">Akansha</option>
-                      <option value="4">Nikhil</option>
-                    </FormSelect>
-                  </FormGroup>
-
-                  <FormGroup as={Col} md="4" controlId="validationCustom08">
-                    <FormLabel className="labelForm" value={formData.date} onChange={handleChange} required>Date</FormLabel>
-                    <FormControl
+                  </Col>
+                  <Col lg={4}>
+                    <FormLabel className="labelForm">For Whom</FormLabel>
+                    <FormSelect
+                      name="forWhom"
+                      value={formData.forWhom}
+                      onChange={handleChange}
                       required
+                    >
+                      <option value="">Select Recipient</option>
+                      <option value="Anshika">Anshika</option>
+                      <option value="Ashu">Ashu</option>
+                      <option value="Akansha">Akansha</option>
+                      <option value="Nikhil">Nikhil</option>
+                    </FormSelect>
+                  </Col>
+                  <Col lg={4}>
+                    <FormLabel className="labelForm">Date</FormLabel>
+                    <FormControl
                       type="date"
+                      name="date"
+                      value={formData.date}
+                      onChange={handleChange}
+                      required
                     />
-                  </FormGroup>
+                  </Col>
                 </Row>
-                <Row className='mb-3'>
-                  <FormGroup as={Col} md="4" controlId="validationCustom07">
-                    <FormLabel className="labelForm" value={formData.mode} onChange={handleChange} required>Mode</FormLabel>
-                    <FormSelect>
-                      <option>Select</option>
-                      <option value="1">General Post</option>
-                      <option value="2">Speed Post</option>
-                      <option value="3">Courier</option>
+                <Row>
+                  <Col lg={4}>
+                    <FormLabel className="labelForm">Mode</FormLabel>
+                    <FormSelect
+                      name="mode"
+                      value={formData.mode}
+                      onChange={handleChange}
+                      required
+                    >
+                      <option value="">Select Mode</option>
+                      <option value="General Post">General Post</option>
+                      <option value="Speed Post">Speed Post</option>
+                      <option value="Courier">Courier</option>
                     </FormSelect>
-                  </FormGroup>
-
-                  <FormGroup as={Col} md="4" controlId="validationCustom03">
-                    <FormLabel className="labelForm" value={formData.fromF} onChange={handleChange} required>To</FormLabel>
+                  </Col>
+                  <Col lg={4}>
+                    <FormLabel className="labelForm">To</FormLabel>
                     <FormControl
-                      required
                       type="text"
+                      name="fromF"
+                      value={formData.fromF}
+                      onChange={handleChange}
+                      placeholder="Enter Recipient"
+                      required
                     />
-                  </FormGroup>
-                  <FormGroup as={Col} md="4" controlId="validationCustom04">
-                    <FormLabel className="labelForm" value={formData.courierName} onChange={handleChange} required>Courier Name</FormLabel>
+                  </Col>
+                  <Col lg={4}>
+                    <FormLabel className="labelForm">Courier Name</FormLabel>
                     <FormControl
-                      required
                       type="text"
+                      name="courierName"
+                      value={formData.courierName}
+                      onChange={handleChange}
+                      placeholder="Enter Courier Name"
                     />
-                  </FormGroup>
+                  </Col>
                 </Row>
-                <Row className='mb-3'>
-                  <FormGroup as={Col} md="4" controlId="validationCustom05">
-                    <FormLabel className="labelForm" value={formData.address} onChange={handleChange} required>Address</FormLabel>
+                <Row>
+                  <Col lg={6}>
+                    <FormLabel className="labelForm">Address</FormLabel>
                     <FormControl
+                      as="textarea"
+                      name="address"
+                      value={formData.address}
+                      onChange={handleChange}
+                      placeholder="Enter Address"
                       required
-                      type="textarea"
                     />
-                  </FormGroup>
-                  <FormGroup as={Col} md="4" controlId="validationCustom06">
-                    <FormLabel className="labelForm" value={formData.sender} onChange={handleChange} required>Sender</FormLabel>
-                    <FormSelect>
-                      <option>Select</option>
-                      <option value="1">Manvi</option>
-                      <option value="2">Sanvi</option>
-                      <option value="3">Suresh</option>
-                      <option value="3">Shashi</option>
+                  </Col>
+                  <Col lg={6}>
+                    <FormLabel className="labelForm">Sender</FormLabel>
+                    <FormSelect
+                      name="sender"
+                      value={formData.sender}
+                      onChange={handleChange}
+                      required
+                    >
+                      <option value="">Select Sender</option>
+                      <option value="Manvi">Manvi</option>
+                      <option value="Sanvi">Sanvi</option>
+                      <option value="Suresh">Suresh</option>
+                      <option value="Shashi">Shashi</option>
                     </FormSelect>
-                  </FormGroup>
-
-                  <FormGroup as={Col} md="4" controlId="validationCustom16">
-                    <FormLabel className="labelForm" value={formData.remark} onChange={handleChange} required>Remark</FormLabel>
-                    <FormControl
-                      required
-                      type="textarea"
-                    />
-                  </FormGroup>
+                  </Col>
                 </Row>
-                <Button type="submit" id="submit" className='btn btn-primary mt-4' onSubmit={handleSubmit}>Submit</Button>
+                <Row>
+                  <Col lg={12}>
+                    <FormLabel className="labelForm">Remark</FormLabel>
+                    <FormControl
+                      as="textarea"
+                      name="remark"
+                      value={formData.remark}
+                      onChange={handleChange}
+                      placeholder="Enter Remark"
+                    />
+                  </Col>
+                </Row>
+                <Button type="submit" className="btn btn-primary mt-3">
+                  Submit
+                </Button>
               </Form>
             </div>
           )}
 
-          <Row>
-            <Col>
-              <div className="tableSheet">
-                <h2>Mail Out Records</h2>
-                <Table columns={columns} data={data} />
-                <div className={styles.buttons} style={{ float: 'right', marginRight: '10px' }}>
-                  <button type="button" className="editButton">Previous</button>
-                  <button type="button" className="editButton">Next</button>
-                </div>
-              </div>
-            </Col>
-          </Row>
+          <div className="tableSheet mt-4">
+            <h2>Mail Out Records</h2>
+            <Table columns={columns} data={data} />
+          </div>
         </Container>
       </section>
     </>

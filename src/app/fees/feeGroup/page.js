@@ -264,7 +264,7 @@ const FeeGroup = () => {
         </Container>
       </div>
       <section>
-        <Container className="">
+        <Container>
 
           <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
             <CgAddR /> Add Fee Group
@@ -281,7 +281,7 @@ const FeeGroup = () => {
               <Form className="formSheet">
                 <Row>
                   <Col lg={6}>
-                    <FormLabel>Group Name</FormLabel>
+                    <FormLabel className="labelForm">Group Name</FormLabel>
                     <FormControl
                       type="text"
                       value={newFeeGroup.group_name}
@@ -291,7 +291,7 @@ const FeeGroup = () => {
                     />
                   </Col>
                   <Col lg={6}>
-                    <FormLabel>Class Name</FormLabel>
+                    <FormLabel className="labelForm">Class Name</FormLabel>
                     <FormSelect
                       value={newFeeGroup.class_name}
                       onChange={(e) => {
@@ -308,7 +308,7 @@ const FeeGroup = () => {
                     </FormSelect>
                   </Col>
                   <Col lg={6}>
-                    <FormLabel>Section Name</FormLabel>
+                    <FormLabel className="labelForm">Section Name</FormLabel>
                     <FormSelect
                       value={newFeeGroup.section_name}
                       onChange={(e) =>
@@ -324,7 +324,7 @@ const FeeGroup = () => {
                     </FormSelect>
                   </Col>
                   <Col lg={6}>
-                    <FormLabel>Late Fine Per Day</FormLabel>
+                    <FormLabel className="labelForm">Late Fine Per Day</FormLabel>
                     <FormControl
                       type="text"
                       value={newFeeGroup.late_fine_per_day}

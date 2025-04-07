@@ -202,14 +202,14 @@ const PromoteStudentPage = () => {
             <Form className="formSheet">
               <Row>
                 <Col lg={6}>
-                  <FormLabel>Select Class</FormLabel>
+                  <FormLabel className="labelForm">Select Class</FormLabel>
                   <FormSelect value={selectedClass} onChange={(e) => { setSelectedClass(e.target.value); fetchSections(e.target.value, setSectionList); }}>
                     <option value="">Select Class</option>
                     {classList.map((cls) => <option key={cls._id} value={cls._id}>{cls.class_name}</option>)}
                   </FormSelect>
                 </Col>
                 <Col>
-                  <FormLabel>Select Section</FormLabel>
+                  <FormLabel className="labelForm">Select Section</FormLabel>
                   <FormSelect value={selectedSection} onChange={(e) => setSelectedSection(e.target.value)}>
                     <option value="">Select Section</option>
                     {sectionList.map((sec) => <option key={sec._id} value={sec._id}>{sec.section_name}</option>)}
@@ -225,14 +225,14 @@ const PromoteStudentPage = () => {
               <br />
               <Row>
                 <Col>
-                  <FormLabel>Select Promoted Class</FormLabel>
+                  <FormLabel className="labelForm">Select Promoted Class</FormLabel>
                   <FormSelect value={promotedClass} onChange={(e) => { setPromotedClass(e.target.value); fetchSections(e.target.value, setPromotedSectionList); }}>
                     <option value="">Select Class</option>
                     {classList.map((cls) => <option key={cls._id} value={cls._id}>{cls.class_name}</option>)}
                   </FormSelect>
                 </Col>
                 <Col>
-                  <FormLabel>Select Promoted Section</FormLabel>
+                  <FormLabel className="labelForm">Select Promoted Section</FormLabel>
                   <FormSelect value={promotedSection} onChange={(e) => setPromotedSection(e.target.value)}>
                     <option value="">Select Section</option>
                     {promotedSectionList.map((sec) => <option key={sec._id} value={sec._id}>{sec.section_name}</option>)}

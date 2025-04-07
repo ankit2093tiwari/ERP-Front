@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import styles from "@/app/medical/routine-check-up/page.module.css";
 import Table from "@/app/component/DataTable";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
+import { CgAddR } from 'react-icons/cg';
 import {
   Form,
   Row,
@@ -19,22 +20,21 @@ import axios from "axios";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const DailyDiary = () => {
-  const [data, setData] = useState([]); // Table data
-  const [loading, setLoading] = useState(false); // Loading state
-  const [error, setError] = useState(""); // Error state
-  const [success, setSuccess] = useState(""); // Success state
-  const [showAddForm, setShowAddForm] = useState(false); // Toggle Add Form visibility
-  const [teachers, setTeachers] = useState([]); // List of teachers for dropdown
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [teachers, setTeachers] = useState([]);
   const [newEntry, setNewEntry] = useState({
     entryDate: "",
     teacherName: "",
     workDetails: "",
-  }); // New entry data
+  });
 
   const baseURL = "https://erp-backend-fy3n.onrender.com/api/dailyDairy";
   const teacherURL = "https://erp-backend-fy3n.onrender.com/api/teachers";
 
-  // Table columns configuration
   const columns = [
     {
       name: "#",
@@ -72,7 +72,6 @@ const DailyDiary = () => {
     },
   ];
 
-  // Fetch teachers from API
   const fetchTeachers = async () => {
     try {
       const response = await axios.get(teacherURL);
@@ -82,7 +81,6 @@ const DailyDiary = () => {
     }
   };
 
-  // Fetch data from API
   const fetchData = async () => {
     setLoading(true);
     setError("");
@@ -97,7 +95,6 @@ const DailyDiary = () => {
     }
   };
 
-  // Handle form submission for adding new entries
   const handleAdd = async () => {
     const { entryDate, teacherName, workDetails } = newEntry;
 
@@ -119,7 +116,6 @@ const DailyDiary = () => {
     }
   };
 
-  // Edit an existing entry
   const handleEdit = async (id) => {
     const item = data.find((row) => row._id === id);
     const updatedWorkDetails = prompt(
@@ -142,7 +138,6 @@ const DailyDiary = () => {
     }
   };
 
-  // Delete an entry
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this entry?")) {
       try {
@@ -175,24 +170,26 @@ const DailyDiary = () => {
         </Container>
       </div>
       <section>
-        <Container className={styles.formContainer}>
-          <Form className={styles.form}>
-            <Button
-              onClick={() => setShowAddForm(!showAddForm)}
-              className={`mb-4 ${styles.search}`}
-            >
-              Add Entry
-            </Button>
+        <Container>
+          <Button onClick={() => setShowAddForm(true)} className="btn-add">
+            <CgAddR /> Add Entry
+          </Button>
+          
+          {success && <Alert variant="success" className="mt-3">{success}</Alert>}
+          {error && <Alert variant="danger" className="mt-3">{error}</Alert>}
 
-            {success && <Alert variant="success">{success}</Alert>}
-            {error && <Alert variant="danger">{error}</Alert>}
-
-            {/* Add Form */}
-            {showAddForm && (
-              <div className="mb-4">
-                <Row className="mb-3">
-                  <Col lg={4}>
-                    <FormLabel>Entry Date</FormLabel>
+          {showAddForm && (
+            <div className="cover-sheet">
+              <div className="studentHeading">
+                <h2>Add Daily Diary Entry</h2>
+                <button className="closeForm" onClick={() => setShowAddForm(false)}>
+                  X
+                </button>
+              </div>
+              <Form className="formSheet">
+                <Row>
+                  <Col lg={6}>
+                    <FormLabel className="labelForm">Entry Date</FormLabel>
                     <FormControl
                       type="date"
                       value={newEntry.entryDate}
@@ -201,8 +198,8 @@ const DailyDiary = () => {
                       }
                     />
                   </Col>
-                  <Col lg={4}>
-                    <FormLabel>Teacher Name</FormLabel>
+                  <Col lg={6}>
+                    <FormLabel className="labelForm">Teacher Name</FormLabel>
                     <FormControl
                       as="select"
                       value={newEntry.teacherName}
@@ -218,11 +215,14 @@ const DailyDiary = () => {
                       ))}
                     </FormControl>
                   </Col>
-                  <Col lg={4}>
-                    <FormLabel>Work Details</FormLabel>
+                </Row>
+                <Row>
+                  <Col lg={12}>
+                    <FormLabel className="labelForm">Work Details</FormLabel>
                     <FormControl
-                      type="text"
-                      placeholder="Enter Work Details"
+                      as="textarea"
+                      rows={3}
+                      placeholder="Enter work details"
                       value={newEntry.workDetails}
                       onChange={(e) =>
                         setNewEntry({ ...newEntry, workDetails: e.target.value })
@@ -230,25 +230,18 @@ const DailyDiary = () => {
                     />
                   </Col>
                 </Row>
-                <Row>
-                  <Col>
-                    <Button onClick={handleAdd} className={styles.search}>
-                      Add Entry
-                    </Button>
-                  </Col>
-                </Row>
-              </div>
-            )}
+                <Button onClick={handleAdd} className="btn btn-primary mt-3">
+                  Add Entry
+                </Button>
+              </Form>
+            </div>
+          )}
 
-            {/* Table Section */}
-            <Row>
-              <Col>
-                <h2 style={{ fontSize: "22px" }}>Daily Dairy Records</h2>
-                {loading && <p>Loading...</p>}
-                {!loading && <Table columns={columns} data={data} />}
-              </Col>
-            </Row>
-          </Form>
+          <div className="tableSheet mt-4">
+            <h2>Daily Diary Records</h2>
+            {loading && <p>Loading...</p>}
+            {!loading && <Table columns={columns} data={data} />}
+          </div>
         </Container>
       </section>
     </>

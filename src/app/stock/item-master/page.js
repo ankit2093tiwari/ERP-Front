@@ -155,7 +155,7 @@ const ItemMaster = () => {
 </div>
   <section>
     <Container>
-      <Button onClick={onOpen} className=""btn-add>
+      <Button onClick={onOpen} className="btn-add">
         <CgAddR /> Add Item
       </Button>
 

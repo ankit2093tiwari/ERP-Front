@@ -180,7 +180,7 @@ const RouteMaster = () => {
                     />
                   </Col>
                   <Col md={6}>
-                    <FormLabel>Route Name</FormLabel>
+                    <FormLabel className="labelForm">Route Name</FormLabel>
                     <FormControl
                       type="text"
                       placeholder="Enter Route Name"
@@ -189,7 +189,7 @@ const RouteMaster = () => {
                     />
                   </Col>
                 </Row>
-                <FormLabel>Pickup Points</FormLabel>
+                <FormLabel className="labelForm">Pickup Points</FormLabel>
                 {route.pickupPoints.map((pickup, index) => (
                   <Row key={index} className="mb-3">
                     <Col md={6}>

@@ -209,7 +209,7 @@ const InstallmentMaster = () => {
               <Form className="formSheet">
                 <Row>
                   <Col lg={6}>
-                    <FormLabel>Installment Name</FormLabel>
+                    <FormLabel className="labelForm">Installment Name</FormLabel>
                     <FormControl
                       type="text"
                       placeholder="Enter Installment Name"

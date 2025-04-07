@@ -1,30 +1,60 @@
 "use client";
 import React, { useState } from 'react';
 import Table from '@/app/component/DataTable';
-import styles from "@/app/students/add-new-student/page.module.css"
-import { Container, Row, Col, Breadcrumb, Form, FormLabel, FormGroup, FormControl, FormSelect, Button } from 'react-bootstrap';
-import dynamic from 'next/dynamic';
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import { CgAddR } from 'react-icons/cg';
-import "react-datepicker/dist/react-datepicker.css";
+import { Container, Row, Col, Form, FormLabel, FormControl, FormSelect, Button } from 'react-bootstrap';
+import dynamic from 'next/dynamic';
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const AddressBook = () => {
+  const [data, setData] = useState([
+    {
+      id: 1,
+      name: 'Sandeep',
+      location: 'Kanpur',
+      address: 'Kanpur',
+      mobileNo: '7875885676',
+      email: 'muskan@gmail.com',
+      remark: 'remark1',
+      homePhone: '1234567890',
+      faxNo: '9876543210'
+    },
+    {
+      id: 2,
+      name: 'Sandeep',
+      location: 'Kanpur',
+      address: 'Kanpur',
+      mobileNo: '7875885676',
+      email: 'muskan@gmail.com',
+      remark: 'remark1',
+      homePhone: '1234567890',
+      faxNo: '9876543210'
+    },
+    {
+      id: 3,
+      name: 'Sandeep',
+      location: 'Kanpur',
+      address: 'Kanpur',
+      mobileNo: '7875885676',
+      email: 'muskan@gmail.com',
+      remark: 'remark1',
+      homePhone: '1234567890',
+      faxNo: '9876543210'
+    },
+  ]);
+
+  const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     homePhone: '',
     address: '',
     mobileNo: '',
     location: '',
-    emailL: '',
+    email: '',
     remark: '',
     faxNo: '',
   });
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
 
   const columns = [
     {
@@ -35,48 +65,42 @@ const AddressBook = () => {
     },
     {
       name: 'Name',
-      selector: row => row.name,
+      selector: row => row.name || "N/A",
       sortable: true,
     },
     {
       name: 'Location',
-      selector: row => row.location,
+      selector: row => row.location || "N/A",
       sortable: true,
     },
     {
       name: 'Address',
-      selector: row => row.address,
+      selector: row => row.address || "N/A",
       sortable: true,
     },
     {
       name: 'Mobile No',
-      selector: row => row.mobileNo,
+      selector: row => row.mobileNo || "N/A",
       sortable: true,
     },
     {
       name: 'Email',
-      selector: row => row.emailL,
+      selector: row => row.email || "N/A",
       sortable: true,
     },
     {
       name: 'Remarks',
-      selector: row => row.remark,
+      selector: row => row.remark || "N/A",
       sortable: true,
     },
     {
-      name: 'Action',
+      name: 'Actions',
       cell: row => (
-        <div style={{
-          display: 'flex',
-        }}>
-          <button className='editButton'
-            onClick={() => handleEdit(row.id)}
-          >
+        <div className="d-flex gap-2">
+          <button className="editButton" onClick={() => handleEdit(row.id)}>
             <FaEdit />
           </button>
-          <button className="editButton btn-danger"
-            onClick={() => handleDelete(row.id)}
-          >
+          <button className="editButton btn-danger" onClick={() => handleDelete(row.id)}>
             <FaTrashAlt />
           </button>
         </div>
@@ -84,49 +108,51 @@ const AddressBook = () => {
     }
   ];
 
-  const data = [
-    {
-      id: 1,
-      name: 'Sandeep',
-      location: 'Kanpur',
-      address: 'Kanpur',
-      mobileNo: '7875885676',
-      emailL: 'muskan@gmail.com',
-      remark: 'remark1',
-    },
-    {
-      id: 2,
-      name: 'Sandeep',
-      location: 'Kanpur',
-      address: 'Kanpur',
-      mobileNo: '7875885676',
-      emailL: 'muskan@gmail.com',
-      remark: 'remark1',
-    },
-    {
-      id: 3,
-      name: 'Sandeep',
-      location: 'Kanpur',
-      address: 'Kanpur',
-      mobileNo: '7875885676',
-      emailL: 'muskan@gmail.com',
-      remark: 'remark1',
-    },
-  ];
-
-  const [startDate, setStartDate] = useState(new Date());
-
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const onOpen = () => setIsPopoverOpen(true);
-  const onClose = () => setIsPopoverOpen(false);
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
-    setIsPopoverOpen(false);
+    const newEntry = {
+      id: data.length + 1,
+      ...formData
+    };
+    setData([...data, newEntry]);
+    setShowAddForm(false);
+    setFormData({
+      name: '',
+      homePhone: '',
+      address: '',
+      mobileNo: '',
+      location: '',
+      email: '',
+      remark: '',
+      faxNo: '',
+    });
   };
 
-  const breadcrumbItems = [{ label: "Front Office", link: "/front-office/all-module" }, { label: "Address Book", link: "null" }]
+  const handleEdit = (id) => {
+    const item = data.find(row => row.id === id);
+    const updatedName = prompt("Enter new name:", item.name);
+    if (updatedName) {
+      setData(data.map(row => 
+        row.id === id ? {...row, name: updatedName} : row
+      ));
+    }
+  };
+
+  const handleDelete = (id) => {
+    if (confirm("Are you sure you want to delete this contact?")) {
+      setData(data.filter(row => row.id !== id));
+    }
+  };
+
+  const breadcrumbItems = [
+    { label: "Front Office", link: "/front-office/all-module" }, 
+    { label: "Address Book", link: "null" }
+  ];
 
   return (
     <>
@@ -141,106 +167,136 @@ const AddressBook = () => {
       </div>
       <section>
         <Container>
-          <Row>
-            <Col>
-              <button onClick={onOpen} type='button' className='btn-add'>
-                <CgAddR />Add New</button>
-              {isPopoverOpen && (
-                <div className="cover-sheet">
-                  <div className="studentHeading"><h2>Add New Contact</h2>  <button className='closeForm' onClick={onClose}> X </button></div>
-                  <Form onSubmit={handleSubmit} className="formSheet">
-                    <Row className="mb-3">
-                      <FormGroup as={Col} md="4" controlId="validationCustom02">
-                        <FormLabel value={formData.name} onChange={handleChange} required>Name</FormLabel>
-                        <FormControl
-                          required
-                          type="name"
-                        />
-                      </FormGroup>
-                      <FormGroup as={Col} md="4" controlId="validationCustom01">
-                        <FormLabel value={formData.homePhone} onChange={handleChange} required>Home Phone</FormLabel>
-                        <FormControl
-                          required
-                          type="number"
-                        />
-                      </FormGroup>
-
-                      <FormGroup as={Col} md="4" controlId="validationCustom08">
-                        <FormLabel value={formData.address} onChange={handleChange} required>Present Address</FormLabel>
-                        <FormControl
-                          required
-                          type="textarea"
-                        />
-                      </FormGroup>
-                    </Row>
-                    <Row className='mb-3'>
-                      <FormGroup as={Col} md="4" controlId="validationCustom07">
-                        <FormLabel value={formData.mobileNo} onChange={handleChange} required>Mobile No</FormLabel>
-                        <FormControl
-                          required
-                          type="number"
-                        />
-                      </FormGroup>
-
-                      <FormGroup as={Col} md="4" controlId="validationCustom03">
-                        <FormLabel value={formData.location} onChange={handleChange} required>Location</FormLabel>
-                        <FormSelect>
-                          <option>Select</option>
-                          <option value="1">Kanpur</option>
-                          <option value="2">Lucknow</option>
-                          <option value="3">Jhanshi</option>
-                          <option value="3">Oyal</option>
-                        </FormSelect>
-                      </FormGroup>
-                      <FormGroup as={Col} md="4" controlId="validationCustom04">
-                        <FormLabel value={formData.emailL} onChange={handleChange} required>E-Mail</FormLabel>
-                        <FormControl
-                          required
-                          type="email"
-                        />
-                      </FormGroup>
-                    </Row>
-                    <Row className='mb-3'>
-                      <FormGroup as={Col} md="4" controlId="validationCustom05">
-                        <FormLabel value={formData.remark} onChange={handleChange} required>Remark</FormLabel>
-                        <FormControl
-                          required
-                          type="text"
-                        />
-                      </FormGroup>
-                      <FormGroup as={Col} md="4" controlId="validationCustom06">
-                        <FormLabel value={formData.sender} onChange={handleChange} required>Office Phone</FormLabel>
-                        <FormControl
-                          required
-                          type="number"
-                        />
-                      </FormGroup>
-                      <FormGroup as={Col} md="4" controlId="validationCustom06">
-                        <FormLabel value={formData.faxNo} onChange={handleChange} required>Fax No</FormLabel>
-                        <FormControl
-                          required
-                          type="number"
-                        />
-                      </FormGroup>
-                    </Row>
-                    <Button type="submit" id="submit" onSubmit={handleSubmit}>Submit</Button>
-                  </Form>
-                </div>
-              )}
-            </Col>
-          </Row>
-          <Row>
-            <Col>
-              <div className="tableSheet">
-                <h2>Address Book Records</h2>
-                <Table columns={columns} data={data} />
-                <div className={styles.buttons} style={{ float: 'right', marginRight: '10px' }}>
-                  <button type="button" className="editButton">Previous</button>
-                  <button type="button" className="editButton">Next</button>
-                </div>
+          <Button onClick={() => setShowAddForm(true)} className="btn-add">
+            <CgAddR /> Add New Contact
+          </Button>
+          
+          {showAddForm && (
+            <div className="cover-sheet">
+              <div className="studentHeading">
+                <h2>Add New Contact</h2>
+                <button className="closeForm" onClick={() => setShowAddForm(false)}>
+                  X
+                </button>
               </div>
-            </Col>
-          </Row>
+              <Form onSubmit={handleSubmit} className="formSheet">
+                <Row>
+                  <Col lg={4}>
+                    <FormLabel className="labelForm">Name</FormLabel>
+                    <FormControl
+                      type="text"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleChange}
+                      placeholder="Enter Name"
+                      required
+                    />
+                  </Col>
+                  <Col lg={4}>
+                    <FormLabel className="labelForm">Home Phone</FormLabel>
+                    <FormControl
+                      type="text"
+                      name="homePhone"
+                      value={formData.homePhone}
+                      onChange={handleChange}
+                      placeholder="Enter Home Phone"
+                      required
+                    />
+                  </Col>
+                  <Col lg={4}>
+                    <FormLabel className="labelForm">Address</FormLabel>
+                    <FormControl
+                      as="textarea"
+                      name="address"
+                      value={formData.address}
+                      onChange={handleChange}
+                      placeholder="Enter Address"
+                      required
+                    />
+                  </Col>
+                </Row>
+                <Row>
+                  <Col lg={4}>
+                    <FormLabel className="labelForm">Mobile No</FormLabel>
+                    <FormControl
+                      type="text"
+                      name="mobileNo"
+                      value={formData.mobileNo}
+                      onChange={handleChange}
+                      placeholder="Enter Mobile Number"
+                      required
+                    />
+                  </Col>
+                  <Col lg={4}>
+                    <FormLabel className="labelForm">Location</FormLabel>
+                    <FormSelect
+                      name="location"
+                      value={formData.location}
+                      onChange={handleChange}
+                      required
+                    >
+                      <option value="">Select Location</option>
+                      <option value="Kanpur">Kanpur</option>
+                      <option value="Lucknow">Lucknow</option>
+                      <option value="Jhanshi">Jhanshi</option>
+                      <option value="Oyal">Oyal</option>
+                    </FormSelect>
+                  </Col>
+                  <Col lg={4}>
+                    <FormLabel className="labelForm">Email</FormLabel>
+                    <FormControl
+                      type="email"
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      placeholder="Enter Email"
+                      required
+                    />
+                  </Col>
+                </Row>
+                <Row>
+                  <Col lg={4}>
+                    <FormLabel className="labelForm">Remark</FormLabel>
+                    <FormControl
+                      type="text"
+                      name="remark"
+                      value={formData.remark}
+                      onChange={handleChange}
+                      placeholder="Enter Remark"
+                    />
+                  </Col>
+                  <Col lg={4}>
+                    <FormLabel className="labelForm">Office Phone</FormLabel>
+                    <FormControl
+                      type="text"
+                      name="officePhone"
+                      value={formData.officePhone}
+                      onChange={handleChange}
+                      placeholder="Enter Office Phone"
+                    />
+                  </Col>
+                  <Col lg={4}>
+                    <FormLabel className="labelForm">Fax No</FormLabel>
+                    <FormControl
+                      type="text"
+                      name="faxNo"
+                      value={formData.faxNo}
+                      onChange={handleChange}
+                      placeholder="Enter Fax Number"
+                    />
+                  </Col>
+                </Row>
+                <Button type="submit" className="btn btn-primary mt-3">
+                  Submit
+                </Button>
+              </Form>
+            </div>
+          )}
+
+          <div className="tableSheet mt-4">
+            <h2>Address Book Records</h2>
+            <Table columns={columns} data={data} />
+          </div>
         </Container>
       </section>
     </>

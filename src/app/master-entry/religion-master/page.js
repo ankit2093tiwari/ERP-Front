@@ -1,38 +1,48 @@
 "use client";
-
 import React, { useState, useEffect } from "react";
-import { Form, Row, Col, Container, FormLabel, FormControl, Button, Breadcrumb } from "react-bootstrap";
-import Table from "@/app/component/DataTable";
+import dynamic from "next/dynamic";
 import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
-import { CgAddR } from 'react-icons/cg';
+import { CgAddR } from "react-icons/cg";
+import {
+  Form,
+  Row,
+  Col,
+  Container,
+  FormLabel,
+  FormControl,
+  Button,
+} from "react-bootstrap";
 import axios from "axios";
+import Table from "@/app/component/DataTable";
 import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const ReligionMasterPage = () => {
-  const [data, setData] = useState([]); // Table data
-  const [loading, setLoading] = useState(false); // Loading state
-  const [error, setError] = useState(""); // Error state
-  const [showAddForm, setShowAddForm] = useState(false); // Toggle Add Form visibility
-  const [newReligionName, setNewReligionName] = useState(""); // New religion name
-  const [editId, setEditId] = useState(null);
-  const [editName, setEditName] = useState("");
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [editedName, setEditedName] = useState("");
+  const [formData, setFormData] = useState({
+    religion_name: ""
+  });
 
-  // Table columns configuration
   const columns = [
     {
       name: "#",
       selector: (row, index) => index + 1,
       width: "80px",
+      sortable: false,
     },
     {
       name: "Name",
-      selector: (row) =>
-        editId === row._id ? (
+      cell: (row) =>
+        editingId === row._id ? (
           <FormControl
             type="text"
-            value={editName}
-            onChange={(e) => setEditName(e.target.value)}
+            value={editedName}
+            onChange={(e) => setEditedName(e.target.value)}
           />
         ) : (
           row.religion_name || "N/A"
@@ -43,24 +53,42 @@ const ReligionMasterPage = () => {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
-          {editId === row._id ? (
-            <button className="editButton" onClick={() => handleSave(row._id)}>
-              <FaSave />
-            </button>
+          {editingId === row._id ? (
+            <>
+              <button
+                className="editButton"
+                onClick={() => handleUpdate(row._id)}
+              >
+                <FaSave />
+              </button>
+              <button
+                className="editButton btn-danger"
+                onClick={() => handleDelete(row._id)}
+              >
+                <FaTrashAlt />
+              </button>
+            </>
           ) : (
-            <button className="editButton" onClick={() => handleEdit(row._id, row.religion_name)}>
-              <FaEdit />
-            </button>
+            <>
+              <button
+                className="editButton"
+                onClick={() => handleEdit(row)}
+              >
+                <FaEdit />
+              </button>
+              <button
+                className="editButton btn-danger"
+                onClick={() => handleDelete(row._id)}
+              >
+                <FaTrashAlt />
+              </button>
+            </>
           )}
-          <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
-            <FaTrashAlt />
-          </button>
         </div>
       ),
     },
   ];
 
-  // Fetch data from API
   const fetchData = async () => {
     setLoading(true);
     setError("");
@@ -75,37 +103,29 @@ const ReligionMasterPage = () => {
     }
   };
 
-  // Edit existing entry
-  const handleEdit = (id, name) => {
-    setEditId(id);
-    setEditName(name);
+  const handleEdit = (religion) => {
+    setEditingId(religion._id);
+    setEditedName(religion.religion_name);
   };
 
-  const handleSave = async (id) => {
+  const handleUpdate = async (id) => {
     try {
       await axios.put(`https://erp-backend-fy3n.onrender.com/api/religions/${id}`, {
-        religion_name: editName,
+        religion_name: editedName,
       });
-      setData((prevData) =>
-        prevData.map((row) =>
-          row._id === id ? { ...row, religion_name: editName } : row
-        )
-      );
       fetchData();
-      setEditId(null);
+      setEditingId(null);
     } catch (error) {
       console.error("Error updating data:", error);
       setError("Failed to update data. Please try again later.");
     }
   };
 
-  // Delete an entry
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this entry?")) {
       try {
         await axios.delete(`https://erp-backend-fy3n.onrender.com/api/religions/${id}`);
-        setData((prevData) => prevData.filter((row) => row._id !== id));
-        // fetchData();
+        fetchData();
       } catch (error) {
         console.error("Error deleting data:", error);
         setError("Failed to delete data. Please try again later.");
@@ -113,17 +133,23 @@ const ReligionMasterPage = () => {
     }
   };
 
-  // Add a new entry
   const handleAdd = async () => {
-    if (newReligionName.trim()) {
+    if (formData.religion_name.trim()) {
       try {
-        const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/religions", {
-          religion_name: newReligionName,
+        const existingReligion = data.find(
+          (religion) => religion.religion_name === formData.religion_name
+        );
+        if (existingReligion) {
+          setError("Religion name already exists.");
+          return;
+        }
+
+        await axios.post("https://erp-backend-fy3n.onrender.com/api/religions", {
+          religion_name: formData.religion_name,
         });
-        setData((prevData) => [...prevData, response.data]);
-        setNewReligionName("");
-        setShowAddForm(false);
         fetchData();
+        setFormData({ religion_name: "" });
+        setIsPopoverOpen(false);
       } catch (error) {
         console.error("Error adding data:", error);
         setError("Failed to add data. Please try again later.");
@@ -134,28 +160,30 @@ const ReligionMasterPage = () => {
   };
 
   const handlePrint = () => {
-
     const tableHeaders = [["#", "Religion Name"]];
     const tableRows = data.map((row, index) => [
       index + 1,
       row.religion_name || "N/A",
     ]);
     printContent(tableHeaders, tableRows);
-
   };
 
   const handleCopy = () => {
     const headers = ["#", "Religion Name"];
-    const row = data.map((row, index) => `${index + 1}\t${row.religion_name || "N/A"}`);
-    copyContent(headers, row);
+    const rows = data.map((row, index) => 
+      `${index + 1}\t${row.religion_name || "N/A"}`
+    );
+    copyContent(headers, rows);
   };
 
-  // Fetch data on component mount
   useEffect(() => {
     fetchData();
   }, []);
 
-  const breadcrumbItems = [{ label: "Master Entry", link: "/master-entry/all-module" }, { label: "religion-master", link: "null" }]
+  const breadcrumbItems = [
+    { label: "Master Entry", link: "/master-entry/all-module" },
+    { label: "religion-master", link: "null" },
+  ];
 
   return (
     <>
@@ -170,14 +198,26 @@ const ReligionMasterPage = () => {
       </div>
       <section>
         <Container>
-          <Button onClick={() => setShowAddForm(!showAddForm)} className="btn-add">
-            <CgAddR /> {showAddForm ? "Close Form" : "Add Religion"}
+          <Button
+            onClick={() => setIsPopoverOpen(true)}
+            className="btn-add"
+          >
+            <CgAddR /> Add Religion
           </Button>
-          {showAddForm && (
+
+          {isPopoverOpen && (
             <div className="cover-sheet">
               <div className="studentHeading">
-                <h2>Add Religion</h2>
-                <button className="closeForm" onClick={() => setShowAddForm(false)}>X</button>
+                <h2>Add New Religion</h2>
+                <button
+                  className="closeForm"
+                  onClick={() => {
+                    setIsPopoverOpen(false);
+                    setError("");
+                  }}
+                >
+                  X
+                </button>
               </div>
               <Form className="formSheet">
                 <Row className="mb-3">
@@ -186,37 +226,39 @@ const ReligionMasterPage = () => {
                     <FormControl
                       type="text"
                       placeholder="Enter Religion Name"
-                      value={newReligionName}
-                      onChange={(e) => setNewReligionName(e.target.value)}
+                      value={formData.religion_name}
+                      onChange={(e) =>
+                        setFormData({ religion_name: e.target.value })
+                      }
                     />
                   </Col>
                 </Row>
-                <Row>
-                  <Col>
-                    <Button onClick={handleAdd}>Add Religion</Button>
-                  </Col>
-                </Row>
+                <Button onClick={handleAdd} className="btn btn-primary">
+                  Add Religion
+                </Button>
               </Form>
             </div>
           )}
-          <Row>
-            <Col>
-              <div className="tableSheet">
-                <h2>Religion Master</h2>
-                {loading ? (
-                  <p>Loading...</p>
-                ) : error ? (
-                  <p style={{ color: "red" }}>{error}</p>
-                ) : (
-                  <Table columns={columns} data={data} handleCopy={handleCopy} handlePrint={handlePrint} />
-                )}
-              </div>
-            </Col>
-          </Row>
+
+          <div className="tableSheet">
+            <h2>Religion Master</h2>
+            {loading ? (
+              <p>Loading...</p>
+            ) : error ? (
+              <p style={{ color: "red" }}>{error}</p>
+            ) : (
+              <Table
+                columns={columns}
+                data={data}
+                handleCopy={handleCopy}
+                handlePrint={handlePrint}
+              />
+            )}
+          </div>
         </Container>
       </section>
     </>
   );
 };
 
-export default ReligionMasterPage;
+export default dynamic(() => Promise.resolve(ReligionMasterPage), { ssr: false });

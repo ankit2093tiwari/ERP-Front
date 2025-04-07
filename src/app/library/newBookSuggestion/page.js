@@ -1,14 +1,40 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import dynamic from "next/dynamic";
-import styles from "@/app/medical/routine-check-up/page.module.css";
 import Table from "@/app/component/DataTable";
-import { FaEdit, FaTrashAlt } from "react-icons/fa";
-import { Form, Row, Col, Container, FormLabel, FormSelect, FormControl, Button, Breadcrumb } from "react-bootstrap";
+import { FaTrashAlt } from "react-icons/fa";
 import { CgAddR } from 'react-icons/cg';
+import { Form, Row, Col, Container, FormLabel, FormSelect, FormControl, Button } from "react-bootstrap";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const NewBookSuggestion = () => {
+  const [data, setData] = useState([
+    {
+      id: 1,
+      itemGroup: "School Books",
+      itemCategory: "Central Library",
+      itemName: "Sample Book",
+      itemLang: "English",
+      authorName: "John Doe",
+      subject: "Mathematics",
+      publishName: "Sample Publisher",
+      publishYear: "2023",
+      edition: "1st"
+    },
+  ]);
+  const [showAddForm, setShowAddForm] = useState(false);
+  const [formData, setFormData] = useState({
+    itemGroup: "",
+    itemCategory: "",
+    itemName: "",
+    itemLang: "",
+    authorName: "",
+    subject: "",
+    publishName: "",
+    publishYear: "",
+    edition: ""
+  });
+
   const columns = [
     {
       name: "#",
@@ -18,106 +44,101 @@ const NewBookSuggestion = () => {
     },
     {
       name: "Item Group",
-      selector: (row) => row.itemgroup,
+      selector: (row) => row.itemGroup || "N/A",
       sortable: false,
     },
     {
-      name: "Item category.",
-      selector: (row) => row.itemCategory,
+      name: "Item Category",
+      selector: (row) => row.itemCategory || "N/A",
       sortable: false,
     },
     {
       name: "Item Name",
-      selector: (row) => row.itemName,
+      selector: (row) => row.itemName || "N/A",
       sortable: false,
     },
     {
       name: "Item Language",
-      selector: (row) => row.itemLang,
+      selector: (row) => row.itemLang || "N/A",
       sortable: false,
     },
     {
       name: "Author Name",
-      selector: (row) => row.authorName,
+      selector: (row) => row.authorName || "N/A",
       sortable: false,
     },
     {
       name: "Subject",
-      selector: (row) => row.subject,
+      selector: (row) => row.subject || "N/A",
+      sortable: false,
+    },
+    {
+      name: "Publisher Name",
+      selector: (row) => row.publishName || "N/A",
+      sortable: false,
+    },
+    {
+      name: "Publish Year",
+      selector: (row) => row.publishYear || "N/A",
+      sortable: false,
+    },
+    {
+      name: "Edition",
+      selector: (row) => row.edition || "N/A",
       sortable: false,
     },
     {
       name: "Actions",
       cell: (row) => (
-        <div className="twobuttons d-flex">
-
-          <button
-            className="editButton btn-danger"
-            onClick={() => handleDelete(row.id)}>
+        <div className="d-flex gap-2">
+          <button 
+            className="editButton btn-danger" 
+            onClick={() => handleDelete(row)}
+          >
             <FaTrashAlt />
           </button>
         </div>
       ),
     },
-    {
-      name: "Publish Name",
-      selector: (row) => row.publishName,
-      sortable: false,
-    },
-
-    {
-      name: "Publish Year",
-      selector: (row) => row.publishYear,
-      sortable: false,
-    },
-    {
-      name: "Edition",
-      selector: (row) => row.edition,
-      sortable: false,
-    },
-
   ];
 
-  const data = [
-    {
-      id: 1,
-      publishername: "VISIT TO FIRE STATION",
-      phoneNo: '',
-      regNo: '',
-      faxNo: '',
-      location: '',
-      taxident: '',
-      mobNo: '',
-      email: ''
-    },
-
-  ];
-  const handleEdit = (id) => {
-    const item = data.find((row) => row.id === id);
-    const updatedName = prompt("Enter new name:", item.name);
-
-    try {
-      const parsedSections = JSON.parse(updatedSection);
-      setData((prevData) =>
-        prevData.map((row) =>
-          row.id === id
-            ? { ...row, name: updatedName }
-            : row
-        )
-      );
-    } catch (error) {
-      alert("Invalid JSON for sections. Please try again.");
-    }
-  };
   const handleDelete = (row) => {
     if (confirm("Are you sure you want to delete this entry?")) {
       setData((prevData) => prevData.filter((item) => item.id !== row.id));
     }
   };
-  const [showResults, setShowResults] = React.useState(false)
-  const onClick = () => setShowResults(true)
 
-  const breadcrumbItems = [{ label: "Library", link: "/library/all-module" }, { label: "New Book Suggestion", link: "null" }]
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!formData.itemName || !formData.authorName) {
+      alert("Item Name and Author Name are required.");
+      return;
+    }
+    
+    const newEntry = {
+      id: data.length + 1,
+      ...formData
+    };
+    
+    setData([...data, newEntry]);
+    setShowAddForm(false);
+    setFormData({
+      itemGroup: "",
+      itemCategory: "",
+      itemName: "",
+      itemLang: "",
+      authorName: "",
+      subject: "",
+      publishName: "",
+      publishYear: "",
+      edition: ""
+    });
+  };
+
+  const breadcrumbItems = [
+    { label: "Library", link: "/library/all-module" }, 
+    { label: "New Book Suggestion", link: "null" }
+  ];
 
   return (
     <>
@@ -131,92 +152,129 @@ const NewBookSuggestion = () => {
         </Container>
       </div>
       <section>
-        <Container className="">
-          <button onClick={onClick} className={`mb-4 ${styles.search}`} id="submit">  <CgAddR />  Add New Suggestion  </button>
-          {showResults ?
+        <Container>
+          <Button onClick={() => setShowAddForm(true)} className="btn-add">
+            <CgAddR /> Add New Suggestion
+          </Button>
+          
+          {showAddForm && (
             <div className="cover-sheet">
-              <div className="studentHeading"><h2>Add New Suggestion</h2></div>
-              <Form className="formSheet">
-
-                <div className="result">
-                  <Row className="mb-3">
-                    <Col lg={4}>
-                      <FormLabel className={styles.class}>Item Group</FormLabel>
-                      <FormSelect>
-                        <option>Select</option>
-                        <option value="1">School Books</option>
-                        <option value="2">Current Affairs</option>
-                        <option value="3">Comic Book</option>
-                      </FormSelect>
-                    </Col>
-                    <Col lg={4}>
-                      <FormLabel className={styles.class}>Subject</FormLabel>
-                      <FormControl required type="text" />
-                    </Col>
-
-                    <Col lg={4}>
-                      <FormLabel className={styles.class}>Item Category</FormLabel>
-                      <FormSelect>
-                        <option>Select</option>
-                        <option value="1">Central Library</option>
-                        <option value="2">Information Technology</option>
-                      </FormSelect>
-                    </Col>
-                  </Row><br />
-                  <Row>
-                    <Col lg={4}>
-                      <FormLabel className={styles.class}>Publisher Name</FormLabel>
-                      <FormControl required type="text" />
-                    </Col>
-
-                    <Col lg={4}>
-                      <FormLabel className={styles.class}>Item Name</FormLabel>
-                      <FormControl required type="text" />
-                    </Col>
-                    <Col lg={4}>
-                      <FormLabel className={styles.class}>Publication Year</FormLabel>
-                      <FormControl required type="text" />
-                    </Col>
-                  </Row>
-                  <br />
-                  <Row>
-                    <Col lg={4}>
-                      <FormLabel className={styles.class}>Item Language</FormLabel>
-                      <FormControl required type="text" />
-                    </Col>
-                    <Col lg={4}>
-                      <FormLabel className={styles.class}>Edition</FormLabel>
-                      <FormControl required type="text" />
-                    </Col>
-
-                    <Col lg={4}>
-                      <FormLabel className={styles.class}>Author Name </FormLabel>
-                      <FormControl required type="text" />
-                    </Col>
-                  </Row>
-                  <br />
-                  <Row className="mb-3">
-                    <Col><Button className="btn btn-primary mt-4"> Add New Suggestion</Button></Col>
-                  </Row>
-                </div>
+              <div className="studentHeading">
+                <h2>Add New Suggestion</h2>
+                <button className="closeForm" onClick={() => setShowAddForm(false)}>
+                  X
+                </button>
+              </div>
+              <Form className="formSheet" onSubmit={handleSubmit}>
+                <Row>
+                  <Col lg={4}>
+                    <FormLabel className="labelForm">Item Group</FormLabel>
+                    <FormSelect
+                      value={formData.itemGroup}
+                      onChange={(e) => setFormData({...formData, itemGroup: e.target.value})}
+                    >
+                      <option value="">Select</option>
+                      <option value="School Books">School Books</option>
+                      <option value="Current Affairs">Current Affairs</option>
+                      <option value="Comic Book">Comic Book</option>
+                    </FormSelect>
+                  </Col>
+                  <Col lg={4}>
+                    <FormLabel className="labelForm">Subject</FormLabel>
+                    <FormControl
+                      type="text"
+                      placeholder="Enter Subject"
+                      value={formData.subject}
+                      onChange={(e) => setFormData({...formData, subject: e.target.value})}
+                    />
+                  </Col>
+                  <Col lg={4}>
+                    <FormLabel className="labelForm">Item Category</FormLabel>
+                    <FormSelect
+                      value={formData.itemCategory}
+                      onChange={(e) => setFormData({...formData, itemCategory: e.target.value})}
+                    >
+                      <option value="">Select</option>
+                      <option value="Central Library">Central Library</option>
+                      <option value="Information Technology">Information Technology</option>
+                    </FormSelect>
+                  </Col>
+                </Row>
+                <Row>
+                  <Col lg={4}>
+                    <FormLabel className="labelForm">Publisher Name</FormLabel>
+                    <FormControl
+                      type="text"
+                      placeholder="Enter Publisher Name"
+                      value={formData.publishName}
+                      onChange={(e) => setFormData({...formData, publishName: e.target.value})}
+                    />
+                  </Col>
+                  <Col lg={4}>
+                    <FormLabel className="labelForm">Item Name</FormLabel>
+                    <FormControl
+                      type="text"
+                      placeholder="Enter Item Name"
+                      value={formData.itemName}
+                      onChange={(e) => setFormData({...formData, itemName: e.target.value})}
+                      required
+                    />
+                  </Col>
+                  <Col lg={4}>
+                    <FormLabel className="labelForm">Publication Year</FormLabel>
+                    <FormControl
+                      type="text"
+                      placeholder="Enter Publication Year"
+                      value={formData.publishYear}
+                      onChange={(e) => setFormData({...formData, publishYear: e.target.value})}
+                    />
+                  </Col>
+                </Row>
+                <Row>
+                  <Col lg={4}>
+                    <FormLabel className="labelForm">Item Language</FormLabel>
+                    <FormControl
+                      type="text"
+                      placeholder="Enter Language"
+                      value={formData.itemLang}
+                      onChange={(e) => setFormData({...formData, itemLang: e.target.value})}
+                    />
+                  </Col>
+                  <Col lg={4}>
+                    <FormLabel className="labelForm">Edition</FormLabel>
+                    <FormControl
+                      type="text"
+                      placeholder="Enter Edition"
+                      value={formData.edition}
+                      onChange={(e) => setFormData({...formData, edition: e.target.value})}
+                    />
+                  </Col>
+                  <Col lg={4}>
+                    <FormLabel className="labelForm">Author Name</FormLabel>
+                    <FormControl
+                      type="text"
+                      placeholder="Enter Author Name"
+                      value={formData.authorName}
+                      onChange={(e) => setFormData({...formData, authorName: e.target.value})}
+                      required
+                    />
+                  </Col>
+                </Row>
+                <Button type="submit" className="btn btn-primary mt-3">
+                  Add New Suggestion
+                </Button>
               </Form>
             </div>
-            : null}
+          )}
 
-
-          <br />
-          <Row>
-            <Col>
-              <div className="tableSheet">
-                <h2>Library Publisher Records </h2>
-                <Table columns={columns} data={data} />
-              </div>
-            </Col>
-          </Row>
+          <div className="tableSheet mt-4">
+            <h2>Library Book Suggestions</h2>
+            <Table columns={columns} data={data} />
+          </div>
         </Container>
       </section>
     </>
-  )
-}
+  );
+};
 
-export default dynamic(() => Promise.resolve(NewBookSuggestion), { ssr: false })
+export default dynamic(() => Promise.resolve(NewBookSuggestion), { ssr: false });

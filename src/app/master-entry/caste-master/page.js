@@ -220,7 +220,7 @@ const CasteMasterPage = () => {
               <Form className="formSheet">
                 <Row className="mb-3">
                   <Col lg={6}>
-                    <FormLabel>Caste Name</FormLabel>
+                    <FormLabel className="labelForm">Caste Name</FormLabel>
                     <FormControl
                       type="text"
                       placeholder="Enter Caste Name"

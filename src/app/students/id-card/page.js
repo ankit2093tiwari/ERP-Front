@@ -241,7 +241,7 @@ const GenerateIdCard = () => {
             <Form className="formSheet">
               <Row className="mb-3">
                 <Col lg={6}>
-                  <FormLabel>Select Class</FormLabel>
+                  <FormLabel className="labelForm">Select Class</FormLabel>
                   <FormSelect value={selectedClass} onChange={(e) => setSelectedClass(e.target.value)}>
                     <option value="">Select Class</option>
                     {classList.map((cls) => (
@@ -250,7 +250,7 @@ const GenerateIdCard = () => {
                   </FormSelect>
                 </Col>
                 <Col lg={6}>
-                  <FormLabel>Select Section</FormLabel>
+                  <FormLabel className="labelForm">Select Section</FormLabel>
                   <FormSelect value={selectedSection} onChange={(e) => setSelectedSection(e.target.value)}>
                     <option value="">Select Section</option>
                     {sectionList.map((sec) => (

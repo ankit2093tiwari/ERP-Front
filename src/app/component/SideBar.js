@@ -577,7 +577,7 @@ export default function Sidebar({ isOpen }) {
                             <Accordion.Header>
                                 <Link href="/dailyDairy" className="nav-link">
                                     <span>
-                                        <FaBook /> {(isOpen || activeKey) && "DailyDairy Details"}
+                                        <FaBook /> {(isOpen || activeKey) && "DailyDiary Details"}
                                     </span>
                                 </Link>
                             </Accordion.Header>

@@ -7,6 +7,7 @@ import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import { Form, Row, Col, Container, FormLabel, FormControl, Button } from "react-bootstrap";
 import axios from "axios";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import { CgAddR } from 'react-icons/cg';
 
 const Publisher = () => {
   const [data, setData] = useState([]);
@@ -14,7 +15,6 @@ const Publisher = () => {
   const [error, setError] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
   const [newPublisher, setNewPublisher] = useState({
-
     publisherName: "",
     publisherPhoneNo: "",
     publisherRegistrationNo: "",
@@ -27,10 +27,7 @@ const Publisher = () => {
 
   const columns = [
     { name: "#", selector: (row, index) => index + 1, sortable: false, width: "80px" },
-    {
-      name: "Publisher Name", selector: (row) => row.
-        publisherName || "N/A", sortable: true
-    },
+    { name: "Publisher Name", selector: (row) => row.publisherName || "N/A", sortable: true },
     { name: "Phone No.", selector: (row) => row.publisherPhoneNo || "N/A", sortable: true },
     { name: "Registration No.", selector: (row) => row.publisherRegistrationNo || "N/A", sortable: true },
     { name: "Fax No.", selector: (row) => row.publisherFaxNo || "N/A", sortable: true },
@@ -67,61 +64,37 @@ const Publisher = () => {
   };
 
   const handleAdd = async () => {
-    try {
-      const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/publishers", newPublisher);
-      setData((prevData) => [...prevData, response.data]);
-      setNewPublisher({
-        publisherName: "",
-        publisherPhoneNo: "",
-        publisherRegistrationNo: "",
-        publisherFaxNo: "",
-        publisherLocation: "",
-        taxIdentNo: "",
-        publisherMobileNo: "",
-        publisherEmail: "",
-      });
-      setShowAddForm(false);
-    } catch {
-      setError("Failed to add publisher.");
+    if (newPublisher.publisherName.trim()) {
+      try {
+        const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/publishers", newPublisher);
+        setData((prevData) => [...prevData, response.data]);
+        setNewPublisher({
+          publisherName: "",
+          publisherPhoneNo: "",
+          publisherRegistrationNo: "",
+          publisherFaxNo: "",
+          publisherLocation: "",
+          taxIdentNo: "",
+          publisherMobileNo: "",
+          publisherEmail: "",
+        });
+        setShowAddForm(false);
+      } catch {
+        setError("Failed to add publisher.");
+      }
+    } else {
+      alert("Publisher Name is required.");
     }
   };
 
-
-  // const handleAdd = async () => {
-
-  //   if (newPublisher.publisherName) {
-  //     try {
-  //       const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/publishers", newPublisher);
-  //       setData((prevData) => [...prevData, response.data]);
-  //       setNewPublisher({
-  //         publisherName: "",
-  //         publisherPhoneNo: "",
-  //         publisherRegistrationNo: "",
-  //         publisherFaxNo: "",
-  //         publisherLocation: "",
-  //         taxIdentNo: "",
-  //         publisherMobileNo: "",
-  //         publisherEmail: "",
-  //       });
-  //       setShowAddForm(false);
-  //     } catch {
-  //       setError("Failed to add publisher.");
-  //     }
-  //   } else {
-  //     alert("Publisher Name is required.");
-  //   }
-  // };
-
   const handleEdit = async (id) => {
     const publisher = data.find((row) => row._id === id);
-    const updatedName = prompt("Enter new publisher name:", publisher?.
-      publisherName || "");
+    const updatedName = prompt("Enter new publisher name:", publisher?.publisherName || "");
     const updatedPhoneNo = prompt("Enter new phone number:", publisher?.publisherPhoneNo || "");
 
     if (updatedName && updatedPhoneNo) {
       try {
         await axios.put(`https://erp-backend-fy3n.onrender.com/api/publishers/${id}`, {
-
           publisherName: updatedName,
           publisherPhoneNo: updatedPhoneNo,
         });
@@ -129,7 +102,8 @@ const Publisher = () => {
           prevData.map((row) =>
             row._id === id ? {
               ...row,
-              publisherName: updatedName, publisherPhoneNo: updatedPhoneNo
+              publisherName: updatedName, 
+              publisherPhoneNo: updatedPhoneNo
             } : row
           )
         );
@@ -156,7 +130,6 @@ const Publisher = () => {
 
   const breadcrumbItems = [{ label: "Library", link: "/library/all-module" }, { label: "Publisher Master", link: "null" }]
 
-
   return (
     <>
       <div className="breadcrumbSheet position-relative">
@@ -169,20 +142,27 @@ const Publisher = () => {
         </Container>
       </div>
       <section>
-        <Container className={styles.formContainer}>
-          <Form className={styles.form}>
-            <Button onClick={() => setShowAddForm(!showAddForm)} className={`mb-4 ${styles.search}`}>
-              Add Publisher
-            </Button>
-            {showAddForm && (
-              <div className="mb-4">
+        <Container>
+          <Button onClick={() => setShowAddForm(true)} className="btn-add">
+            <CgAddR /> Add Publisher
+          </Button>
+          
+          {showAddForm && (
+            <div className="cover-sheet">
+              <div className="studentHeading">
+                <h2>Add Publisher</h2>
+                <button className="closeForm" onClick={() => setShowAddForm(false)}>
+                  X
+                </button>
+              </div>
+              <Form className="formSheet">
                 <Row>
                   <Col lg={6}>
-                    <FormLabel>Publisher Name</FormLabel>
+                    <FormLabel className="labelForm">Publisher Name</FormLabel>
                     <FormControl
                       type="text"
-                      value={newPublisher.
-                        publisherName}
+                      placeholder="Enter Publisher Name"
+                      value={newPublisher.publisherName}
                       onChange={(e) => setNewPublisher({
                         ...newPublisher,
                         publisherName: e.target.value
@@ -190,78 +170,109 @@ const Publisher = () => {
                     />
                   </Col>
                   <Col lg={6}>
-                    <FormLabel>Phone No.</FormLabel>
+                    <FormLabel className="labelForm">Phone No.</FormLabel>
                     <FormControl
                       type="text"
+                      placeholder="Enter Phone Number"
                       value={newPublisher.publisherPhoneNo}
-                      onChange={(e) => setNewPublisher({ ...newPublisher, publisherPhoneNo: e.target.value })}
+                      onChange={(e) => setNewPublisher({ 
+                        ...newPublisher, 
+                        publisherPhoneNo: e.target.value 
+                      })}
                     />
                   </Col>
                 </Row>
                 <Row>
                   <Col lg={6}>
-                    <FormLabel>Registration No.</FormLabel>
+                    <FormLabel className="labelForm">Registration No.</FormLabel>
                     <FormControl
                       type="text"
+                      placeholder="Enter Registration Number"
                       value={newPublisher.publisherRegistrationNo}
-                      onChange={(e) => setNewPublisher({ ...newPublisher, publisherRegistrationNo: e.target.value })}
+                      onChange={(e) => setNewPublisher({ 
+                        ...newPublisher, 
+                        publisherRegistrationNo: e.target.value 
+                      })}
                     />
                   </Col>
                   <Col lg={6}>
-                    <FormLabel>Fax No.</FormLabel>
+                    <FormLabel className="labelForm">Fax No.</FormLabel>
                     <FormControl
                       type="text"
+                      placeholder="Enter Fax Number"
                       value={newPublisher.publisherFaxNo}
-                      onChange={(e) => setNewPublisher({ ...newPublisher, publisherFaxNo: e.target.value })}
+                      onChange={(e) => setNewPublisher({ 
+                        ...newPublisher, 
+                        publisherFaxNo: e.target.value 
+                      })}
                     />
                   </Col>
                 </Row>
                 <Row>
                   <Col lg={6}>
-                    <FormLabel>Location</FormLabel>
+                    <FormLabel className="labelForm">Location</FormLabel>
                     <FormControl
                       type="text"
+                      placeholder="Enter Location"
                       value={newPublisher.publisherLocation}
-                      onChange={(e) => setNewPublisher({ ...newPublisher, publisherLocation: e.target.value })}
+                      onChange={(e) => setNewPublisher({ 
+                        ...newPublisher, 
+                        publisherLocation: e.target.value 
+                      })}
                     />
                   </Col>
                   <Col lg={6}>
-                    <FormLabel>Tax Ident No.</FormLabel>
+                    <FormLabel className="labelForm">Tax Ident No.</FormLabel>
                     <FormControl
                       type="text"
+                      placeholder="Enter Tax Identification Number"
                       value={newPublisher.taxIdentNo}
-                      onChange={(e) => setNewPublisher({ ...newPublisher, taxIdentNo: e.target.value })}
+                      onChange={(e) => setNewPublisher({ 
+                        ...newPublisher, 
+                        taxIdentNo: e.target.value 
+                      })}
                     />
                   </Col>
                 </Row>
                 <Row>
                   <Col lg={6}>
-                    <FormLabel>Mobile No.</FormLabel>
+                    <FormLabel className="labelForm">Mobile No.</FormLabel>
                     <FormControl
                       type="text"
+                      placeholder="Enter Mobile Number"
                       value={newPublisher.publisherMobileNo}
-                      onChange={(e) => setNewPublisher({ ...newPublisher, publisherMobileNo: e.target.value })}
+                      onChange={(e) => setNewPublisher({ 
+                        ...newPublisher, 
+                        publisherMobileNo: e.target.value 
+                      })}
                     />
                   </Col>
                   <Col lg={6}>
-                    <FormLabel>Email</FormLabel>
+                    <FormLabel className="labelForm">Email</FormLabel>
                     <FormControl
                       type="email"
+                      placeholder="Enter Email"
                       value={newPublisher.publisherEmail}
-                      onChange={(e) => setNewPublisher({ ...newPublisher, publisherEmail: e.target.value })}
+                      onChange={(e) => setNewPublisher({ 
+                        ...newPublisher, 
+                        publisherEmail: e.target.value 
+                      })}
                     />
                   </Col>
                 </Row>
-                <Button onClick={handleAdd} className={styles.search}>
+                <Button onClick={handleAdd} className="btn btn-primary mt-3">
                   Add Publisher
                 </Button>
-              </div>
-            )}
+              </Form>
+            </div>
+          )}
+
+          <div className="tableSheet mt-4">
             <h2>Publisher Records</h2>
             {loading && <p>Loading...</p>}
             {error && <p>{error}</p>}
             {!loading && !error && <Table columns={columns} data={data} />}
-          </Form>
+          </div>
         </Container>
       </section>
     </>

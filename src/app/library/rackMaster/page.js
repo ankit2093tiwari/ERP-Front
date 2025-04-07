@@ -14,7 +14,7 @@ const RackAndShelfManager = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [showAddForm, setShowAddForm] = useState(false);
   const [newRackName, setNewRackName] = useState("");
   const [newShelfName, setNewShelfName] = useState("");
 
@@ -39,7 +39,7 @@ const RackAndShelfManager = () => {
         setData((prevData) => [...prevData, response.data]);
         setNewRackName("");
         setNewShelfName("");
-        setIsPopoverOpen(false);
+        setShowAddForm(false);
       } catch (error) {
         setError("Failed to add data.");
       }
@@ -134,14 +134,14 @@ const RackAndShelfManager = () => {
       </div>
       <section>
         <Container>
-          <Button onClick={() => setIsPopoverOpen(!isPopoverOpen)} className="btn-add">
+          <Button onClick={() => setShowAddForm(true)} className="btn-add">
             <CgAddR /> Add Rack / Shelf
           </Button>
-          {isPopoverOpen && (
+          {showAddForm && (
             <div className="cover-sheet">
               <div className="studentHeading">
                 <h2>Add Rack / Shelf</h2>
-                <button className="closeForm" onClick={() => setIsPopoverOpen(false)}>
+                <button className="closeForm" onClick={() => setShowAddForm(false)}>
                   X
                 </button>
               </div>

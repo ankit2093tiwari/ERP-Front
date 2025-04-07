@@ -259,7 +259,7 @@ const FeeSetting = () => {
         </Container>
       </div>
       <section>
-        <Container className="mt-3">
+        <Container>
 
           {/* Add Fee Setting Button */}
           <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
@@ -278,7 +278,7 @@ const FeeSetting = () => {
               <Form className="formSheet">
                 <Row>
                   <Col lg={6}>
-                    <FormLabel>Credit Card Charge</FormLabel>
+                    <FormLabel className="labelForm">Credit Card Charge</FormLabel>
                     <FormControl
                       type="text"
                       value={newFeeSetting.credit_card_charge}
@@ -288,7 +288,7 @@ const FeeSetting = () => {
                     />
                   </Col>
                   <Col lg={6}>
-                    <FormLabel>Debit Card Charge</FormLabel>
+                    <FormLabel className="labelForm">Debit Card Charge</FormLabel>
                     <FormControl
                       type="text"
                       value={newFeeSetting.debit_card_charge}
@@ -298,7 +298,7 @@ const FeeSetting = () => {
                     />
                   </Col>
                   <Col lg={6}>
-                    <FormLabel>AMEX Charge</FormLabel>
+                    <FormLabel className="labelForm">AMEX Charge</FormLabel>
                     <FormControl
                       type="text"
                       value={newFeeSetting.amex_charge}

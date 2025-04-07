@@ -11,13 +11,9 @@ import {
   FormLabel,
   FormControl,
   Button,
-  Breadcrumb,
 } from "react-bootstrap";
 import axios from "axios";
 import Table from "@/app/component/DataTable";
-import styles from "@/app/medical/routine-check-up/page.module.css";
-import jsPDF from "jspdf";
-import "jspdf-autotable";
 import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 
@@ -29,89 +25,12 @@ const HeadMasterPage = () => {
     head_name: "",
     head_type: "",
   });
-  const [showAddForm, setShowAddForm] = useState(false);
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [editingHeadMaster, setEditingHeadMaster] = useState({
-    _id: "",
+  const [editedData, setEditedData] = useState({
     head_name: "",
     head_type: "",
   });
-
-  const columns = [
-    {
-      name: "#",
-      selector: (row, index) => index + 1,
-      sortable: false,
-      width: "80px",
-    },
-    {
-      name: "Head Name",
-      cell: (row) =>
-        editingId === row._id ? (
-          <FormControl
-            type="text"
-            value={editingHeadMaster.head_name}
-            onChange={(e) =>
-              setEditingHeadMaster({
-                ...editingHeadMaster,
-                head_name: e.target.value,
-              })
-            }
-          />
-        ) : (
-          row.head_name || "N/A"
-        ),
-      sortable: true,
-    },
-    {
-      name: "Head Type",
-      cell: (row) =>
-        editingId === row._id ? (
-          <FormControl
-            as="select"
-            value={editingHeadMaster.head_type}
-            onChange={(e) =>
-              setEditingHeadMaster({
-                ...editingHeadMaster,
-                head_type: e.target.value,
-              })
-            }
-          >
-            <option value="">Select Head Type</option>
-            <option value="Installment Type">Installment Type</option>
-            <option value="Lifetime">Lifetime</option>
-          </FormControl>
-        ) : (
-          row.head_type || "N/A"
-        ),
-      sortable: true,
-    },
-    {
-      name: "Actions",
-      cell: (row) => (
-        <div className="d-flex gap-2">
-          {editingId === row._id ? (
-            <button
-              className="editButton btn-success"
-              onClick={() => handleSave(row._id)}
-            >
-              <FaSave />
-            </button>
-          ) : (
-            <button className="editButton" onClick={() => handleEdit(row)}>
-              <FaEdit />
-            </button>
-          )}
-          <button
-            className="editButton btn-danger"
-            onClick={() => handleDelete(row._id)}
-          >
-            <FaTrashAlt />
-          </button>
-        </div>
-      ),
-    },
-  ];
 
   const handlePrint = async () => {
     const tableHeaders = [["#", "Head Name", "Head Type"]];
@@ -122,12 +41,13 @@ const HeadMasterPage = () => {
     ]);
 
     printContent(tableHeaders, tableRows);
-
   };
 
   const handleCopy = () => {
-    const headers = ["#", "Head Name", "Head Type"]; // Tab-separated headers
-    const rows = data.map((row, index) => `${index + 1}\t${row.head_name || "N/A"}\t${row.head_type || "N/A"}`);
+    const headers = ["#", "Head Name", "Head Type"];
+    const rows = data.map((row, index) => 
+      `${index + 1}\t${row.head_name || "N/A"}\t${row.head_type || "N/A"}`
+    );
 
     copyContent(headers, rows);
   };
@@ -154,7 +74,6 @@ const HeadMasterPage = () => {
   const handleAdd = async () => {
     if (newHeadMaster.head_name.trim() && newHeadMaster.head_type.trim()) {
       try {
-        // Check if the HeadMaster already exists
         const existingHeadMaster = data.find(
           (row) => row.head_name === newHeadMaster.head_name
         );
@@ -165,10 +84,9 @@ const HeadMasterPage = () => {
 
         const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/add-fee-type", newHeadMaster);
         if (response.data && response.data.success) {
-          setData((prevData) => [...prevData, response.data.data]);
+          fetchData();
           setNewHeadMaster({ head_name: "", head_type: "" });
-          setShowAddForm(false);
-          fetchData(); // Refresh data after adding
+          setIsPopoverOpen(false);
         } else {
           setError("Failed to add HeadMaster.");
         }
@@ -181,31 +99,19 @@ const HeadMasterPage = () => {
   };
 
   const handleEdit = (row) => {
-    setEditingId(row._id); // Set the row ID being edited
-    setEditingHeadMaster(row); // Populate the editable fields
+    setEditingId(row._id);
+    setEditedData({
+      head_name: row.head_name,
+      head_type: row.head_type,
+    });
   };
 
-  const handleSave = async (id) => {
-    const { head_name, head_type } = editingHeadMaster;
-    if (head_name.trim() && head_type.trim()) {
+  const handleUpdate = async (id) => {
+    if (editedData.head_name.trim() && editedData.head_type.trim()) {
       try {
-        const response = await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-fee-type/${id}`, {
-          head_name,
-          head_type,
-        });
-        if (response.data && response.data.success) {
-          setData((prevData) =>
-            prevData.map((row) =>
-              row._id === id
-                ? { ...row, head_name, head_type }
-                : row
-            )
-          );
-          fetchData();
-          setEditingId(null); // Exit edit mode
-        } else {
-          setError("Failed to update HeadMaster.");
-        }
+        await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-fee-type/${id}`, editedData);
+        fetchData();
+        setEditingId(null);
       } catch (err) {
         setError("Failed to update HeadMaster.");
       }
@@ -217,13 +123,8 @@ const HeadMasterPage = () => {
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this HeadMaster?")) {
       try {
-        const response = await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-fee-type/${id}`);
-        if (response.data && response.data.success) {
-          setData((prevData) => prevData.filter((row) => row._id !== id));
-          fetchData();
-        } else {
-          setError("Failed to delete HeadMaster.");
-        }
+        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-fee-type/${id}`);
+        fetchData();
       } catch (err) {
         setError("Failed to delete HeadMaster.");
       }
@@ -234,7 +135,81 @@ const HeadMasterPage = () => {
     fetchData();
   }, []);
 
-  const breadcrumbItems = [{ label: "Fee", link: "/fees/all-module" }, { label: "head-master", link: "null" }]
+  const columns = [
+    {
+      name: "#",
+      selector: (row, index) => index + 1,
+      sortable: false,
+      width: "80px",
+    },
+    {
+      name: "Head Name",
+      cell: (row) =>
+        editingId === row._id ? (
+          <FormControl
+            type="text"
+            value={editedData.head_name}
+            onChange={(e) =>
+              setEditedData({ ...editedData, head_name: e.target.value })
+            }
+          />
+        ) : (
+          row.head_name || "N/A"
+        ),
+      sortable: true,
+    },
+    {
+      name: "Head Type",
+      cell: (row) =>
+        editingId === row._id ? (
+          <FormControl
+            as="select"
+            value={editedData.head_type}
+            onChange={(e) =>
+              setEditedData({ ...editedData, head_type: e.target.value })
+            }
+          >
+            <option value="">Select Head Type</option>
+            <option value="Installment Type">Installment Type</option>
+            <option value="Lifetime">Lifetime</option>
+          </FormControl>
+        ) : (
+          row.head_type || "N/A"
+        ),
+      sortable: true,
+    },
+    {
+      name: "Actions",
+      cell: (row) => (
+        <div className="d-flex gap-2">
+          {editingId === row._id ? (
+            <>
+              <button className="editButton" onClick={() => handleUpdate(row._id)}>
+                <FaSave />
+              </button>
+              <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
+                <FaTrashAlt />
+              </button>
+            </>
+          ) : (
+            <>
+              <button className="editButton" onClick={() => handleEdit(row)}>
+                <FaEdit />
+              </button>
+              <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
+                <FaTrashAlt />
+              </button>
+            </>
+          )}
+        </div>
+      ),
+    },
+  ];
+
+  const breadcrumbItems = [
+    { label: "Fee", link: "/fees/all-module" }, 
+    { label: "head-master", link: "null" }
+  ];
 
   return (
     <>
@@ -248,27 +223,23 @@ const HeadMasterPage = () => {
         </Container>
       </div>
       <section>
-        <Container className="">
-
-          <Button
-            onClick={() => setShowAddForm(!showAddForm)}
-            className="btn-add"
-          >
+        <Container>
+          <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
             <CgAddR /> Add HeadMaster
           </Button>
 
-          {showAddForm && (
+          {isPopoverOpen && (
             <div className="cover-sheet">
               <div className="studentHeading">
                 <h2>Add New HeadMaster</h2>
-                <button className="closeForm" onClick={() => setShowAddForm(false)}>
+                <button className="closeForm" onClick={() => setIsPopoverOpen(false)}>
                   X
                 </button>
               </div>
               <Form className="formSheet">
                 <Row>
                   <Col lg={6}>
-                    <FormLabel>Head Name</FormLabel>
+                    <FormLabel className="labelForm">Head Name</FormLabel>
                     <FormControl
                       type="text"
                       value={newHeadMaster.head_name}
@@ -278,7 +249,7 @@ const HeadMasterPage = () => {
                     />
                   </Col>
                   <Col lg={6}>
-                    <FormLabel>Head Type</FormLabel>
+                    <FormLabel className="labelForm">Head Type</FormLabel>
                     <FormControl
                       as="select"
                       value={newHeadMaster.head_type}
@@ -292,7 +263,7 @@ const HeadMasterPage = () => {
                     </FormControl>
                   </Col>
                 </Row>
-                <Button onClick={handleAdd} className="btn btn-primary">
+                <Button onClick={handleAdd} className="btn btn-primary mt-3">
                   Add HeadMaster
                 </Button>
               </Form>
@@ -303,8 +274,14 @@ const HeadMasterPage = () => {
             <h2>HeadMaster Records</h2>
             {loading && <p>Loading...</p>}
             {error && <p>{error}</p>}
-            {!loading && !error && <Table columns={columns} data={data} handlePrint={handlePrint}
-              handleCopy={handleCopy} />}
+            {!loading && !error && (
+              <Table 
+                columns={columns} 
+                data={data} 
+                handleCopy={handleCopy} 
+                handlePrint={handlePrint} 
+              />
+            )}
           </div>
         </Container>
       </section>

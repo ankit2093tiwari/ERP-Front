@@ -194,7 +194,7 @@ const BankMaster = () => {
               <Form className="formSheet">
                 <Row>
                   <Col lg={6}>
-                    <FormLabel>Bank Name</FormLabel>
+                    <FormLabel className="labelForm">Bank Name</FormLabel>
                     <FormControl
                       type="text"
                       placeholder="Enter Bank Name"
