@@ -216,7 +216,7 @@ export default function Sidebar({ isOpen }) {
             >
                 <div className="sidebar-profile d-flex align-items-center flex-column">
                     <div className="position-relative">
-                        <Image src="/user.png" className="img-shadow img-5x mb-2 rounded-circle" alt="Gym Admin Templates" />
+                        <Image src="/user4.png" className="img-shadow img-5x mb-2 rounded-circle" alt="Gym Admin Templates" />
                         <span className="count-dot"></span>
                     </div>
                     <div className="text-center">
