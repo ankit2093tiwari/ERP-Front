@@ -49,7 +49,9 @@ const FixedAmount = () => {
     const fetchHeadsByInstallment = async (installmentName) => {
         try {
             const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/installments/heads/${installmentName}`);
+            // setHeads(response.data.data.map(head => ({ ...head, fixedAmount: "", remarks: "" })) || []);
             setHeads(response.data.data.map(head => ({ ...head, fixedAmount: "", remarks: "" })) || []);
+
         } catch (error) {
             console.error("Failed to fetch heads:", error);
         }
@@ -83,30 +85,60 @@ const FixedAmount = () => {
         const payload = {
             class: selectedClass,
             section: selectedSection,
+            transaction_date: transDate,
             installment: selectedInstallment,
-            transactionDate: transDate,
-            particulars: heads.map(({ _id, fixedAmount, remarks }) => ({
-                head: _id,
-                fixedAmount: Number(fixedAmount) || 0,
-                remarks: remarks || "",
+            headAmounts: heads.map(({ head_id, _id, head_name, fixedAmount, remarks }) => ({
+                head_id: head_id || _id, // Send both possible identifiers
+                head_name: head_name,    // Send name as fallback
+                amount: Number(fixedAmount) || 0,
+                remarks: remarks || ""
             })),
         };
 
         setLoading(true);
         try {
-            await axios.post("https://erp-backend-fy3n.onrender.com/api/create-fixed-amounts", payload);
-            alert("Fixed Amount updated successfully!");
+            const response = await axios.post(
+                "https://erp-backend-fy3n.onrender.com/api/create-fixed-amounts",
+                payload,
+                {
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                }
+            );
+
+            if (response.data.success) {
+                alert("Fixed Amount updated successfully!");
+                // Optional: Reset form after successful submission
+                setSelectedClass("");
+                setSelectedSection("");
+                setSelectedInstallment("");
+                setHeads([]);
+            } else {
+                alert(`Operation failed: ${response.data.message}`);
+            }
         } catch (error) {
             console.error("Failed to update Fixed Amount:", error);
-            alert("Error updating Fixed Amount.");
+            const errorMessage = error.response?.data?.message ||
+                error.message ||
+                "Unknown error occurred";
+            alert(`Error updating Fixed Amount: ${errorMessage}`);
+
+            // Debugging help
+            console.log("Payload sent:", payload);
+            if (error.response) {
+                console.log("Error response:", error.response.data);
+            }
+        } finally {
+            setLoading(false);
         }
-        setLoading(false);
     };
+
 
     const breadcrumbItems = [{ label: "Fee", link: "/fees/all-module" }, { label: "fixed-amount", link: "null" }];
 
     const renderForm = () => {
-        switch(viewType) {
+        switch (viewType) {
             case "installmentWise":
                 return (
                     <>
@@ -204,7 +236,7 @@ const FixedAmount = () => {
             case "classWise":
                 return (
                     <div className="text-center py-5">
-                        <h4>Class Wise</h4>                       
+                        <h4>Class Wise</h4>
                     </div>
                 );
             case "studentWise":
@@ -239,11 +271,11 @@ const FixedAmount = () => {
                         <div className="mb-4 ms-4 me-4">
                             <div className="d-flex gap-3 mb-3">
                                 <div className="form-check">
-                                    <input 
-                                        className="form-check-input" 
-                                        type="radio" 
-                                        name="feeType" 
-                                        id="installmentWise" 
+                                    <input
+                                        className="form-check-input"
+                                        type="radio"
+                                        name="feeType"
+                                        id="installmentWise"
                                         checked={viewType === "installmentWise"}
                                         onChange={() => setViewType("installmentWise")}
                                     />
@@ -252,11 +284,11 @@ const FixedAmount = () => {
                                     </label>
                                 </div>
                                 <div className="form-check">
-                                    <input 
-                                        className="form-check-input" 
-                                        type="radio" 
-                                        name="feeType" 
-                                        id="classWise" 
+                                    <input
+                                        className="form-check-input"
+                                        type="radio"
+                                        name="feeType"
+                                        id="classWise"
                                         checked={viewType === "classWise"}
                                         onChange={() => setViewType("classWise")}
                                     />
@@ -265,11 +297,11 @@ const FixedAmount = () => {
                                     </label>
                                 </div>
                                 <div className="form-check">
-                                    <input 
-                                        className="form-check-input" 
-                                        type="radio" 
-                                        name="feeType" 
-                                        id="studentWise" 
+                                    <input
+                                        className="form-check-input"
+                                        type="radio"
+                                        name="feeType"
+                                        id="studentWise"
                                         checked={viewType === "studentWise"}
                                         onChange={() => setViewType("studentWise")}
                                     />
