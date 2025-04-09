@@ -233,18 +233,6 @@ const FixedAmount = () => {
                         </div>
                     </>
                 );
-            case "classWise":
-                return (
-                    <div className="text-center py-5">
-                        <h4>Class Wise</h4>
-                    </div>
-                );
-            case "studentWise":
-                return (
-                    <div className="text-center py-5">
-                        <h4>Student Wise</h4>
-                    </div>
-                );
             default:
                 return null;
         }
@@ -270,7 +258,7 @@ const FixedAmount = () => {
                         </div>
                         <div className="mb-4 ms-4 me-4">
                             <div className="d-flex gap-3 mb-3">
-                                <div className="form-check">
+                                {/* <div className="form-check">
                                     <input
                                         className="form-check-input"
                                         type="radio"
@@ -282,8 +270,8 @@ const FixedAmount = () => {
                                     <label className="form-check-label" htmlFor="installmentWise">
                                         Installment Wise
                                     </label>
-                                </div>
-                                <div className="form-check">
+                                </div> */}
+                                {/* <div className="form-check">
                                     <input
                                         className="form-check-input"
                                         type="radio"
@@ -308,7 +296,7 @@ const FixedAmount = () => {
                                     <label className="form-check-label" htmlFor="studentWise">
                                         Student Wise
                                     </label>
-                                </div>
+                                </div> */}
                             </div>
 
                             {renderForm()}
