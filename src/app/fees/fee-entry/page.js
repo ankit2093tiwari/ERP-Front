@@ -14,7 +14,7 @@ import {
 } from "react-bootstrap";
 import axios from "axios";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
-import Select from 'react-select';
+import Select from "react-select";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -25,20 +25,19 @@ const FeeEntry = () => {
   const [selectedAccountType, setSelectedAccountType] = useState("");
   const [selectedPayType, setSelectedPayType] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
-  const [students, setStudents] = useState([]);
   const [studentListData, setStudentListData] = useState([]);
   const [studentListOptions, setStudentListOptions] = useState([]);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [feeGroups, setFeeGroups] = useState([]);
-  const [selectedFeeGroup, setSelectedFeeGroup] = useState("");
+  const [selectedFeeGroup, setSelectedFeeGroup] = useState(null);
   const [feeDetails, setFeeDetails] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const breadcrumbItems = [
     { label: "Fee", link: "/fees/all-module" },
     { label: "deposit-entry", link: "null" }
   ];
 
-  // Mock data for dropdowns
   const accountTypes = [
     { value: "School", label: "School" },
     { value: "Bus", label: "Bus" },
@@ -50,68 +49,79 @@ const FeeEntry = () => {
     { value: "Multi installment", label: "Multi Installment" }
   ];
 
-  // Fetch all students for search
   const getAllStudent = async () => {
     try {
       const response = await axios.get(
         `https://erp-backend-fy3n.onrender.com/api/students/search`
       );
       if (response?.data?.success) {
-        const searchStudentOptions = response?.data?.data?.map((item) => ({
+        const options = response?.data?.data?.map((item) => ({
           value: item?.registration_id,
           label: `${item?.first_name} - Father: ${item?.father_name} - ID: ${item?.registration_id}`,
-          data: item // Store the entire student data
+          data: item
         }));
-        setStudentListData(response?.data?.data);
-        setStudentListOptions(searchStudentOptions);
-      } else {
-        setStudentListData([]);
-        setStudentListOptions([]);
+        setStudentListData(response.data.data);
+        setStudentListOptions(options);
       }
     } catch (error) {
-      console.error("Failed to search students", error);
+      console.error("Failed to fetch students", error);
     }
   };
 
-  // Get student data when selected from dropdown
-  const getStudentData = (selectedOption) => {
+  const getStudentData = async (selectedOption) => {
     if (!selectedOption) {
       setSelectedStudent(null);
+      setFeeGroups([]);
+      setSelectedFeeGroup(null);
+      setSelectedClass("");
       return;
     }
 
-    const selectedStudentData = studentListData.find(
-      item => item.registration_id === selectedOption.value
+    const student = studentListData.find(
+      (item) => item.registration_id === selectedOption.value
     );
-    
-    if (selectedStudentData) {
-      setSelectedStudent(selectedStudentData);
-      // You can auto-fill other fields here if needed
-      setSelectedClass(selectedStudentData.class_name?._id || "");
+
+    if (student) {
+      setSelectedStudent(student);
+      const className = student.class_name?.class_name || "";
+      setSelectedClass(className);
+      
+      try {
+        setIsLoading(true);
+        // Fetch fee groups by class name
+        const feeGroupsResponse = await axios.get(
+          `https://erp-backend-fy3n.onrender.com/api/fee-groups/by-class/${encodeURIComponent(className)}`
+        );
+
+        if (feeGroupsResponse?.data?.success) {
+          const feeGroupOptions = feeGroupsResponse.data.data.map((group) => ({
+            value: group._id,
+            label: group.group_name,
+            data: group
+          }));
+          setFeeGroups(feeGroupOptions);
+
+          // Automatically select the first fee group if available
+          if (feeGroupOptions.length > 0) {
+            setSelectedFeeGroup(feeGroupOptions[0]);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching fee groups:", error);
+        setFeeGroups([]);
+        setSelectedFeeGroup(null);
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
-  // Mock function to fetch fee groups
-  const fetchFeeGroups = async () => {
-    try {
-      // In a real app, you would call your API here
-      const mockFeeGroups = [
-        { value: "tuition", label: "Tuition Fee" },
-        { value: "transport", label: "Transport Fee" },
-        { value: "library", label: "Library Fee" }
-      ];
-      setFeeGroups(mockFeeGroups);
-    } catch (error) {
-      console.error("Error fetching fee groups:", error);
-    }
-  };
-
-  // Mock function to fetch fee details
   const fetchFeeDetails = async () => {
     if (!selectedStudent || !selectedFeeGroup) return;
 
     try {
-      // In a real app, you would call your API here
+      // Here you would typically fetch actual fee details from your API
+      // For now using mock data
       const mockFeeDetails = [
         { feeItem: "Tuition", amount: 5000, dueDate: "2025-04-15", status: "Pending" },
         { feeItem: "Books", amount: 1000, dueDate: "2025-04-15", status: "Pending" }
@@ -124,7 +134,6 @@ const FeeEntry = () => {
 
   useEffect(() => {
     getAllStudent();
-    fetchFeeGroups();
   }, []);
 
   useEffect(() => {
@@ -133,15 +142,14 @@ const FeeEntry = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    // Handle form submission
     console.log({
       receiptDate,
       receiptNo,
       selectedClass,
-      selectedStudent,
+      selectedStudent: selectedStudent?.registration_id,
       selectedAccountType,
       selectedPayType,
-      selectedFeeGroup
+      selectedFeeGroup: selectedFeeGroup?.value
     });
   };
 
@@ -156,6 +164,7 @@ const FeeEntry = () => {
           </Row>
         </Container>
       </div>
+
       <section>
         <Container>
           <div className="cover-sheet">
@@ -166,7 +175,7 @@ const FeeEntry = () => {
             <Form onSubmit={handleSubmit} className="formSheet">
               <Row className="mb-3">
                 <Col md={12}>
-                  <FormLabel>Search Student With StudentName/FatherName/FormNo/StuID/ParentID/ScholarNo*</FormLabel>
+                  <FormLabel>Search Student *</FormLabel>
                   <Select
                     options={studentListOptions}
                     onChange={getStudentData}
@@ -195,9 +204,8 @@ const FeeEntry = () => {
                     <FormLabel>Class</FormLabel>
                     <FormControl
                       type="text"
-                      value={selectedStudent?.class_name?.class_name || ""}
+                      value={selectedClass}
                       readOnly
-                      placeholder="Class"
                     />
                   </FormGroup>
                 </Col>
@@ -208,7 +216,6 @@ const FeeEntry = () => {
                       type="text"
                       value={receiptNo}
                       onChange={(e) => setReceiptNo(e.target.value)}
-                      placeholder="Receipt No"
                     />
                   </FormGroup>
                 </Col>
@@ -254,9 +261,11 @@ const FeeEntry = () => {
                     <FormLabel>Fee Group</FormLabel>
                     <Select
                       options={feeGroups}
-                      onChange={(option) => setSelectedFeeGroup(option?.value || "")}
-                      placeholder="Select Fee Group"
+                      value={selectedFeeGroup}
+                      onChange={(option) => setSelectedFeeGroup(option)}
+                      placeholder={isLoading ? "Loading fee groups..." : "Select Fee Group"}
                       isClearable
+                      isDisabled={isLoading || feeGroups.length === 0}
                     />
                   </FormGroup>
                 </Col>
@@ -299,8 +308,8 @@ const FeeEntry = () => {
               )}
 
               <Row className="mb-3">
-                <Col className="text-end">
-                  <Button variant="primary" type="submit">
+                <Col md={12}>
+                  <Button type="submit" variant="primary" disabled={!selectedFeeGroup}>
                     Submit
                   </Button>
                 </Col>
