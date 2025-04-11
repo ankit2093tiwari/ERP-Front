@@ -23,15 +23,27 @@ const FeeEntry = () => {
   const [receiptNo, setReceiptNo] = useState("");
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedAccountType, setSelectedAccountType] = useState("");
-  const [selectedPayType, setSelectedPayType] = useState("");
+  const [selectedPayType, setSelectedPayType] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [studentListData, setStudentListData] = useState([]);
   const [studentListOptions, setStudentListOptions] = useState([]);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [feeGroups, setFeeGroups] = useState([]);
   const [selectedFeeGroup, setSelectedFeeGroup] = useState(null);
-  const [feeDetails, setFeeDetails] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [schools, setSchools] = useState([]);
+  const [selectedSchool, setSelectedSchool] = useState("");
+  const [paymentTypes, setPaymentTypes] = useState([]);
+  const [installments, setInstallments] = useState([]);
+  const [selectedInstallment, setSelectedInstallment] = useState(null);
+  const [feeHeads, setFeeHeads] = useState([]);
+  const [feeAmounts, setFeeAmounts] = useState({});
+  const [remarks, setRemarks] = useState({});
+  const [totalDues, setTotalDues] = useState(0);
+  const [paidAmount, setPaidAmount] = useState(0);
+  const [lateFine, setLateFine] = useState(0);
+  const [serviceCharges, setServiceCharges] = useState([]);
+  const [payMode, setPayMode] = useState("Cash");
 
   const breadcrumbItems = [
     { label: "Fee", link: "/fees/all-module" },
@@ -44,9 +56,18 @@ const FeeEntry = () => {
     { value: "School & Bus", label: "School & Bus" }
   ];
 
-  const payTypes = [
-    { value: "installment", label: "Installment" },
-    { value: "Multi installment", label: "Multi Installment" }
+  const payModes = [
+    { value: "Cheque", label: "Cheque" },
+    { value: "Cash", label: "Cash" },
+    { value: "RTGS", label: "RTGS" },
+    { value: "Debit Card", label: "Debit Card" },
+    { value: "Credit Card", label: "Credit Card" },
+    { value: "Online", label: "Online" }
+  ];
+
+  const months = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
   ];
 
   const getAllStudent = async () => {
@@ -68,12 +89,83 @@ const FeeEntry = () => {
     }
   };
 
+  const getAllSchools = async () => {
+    try {
+      const response = await axios.get(
+        `https://erp-backend-fy3n.onrender.com/api/schools`
+      );
+      if (response?.data?.success) {
+        setSchools(response.data.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch schools", error);
+    }
+  };
+
+  const getPaymentTypes = async () => {
+    try {
+      const response = await axios.get(
+        `https://erp-backend-fy3n.onrender.com/api/all-payment-type`
+      );
+      if (response?.data?.success) {
+        const options = response.data.paymentTypes.map(type => ({
+          value: type._id,
+          label: type.payment_type === 'installment' ? 'Installment' : 'Multi Installment',
+          type: type.payment_type
+        }));
+        setPaymentTypes(options);
+      }
+    } catch (error) {
+      console.error("Failed to fetch payment types", error);
+    }
+  };
+
+  const getInstallments = async () => {
+    try {
+      const response = await axios.get(
+        `https://erp-backend-fy3n.onrender.com/api/all-installments`
+      );
+      if (response?.data?.success) {
+        const options = response.data.data.map(installment => ({
+          value: installment._id,
+          label: installment.installment_name
+        }));
+        setInstallments(options);
+      }
+    } catch (error) {
+      console.error("Failed to fetch installments", error);
+    }
+  };
+
+  const getFeeHeads = async () => {
+    try {
+      const response = await axios.get(
+        `https://erp-backend-fy3n.onrender.com/api/fee-heads`
+      );
+      if (response?.data?.success) {
+        setFeeHeads(response.data.data);
+        // Initialize amounts and remarks
+        const initialAmounts = {};
+        const initialRemarks = {};
+        response.data.data.forEach(head => {
+          initialAmounts[head._id] = 0;
+          initialRemarks[head._id] = "";
+        });
+        setFeeAmounts(initialAmounts);
+        setRemarks(initialRemarks);
+      }
+    } catch (error) {
+      console.error("Failed to fetch fee heads", error);
+    }
+  };
+
   const getStudentData = async (selectedOption) => {
     if (!selectedOption) {
       setSelectedStudent(null);
       setFeeGroups([]);
       setSelectedFeeGroup(null);
       setSelectedClass("");
+      setSelectedSchool("");
       return;
     }
 
@@ -85,10 +177,11 @@ const FeeEntry = () => {
       setSelectedStudent(student);
       const className = student.class_name?.class_name || "";
       setSelectedClass(className);
-      
+      const schoolName = student.school_name?.school_name || "";
+      setSelectedSchool(schoolName);
+
       try {
         setIsLoading(true);
-        // Fetch fee groups by class name
         const feeGroupsResponse = await axios.get(
           `https://erp-backend-fy3n.onrender.com/api/fee-groups/by-class/${encodeURIComponent(className)}`
         );
@@ -101,7 +194,6 @@ const FeeEntry = () => {
           }));
           setFeeGroups(feeGroupOptions);
 
-          // Automatically select the first fee group if available
           if (feeGroupOptions.length > 0) {
             setSelectedFeeGroup(feeGroupOptions[0]);
           }
@@ -116,41 +208,98 @@ const FeeEntry = () => {
     }
   };
 
-  const fetchFeeDetails = async () => {
-    if (!selectedStudent || !selectedFeeGroup) return;
-
-    try {
-      // Here you would typically fetch actual fee details from your API
-      // For now using mock data
-      const mockFeeDetails = [
-        { feeItem: "Tuition", amount: 5000, dueDate: "2025-04-15", status: "Pending" },
-        { feeItem: "Books", amount: 1000, dueDate: "2025-04-15", status: "Pending" }
-      ];
-      setFeeDetails(mockFeeDetails);
-    } catch (error) {
-      console.error("Error fetching fee details:", error);
-    }
-  };
-
   useEffect(() => {
     getAllStudent();
+    getAllSchools();
+    getPaymentTypes();
+    getInstallments();
+    getFeeHeads();
   }, []);
 
   useEffect(() => {
-    fetchFeeDetails();
-  }, [selectedStudent, selectedFeeGroup]);
+    // Calculate total dues whenever fee amounts change
+    const total = Object.values(feeAmounts).reduce((sum, amount) => sum + amount, 0);
+    setTotalDues(total);
+  }, [feeAmounts]);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log({
-      receiptDate,
-      receiptNo,
-      selectedClass,
-      selectedStudent: selectedStudent?.registration_id,
-      selectedAccountType,
-      selectedPayType,
-      selectedFeeGroup: selectedFeeGroup?.value
+  const handleFeeAmountChange = (headId, value) => {
+    setFeeAmounts(prev => ({
+      ...prev,
+      [headId]: parseFloat(value) || 0
+    }));
+  };
+
+  const handleRemarkChange = (headId, value) => {
+    setRemarks(prev => ({
+      ...prev,
+      [headId]: value
+    }));
+  };
+
+  const handleServiceChargeChange = (month, value) => {
+    setServiceCharges(prev => {
+      const updated = [...prev];
+      const index = updated.findIndex(item => item.month === month);
+      if (index >= 0) {
+        updated[index].amount = parseFloat(value) || 0;
+      } else {
+        updated.push({ month, amount: parseFloat(value) || 0 });
+      }
+      return updated;
     });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const payload = {
+        receiptDate,
+        receiptNo,
+        studentId: selectedStudent?.registration_id,
+        class: selectedClass,
+        school: selectedSchool,
+        feeGroup: selectedFeeGroup?.value,
+        paymentType: selectedPayType?.value,
+        installment: selectedInstallment?.value,
+        accountType: selectedAccountType,
+        feeHeads: feeHeads.map(head => ({
+          headId: head._id,
+          headName: head.head_name,
+          amount: feeAmounts[head._id] || 0,
+          remark: remarks[head._id] || ""
+        })),
+        totalDues,
+        paidAmount,
+        lateFine,
+        serviceCharges,
+        payMode,
+        balance: totalDues - paidAmount
+      };
+
+      const response = await axios.post(
+        `https://erp-backend-fy3n.onrender.com/api/fee-entries`,
+        payload
+      );
+
+      if (response.data.success) {
+        alert("Fee entry created successfully!");
+        // Reset form
+        setReceiptNo("");
+        setSelectedStudent(null);
+        setSelectedFeeGroup(null);
+        setSelectedPayType(null);
+        setSelectedInstallment(null);
+        setSelectedAccountType("");
+        setFeeAmounts({});
+        setRemarks({});
+        setPaidAmount(0);
+        setLateFine(0);
+        setServiceCharges([]);
+      }
+    } catch (error) {
+      console.error("Error submitting fee entry:", error);
+      alert("Failed to create fee entry");
+    }
   };
 
   return (
@@ -211,11 +360,14 @@ const FeeEntry = () => {
                 </Col>
                 <Col md={4}>
                   <FormGroup>
-                    <FormLabel>Receipt No</FormLabel>
-                    <FormControl
-                      type="text"
-                      value={receiptNo}
-                      onChange={(e) => setReceiptNo(e.target.value)}
+                    <FormLabel>Installment *</FormLabel>
+                    <Select
+                      options={installments}
+                      value={selectedInstallment}
+                      onChange={(option) => setSelectedInstallment(option)}
+                      placeholder="Select Installment"
+                      isClearable
+                      required
                     />
                   </FormGroup>
                 </Col>
@@ -224,41 +376,7 @@ const FeeEntry = () => {
               <Row className="mb-3">
                 <Col md={4}>
                   <FormGroup>
-                    <FormLabel>Collection</FormLabel>
-                    <FormSelect>
-                      <option>Select</option>
-                      <option>R.D.School</option>
-                    </FormSelect>
-                  </FormGroup>
-                </Col>
-                <Col md={4}>
-                  <FormGroup>
-                    <FormLabel>A/C Type</FormLabel>
-                    <Select
-                      options={accountTypes}
-                      onChange={(option) => setSelectedAccountType(option?.value || "")}
-                      placeholder="Select A/C Type"
-                      isClearable
-                    />
-                  </FormGroup>
-                </Col>
-                <Col md={4}>
-                  <FormGroup>
-                    <FormLabel>Pay Type</FormLabel>
-                    <Select
-                      options={payTypes}
-                      onChange={(option) => setSelectedPayType(option?.value || "")}
-                      placeholder="Select Pay Type"
-                      isClearable
-                    />
-                  </FormGroup>
-                </Col>
-              </Row>
-
-              <Row className="mb-3">
-                <Col md={6}>
-                  <FormGroup>
-                    <FormLabel>Fee Group</FormLabel>
+                    <FormLabel>Fee Group *</FormLabel>
                     <Select
                       options={feeGroups}
                       value={selectedFeeGroup}
@@ -266,51 +384,231 @@ const FeeEntry = () => {
                       placeholder={isLoading ? "Loading fee groups..." : "Select Fee Group"}
                       isClearable
                       isDisabled={isLoading || feeGroups.length === 0}
+                      required
+                    />
+                  </FormGroup>
+                </Col>
+                <Col md={4}>
+                  <FormGroup>
+                    <FormLabel>Pay Type *</FormLabel>
+                    <Select
+                      options={paymentTypes}
+                      value={selectedPayType}
+                      onChange={(option) => {
+                        setSelectedPayType(option);
+                        setSelectedInstallment(null);
+                      }}
+                      placeholder="Select Pay Type"
+                      isClearable
+                      required
+                    />
+                  </FormGroup>
+                </Col>
+                <Col md={4}>
+                  <FormGroup>
+                    <FormLabel>Receipt No</FormLabel>
+                    <FormControl
+                      type="text"
+                      value={receiptNo}
+                      onChange={(e) => setReceiptNo(e.target.value)}
+                      required
                     />
                   </FormGroup>
                 </Col>
               </Row>
 
-              {selectedFeeGroup && (
-                <Row className="mb-3">
-                  <Col md={12}>
-                    <h4>Student Ledger Details</h4>
-                    <Table striped bordered hover>
-                      <thead>
-                        <tr>
-                          <th>Fee Item</th>
-                          <th>Amount</th>
-                          <th>Due Date</th>
-                          <th>Status</th>
-                          <th>Action</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {feeDetails.map((fee, index) => (
-                          <tr key={index}>
-                            <td>{fee.feeItem}</td>
-                            <td>{fee.amount}</td>
-                            <td>{fee.dueDate}</td>
-                            <td>{fee.status}</td>
-                            <td>
-                              <FormControl
-                                type="number"
-                                placeholder="Enter amount"
-                                style={{ width: "100px" }}
-                              />
-                            </td>
+              <Row className="mb-3">
+                <Col md={4}>
+                  <FormGroup>
+                    <FormLabel>A/C Type *</FormLabel>
+                    <Select
+                      options={accountTypes}
+                      value={accountTypes.find(opt => opt.value === selectedAccountType)}
+                      onChange={(option) => setSelectedAccountType(option?.value || "")}
+                      placeholder="Select A/C Type"
+                      isClearable
+                      required
+                    />
+                  </FormGroup>
+                </Col>
+                <Col md={4}>
+                  <FormGroup>
+                    <FormLabel>Pay Mode</FormLabel>
+                    <Select
+                      options={payModes}
+                      value={payModes.find(opt => opt.value === payMode)}
+                      onChange={(option) => setPayMode(option?.value || "Cash")}
+                      placeholder="Select Pay Mode"
+                      isClearable
+                    />
+                  </FormGroup>
+                </Col>
+              </Row>
+
+              {/* Show fee heads table when A/C Type is School */}
+              {selectedAccountType === "School" && (
+                <>
+                  <Row className="mb-3 mt-4">
+                    <Col md={12}>
+                      <h4>Student Ledger Details</h4>
+                      <Table striped bordered hover>
+                        <thead>
+                          <tr>
+                            <th>Fee Heads</th>
+                            <th>Due</th>
+                            <th>Con</th>
+                            <th>Paid</th>
+                            <th>Balance</th>
                           </tr>
-                        ))}
-                      </tbody>
-                    </Table>
-                  </Col>
-                </Row>
+                        </thead>
+                        <tbody>
+                          {feeHeads.map((head) => (
+                            <tr key={head._id}>
+                              <td>{head.head_name}</td>
+                              <td>
+                                <FormControl
+                                  type="number"
+                                  value={feeAmounts[head._id] || 0}
+                                  onChange={(e) => handleFeeAmountChange(head._id, e.target.value)}
+                                />
+                              </td>
+                              <td>
+                                <FormControl
+                                  type="number"
+                                  value={feeAmounts[head._id] || 0}
+                                  readOnly
+                                />
+                              </td>
+                              <td>
+                                <FormControl
+                                  type="number"
+                                  value={0}
+                                  readOnly
+                                />
+                              </td>
+                              <td>
+                                <FormControl
+                                  type="text"
+                                  value={remarks[head._id] || ""}
+                                  onChange={(e) => handleRemarkChange(head._id, e.target.value)}
+                                  placeholder="Remark"
+                                />
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </Table>
+                    </Col>
+                  </Row>
+
+                  <Row className="mb-3">
+                    <Col md={6}>
+                      <FormGroup>
+                        <FormLabel>Total Dues</FormLabel>
+                        <FormControl
+                          type="number"
+                          value={totalDues}
+                          readOnly
+                        />
+                      </FormGroup>
+                    </Col>
+                    <Col md={6}>
+                      <FormGroup>
+                        <FormLabel>Paid Amount</FormLabel>
+                        <FormControl
+                          type="number"
+                          value={paidAmount}
+                          onChange={(e) => setPaidAmount(parseFloat(e.target.value) || 0)}
+                        />
+                      </FormGroup>
+                    </Col>
+
+                  </Row>
+
+                  <Row className="mb-3">
+                    <Col md={6}>
+                      <FormGroup>
+                        <FormLabel>Service Charges</FormLabel>
+                        <FormControl
+                          type="number"
+                          value={lateFine}
+                          onChange={(e) => setLateFine(parseFloat(e.target.value) || 0)}
+                        />
+                      </FormGroup>
+                    </Col>
+                    <Col md={6}>
+                      <FormGroup>
+                        <FormLabel>Balance</FormLabel>
+                        <FormControl
+                          type="number"
+                          value={totalDues - paidAmount}
+                          readOnly
+                        />
+                      </FormGroup>
+                    </Col>
+                  </Row>
+
+                  <Row className="mb-3">
+                    <Col md={6}>
+                      <FormGroup>
+                        <FormLabel>Remarks</FormLabel>
+                        <FormControl
+                          type="text"
+                          value={lateFine}
+                          onChange={(e) => setLateFine(parseFloat(e.target.value) || 0)}
+                        />
+                      </FormGroup>
+                    </Col>
+                    <Col md={6}>
+                      <FormGroup>
+                        <FormLabel>Fee Book Number</FormLabel>
+                        <FormControl
+                          type="number"
+                          value={totalDues - paidAmount}
+                          readOnly
+                        />
+                      </FormGroup>
+                    </Col>
+                  </Row>
+                  
+
+                  <Row className="mb-3">
+                    <Col md={12}>
+                      <Table striped bordered hover>
+                        <thead>
+                          <tr>
+                            {months.map(month => (
+                              <th key={month}>{month}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          <tr>
+                            {months.map(month => (
+                              <td key={month}>
+                                <FormControl
+                                  type="number"
+                                  value={serviceCharges.find(sc => sc.month === month)?.amount || 0}
+                                  onChange={(e) => handleServiceChargeChange(month, e.target.value)}
+                                />
+                              </td>
+                            ))}
+                          </tr>
+                        </tbody>
+                      </Table>
+                    </Col>
+                  </Row>
+                </>
               )}
 
-              <Row className="mb-3">
+              <Row className="mb-5 mt-4">
                 <Col md={12}>
-                  <Button type="submit" variant="primary" disabled={!selectedFeeGroup}>
-                    Submit
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    disabled={!selectedFeeGroup || !selectedPayType || !selectedInstallment || !selectedAccountType}
+                  >
+                    Save
                   </Button>
                 </Col>
               </Row>
