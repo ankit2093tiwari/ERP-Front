@@ -44,6 +44,7 @@ const FeeEntry = () => {
   const [lateFine, setLateFine] = useState(0);
   const [serviceCharges, setServiceCharges] = useState([]);
   const [payMode, setPayMode] = useState("Cash");
+  const [installmentDetails, setInstallmentDetails] = useState([]);
 
   const breadcrumbItems = [
     { label: "Fee", link: "/fees/all-module" },
@@ -52,8 +53,6 @@ const FeeEntry = () => {
 
   const accountTypes = [
     { value: "School", label: "School" },
-    { value: "Bus", label: "Bus" },
-    { value: "School & Bus", label: "School & Bus" }
   ];
 
   const payModes = [
@@ -159,6 +158,19 @@ const FeeEntry = () => {
     }
   };
 
+  const getInstallmentDetails = async (feeGroupId) => {
+    try {
+      const response = await axios.get(
+        `https://erp-backend-fy3n.onrender.com/api/fee-structures/by-group/${feeGroupId}`
+      );
+      if (response?.data?.success) {
+        setInstallmentDetails(response.data.feeStructures);
+      }
+    } catch (error) {
+      console.error("Failed to fetch installment details", error);
+    }
+  };
+
   const getStudentData = async (selectedOption) => {
     if (!selectedOption) {
       setSelectedStudent(null);
@@ -196,6 +208,7 @@ const FeeEntry = () => {
 
           if (feeGroupOptions.length > 0) {
             setSelectedFeeGroup(feeGroupOptions[0]);
+            getInstallmentDetails(feeGroupOptions[0].value);
           }
         }
       } catch (error) {
@@ -215,6 +228,12 @@ const FeeEntry = () => {
     getInstallments();
     getFeeHeads();
   }, []);
+
+  useEffect(() => {
+    if (selectedFeeGroup) {
+      getInstallmentDetails(selectedFeeGroup.value);
+    }
+  }, [selectedFeeGroup]);
 
   useEffect(() => {
     // Calculate total dues whenever fee amounts change
@@ -449,7 +468,7 @@ const FeeEntry = () => {
               {selectedAccountType === "School" && (
                 <>
                   <Row className="mb-3 mt-4">
-                    <Col md={12}>
+                    <Col md={8}>
                       <h4>Student Ledger Details</h4>
                       <Table striped bordered hover>
                         <thead>
@@ -488,12 +507,106 @@ const FeeEntry = () => {
                               </td>
                               <td>
                                 <FormControl
-                                  type="text"
-                                  value={remarks[head._id] || ""}
-                                  onChange={(e) => handleRemarkChange(head._id, e.target.value)}
-                                  placeholder="Remark"
+                                  type="number"
+                                  value={feeAmounts[head._id] || 0}
+                                  readOnly
                                 />
                               </td>
+                              <td>
+                                <FormControl
+                                  as="textarea"
+                                  rows={1}
+                                  value={remarks[head._id] || ""}
+                                  onChange={(e) => handleRemarkChange(head._id, e.target.value)}
+                                  placeholder="Enter remarks"
+                                />
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </Table>
+                      <Row className="mb-3">
+                        <Col md={6}>
+                          <FormGroup>
+                            <FormLabel>Total Dues</FormLabel>
+                            <FormControl
+                              type="number"
+                              value={totalDues}
+                              readOnly
+                            />
+                          </FormGroup>
+                        </Col>
+                        <Col md={6}>
+                          <FormGroup>
+                            <FormLabel>Paid Amount</FormLabel>
+                            <FormControl
+                              type="number"
+                              value={paidAmount}
+                              onChange={(e) => setPaidAmount(parseFloat(e.target.value) || 0)}
+                            />
+                          </FormGroup>
+                        </Col>
+                      </Row>
+
+                      <Row className="mb-3">
+                        <Col md={6}>
+                          <FormGroup>
+                            <FormLabel>Service Charges</FormLabel>
+                            <FormControl
+                              type="number"
+                              value={lateFine}
+                              onChange={(e) => setLateFine(parseFloat(e.target.value) || 0)}
+                            />
+                          </FormGroup>
+                        </Col>
+                        <Col md={6}>
+                          <FormGroup>
+                            <FormLabel>Balance</FormLabel>
+                            <FormControl
+                              type="number"
+                              value={totalDues - paidAmount}
+                              readOnly
+                            />
+                          </FormGroup>
+                        </Col>
+                      </Row>
+
+                      <Row className="mb-3">
+                        <Col md={6}>
+                          <FormGroup>
+                            <FormLabel>Remarks</FormLabel>
+                            <FormControl
+                              type="text"
+                            // placeholder="Enter fee book number"
+                            />
+                          </FormGroup>
+                        </Col>
+                        <Col md={6}>
+                          <FormGroup>
+                            <FormLabel>Fee Book Number</FormLabel>
+                            <FormControl
+                              type="Number"
+                            // placeholder="Enter fee book number"
+                            />
+                          </FormGroup>
+                        </Col>
+                      </Row>
+                    </Col>
+
+                    <Col md={4}>
+                      <h4>Installment Details</h4>
+                      <Table striped bordered hover>
+                        <thead>
+                          <tr>
+                            <th>Installment Name</th>
+                            <th>Due Amount</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {installmentDetails.map((installment, index) => (
+                            <tr key={index}>
+                              <td>{installment.installment_name}</td>
+                              <td>{installment.due_amount}</td>
                             </tr>
                           ))}
                         </tbody>
@@ -501,103 +614,11 @@ const FeeEntry = () => {
                     </Col>
                   </Row>
 
-                  <Row className="mb-3">
-                    <Col md={6}>
-                      <FormGroup>
-                        <FormLabel>Total Dues</FormLabel>
-                        <FormControl
-                          type="number"
-                          value={totalDues}
-                          readOnly
-                        />
-                      </FormGroup>
-                    </Col>
-                    <Col md={6}>
-                      <FormGroup>
-                        <FormLabel>Paid Amount</FormLabel>
-                        <FormControl
-                          type="number"
-                          value={paidAmount}
-                          onChange={(e) => setPaidAmount(parseFloat(e.target.value) || 0)}
-                        />
-                      </FormGroup>
-                    </Col>
 
-                  </Row>
 
-                  <Row className="mb-3">
-                    <Col md={6}>
-                      <FormGroup>
-                        <FormLabel>Service Charges</FormLabel>
-                        <FormControl
-                          type="number"
-                          value={lateFine}
-                          onChange={(e) => setLateFine(parseFloat(e.target.value) || 0)}
-                        />
-                      </FormGroup>
-                    </Col>
-                    <Col md={6}>
-                      <FormGroup>
-                        <FormLabel>Balance</FormLabel>
-                        <FormControl
-                          type="number"
-                          value={totalDues - paidAmount}
-                          readOnly
-                        />
-                      </FormGroup>
-                    </Col>
-                  </Row>
-
-                  <Row className="mb-3">
-                    <Col md={6}>
-                      <FormGroup>
-                        <FormLabel>Remarks</FormLabel>
-                        <FormControl
-                          type="text"
-                          value={lateFine}
-                          onChange={(e) => setLateFine(parseFloat(e.target.value) || 0)}
-                        />
-                      </FormGroup>
-                    </Col>
-                    <Col md={6}>
-                      <FormGroup>
-                        <FormLabel>Fee Book Number</FormLabel>
-                        <FormControl
-                          type="number"
-                          value={totalDues - paidAmount}
-                          readOnly
-                        />
-                      </FormGroup>
-                    </Col>
-                  </Row>
-                  
-
-                  <Row className="mb-3">
-                    <Col md={12}>
-                      <Table striped bordered hover>
-                        <thead>
-                          <tr>
-                            {months.map(month => (
-                              <th key={month}>{month}</th>
-                            ))}
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <tr>
-                            {months.map(month => (
-                              <td key={month}>
-                                <FormControl
-                                  type="number"
-                                  value={serviceCharges.find(sc => sc.month === month)?.amount || 0}
-                                  onChange={(e) => handleServiceChargeChange(month, e.target.value)}
-                                />
-                              </td>
-                            ))}
-                          </tr>
-                        </tbody>
-                      </Table>
-                    </Col>
-                  </Row>
+                  {/* <Row className="mb-3">
+                    
+                  </Row> */}
                 </>
               )}
 
