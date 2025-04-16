@@ -671,13 +671,10 @@ const StudentMasterPage = () => {
                           <FormLabel className="labelForm">House</FormLabel>
                           <FormSelect>
                             <option>Select</option>
-                            <option value="1">Condo</option>
-                            <option value="2">Apartment</option>
-                            <option value="3">Cottage</option>
-                            <option value="4">Movable Dwelling</option>
-                            <option value="5">Bungalow</option>
-                            <option value="5">Duplex</option>
-                            <option value="5">Mansion</option>
+                            <option value="1">Red</option>
+                            <option value="2">Blue</option>
+                            <option value="3">White</option>
+                            <option value="4">Green</option>
                           </FormSelect>
                         </FormGroup>
                         <FormGroup as={Col} md="3" controlId="validationCustom21">
