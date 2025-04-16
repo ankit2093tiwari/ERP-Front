@@ -107,7 +107,7 @@ const YearMasterPage = () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/classes");
+      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/year/all-year");
       const fetchedData = Array.isArray(response.data)
         ? response.data
         : Array.isArray(response.data?.data)
@@ -132,7 +132,7 @@ const YearMasterPage = () => {
 
   const handleUpdate = async (id) => {
     try {
-      await axios.put(`https://erp-backend-fy3n.onrender.com/api/classes/${id}`, {
+      await axios.put(`https://erp-backend-fy3n.onrender.com/api/year/update-year/${id}`, {
         className: formData.className,
         yearCodeAndName: formData.yearCodeAndName
       });
@@ -148,7 +148,7 @@ const YearMasterPage = () => {
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this year entry?")) {
       try {
-        await axios.put(`https://erp-backend-fy3n.onrender.com/api/classes/${id}`, { is_deleted: true });
+        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/year/delete-year${id}`, { is_deleted: true });
         fetchData();
       } catch (error) {
         console.error("Error deleting year:", error);
@@ -171,7 +171,7 @@ const YearMasterPage = () => {
           return;
         }
 
-        await axios.post("https://erp-backend-fy3n.onrender.com/api/classes", {
+        await axios.post("https://erp-backend-fy3n.onrender.com/api/year/create-year", {
           className: formData.className,
           yearCodeAndName: formData.yearCodeAndName
         });

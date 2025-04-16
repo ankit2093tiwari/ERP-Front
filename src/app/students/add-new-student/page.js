@@ -88,7 +88,7 @@ const StudentMasterPage = () => {
 
   const fetchClasses = async () => {
     try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_SITE_URL}/api/all-classes`);
+      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/all-classes`);
       const resp = response.data;
 
       setClassList(resp?.data || []);
@@ -100,7 +100,7 @@ const StudentMasterPage = () => {
 
   const fetchReligion = async () => {
     try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_SITE_URL}/api/religions`);
+      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/religions`);
       const resp = response.data;
 
       setReligionList(resp.data || []);
@@ -112,7 +112,7 @@ const StudentMasterPage = () => {
 
   const fetchCategory = async () => {
     try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_SITE_URL}/api/categories`);
+      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/categories`);
       const resp = response.data;
       setCategoryList(resp.data || []);
 
@@ -123,7 +123,7 @@ const StudentMasterPage = () => {
 
   const fetchCaste = async () => {
     try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_SITE_URL}/api/castes`);
+      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/castes`);
       const resp = response.data;
       setCasteList(resp.data || []);
 
@@ -134,7 +134,7 @@ const StudentMasterPage = () => {
 
   const fetchState = async () => {
     try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_SITE_URL}/api/all-states`);
+      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/all-states`);
       const resp = response.data;
       setStateList(resp.data || []);
 
@@ -146,7 +146,7 @@ const StudentMasterPage = () => {
   const fetchSections = async (classId) => {
     try {
       console.log('testinggg', classId)
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_SITE_URL}/api/sections/class/${classId} `);
+      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/sections/class/${classId} `);
       console.log('response', response);
       if (response?.data?.success) {
         setSectionList(response?.data?.data);
@@ -194,7 +194,7 @@ const StudentMasterPage = () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_SITE_URL}/students`);
+      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/students`);
       setData(response?.data || []);
     } catch (err) {
       console.error("Error fetching data:", err.response || err.message);
@@ -269,7 +269,7 @@ const StudentMasterPage = () => {
     e.preventDefault();
     if (!validateForm()) return;
 
-    const endpoint = process.env.NEXT_PUBLIC_SITE_URL + '/api/students';
+    const endpoint = "https://erp-backend-fy3n.onrender.com" + '/api/students';
     const method = "post";
     console.log('setStudent', student);
 
