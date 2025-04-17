@@ -11,6 +11,7 @@ import {
   FormLabel,
   FormControl,
   Button,
+  Alert,
 } from "react-bootstrap";
 import axios from "axios";
 import Table from "@/app/component/DataTable";
@@ -21,12 +22,44 @@ const YearMasterPage = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
-    className: "",
-    yearCodeAndName: ""
+    class: "",
+    year_name: ""
   });
+  const [classes, setClasses] = useState([]);
+  const [classesError, setClassesError] = useState("");
+  const [classesLoading, setClassesLoading] = useState(false);
+
+  // Fetch classes when component mounts
+  useEffect(() => {
+    const fetchClasses = async () => {
+      setClassesLoading(true);
+      try {
+        const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-classes");
+        
+        // Handle different response formats
+        let classesData = [];
+        if (Array.isArray(response.data)) {
+          classesData = response.data;
+        } else if (response.data && Array.isArray(response.data.data)) {
+          classesData = response.data.data;
+        }
+
+        setClasses(classesData);
+        setClassesError("");
+      } catch (err) {
+        console.error("Error fetching classes:", err);
+        setClassesError("Failed to fetch classes. Please try again later.");
+        setClasses([]);
+      } finally {
+        setClassesLoading(false);
+      }
+    };
+    fetchClasses();
+  }, []);
 
   const columns = [
     {
@@ -39,27 +72,34 @@ const YearMasterPage = () => {
       name: "Class Name",
       cell: (row) =>
         editingId === row._id ? (
-          <FormControl
-            type="text"
-            value={formData.className}
-            onChange={(e) => setFormData({...formData, className: e.target.value})}
-          />
+          <Form.Control
+            as="select"
+            value={formData.class}
+            onChange={(e) => setFormData({...formData, class: e.target.value})}
+          >
+            <option value="">Select Class</option>
+            {Array.isArray(classes) && classes.map((cls) => (
+              <option key={cls._id} value={cls._id}>
+                {cls.class_name} ({cls.class_code})
+              </option>
+            ))}
+          </Form.Control>
         ) : (
-          row.className || "N/A"
+          row.class ? `${row.class.class_name} (${row.class.class_code})` : "N/A"
         ),
       sortable: true,
     },
     {
-      name: "Year Code & Name",
+      name: "Year Name",
       cell: (row) =>
         editingId === row._id ? (
           <FormControl
             type="text"
-            value={formData.yearCodeAndName}
-            onChange={(e) => setFormData({...formData, yearCodeAndName: e.target.value})}
+            value={formData.year_name}
+            onChange={(e) => setFormData({...formData, year_name: e.target.value})}
           />
         ) : (
-          row.yearCodeAndName || "N/A"
+          row.year_name || "N/A"
         ),
       sortable: true,
     },
@@ -77,9 +117,13 @@ const YearMasterPage = () => {
               </button>
               <button
                 className="editButton btn-danger"
-                onClick={() => handleDelete(row._id)}
+                onClick={() => {
+                  setEditingId(null);
+                  setFormData({ class: "", year_name: "" });
+                  setError("");
+                }}
               >
-                <FaTrashAlt />
+                Cancel
               </button>
             </>
           ) : (
@@ -108,11 +152,15 @@ const YearMasterPage = () => {
     setError("");
     try {
       const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/year/all-year");
-      const fetchedData = Array.isArray(response.data)
-        ? response.data
-        : Array.isArray(response.data?.data)
-          ? response.data.data
-          : [];
+      
+      // Handle different response formats
+      let fetchedData = [];
+      if (Array.isArray(response.data)) {
+        fetchedData = response.data;
+      } else if (response.data && Array.isArray(response.data.data)) {
+        fetchedData = response.data.data;
+      }
+
       setData(fetchedData);
     } catch (err) {
       console.error("Error fetching data:", err);
@@ -125,82 +173,108 @@ const YearMasterPage = () => {
   const handleEdit = (year) => {
     setEditingId(year._id);
     setFormData({
-      className: year.className || "",
-      yearCodeAndName: year.yearCodeAndName || ""
+      class: year.class?._id || "",
+      year_name: year.year_name || ""
     });
+    setError("");
+    setSuccess("");
   };
 
   const handleUpdate = async (id) => {
+    if (!formData.class.trim()) {
+      setError("Please select a class");
+      return;
+    }
+    if (!formData.year_name.trim()) {
+      setError("Please enter year name");
+      return;
+    }
+
     try {
-      await axios.put(`https://erp-backend-fy3n.onrender.com/api/year/update-year/${id}`, {
-        className: formData.className,
-        yearCodeAndName: formData.yearCodeAndName
+      const response = await axios.put(`https://erp-backend-fy3n.onrender.com/api/year/update-year/${id}`, {
+        class: formData.class,
+        year_name: formData.year_name
       });
+      
+      setSuccess("Year updated successfully");
+      setError("");
       fetchData();
       setEditingId(null);
-      setFormData({ className: "", yearCodeAndName: "" });
+      setFormData({ class: "", year_name: "" });
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccess(""), 3000);
     } catch (error) {
       console.error("Error updating data:", error);
-      setError("Failed to update year. Please try again later.");
+      setError(error.response?.data?.message || "Failed to update year. Please try again later.");
     }
   };
 
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this year entry?")) {
       try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/year/delete-year${id}`, { is_deleted: true });
+        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/year/delete-year/${id}`);
+        setSuccess("Year deleted successfully");
+        setError("");
         fetchData();
+        
+        // Clear success message after 3 seconds
+        setTimeout(() => setSuccess(""), 3000);
       } catch (error) {
         console.error("Error deleting year:", error);
-        setError("Failed to delete year. Please try again later.");
+        setError(error.response?.data?.message || "Failed to delete year. Please try again later.");
       }
     }
   };
 
   const handleAdd = async () => {
-    if (formData.className.trim() && formData.yearCodeAndName.trim()) {
-      try {
-        const existingYear = data.find(
-          (year) => 
-            year.className === formData.className && 
-            year.yearCodeAndName === formData.yearCodeAndName
-        );
-        
-        if (existingYear) {
-          setError("Year entry with this class name and code already exists.");
-          return;
-        }
+    if (!formData.class.trim()) {
+      setError("Please select a class");
+      return;
+    }
+    if (!formData.year_name.trim()) {
+      setError("Please enter year name");
+      return;
+    }
 
-        await axios.post("https://erp-backend-fy3n.onrender.com/api/year/create-year", {
-          className: formData.className,
-          yearCodeAndName: formData.yearCodeAndName
-        });
-        fetchData();
-        setFormData({ className: "", yearCodeAndName: "" });
-        setIsPopoverOpen(false);
-      } catch (error) {
-        console.error("Error adding year:", error);
-        setError("Failed to add year. Please try again later.");
+    try {
+      const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/year/create-year", {
+        class: formData.class,
+        year_name: formData.year_name
+      });
+      
+      setSuccess("Year created successfully");
+      setError("");
+      fetchData();
+      setFormData({ class: "", year_name: "" });
+      setIsPopoverOpen(false);
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => setSuccess(""), 3000);
+    } catch (error) {
+      console.error("Error adding year:", error);
+      if (error.response?.data?.error?.code === 11000) {
+        setError("A year with this name already exists for the selected class.");
+      } else {
+        setError(error.response?.data?.message || "Failed to add year. Please try again later.");
       }
-    } else {
-      alert("Please enter valid class name and year code.");
     }
   };
 
   const handlePrint = () => {
-    const tableHeaders = [["#", "Class Name", "Year Code & Name"]];
+    const tableHeaders = [["#", "Class Name", "Year Name"]];
     const tableRows = data.map((row, index) => [
       index + 1,
-      row.className || "N/A",
-      row.yearCodeAndName || "N/A",
+      row.class ? `${row.class.class_name} (${row.class.class_code})` : "N/A",
+      row.year_name || "N/A",
     ]);
     printContent(tableHeaders, tableRows);
   };
 
   const handleCopy = () => {
-    const headers = ["#", "Class Name", "Year Code & Name"];
+    const headers = ["#", "Class Name", "Year Name"];
     const rows = data.map((row, index) => 
-      `${index + 1}\t${row.className || "N/A"}\t${row.yearCodeAndName || "N/A"}`
+      `${index + 1}\t${row.class ? `${row.class.class_name} (${row.class.class_code})` : "N/A"}\t${row.year_name || "N/A"}`
     );
     copyContent(headers, rows);
   };
@@ -227,9 +301,20 @@ const YearMasterPage = () => {
       </div>
       <section>
         <Container>
+          {success && (
+            <Alert variant="success" onClose={() => setSuccess("")} dismissible>
+              {success}
+            </Alert>
+          )}
+          {error && (
+            <Alert variant="danger" onClose={() => setError("")} dismissible>
+              {error}
+            </Alert>
+          )}
+
           <Button
             onClick={() => setIsPopoverOpen(true)}
-            className="btn-add"
+            className="btn-add mb-3"
           >
             <CgAddR /> Add Year
           </Button>
@@ -243,7 +328,7 @@ const YearMasterPage = () => {
                   onClick={() => {
                     setIsPopoverOpen(false);
                     setError("");
-                    setFormData({ className: "", yearCodeAndName: "" });
+                    setFormData({ class: "", year_name: "" });
                   }}
                 >
                   X
@@ -252,24 +337,31 @@ const YearMasterPage = () => {
               <Form className="formSheet">
                 <Row className="mb-3">
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Class Name</FormLabel>
-                    <FormControl
-                      type="text"
-                      placeholder="Enter Class Name"
-                      value={formData.className}
-                      onChange={(e) =>
-                        setFormData({...formData, className: e.target.value})
-                      }
-                    />
+                    <FormLabel className="labelForm">Class</FormLabel>
+                    <Form.Control
+                      as="select"
+                      value={formData.class}
+                      onChange={(e) => setFormData({...formData, class: e.target.value})}
+                      disabled={classesLoading}
+                    >
+                      <option value="">Select Class</option>
+                      {Array.isArray(classes) && classes.map((cls) => (
+                        <option key={cls._id} value={cls._id}>
+                          {cls.class_name} ({cls.class_code})
+                        </option>
+                      ))}
+                    </Form.Control>
+                    {classesLoading && <small>Loading classes...</small>}
+                    {classesError && <small className="text-danger">{classesError}</small>}
                   </Col>
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Year Code & Name</FormLabel>
+                    <FormLabel className="labelForm">Year Name</FormLabel>
                     <FormControl
                       type="text"
-                      placeholder="Enter Year Code & Name"
-                      value={formData.yearCodeAndName}
+                      placeholder="Enter Year Name"
+                      value={formData.year_name}
                       onChange={(e) =>
-                        setFormData({...formData, yearCodeAndName: e.target.value})
+                        setFormData({...formData, year_name: e.target.value})
                       }
                     />
                   </Col>
