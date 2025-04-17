@@ -15,13 +15,13 @@ import axios from "axios";
 import { toast } from 'react-toastify';
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 
-
 const StudentMasterPage = () => {
-  const [data, setData] = useState([]); // Table data
-  const [loading, setLoading] = useState(false); // Loading state
-  const [error, setError] = useState(""); // Error state
-  const [showAddForm, setShowAddForm] = useState(false); // Toggle Add Form visibility
-  let student_field = {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [showAddForm, setShowAddForm] = useState(false);
+
+  const initialStudentState = {
     first_name: "",
     middle_name: "",
     last_name: "",
@@ -37,7 +37,7 @@ const StudentMasterPage = () => {
     religion_name: "",
     social_Category: "",
     mother_Tongue: "",
-    nationality_name: "",
+    nationality_name: "Indian",
     enrollment_No: "",
     aadhar_card_no: "",
     fee_Book_No: "",
@@ -56,13 +56,13 @@ const StudentMasterPage = () => {
     ifsc_Code: "",
     residence_name: "",
     permanent_Add: "",
-    country_name: "",
+    country_name: "India",
     state_name: "",
     city_Or_District: "",
     pin_No: "",
-  }
-  const [student, setStudent] = useState(student_field);
+  };
 
+  const [student, setStudent] = useState(initialStudentState);
   const [studentError, setStudentError] = useState({});
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [classList, setClassList] = useState([]);
@@ -71,8 +71,10 @@ const StudentMasterPage = () => {
   const [categoryList, setCategoryList] = useState([]);
   const [casteList, setCasteList] = useState([]);
   const [stateList, setStateList] = useState([]);
-
-
+  const [selectedValue, setSelectedValue] = useState("");
+  const [sourceText, setSourceText] = useState("");
+  const [targetText, setTargetText] = useState("");
+  const [copyChecked, setCopyChecked] = useState(false);
 
   const TOKEN = "6DJdQZJIv6WpChtccQOceQui2qYoKDWWJik2qTX3";
   axios.defaults.headers.common["Authorization"] = `Bearer ${TOKEN}`;
@@ -84,7 +86,6 @@ const StudentMasterPage = () => {
     fetchCaste();
     fetchState();
   }, []);
-
 
   const fetchClasses = async () => {
     try {
@@ -204,106 +205,123 @@ const StudentMasterPage = () => {
     }
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setStudent((prev) => ({ ...prev, [name]: value }));
-    setStudentError((prev) => ({ ...prev, [`${name}_error`]: "" }));
+  // Fetch functions remain the same...
+
+  const validatePhoneNumber = (phone) => {
+    return /^[0-9]{10}$/.test(phone);
   };
 
-  const handleClassChange = (e) => {
-    const { name, value } = e.target;
-
-
-    setStudent((prev) => ({ ...prev, [name]: value }));
-    setStudentError((prev) => ({ ...prev, [`${name}_error`]: "" }));
-
-    fetchSections(value)
-  };
-
-  const handleFileChange = (e, fieldName) => {
-    const file = e.target.files[0];
-    setFiles((prevFiles) => ({
-      ...prevFiles,
-      [fieldName]: file,
-    }));
+  const validateAadharNumber = (aadhar) => {
+    return /^[0-9]{12}$/.test(aadhar);
   };
 
   const validateForm = () => {
     const errors = {};
-    Object.entries(student).forEach(([key, value]) => {
-      if (
-        key === 'first_name' || key === 'father_name' || key === 'father_mobile_no' || key === 'class_name' || key === 'section_name' || key === 'date_of_birth' || key === 'gender_name' || key === 'admission_date' || key === 'joining_date' || key === 'caste_name' || key === 'religion_name'
-      ) {
-        if (!value || (typeof value === 'object' && !Object.values(value).some(Boolean))) {
-          const formattedKey = key.replace(/_/g, ' ').split(' ').map(capitalizeFirstLetter).join(' ');
-          errors[`${key}_error`] = `${formattedKey} is required`;
-        }
+    let isValid = true;
+
+    // Required fields validation
+    const requiredFields = [
+      'first_name', 'father_name', 'father_mobile_no', 'class_name',
+      'section_name', 'date_of_birth', 'gender_name', 'aadhar_card_no',
+      'admission_date', 'joining_date', 'caste_name', 'religion_name'
+    ];
+
+    requiredFields.forEach(field => {
+      if (!student[field]) {
+        const formattedKey = field.replace(/_/g, ' ').split(' ').map(capitalizeFirstLetter).join(' ');
+        errors[`${field}_error`] = `${formattedKey} is required`;
+        isValid = false;
       }
     });
+
+    if (student.pin_No && !/^\d{6}$/.test(student.pin_No)) {
+      errors.pin_No_error = "PIN must be exactly 6 digits";
+      isValid = false;
+    }
+  
+
+    // Phone number validation
+    if (student.father_mobile_no && !validatePhoneNumber(student.father_mobile_no)) {
+      errors.father_mobile_no_error = "Father's mobile must be 10 digits";
+      isValid = false;
+    }
+
+    if (student.phone_no && !validatePhoneNumber(student.phone_no)) {
+      errors.phone_no_error = "Phone number must be 10 digits";
+      isValid = false;
+    }
+
+    // Aadhar validation
+    if (student.aadhar_card_no && !validateAadharNumber(student.aadhar_card_no)) {
+      errors.aadhar_card_no_error = "Aadhar must be 12 digits";
+      isValid = false;
+    }
+
     setStudentError(errors);
-    return Object.keys(errors).length === 0;
+    return isValid;
   };
 
-  const [selectedValue, setSelectedValue] = useState("");
+  const handleChange = (e) => {
+    const { name, value } = e.target;
 
+    // Validate phone numbers and Aadhar as user types
+    if (name === 'father_mobile_no' || name === 'phone_no') {
+      if (value && !/^[0-9]*$/.test(value)) return; // Only allow numbers
+      if (value.length > 10) return; // Max 10 digits
+    }
 
+    if (name === 'aadhar_card_no') {
+      if (value && !/^[0-9]*$/.test(value)) return; // Only allow numbers
+      if (value.length > 12) return; // Max 12 digits
+    }
+
+    setStudent(prev => ({ ...prev, [name]: value }));
+    setStudentError(prev => ({ ...prev, [`${name}_error`]: "" }));
+  };
+
+  const handleClassChange = (e) => {
+    const { name, value } = e.target;
+    setStudent(prev => ({ ...prev, [name]: value }));
+    setStudentError(prev => ({ ...prev, [`${name}_error`]: "" }));
+    fetchSections(value);
+  };
 
   const handleRadioChange = (e) => {
     const { name, value } = e.target;
-    console.log('radio', name, value);
-
-
-    setStudent((prev) => ({ ...prev, [name]: value }));
-    setStudentError((prev) => ({ ...prev, [`${name}_error`]: "" }));
-
-  };
-
-  const [sourceText, setSourceText] = useState("");
-  const [targetText, setTargetText] = useState("");
-
-  const handleCopy = () => {
-    setTargetText(sourceText);
+    setStudent(prev => ({ ...prev, [name]: value }));
+    setStudentError(prev => ({ ...prev, [`${name}_error`]: "" }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
 
-    const endpoint = "https://erp-backend-fy3n.onrender.com" + '/api/students';
-    const method = "post";
-    console.log('setStudent', student);
-
     try {
-      const response = await axios[method](endpoint, student);
-      console.log('response', response);
+      const endpoint = "https://erp-backend-fy3n.onrender.com/api/students";
+      const method = student._id ? "put" : "post";
+      const url = student._id ? `${endpoint}/${student._id}` : endpoint;
+
+      const response = await axios[method](url, student);
 
       if (response?.data?.status === 'success') {
-        toast.success("Student Created Successfully");
-
-        setData((prev) =>
-          student._id
-            ? prev.map((row) => (row._id === student._id ? { ...row, ...student } : row))
-            : [...prev, response.data]
-        );
-
-        setShowAddForm(false);
-        resetStudentForm();
+        toast.success(`Student ${student._id ? "Updated" : "Created"} Successfully`);
+        fetchData();
+        setStudent(initialStudentState);
+        setIsPopoverOpen(false);
       } else {
         const errorMessage = response?.data?.message || "An error occurred. Please try again.";
         setError(errorMessage);
         toast.error(errorMessage);
       }
-
-      onClose();
     } catch (err) {
-      console.error("Error submitting data:", err.response || err?.data?.message);
+      console.error("Error submitting data:", err.response || err);
       const errorMessage = err?.response?.data?.message || "Failed to submit data. Please check the API endpoint.";
       setError(errorMessage);
       toast.error(errorMessage);
     }
   };
 
-
+  // Rest of the component remains the same...
   const handleEdit = async (id) => {
     try {
       const response = await axios.get(`${process.env.NEXT_PUBLIC_SITE_URL}/students/${id}`);
@@ -327,6 +345,11 @@ const StudentMasterPage = () => {
       }
     }
   };
+
+  const handleCopy = () => {
+    setTargetText(sourceText);
+  };
+
 
   const resetStudentForm = () => {
     setStudent({
@@ -392,6 +415,67 @@ const StudentMasterPage = () => {
         <Container>
           <Row>
             <Col>
+              {/* <Tabs defaultActiveKey="Basic Details" id="controlled-tab" className="mb-3 TabButton">
+                <Tab eventKey="Basic Details" title="Basic Details" className='cover-sheet'>
+                  <div className="studentHeading"><h2> Basic Details  </h2> </div>
+                  <div className="formSheet">
+                    <Form className={styles.form} >
+                      <Row className="mb-3">
+                        <FormGroup as={Col} md="3" controlId="validationCustom01">
+                          <FormLabel className="labelForm">Student name</FormLabel>
+                          <FormControl
+                            type="text"
+                            name="first_name"
+                            value={student.first_name}
+                            onChange={handleChange}
+                            placeholder="Student name"
+                            required
+                          />
+                          <p className="error">{studentError.first_name_error}</p>
+                        </FormGroup>
+                        <FormGroup as={Col} md="3" controlId="validationCustom06">
+                          <FormLabel className="labelForm">Father MobileNo</FormLabel>
+                          <FormControl
+                            value={student.father_mobile_no}
+                            onChange={handleChange}
+                            type="text"
+                            name="father_mobile_no"
+                            placeholder="Father Mobile No."
+                            maxLength="10"
+                            required
+                          />
+                          <p className="error">{studentError.father_mobile_no_error}</p>
+                        </FormGroup>
+                        <FormGroup as={Col} md="3" controlId="validationCustom07">
+                          <FormLabel className="labelForm">Phone Number</FormLabel>
+                          <FormControl
+                            value={student.phone_no}
+                            onChange={handleChange}
+                            type="text"
+                            name="phone_no"
+                            placeholder="Phone No."
+                            maxLength="10"
+                          />
+                          <p className="error">{studentError.phone_no_error}</p>
+                        </FormGroup>
+                      </Row>
+                      <FormGroup as={Col} md="3" controlId="validationCustom17">
+                        <FormLabel className="labelForm">Aadhar Card No</FormLabel>
+                        <FormControl
+                          value={student.aadhar_card_no}
+                          onChange={handleChange}
+                          type="text"
+                          name="aadhar_card_no"
+                          placeholder="Aadhar Card NO."
+                          maxLength="12"
+                          required
+                        />
+                        <p className="error">{studentError.aadhar_card_no_error}</p>
+                      </FormGroup>
+                    </Form>
+                  </div>
+                </Tab>
+              </Tabs> */}
               <Tabs defaultActiveKey="Basic Details" id="controlled-tab" className="mb-3 TabButton">
                 <Tab eventKey="Basic Details" title="Basic Details" className='cover-sheet'>
                   <div className="studentHeading"><h2> Basic Details  </h2> </div>
@@ -521,9 +605,7 @@ const StudentMasterPage = () => {
                           </FormSelect>
                           <p className="error">{studentError.section_name_error}</p>
                         </FormGroup>
-
-
-                        <FormGroup as={Col} md="3" controlId="validationCustom10">
+                        {/* <FormGroup as={Col} md="3" controlId="validationCustom10">
                           <FormLabel className="labelForm">Date Of Birth</FormLabel>
                           <FormControl
                             value={student?.date_of_birth}
@@ -533,7 +615,20 @@ const StudentMasterPage = () => {
                             placeholder="Date of Birth"
                           />
                           <p className="error"> {studentError.date_of_birth_error}</p>
+                        </FormGroup> */}
+                        <FormGroup as={Col} md="3" controlId="validationCustom10">
+                          <FormLabel className="labelForm">Date Of Birth</FormLabel>
+                          <FormControl
+                            value={student?.date_of_birth}
+                            onChange={handleChange}
+                            type="date"
+                            name="date_of_birth"
+                            placeholder="Date of Birth"
+                            max={new Date().toISOString().split("T")[0]} // This ensures only past dates
+                          />
+                          <p className="error"> {studentError.date_of_birth_error}</p>
                         </FormGroup>
+
                         <FormGroup as={Col} md="3" controlId="validationCustom11">
                           <FormLabel className="labelForm">Gender</FormLabel><br />
                           <FormCheck
@@ -793,7 +888,7 @@ const StudentMasterPage = () => {
                           />
                         </FormGroup>
                       </Row>
-                      <Row className='mb-3'>
+                      {/* <Row className='mb-3'>
                         <FormGroup as={Col} md="5">
                           <FormLabel className="labelForm" >Residance Address</FormLabel>
                           <FormControl as="textarea" rows={6} style={{ height: '150px' }} id='sourceTextarea'
@@ -807,7 +902,52 @@ const StudentMasterPage = () => {
                           <FormControl as="textarea" rows={6} style={{ height: '150px' }} id='targetTextarea'
                             value={targetText} onChange={(e) => setTargetText(e.target.value)} />
                         </FormGroup>
+                      </Row> */}
+                      <Row className="mb-3">
+                        <FormGroup as={Col} md="5">
+                          <FormLabel className="labelForm">Residance Address</FormLabel>
+                          <FormControl
+                            as="textarea"
+                            rows={6}
+                            style={{ height: '150px' }}
+                            id="sourceTextarea"
+                            value={sourceText}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              setSourceText(value);
+                              if (copyChecked) {
+                                setTargetText(value); // Keep syncing if checkbox is checked
+                              }
+                            }}
+                          />
+                        </FormGroup>
+
+                        <FormGroup as={Col} md="2" className="d-flex align-items-center">
+                          <FormCheck
+                            type="checkbox"
+                            label="Copy Address"
+                            checked={copyChecked}
+                            onChange={(e) => {
+                              const checked = e.target.checked;
+                              setCopyChecked(checked);
+                              setTargetText(checked ? sourceText : ''); // Copy or clear
+                            }}
+                          />
+                        </FormGroup>
+
+                        <FormGroup as={Col} md="5">
+                          <FormLabel className="labelForm">Permanent Address</FormLabel>
+                          <FormControl
+                            as="textarea"
+                            rows={6}
+                            style={{ height: '150px' }}
+                            id="targetTextarea"
+                            value={targetText}
+                            onChange={(e) => setTargetText(e.target.value)}
+                          />
+                        </FormGroup>
                       </Row>
+
                       <Row className='mb-3'>
                         <FormGroup as={Col} md="6" controlId="validationCustom34">
                           <FormLabel className="labelForm">Country</FormLabel>
@@ -846,7 +986,7 @@ const StudentMasterPage = () => {
                             placeholder="City/District"
                           />
                         </FormGroup>
-                        <FormGroup as={Col} md="6" controlId="validationCustom40">
+                        {/* <FormGroup as={Col} md="6" controlId="validationCustom40">
                           <FormLabel className="labelForm">Pin No</FormLabel>
                           <FormControl
                             value={student?.pin_No}
@@ -855,6 +995,28 @@ const StudentMasterPage = () => {
                             name="pin_No"
                             placeholder="Pin No."
                           />
+                        </FormGroup> */}
+                        <FormGroup as={Col} md="6" controlId="validationCustom40">
+                          <FormLabel className="labelForm">Pin No</FormLabel>
+                          <FormControl
+                            value={student?.pin_No}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              // Only allow numbers and limit to 6 digits
+                              if (/^\d*$/.test(value) && value.length <= 6) {
+                                setStudent(prev => ({ ...prev, pin_No: value }));
+                                // Clear error when valid input
+                                setStudentError(prev => ({ ...prev, pin_No_error: "" }));
+                              }
+                            }}
+                            type="text"
+                            name="pin_No"
+                            placeholder="6-digit PIN"
+                            maxLength={6}
+                          />
+                          {studentError.pin_No_error && (
+                            <p className="error">{studentError.pin_No_error}</p>
+                          )}
                         </FormGroup>
                       </Row>
                       <Row>
@@ -897,7 +1059,6 @@ const StudentMasterPage = () => {
       </section>
     </>
   );
-
 };
 
-export default StudentMasterPage;
+export default dynamic(() => Promise.resolve(StudentMasterPage), { ssr: false });

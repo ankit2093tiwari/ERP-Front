@@ -22,7 +22,7 @@ body
   position: sticky;
   /* width: calc(100% - 250px); */
   min-height: 60px;
-  z-index: 10;
+  z-index: 100;
   top: 0;
   box-shadow: 0px 0px 20px 0px rgba(0, 0, 0, .15);
 }
@@ -524,47 +524,41 @@ footer {
   padding-top: 10px;
   padding-bottom: 10px;
 }
-
-.studentImg img {
+.studentImg img 
+{
   /* width: 70px !important; */
   height: 70px !important;
 }
-
-.studentImg1 {
+.studentImg1 
+{
   padding-top: 10px;
   /* padding-bottom: 10px; */
 }
-
-.error {
+.error 
+{
   color: #F00;
   font-size: 13px;
 }
-
 .studentItemList {
   padding-top: 10px;
   padding-bottom: 10px;
   text-align: left;
   min-width: 50%;
 }
-
 .addNewStudent a {
   color: #000;
 }
-
 .addonbtn {
   background-color: #8a59ca;
   color: #fff;
   border-radius: 50%;
   margin-top: 20px;
 }
-
-
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
   -webkit-appearance: none;
   /* margin: 0; */
 }
-
 .card {
   text-align: center;
   border-radius: 28px;
@@ -574,7 +568,6 @@ input::-webkit-inner-spin-button {
   transition: background .3s, border .3s, border-radius .3s, box-shadow .3s;
   overflow: hidden;
 }
-
 .cardContainer {
   display: flex;
   flex-wrap: wrap;
@@ -582,17 +575,14 @@ input::-webkit-inner-spin-button {
   justify-content: left;
   margin-bottom: 35px;
 }
-
 .subCard1 {
   width: 24%;
   margin-bottom: 20px;
 }
-
 .SubCardLink {
   width: 100%;
   text-decoration: none;
 }
-
 .SubCard {
   background-color: #fafafa;
   /* border: 1px solid #e0e0e0; */
@@ -604,27 +594,22 @@ input::-webkit-inner-spin-button {
   position: relative;
   overflow: hidden;
 }
-
 .nav-tabs {
   border: none;
 }
-
 .dataTableCover {
   border: 1px solid #ddd;
   border-radius: 8px;
   padding: 20px;
   box-shadow: 2px 2px 2px 2px rgba(0, 0, 0, 0.3);
 }
-
 .searchBar {
   display: flex;
   align-items: center;
 }
-
 .searchBar button {
   margin-top: 0px;
 }
-
 /* .result
 {
   border: 1px solid #ddd;
@@ -639,8 +624,9 @@ input::-webkit-inner-spin-button {
   border: 1px solid #ddd;
   overflow: hidden;
   margin-bottom: 20px;
+  position: relative;
+  z-index: 10;
 }
-
 .cover-sheet .studentHeading {
   padding: 15px 20px 10px;
   background-color: #f9f9f9;
@@ -649,14 +635,11 @@ input::-webkit-inner-spin-button {
   justify-content: space-between;
   border-bottom: 1px solid #ddd;
 }
-
 .cover-sheet .studentHeading h2 {
   margin: 0;
   font-size: 18px;
   color: #000000;
-
 }
-
 .closeForm {
   width: 26px;
   height: 26px;
@@ -667,17 +650,14 @@ input::-webkit-inner-spin-button {
   font-size: 13px;
   border: 2px solid #fff;
 }
-
 .formSheet {
   padding: 20px;
 }
-
 .labelForm {
   font-size: 14px;
   font-weight: bold;
   color: #5c5c5c;
 }
-
 .tableSheet {
   margin-top: 20px;
   background: #fff;
@@ -685,7 +665,6 @@ input::-webkit-inner-spin-button {
   border-radius: 12px;
   position: relative;
 }
-
 .tableSheet h2 {
   font-size: 22px;
   font-weight: bold;
@@ -695,7 +674,6 @@ input::-webkit-inner-spin-button {
   position: relative;
   /* background-color: #f7f7f7; */
 }
-
 .tableSheet h2::before {
   content: '';
   position: absolute;
@@ -706,7 +684,6 @@ input::-webkit-inner-spin-button {
   background-color: #000;
   transform: rotate(24deg);
 }
-
 .tableSheet h2::after {
   content: "";
   position: absolute;
@@ -717,14 +694,10 @@ input::-webkit-inner-spin-button {
   background-color: #6d637c;
   transform: rotate(24deg);
 }
-
-
-
 .breadcrumbSheet .breadcrumb
 {
   margin-bottom: 0;
 }
-
 .breadcrumbSheet
 {
   position: relative;
