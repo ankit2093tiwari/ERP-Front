@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Form, Row, Col, Container, FormLabel, Button, Breadcrumb, FormSelect, Alert } from "react-bootstrap";
 import jsPDF from "jspdf";
-import DataTable from "@/app/component/DataTable"; // Adjust the import path as needed
+import DataTable from "@/app/component/DataTable";
 import styles from "@/app/students/assign-roll-no/page.module.css";
 import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
@@ -18,7 +18,7 @@ const GenerateIdCard = () => {
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [selectAll, setSelectAll] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [noRecordsFound, setNoRecordsFound] = useState(false); // New state for no records
+  const [noRecordsFound, setNoRecordsFound] = useState(false);
 
   useEffect(() => {
     fetchClasses();
@@ -55,7 +55,7 @@ const GenerateIdCard = () => {
     }
 
     setLoading(true);
-    setNoRecordsFound(false); // Reset no records flag
+    setNoRecordsFound(false);
     try {
       const response = await axios.get(
         `https://erp-backend-fy3n.onrender.com/api/students/search?class_name=${selectedClass}&section_name=${selectedSection}`
@@ -64,21 +64,21 @@ const GenerateIdCard = () => {
         setStudents(response.data.data);
       } else {
         setStudents([]);
-        setNoRecordsFound(true); // Set no records flag if no data is found
+        setNoRecordsFound(true);
       }
       setSelectedStudents([]);
       setSelectAll(false);
     } catch (error) {
       console.error("Failed to fetch students", error);
       setStudents([]);
-      setNoRecordsFound(true); // Set no records flag on error
+      setNoRecordsFound(true);
     }
     setLoading(false);
   };
 
   const handleSelectAll = () => {
     setSelectAll(!selectAll);
-    setSelectedStudents(selectAll ? [] : students.map(student => student._id)); // Store only IDs
+    setSelectedStudents(selectAll ? [] : students.map(student => student._id));
   };
 
   const handleStudentSelect = (studentId) => {
@@ -87,66 +87,76 @@ const GenerateIdCard = () => {
     );
   };
 
+  const generateAllSelectedInOnePDF = () => {
+    if (selectedStudents.length === 0) {
+      alert("Please select at least one student.");
+      return;
+    }
+
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: [85, 85]
+    });
+
+    selectedStudents.forEach((studentId, index) => {
+      const student = students.find(s => s._id === studentId);
+      if (student) {
+        if (index !== 0) pdf.addPage();
+
+        pdf.setFillColor(230, 230, 250);
+        pdf.rect(0, 0, 85, 54, 'F');
+
+        pdf.setFontSize(10);
+        pdf.setTextColor(0, 0, 128);
+        pdf.text("SCHOOL NAME", 42, 5, { align: 'center' });
+        pdf.text("123 School Street, City", 42, 10, { align: 'center' });
+
+        pdf.setDrawColor(0, 0, 128);
+        pdf.setFillColor(255, 255, 255);
+        pdf.roundedRect(5, 15, 25, 30, 2, 2, 'FD');
+        pdf.text("Photo", 17, 30, { align: 'center' });
+
+        const details = [
+          `Name: ${student.first_name} ${student.last_name}`,
+          `Class: ${student.class_name?.class_name || "N/A"}`,
+          `Section: ${student.section_name?.section_name || "N/A"}`,
+          `Roll No: ${student.roll_no || "N/A"}`,
+          `Father: ${student.father_name || "N/A"}`,
+          `Valid Until: 31/12/2024`
+        ];
+
+        pdf.setFontSize(8);
+        pdf.setTextColor(0, 0, 0);
+        details.forEach((text, i) => {
+          pdf.text(text, 35, 15 + (i * 5));
+        });
+
+        pdf.setDrawColor(255, 0, 0);
+        // pdf.circle(70, 45, 5, 'D');
+        // pdf.text("SEAL", 70, 45, { align: 'center' });
+      }
+    });
+
+    pdf.save(`Selected_ID_Cards.pdf`);
+  };
+
   const generatePDF = () => {
     if (selectedStudents.length === 0) {
       alert("Please select at least one student.");
       return;
     }
 
-    const pdf = new jsPDF();
-    pdf.setFontSize(12);
-    pdf.text("Generated ID Cards", 10, 10);
-
-    const cardWidth = 62;  // Width of each ID card
-    const cardHeight = 70; // Height of each ID card
-    const marginX = 10;    // Left margin
-    const marginY = 20;    // Top margin
-    const gapX = 3;       // Horizontal gap between ID cards
-    const gapY = 3;       // Vertical gap between rows
-    const cardsPerRow = 3; // Number of ID cards per row
-
-    let xPosition = marginX;
-    let yPosition = marginY;
-
-    selectedStudents.forEach((studentId, index) => {
+    // Generate individual PDFs for each selected student
+    selectedStudents.forEach(studentId => {
       const student = students.find(s => s._id === studentId);
-      if (!student) return;
-
-      // Draw the ID card box
-      pdf.rect(xPosition, yPosition, cardWidth, cardHeight);
-
-      // Add student details inside the box
-      pdf.setFontSize(10);
-      pdf.text(`Class: ${student.class_name?.class_name || "N/A"}`, xPosition + 5, yPosition + 10);
-      pdf.text(`Section: ${student.section_name?.section_name || "N/A"}`, xPosition + 5, yPosition + 20);
-      pdf.text(`Name: ${student.first_name} ${student.last_name}`, xPosition + 5, yPosition + 30);
-      pdf.text(`Roll No: ${student.roll_no || "N/A"}`, xPosition + 5, yPosition + 40);
-      pdf.text(`Father Name: ${student.father_name || "N/A"}`, xPosition + 5, yPosition + 50);
-      pdf.text(`Mobile No: ${student.phone_no || "N/A"}`, xPosition + 5, yPosition + 60);
-
-      // Move to next position
-      xPosition += cardWidth + gapX;
-
-      // If three ID cards are printed in a row, reset X position and move to the next row
-      if ((index + 1) % cardsPerRow === 0) {
-        xPosition = marginX;
-        yPosition += cardHeight + gapY;
-      }
-
-      // If Y position exceeds page height, create a new page
-      if (yPosition + cardHeight > 280) {
-        pdf.addPage();
-        yPosition = marginY;
-        xPosition = marginX;
+      if (student) {
+        generateSinglePDF(student);
       }
     });
-
-    pdf.save("Student_ID_Cards.pdf");
   };
 
-  const handlePrint = async () => {
-    // doc.text("Student ID Cards Report", 14, 10);
-
+  const handlePrint = () => {
     const tableHeaders = [["#", "Class", "Section", "Roll No", "Student Name", "Father Name", "Mobile No"]];
     const tableRows = students.map((row, index) => [
       index + 1,
@@ -157,29 +167,37 @@ const GenerateIdCard = () => {
       row.father_name || "N/A",
       row.phone_no || "N/A",
     ]);
-
     printContent(tableHeaders, tableRows);
   };
 
   const handleCopy = () => {
     const headers = ["#", "Class", "Section", "Roll No", "Student Name", "Father Name", "Mobile No"];
-    const rows = students
-      .map((row, index) =>
-        [
-          index + 1,
-          row.class_name?.class_name || "N/A",
-          row.section_name?.section_name || "N/A",
-          row.roll_no || "N/A",
-          `${row.first_name} ${row.last_name}`,
-          row.father_name || "N/A",
-          row.phone_no || "N/A",
-        ]
-      );
-
-    copyContent(headers, rows)
+    const rows = students.map((row, index) =>
+      [
+        index + 1,
+        row.class_name?.class_name || "N/A",
+        row.section_name?.section_name || "N/A",
+        row.roll_no || "N/A",
+        `${row.first_name} ${row.last_name}`,
+        row.father_name || "N/A",
+        row.phone_no || "N/A",
+      ]
+    );
+    copyContent(headers, rows);
   };
 
   const columns = [
+    {
+      name: "Select",
+      cell: (row) => (
+        <input
+          type="checkbox"
+          checked={selectedStudents.includes(row._id)}
+          onChange={() => handleStudentSelect(row._id)}
+        />
+      ),
+      width: "70px",
+    },
     {
       name: "#",
       selector: (row, index) => index + 1,
@@ -216,9 +234,13 @@ const GenerateIdCard = () => {
       selector: (row) => row.phone_no || "N/A",
       sortable: true,
     },
+
   ];
 
-  const breadcrumbItems = [{ label: "students", link: "/students/all-module" }, { label: "id-card", link: "null" }]
+  const breadcrumbItems = [
+    { label: "students", link: "/students/all-module" },
+    { label: "id-card", link: "null" }
+  ];
 
   return (
     <>
@@ -233,7 +255,6 @@ const GenerateIdCard = () => {
       </div>
       <section>
         <Container>
-
           <div className="cover-sheet">
             <div className="studentHeading">
               <h2>Search Students Class Wise</h2>
@@ -242,7 +263,10 @@ const GenerateIdCard = () => {
               <Row className="mb-3">
                 <Col lg={6}>
                   <FormLabel className="labelForm">Select Class</FormLabel>
-                  <FormSelect value={selectedClass} onChange={(e) => setSelectedClass(e.target.value)}>
+                  <FormSelect
+                    value={selectedClass}
+                    onChange={(e) => setSelectedClass(e.target.value)}
+                  >
                     <option value="">Select Class</option>
                     {classList.map((cls) => (
                       <option key={cls._id} value={cls._id}>{cls.class_name}</option>
@@ -251,7 +275,10 @@ const GenerateIdCard = () => {
                 </Col>
                 <Col lg={6}>
                   <FormLabel className="labelForm">Select Section</FormLabel>
-                  <FormSelect value={selectedSection} onChange={(e) => setSelectedSection(e.target.value)}>
+                  <FormSelect
+                    value={selectedSection}
+                    onChange={(e) => setSelectedSection(e.target.value)}
+                  >
                     <option value="">Select Section</option>
                     {sectionList.map((sec) => (
                       <option key={sec._id} value={sec._id}>{sec.section_name}</option>
@@ -260,18 +287,34 @@ const GenerateIdCard = () => {
                 </Col>
                 <Row>
                   <Col className="d-flex align-items-end mt-4">
-                    <Button variant="primary" onClick={fetchStudents}>Search Students</Button>
-                  </Col>
-                </Row>
-                <Row>
-                  <Col className="d-flex align-items-center">
-                    <Form.Check type="checkbox" checked={selectAll} onChange={handleSelectAll} /><span>Select All Students</span>
-                    <Button variant="primary" onClick={generatePDF}>Generate ID Card</Button>
+                    <Button variant="primary" onClick={fetchStudents}>
+                      Search Students
+                    </Button>
                   </Col>
                 </Row>
               </Row>
             </Form>
           </div>
+
+          {students.length > 0 && (
+            <div className="mt-3 mb-3">
+              <Button
+                variant="secondary"
+                onClick={handleSelectAll}
+                className="me-2"
+              >
+                {selectAll ? "Deselect All" : "Select All"}
+              </Button>
+              <Button
+                variant="primary"
+                onClick={generateAllSelectedInOnePDF}
+                disabled={selectedStudents.length === 0}
+              >
+                Generate ID Cards ({selectedStudents.length} Selected)
+              </Button>
+
+            </div>
+          )}
 
           <Row>
             <Col>

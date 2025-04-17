@@ -15,7 +15,7 @@ const Page = () => {
       description: "Add Basic Details Of Notice",
     },
     {
-      href: "/user-management/existing-user",
+      href: "/userManagement/exisitingUser",
       icon: <Image src="/module/user/ExistingUsers.png" className="studentIcon" width={100} height={100} alt="" />,
       title: "Existing Users",
       description: "Check Basic Details Of Notice",

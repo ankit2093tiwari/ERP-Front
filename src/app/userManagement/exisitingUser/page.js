@@ -2,21 +2,28 @@
 
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import styles from "@/app/medical/routine-check-up/page.module.css";
-import Table from "@/app/component/DataTable";
-import { FaEdit, FaTrashAlt } from "react-icons/fa";
-import { Form, Row, Col, Container, FormLabel, Button } from "react-bootstrap";
+import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
+import {
+  Form,
+  Row,
+  Col,
+  Container,
+  Alert,
+} from "react-bootstrap";
 import axios from "axios";
+import Table from "@/app/component/DataTable";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const ExisitingUser = () => {
-  const [data, setData] = useState([]); // User data
-  const [loading, setLoading] = useState(false); // Loading state
-  const [error, setError] = useState(""); // Error state
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const [editingId, setEditingId] = useState(null);
+  const [editValue, setEditValue] = useState("");
 
   const baseURL = "https://erp-backend-fy3n.onrender.com/api/users";
 
-  // Fetch user data from API
   const fetchData = async () => {
     setLoading(true);
     setError("");
@@ -31,31 +38,40 @@ const ExisitingUser = () => {
     }
   };
 
-  // Edit a user's data
-  const handleEdit = async (id) => {
-    const item = data.find((row) => row._id === id);
-    const updatedName = prompt("Enter new name:", item?.username || "");
-    if (updatedName) {
-      try {
-        await axios.put(`${baseURL}/${id}`, { username: updatedName });
-        setData((prevData) =>
-          prevData.map((row) =>
-            row._id === id ? { ...row, username: updatedName } : row
-          )
-        );
-      } catch (error) {
-        console.error("Error updating user data:", error);
-        setError("Failed to update user data. Please try again later.");
-      }
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const handleEdit = (row) => {
+    setEditingId(row._id);
+    setEditValue(row.username || "");
+  };
+
+  const handleUpdate = async (id) => {
+    try {
+      await axios.put(`${baseURL}/${id}`, { username: editValue });
+      setData((prevData) =>
+        prevData.map((row) =>
+          row._id === id ? { ...row, username: editValue } : row
+        )
+      );
+      setEditingId(null);
+      setEditValue("");
+      setSuccess("Username updated successfully.");
+      setTimeout(() => setSuccess(""), 3000);
+    } catch (error) {
+      console.error("Error updating user data:", error);
+      setError("Failed to update user data. Please try again later.");
     }
   };
 
-  // Delete a user's data
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this user?")) {
       try {
         await axios.delete(`${baseURL}/${id}`);
         setData((prevData) => prevData.filter((row) => row._id !== id));
+        setSuccess("User deleted successfully.");
+        setTimeout(() => setSuccess(""), 3000);
       } catch (error) {
         console.error("Error deleting user:", error);
         setError("Failed to delete user. Please try again later.");
@@ -63,12 +79,6 @@ const ExisitingUser = () => {
     }
   };
 
-  // Fetch data on component mount
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  // Table columns configuration
   const columns = [
     {
       name: "#",
@@ -78,7 +88,17 @@ const ExisitingUser = () => {
     },
     {
       name: "Username",
-      selector: (row) => row.username || "N/A",
+      cell: (row) =>
+        editingId === row._id ? (
+          <input
+            type="text"
+            value={editValue}
+            onChange={(e) => setEditValue(e.target.value)}
+            className="form-control"
+          />
+        ) : (
+          row.username || "N/A"
+        ),
       sortable: true,
     },
     {
@@ -95,13 +115,16 @@ const ExisitingUser = () => {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
-          <button className="editButton" onClick={() => handleEdit(row._id)}>
-            <FaEdit />
-          </button>
-          <button
-            className="editButton btn-danger"
-            onClick={() => handleDelete(row._id)}
-          >
+          {editingId === row._id ? (
+            <button className="editButton btn-success" onClick={() => handleUpdate(row._id)}>
+              <FaSave />
+            </button>
+          ) : (
+            <button className="editButton" onClick={() => handleEdit(row)}>
+              <FaEdit />
+            </button>
+          )}
+          <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
             <FaTrashAlt />
           </button>
         </div>
@@ -109,7 +132,10 @@ const ExisitingUser = () => {
     },
   ];
 
-  const breadcrumbItems = [{ label: "User Management", link: "/userManagement/all-module" }, { label: "Existing User", link: "null" }]
+  const breadcrumbItems = [
+    { label: "User Management", link: "/userManagement/all-module" },
+    { label: "Existing User", link: "null" },
+  ];
 
   return (
     <>
@@ -122,18 +148,21 @@ const ExisitingUser = () => {
           </Row>
         </Container>
       </div>
+
       <section>
-        <Container className={styles.formContainer}>
-          <Form className={styles.form}>
-            <Row>
-              <Col>
-                <h2 style={{ fontSize: "22px" }}>Existing User Records</h2>
-                {loading && <p>Loading...</p>}
-                {error && <p style={{ color: "red" }}>{error}</p>}
-                {!loading && !error && <Table columns={columns} data={data} />}
-              </Col>
-            </Row>
-          </Form>
+        <Container className="tableSheet">
+          <Row >
+            <Col>
+              <h2 className="mb-3" style={{ fontSize: "22px" }}>Existing User Records</h2>
+              {error && <Alert variant="danger">{error}</Alert>}
+              {success && <Alert variant="success">{success}</Alert>}
+              {loading ? (
+                <p>Loading...</p>
+              ) : (
+                <Table columns={columns} data={data} />
+              )}
+            </Col>
+          </Row>
         </Container>
       </section>
     </>

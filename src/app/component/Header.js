@@ -38,7 +38,7 @@ export default function Header({ toggleSidebar }) {
               <Navbar expand="lg" className="rightNavbar justify-content-end">
                 <Navbar.Collapse id="basic-navbar-nav" className="justify-content-end">
                   <Nav className="">
-                    <Nav.Link href="#home">Home</Nav.Link>
+                    {/* <Nav.Link href="#home">Home</Nav.Link> */}
                     <Nav.Link href="#link">
                       <DarkModeSwitch style={{ marginBottom: '0rem' }} checked={isDarkMode} onChange={toggleDarkMode} size={20} />
                     </Nav.Link>
