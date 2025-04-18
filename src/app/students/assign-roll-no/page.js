@@ -255,6 +255,12 @@ const AssignRollNo = () => {
                 {students.length > 0 ? (
                   <Table
                     columns={[
+                      {
+                        name: "#",
+                        selector: (row, index) => index + 1,
+                        sortable: false,
+                        width: "50px",
+                      },
                       { name: "Student Name", selector: (row) => `${row.first_name} ${row.middle_name || ""} ${row.last_name}`.trim(), sortable: true },
                       { name: "Adm No", selector: (row) => row.registration_id || "N/A", sortable: true },
                       { name: "Gender", selector: (row) => row.gender_name || "N/A", sortable: true },

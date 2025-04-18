@@ -652,6 +652,8 @@ input::-webkit-inner-spin-button {
 }
 .formSheet {
   padding: 20px;
+  position: relative;
+  z-index: 10;
 }
 .labelForm {
   font-size: 14px;
@@ -664,6 +666,7 @@ input::-webkit-inner-spin-button {
   padding: 30px 30px;
   border-radius: 12px;
   position: relative;
+  z-index: 10;
 }
 .tableSheet h2 {
   font-size: 22px;

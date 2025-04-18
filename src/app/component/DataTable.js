@@ -76,7 +76,7 @@ const Table = ({ columns, data, handlePrint, handleCopy }) => {
           data={records}
           pagination
           highlightOnHover
-          selectableRows
+          // selectableRows
           dense
           customStyles={customStyles}
         />

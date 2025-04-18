@@ -88,6 +88,12 @@ const StudentBulkUpdate = () => {
   };
 
   const columns = [
+    {
+      name: "#",
+      selector: (row, index) => index + 1,
+      sortable: false,
+      width: "50px",
+    },
     { name: "Adm No", selector: (row) => row.registration_id || "N/A", sortable: true },
     {
       name: "First Name",
