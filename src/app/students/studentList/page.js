@@ -46,7 +46,9 @@ const Studentlist = () => {
       try {
         await axios.delete(`${BASE_URL}students/${id}`);
         setData((prevData) => prevData.filter((row) => row._id !== id));
+        // fetchData();
         alert("Student deleted successfully!");
+        fetchData();
       } catch (error) {
         console.error("Error deleting student:", error);
         alert("Failed to delete student.");
@@ -64,7 +66,7 @@ const Studentlist = () => {
     { name: "First Name", selector: (row) => row.first_name || "N/A" },
     { name: "Last Name", selector: (row) => row.last_name || "N/A" },
     { name: "Father's Name", selector: (row) => row.father_name || "N/A" },
-    { name: "Gender", selector: (row) => row.gender || "N/A" },
+    { name: "Gender", selector: (row) => row.gender_name || "N/A" },
     { name: "Phone No", selector: (row) => row.phone_no || "N/A" },
     { name: "Date of Birth", selector: (row) => new Date(row.date_of_birth).toLocaleDateString() || "N/A" },
     // { name: "Religion", selector: (row) => row.religion_name || "N/A" },

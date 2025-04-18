@@ -15,8 +15,8 @@ const AssignRollNo = () => {
   const [students, setStudents] = useState([]);
   const [showButtons, setShowButtons] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [prefixKey, setPrefixKey] = useState(""); // New state for prefix key
-  const [loading, setLoading] = useState(false); // New state for loading
+  const [prefixKey, setPrefixKey] = useState("");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetchClasses();
@@ -51,7 +51,6 @@ const AssignRollNo = () => {
         `https://erp-backend-fy3n.onrender.com/api/students/search?class_name=${selectedClass}&section_name=${selectedSection}`
       );
       const studentData = response.data.data || [];
-
       setStudents(studentData);
       setShowButtons(studentData.length > 0);
     } catch (error) {
@@ -71,56 +70,41 @@ const AssignRollNo = () => {
     setSelectedSection(event.target.value);
   };
 
+  // const handleEditRollNo = () => {
+  //   setIsEditing(true);
+  // };
   const handleEditRollNo = () => {
+    const updatedStudents = students.map((student, index) => ({
+      ...student,
+      roll_no: prefixKey ? `${prefixKey}-${index + 1}` : (index + 1).toString()
+    }));
+    setStudents(updatedStudents);
     setIsEditing(true);
   };
+  
+  
 
   const handleRollNoChange = (index, newRollNo) => {
-    setStudents((prevStudents) => {
-      const updatedStudents = [...prevStudents];
-      updatedStudents[index] = { ...updatedStudents[index], roll_no: newRollNo };
-      return updatedStudents;
-    });
-  };
-
-
-  // const handleRollNoChange = (index, newRollNo) => {
-  //   const updatedStudents = [...students];
-  //   updatedStudents[index].roll_no = newRollNo;
-  //   setStudents(updatedStudents);
-  // };
-
-  const handleAutoFillRollNo = () => {
-    if (!students || students.length === 0) {
-      alert("No students found to assign roll numbers.");
-      return;
+    // Allow only numbers and empty string
+    if (newRollNo === "" || /^\d+$/.test(newRollNo)) {
+      setStudents(prevStudents => {
+        const updatedStudents = [...prevStudents];
+        updatedStudents[index] = { ...updatedStudents[index], roll_no: newRollNo };
+        return updatedStudents;
+      });
     }
-
-    // Sort students by registration_id or any unique field to ensure consistency
-    const sortedStudents = [...students].sort((a, b) => (a.registration_id > b.registration_id ? 1 : -1));
-
-    const updatedStudents = sortedStudents.map((student, index) => ({
-      ...student,
-      roll_no: prefixKey ? `${prefixKey}-${index + 1}` : (index + 1).toString(),
-    }));
-
-    setStudents(updatedStudents); // Update the state to trigger re-render
   };
 
-
-  // const handleAutoFillRollNo = () => {
-  //   if (students.length === 0) {
-  //     alert("No students found to assign roll numbers.");
-  //     return;
-  //   }
-
-  //   const updatedStudents = students.map((student, index) => ({
-  //     ...student,
-  //     roll_no: prefixKey ? `${prefixKey}-${index + 1}` : (index + 1).toString(),
-  //   }));
-
-  //   setStudents([...updatedStudents]);
-  // };
+  const handleApplyPrefix = () => {
+    if (!prefixKey) return;
+    
+    setStudents(prevStudents => 
+      prevStudents.map(student => ({
+        ...student,
+        roll_no: student.roll_no ? `${prefixKey}-${student.roll_no}` : ""
+      }))
+    );
+  };
 
   const handleSaveRollNo = async () => {
     if (!selectedClass || !selectedSection) {
@@ -128,8 +112,15 @@ const AssignRollNo = () => {
       return;
     }
 
-    if (!students || !Array.isArray(students) || students.length === 0) {
+    if (students.length === 0) {
       alert("No students available to assign roll numbers.");
+      return;
+    }
+
+    // Validate all roll numbers are filled
+    const hasEmptyRollNo = students.some(student => !student.roll_no);
+    if (hasEmptyRollNo) {
+      alert("Please fill roll numbers for all students");
       return;
     }
 
@@ -140,17 +131,17 @@ const AssignRollNo = () => {
         {
           class_name: selectedClass,
           section_name: selectedSection,
-          students: students.map((student) => ({
-            _id: student._id, // Ensure the student ID is included
-            roll_no: student.roll_no, // Assign roll number
+          students: students.map(student => ({
+            _id: student._id,
+            roll_no: student.roll_no
           })),
-          prefix_key: prefixKey, // Include prefix key if applicable
+          'prefix-key': prefixKey
         }
       );
 
       if (response.data.success) {
         alert("Roll numbers updated successfully!");
-        setStudents(response.data.data); // Update student list with new roll numbers
+        setStudents(response.data.data);
         setIsEditing(false);
       } else {
         alert(response.data.message || "Failed to assign roll numbers.");
@@ -162,7 +153,10 @@ const AssignRollNo = () => {
     setLoading(false);
   };
 
-  const breadcrumbItems = [{ label: "Students", link: "/students/all-module" }, { label: "Assign-roll-no", link: "null" }]
+  const breadcrumbItems = [
+    { label: "Students", link: "/students/all-module" }, 
+    { label: "Assign-roll-no", link: "null" }
+  ];
 
   return (
     <>
@@ -177,7 +171,6 @@ const AssignRollNo = () => {
       </div>
       <section>
         <Container>
-
           <div className="cover-sheet">
             <div className="studentHeading">
               <h2>Search Students</h2>
@@ -235,10 +228,18 @@ const AssignRollNo = () => {
                   )}
                   {isEditing && (
                     <>
-                      <Button className="btn btn-secondary mt-3 ms-2" onClick={handleAutoFillRollNo}>
-                        AutoFill RollNo
+                      <Button 
+                        className="btn btn-info mt-3 ms-2" 
+                        onClick={handleApplyPrefix}
+                        disabled={!prefixKey}
+                      >
+                        Apply Prefix
                       </Button>
-                      <Button className="btn btn-success mt-3 ms-2" onClick={handleSaveRollNo} disabled={loading}>
+                      <Button 
+                        className="btn btn-success mt-3 ms-2" 
+                        onClick={handleSaveRollNo} 
+                        disabled={loading}
+                      >
                         {loading ? "Saving..." : "Save RollNo"}
                       </Button>
                     </>
@@ -261,9 +262,21 @@ const AssignRollNo = () => {
                         sortable: false,
                         width: "50px",
                       },
-                      { name: "Student Name", selector: (row) => `${row.first_name} ${row.middle_name || ""} ${row.last_name}`.trim(), sortable: true },
-                      { name: "Adm No", selector: (row) => row.registration_id || "N/A", sortable: true },
-                      { name: "Gender", selector: (row) => row.gender_name || "N/A", sortable: true },
+                      { 
+                        name: "Student Name", 
+                        selector: (row) => `${row.first_name} ${row.middle_name || ""} ${row.last_name}`.trim(), 
+                        sortable: true 
+                      },
+                      { 
+                        name: "Adm No", 
+                        selector: (row) => row.registration_id || "N/A", 
+                        sortable: true 
+                      },
+                      { 
+                        name: "Gender", 
+                        selector: (row) => row.gender_name || "N/A", 
+                        sortable: true 
+                      },
                       {
                         name: "Roll No",
                         cell: (row, index) =>
@@ -273,6 +286,7 @@ const AssignRollNo = () => {
                               value={row.roll_no || ""}
                               onChange={(e) => handleRollNoChange(index, e.target.value)}
                               style={{ width: "60px" }}
+                              placeholder="Enter roll no"
                             />
                           ) : (
                             row.roll_no || "N/A"

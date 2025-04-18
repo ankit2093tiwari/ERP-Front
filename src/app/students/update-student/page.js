@@ -435,6 +435,7 @@ const UpdatePage = () => {
       }
     }
   };
+  
 
   const resetStudentForm = () => {
     setStudent({
