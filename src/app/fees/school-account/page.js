@@ -55,7 +55,7 @@ const SchoolAccount = () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/schools");
+      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/schools/all");
       const fetchedData = response.data.data || [];
       setData(fetchedData);
     } catch (err) {
@@ -113,7 +113,7 @@ const SchoolAccount = () => {
       };
 
       const response = await axios.put(
-        `https://erp-backend-fy3n.onrender.com/api/schools/${selectedSchool._id}`, // Use selectedSchool._id
+        `https://erp-backend-fy3n.onrender.com/api/schools`, // Use selectedSchool._id
         updatedSchool
       );
 

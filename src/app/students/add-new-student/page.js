@@ -16,6 +16,7 @@ import { toast } from 'react-toastify';
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const StudentMasterPage = () => {
+  // ... (keep all existing state declarations)
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -63,6 +64,7 @@ const StudentMasterPage = () => {
   };
 
   const [student, setStudent] = useState(initialStudentState);
+  // ... (keep all other state declarations)
   const [studentError, setStudentError] = useState({});
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [classList, setClassList] = useState([]);
@@ -306,8 +308,14 @@ const StudentMasterPage = () => {
       if (response?.data?.status === 'success') {
         toast.success(`Student ${student._id ? "Updated" : "Created"} Successfully`);
         fetchData();
+        // Reset form to initial state
         setStudent(initialStudentState);
-        setIsPopoverOpen(false);
+        setSourceText("");
+        setTargetText("");
+        setCopyChecked(false);
+        setSelectedValue("");
+        setStudentError({});
+        // Reset other form fields as needed
       } else {
         const errorMessage = response?.data?.message || "An error occurred. Please try again.";
         setError(errorMessage);
@@ -321,7 +329,7 @@ const StudentMasterPage = () => {
     }
   };
 
-  // Rest of the component remains the same...
+  // ... (keep all other functions)
   const handleEdit = async (id) => {
     try {
       const response = await axios.get(`${process.env.NEXT_PUBLIC_SITE_URL}/students/${id}`);
@@ -415,72 +423,12 @@ const StudentMasterPage = () => {
         <Container>
           <Row>
             <Col>
-              {/* <Tabs defaultActiveKey="Basic Details" id="controlled-tab" className="mb-3 TabButton">
-                <Tab eventKey="Basic Details" title="Basic Details" className='cover-sheet'>
-                  <div className="studentHeading"><h2> Basic Details  </h2> </div>
-                  <div className="formSheet">
-                    <Form className={styles.form} >
-                      <Row className="mb-3">
-                        <FormGroup as={Col} md="3" controlId="validationCustom01">
-                          <FormLabel className="labelForm">Student name</FormLabel>
-                          <FormControl
-                            type="text"
-                            name="first_name"
-                            value={student.first_name}
-                            onChange={handleChange}
-                            placeholder="Student name"
-                            required
-                          />
-                          <p className="error">{studentError.first_name_error}</p>
-                        </FormGroup>
-                        <FormGroup as={Col} md="3" controlId="validationCustom06">
-                          <FormLabel className="labelForm">Father MobileNo</FormLabel>
-                          <FormControl
-                            value={student.father_mobile_no}
-                            onChange={handleChange}
-                            type="text"
-                            name="father_mobile_no"
-                            placeholder="Father Mobile No."
-                            maxLength="10"
-                            required
-                          />
-                          <p className="error">{studentError.father_mobile_no_error}</p>
-                        </FormGroup>
-                        <FormGroup as={Col} md="3" controlId="validationCustom07">
-                          <FormLabel className="labelForm">Phone Number</FormLabel>
-                          <FormControl
-                            value={student.phone_no}
-                            onChange={handleChange}
-                            type="text"
-                            name="phone_no"
-                            placeholder="Phone No."
-                            maxLength="10"
-                          />
-                          <p className="error">{studentError.phone_no_error}</p>
-                        </FormGroup>
-                      </Row>
-                      <FormGroup as={Col} md="3" controlId="validationCustom17">
-                        <FormLabel className="labelForm">Aadhar Card No</FormLabel>
-                        <FormControl
-                          value={student.aadhar_card_no}
-                          onChange={handleChange}
-                          type="text"
-                          name="aadhar_card_no"
-                          placeholder="Aadhar Card NO."
-                          maxLength="12"
-                          required
-                        />
-                        <p className="error">{studentError.aadhar_card_no_error}</p>
-                      </FormGroup>
-                    </Form>
-                  </div>
-                </Tab>
-              </Tabs> */}
               <Tabs defaultActiveKey="Basic Details" id="controlled-tab" className="mb-3 TabButton">
                 <Tab eventKey="Basic Details" title="Basic Details" className='cover-sheet'>
                   <div className="studentHeading"><h2> Basic Details  </h2> </div>
                   <div className="formSheet">
-                    <Form className={styles.form} >
+                    <Form className={styles.form} onSubmit={handleSubmit}>
+                      {/* ... (keep all form fields exactly as they are) ... */}
                       <Row className="mb-3">
                         <FormGroup as={Col} md="3" controlId="validationCustom01">
                           <FormLabel className="labelForm">Student name</FormLabel>
@@ -605,17 +553,6 @@ const StudentMasterPage = () => {
                           </FormSelect>
                           <p className="error">{studentError.section_name_error}</p>
                         </FormGroup>
-                        {/* <FormGroup as={Col} md="3" controlId="validationCustom10">
-                          <FormLabel className="labelForm">Date Of Birth</FormLabel>
-                          <FormControl
-                            value={student?.date_of_birth}
-                            onChange={handleChange}
-                            type="date"
-                            name="date_of_birth"
-                            placeholder="Date of Birth"
-                          />
-                          <p className="error"> {studentError.date_of_birth_error}</p>
-                        </FormGroup> */}
                         <FormGroup as={Col} md="3" controlId="validationCustom10">
                           <FormLabel className="labelForm">Date Of Birth</FormLabel>
                           <FormControl
@@ -888,21 +825,6 @@ const StudentMasterPage = () => {
                           />
                         </FormGroup>
                       </Row>
-                      {/* <Row className='mb-3'>
-                        <FormGroup as={Col} md="5">
-                          <FormLabel className="labelForm" >Residance Address</FormLabel>
-                          <FormControl as="textarea" rows={6} style={{ height: '150px' }} id='sourceTextarea'
-                            value={sourceText} onChange={(e) => setSourceText(e.target.value)} />
-                        </FormGroup>
-                        <FormGroup as={Col} md="2">
-                          <FormCheck type='checkbox' label='Copy Adress' onClick={handleCopy} />
-                        </FormGroup>
-                        <FormGroup as={Col} md="5">
-                          <FormLabel className="labelForm">Permanent Address</FormLabel>
-                          <FormControl as="textarea" rows={6} style={{ height: '150px' }} id='targetTextarea'
-                            value={targetText} onChange={(e) => setTargetText(e.target.value)} />
-                        </FormGroup>
-                      </Row> */}
                       <Row className="mb-3">
                         <FormGroup as={Col} md="5">
                           <FormLabel className="labelForm">Residance Address</FormLabel>
@@ -1023,13 +945,15 @@ const StudentMasterPage = () => {
                         <Col>
                           <div className='buttons1'>
                             <Button type="button" className='btn btn-primary mt-4'>Preview</Button>
-                            <Button type="button" className="btn btn-primary mt-4" onClick={(e) => handleSubmit(e)}>Submit form</Button>
+                            <Button type="submit" className="btn btn-primary mt-4">Submit form</Button>
                           </div>
                         </Col>
                       </Row>
                     </Form>
                   </div>
                 </Tab>
+                {/* ... (keep other tabs) ... */}
+                
                 <Tab eventKey="document-upload" title="Document Uploads" className='cover-sheet'>
                   <Row>
                     <Col>
