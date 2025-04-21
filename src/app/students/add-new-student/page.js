@@ -39,13 +39,13 @@ const StudentMasterPage = () => {
     social_Category: "",
     mother_Tongue: "",
     nationality_name: "Indian",
-    enrollment_No: "",
+    enrollment_no: "",
     aadhar_card_no: "",
     fee_Book_No: "",
     caste_name: "",
     house_name: "",
-    admission_date: "",
-    joining_date: "",
+    date_of_admission: "",
+    date_of_joining: "",
     scholar_No: "",
     last_School_Name: "",
     sr_No: "",
@@ -225,7 +225,7 @@ const StudentMasterPage = () => {
     const requiredFields = [
       'first_name', 'father_name', 'father_mobile_no', 'class_name',
       'section_name', 'date_of_birth', 'gender_name', 'aadhar_card_no',
-      'admission_date', 'joining_date', 'caste_name', 'religion_name'
+      'date_of_admission', 'date_of_joining', 'caste_name', 'religion_name'
     ];
 
     requiredFields.forEach(field => {
@@ -377,13 +377,13 @@ const StudentMasterPage = () => {
       social_Category: "",
       mother_Tongue: "",
       nationality_name: "",
-      enrollment_No: "",
+      enrollment_no: "",
       aadhar_card_no: "",
       fee_Book_No: "",
       caste_name: "",
       house_name: "",
-      admission_date: "",
-      joining_date: "",
+      date_of_admission: "",
+      date_of_joining: "",
       scholar_No: "",
       last_School_Name: "",
       sr_No: "",
@@ -653,10 +653,10 @@ const StudentMasterPage = () => {
                         <FormGroup as={Col} md="3" controlId="validationCustom16">
                           <FormLabel className="labelForm">Enrollment No</FormLabel>
                           <FormControl
-                            value={student?.enrollment_No}
+                            value={student?.enrollment_no}
                             onChange={handleChange}
                             type="text"
-                            name="enrollment_No"
+                            name="enrollment_no"
                             placeholder="Enrollment Number"
                           />
                         </FormGroup>
@@ -712,24 +712,24 @@ const StudentMasterPage = () => {
                         <FormGroup as={Col} md="3" controlId="validationCustom21">
                           <FormLabel className="labelForm">Date Of Admission</FormLabel>
                           <FormControl
-                            value={student?.admission_date}
+                            value={student?.date_of_admission}
                             onChange={handleChange}
                             type="date"
-                            name="admission_date"
+                            name="date_of_admission"
                             placeholder="Date of Admission"
                           />
-                          <p className="error"> {studentError.admission_date_error}</p>
+                          <p className="error"> {studentError.date_of_admission_error}</p>
                         </FormGroup>
                         <FormGroup as={Col} md="3" controlId="validationCustom22">
                           <FormLabel className="labelForm">Date Of joining</FormLabel>
                           <FormControl
-                            value={student?.joining_date}
+                            value={student?.date_of_joining}
                             onChange={handleChange}
                             type="date"
-                            name="joining_date"
+                            name="date_of_joining"
                             placeholder="Date of Joining"
                           />
-                          <p className="error" > {studentError.joining_date_error}</p>
+                          <p className="error" > {studentError.date_of_joining_error}</p>
                         </FormGroup>
                         <FormGroup as={Col} md="3" controlId="validationCustom23">
                           <FormLabel className="labelForm">Board Registration Number</FormLabel>

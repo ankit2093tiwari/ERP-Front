@@ -44,13 +44,13 @@ const UpdatePage = () => {
     social_Category: "",
     mother_Tongue: "",
     nationality_name: "",
-    enrollment_No: "",
+    enrollment_no: "",
     aadhar_card_no: "",
     fee_Book_No: "",
     caste_name: "",
     house_name: "",
     admission_date: "",
-    joining_date: "",
+    date_of_joining: "",
     scholar_No: "",
     last_School_Name: "",
     sr_No: "",
@@ -236,7 +236,7 @@ const UpdatePage = () => {
     const errors = {};
     Object.entries(student).forEach(([key, value]) => {
       if (
-        key === 'first_name' || key === 'father_name' || key === 'father_mobile_no' || key === 'class_name' || key === 'section_name' || key === 'date_of_birth' || key === 'gender_name' || key === 'admission_date' || key === 'joining_date'
+        key === 'first_name' || key === 'father_name' || key === 'father_mobile_no' || key === 'class_name' || key === 'section_name' || key === 'date_of_birth' || key === 'gender_name' || key === 'admission_date' || key === 'date_of_joining'
       ) {
         if (!value || (typeof value === 'object' && !Object.values(value).some(Boolean))) {
           const formattedKey = key.replace(/_/g, ' ').split(' ').map(capitalizeFirstLetter).join(' ');
@@ -454,13 +454,13 @@ const UpdatePage = () => {
       social_Category: "",
       mother_Tongue: "",
       nationality_name: "",
-      enrollment_No: "",
+      enrollment_no: "",
       aadhar_card_no: "",
       fee_Book_No: "",
       caste_name: "",
       house_name: "",
-      admission_date: "",
-      joining_date: "",
+      date_of_admission: "",
+      date_of_joining: "",
       scholar_No: "",
       last_School_Name: "",
       sr_No: "",
@@ -804,6 +804,17 @@ const UpdatePage = () => {
                           <option value="5">Mansion</option>
                         </FormSelect>
                       </FormGroup>
+                      {/* <FormGroup as={Col} md="3" controlId="validationCustom10">
+                        <FormLabel className="labelForm">Date Of Admission</FormLabel>
+                        <FormControl
+                          value={student?.date_of_admission ? new Date(student?.date_of_admission).toISOString().split('T')[0] : ""}
+                          onChange={(e) => setStudent({ ...student, date_of_admission: e.target.value })}
+                          type="date"
+                          name="date_of_admission"
+                          placeholder="Date of Admission"
+                        />
+                        <p className="error">{studentError.date_of_admission_error}</p>
+                      </FormGroup> */}
                       <FormGroup as={Col} md="3" controlId="validationCustom10">
                         <FormLabel className="labelForm">Date Of Admission</FormLabel>
                         <FormControl
