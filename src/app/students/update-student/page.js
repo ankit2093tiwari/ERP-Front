@@ -41,14 +41,14 @@ const UpdatePage = () => {
     class_name: "",
     section_name: "",
     religion_name: "",
-    category: "",
+    category_name: "",
     mother_tongue: "",
     nationality_name: "",
     enrollment_no: "",
     aadhar_card_no: "",
     fee_book_no: "",
     caste_name: "",
-    house_name: "",
+    house: "",
     admission_date: "",
     date_of_joining: "",
     scholar_No: "",
@@ -465,14 +465,14 @@ const UpdatePage = () => {
       class_name: "",
       section_name: "",
       religion_name: "",
-      category: "",
+      category_name: "",
       mother_tongue: "",
       nationality_name: "",
       enrollment_no: "",
       aadhar_card_no: "",
       fee_book_no: "",
       caste_name: "",
-      house_name: "",
+      house: "",
       date_of_admission: "",
       date_of_joining: "",
       scholar_No: "",
@@ -745,18 +745,18 @@ const UpdatePage = () => {
                       <FormGroup as={Col} md="3" controlId="validationCustom08">
                         <FormLabel className="labelForm">Select Category</FormLabel>
                         <FormSelect
-                          value={student?.category}
+                          value={student?.category_name}
                           onChange={handleChange}
-                          name="category"
+                          name="category_name"
                         >
                           <option value="">Select Category</option>
                           {categoryList?.length > 0 && categoryList?.map((categoryItem) => (
                             <option key={categoryItem?._id} value={categoryItem?._id}>
-                              {categoryItem?.category}
+                              {categoryItem?.category_name}
                             </option>
                           ))}
                         </FormSelect>
-                        <p className="error">{studentError.category_error}</p>
+                        <p className="error">{studentError.category_name_error}</p>
                       </FormGroup>
 
                       <FormGroup as={Col} md="3" controlId="validationCustom14">
@@ -1056,18 +1056,18 @@ const UpdatePage = () => {
                       <FormGroup as={Col} md="4" controlId="validationCustom08">
                         <FormLabel className="labelForm">Select Category</FormLabel>
                         <FormSelect
-                          value={student?.category}
+                          value={student?.category_name}
                           onChange={handleChange}
-                          name="category"
+                          name="category_name"
                         >
                           <option value="">Select Category</option>
                           {categoryList?.length > 0 && categoryList?.map((categoryItem) => (
                             <option key={categoryItem?._id} value={categoryItem?._id}>
-                              {categoryItem?.category}
+                              {categoryItem?.category_name}
                             </option>
                           ))}
                         </FormSelect>
-                        <p className="error">{studentError.category_error}</p>
+                        <p className="error">{studentError.category_name_error}</p>
                       </FormGroup>
 
                       {/* <FormGroup as={Col} md="4" controlId="validationCustom14">
