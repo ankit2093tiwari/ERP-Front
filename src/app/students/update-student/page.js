@@ -96,7 +96,7 @@ const UpdatePage = () => {
 
   const fetchClasses = async () => {
     try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_SITE_URL}/api/all-classes`);
+      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/all-classes`);
       const resp = response.data;
 
       setClassList(resp?.data || []);
@@ -108,7 +108,7 @@ const UpdatePage = () => {
 
   const fetchReligion = async () => {
     try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_SITE_URL}/api/religions`);
+      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/religions`);
       const resp = response.data;
 
       setReligionList(resp.data || []);
@@ -120,7 +120,7 @@ const UpdatePage = () => {
 
   const fetchCategory = async () => {
     try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_SITE_URL}/api/categories`);
+      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/categories`);
       const resp = response.data;
       setCategoryList(resp.data || []);
 
@@ -131,7 +131,7 @@ const UpdatePage = () => {
 
   const fetchCaste = async () => {
     try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_SITE_URL}/api/castes`);
+      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/castes`);
       const resp = response.data;
       setCasteList(resp.data || []);
 
@@ -142,7 +142,7 @@ const UpdatePage = () => {
 
   const fetchState = async () => {
     try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_SITE_URL}/api/all-states`);
+      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/all-states`);
       const resp = response.data;
       setStateList(resp.data || []);
 
@@ -154,7 +154,7 @@ const UpdatePage = () => {
   const fetchSections = async (classId) => {
     try {
       console.log('testinggg', classId)
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_SITE_URL}/api/sections/class/${classId} `);
+      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/sections/class/${classId} `);
       setSectionList(response.data || []);
       console.log('testingg', response.data);
     } catch (err) {
@@ -198,7 +198,7 @@ const UpdatePage = () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_SITE_URL}/students`);
+      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/students`);
       setData(response?.data || []);
     } catch (err) {
       console.error("Error fetching data:", err.response || err.message);
@@ -302,7 +302,7 @@ const UpdatePage = () => {
     e.preventDefault(); // Prevent page reload
     if (!validateForm()) return;
 
-    const endpoint = `${process.env.NEXT_PUBLIC_SITE_URL}/api/students/${student._id}`;
+    const endpoint = `https://erp-backend-fy3n.onrender.com/api/students/${student._id}`;
 
     try {
       const response = await axios.put(endpoint, student);
@@ -414,7 +414,7 @@ const UpdatePage = () => {
 
   const handleEdit = async (id) => {
     try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_SITE_URL}/api/students/${id}`);
+      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/students/${id}`);
       setStudent(response?.data || {});
       setShowAddForm(true);
       onOpen();
@@ -427,7 +427,7 @@ const UpdatePage = () => {
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this entry?")) {
       try {
-        await axios.delete(`${process.env.NEXT_PUBLIC_SITE_URL}/api/students/${id}`);
+        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/students/${id}`);
         setData((prev) => prev.filter((row) => row._id !== id));
       } catch (err) {
         console.error("Error deleting data:", err.response || err.message);
@@ -435,7 +435,6 @@ const UpdatePage = () => {
       }
     }
   };
-  
 
   const resetStudentForm = () => {
     setStudent({
