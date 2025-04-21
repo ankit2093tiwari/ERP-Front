@@ -2,7 +2,16 @@
 
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import { Form, Row, Col, Container, FormLabel, Button, Breadcrumb, FormSelect } from "react-bootstrap";
+import {
+  Form,
+  Row,
+  Col,
+  Container,
+  FormLabel,
+  Button,
+  Breadcrumb,
+  FormSelect,
+} from "react-bootstrap";
 import Table from "@/app/component/DataTable";
 import styles from "@/app/students/assign-roll-no/page.module.css";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
@@ -18,13 +27,23 @@ const AssignRollNo = () => {
   const [prefixKey, setPrefixKey] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Fetch classes on first render
   useEffect(() => {
     fetchClasses();
   }, []);
 
+  // Fetch sections whenever class changes
+  useEffect(() => {
+    if (selectedClass) {
+      fetchSections(selectedClass);
+    }
+  }, [selectedClass]);
+
   const fetchClasses = async () => {
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-classes");
+      const response = await axios.get(
+        "https://erp-backend-fy3n.onrender.com/api/all-classes"
+      );
       setClassList(response.data.data || []);
     } catch (error) {
       console.error("Failed to fetch classes", error);
@@ -33,7 +52,9 @@ const AssignRollNo = () => {
 
   const fetchSections = async (classId) => {
     try {
-      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/sections/class/${classId}`);
+      const response = await axios.get(
+        `https://erp-backend-fy3n.onrender.com/api/sections/class/${classId}`
+      );
       setSectionList(Array.isArray(response.data.data) ? response.data.data : []);
     } catch (error) {
       console.error("Failed to fetch sections", error);
@@ -45,7 +66,11 @@ const AssignRollNo = () => {
       alert("Please select both class and section");
       return;
     }
+
     setLoading(true);
+    setStudents([]);
+    setIsEditing(false);
+
     try {
       const response = await axios.get(
         `https://erp-backend-fy3n.onrender.com/api/students/search?class_name=${selectedClass}&section_name=${selectedSection}`
@@ -55,55 +80,45 @@ const AssignRollNo = () => {
       setShowButtons(studentData.length > 0);
     } catch (error) {
       console.error("Failed to fetch students", error);
+      alert("Error fetching students. Try again.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   const handleClassChange = (event) => {
     const classId = event.target.value;
     setSelectedClass(classId);
     setSelectedSection("");
-    fetchSections(classId);
+    setStudents([]); // clear students when changing class
+    setIsEditing(false);
+    setShowButtons(false);
   };
 
   const handleSectionChange = (event) => {
     setSelectedSection(event.target.value);
+    setStudents([]); // clear students when changing section
+    setIsEditing(false);
+    setShowButtons(false);
   };
 
-  // const handleEditRollNo = () => {
-  //   setIsEditing(true);
-  // };
   const handleEditRollNo = () => {
     const updatedStudents = students.map((student, index) => ({
       ...student,
-      roll_no: prefixKey ? `${prefixKey}-${index + 1}` : (index + 1).toString()
+      roll_no: prefixKey ? `${prefixKey}-${index + 1}` : (index + 1).toString(),
     }));
     setStudents(updatedStudents);
     setIsEditing(true);
   };
-  
-  
 
   const handleRollNoChange = (index, newRollNo) => {
-    // Allow only numbers and empty string
     if (newRollNo === "" || /^\d+$/.test(newRollNo)) {
-      setStudents(prevStudents => {
-        const updatedStudents = [...prevStudents];
-        updatedStudents[index] = { ...updatedStudents[index], roll_no: newRollNo };
-        return updatedStudents;
+      setStudents((prev) => {
+        const updated = [...prev];
+        updated[index] = { ...updated[index], roll_no: newRollNo };
+        return updated;
       });
     }
-  };
-
-  const handleApplyPrefix = () => {
-    if (!prefixKey) return;
-    
-    setStudents(prevStudents => 
-      prevStudents.map(student => ({
-        ...student,
-        roll_no: student.roll_no ? `${prefixKey}-${student.roll_no}` : ""
-      }))
-    );
   };
 
   const handleSaveRollNo = async () => {
@@ -117,34 +132,31 @@ const AssignRollNo = () => {
       return;
     }
 
-    // Validate all roll numbers are filled
-    const hasEmptyRollNo = students.some(student => !student.roll_no);
+    const hasEmptyRollNo = students.some((student) => !student.roll_no);
     if (hasEmptyRollNo) {
       alert("Please fill roll numbers for all students");
       return;
     }
 
     setLoading(true);
+
     try {
       const response = await axios.post(
         "https://erp-backend-fy3n.onrender.com/api/students/roll-number-assigned-Students",
         {
           class_name: selectedClass,
           section_name: selectedSection,
-          students: students.map(student => ({
-            _id: student._id,
-            roll_no: student.roll_no
+          students: students.map((s) => ({
+            _id: s._id,
+            roll_no: s.roll_no,
           })),
-          'prefix-key': prefixKey
+          "prefix-key": prefixKey,
         }
       );
 
       if (response.data.success) {
         alert("Roll numbers updated successfully!");
-        fetchStudents();
-        setStudents(response.data.data);
-        setIsEditing(false);
-        
+        fetchStudents(); // refresh list
       } else {
         alert(response.data.message || "Failed to assign roll numbers.");
       }
@@ -152,12 +164,14 @@ const AssignRollNo = () => {
       console.error("Error assigning roll numbers:", error);
       alert("Something went wrong. Please try again.");
     }
+
     setLoading(false);
+    setIsEditing(false);
   };
 
   const breadcrumbItems = [
-    { label: "Students", link: "/students/all-module" }, 
-    { label: "Assign-roll-no", link: "null" }
+    { label: "Students", link: "/students/all-module" },
+    { label: "Assign-roll-no", link: "null" },
   ];
 
   return (
@@ -171,6 +185,7 @@ const AssignRollNo = () => {
           </Row>
         </Container>
       </div>
+
       <section>
         <Container>
           <div className="cover-sheet">
@@ -191,6 +206,7 @@ const AssignRollNo = () => {
                     ))}
                   </FormSelect>
                 </Col>
+
                 <Col>
                   <FormLabel className="labelForm">Select Section</FormLabel>
                   <FormSelect value={selectedSection} onChange={handleSectionChange}>
@@ -217,27 +233,20 @@ const AssignRollNo = () => {
                 </Col>
               </Row>
 
-              <br />
-              <Row>
+              <Row className="mt-3">
                 <Col>
-                  <Button className="btn btn-primary" onClick={fetchStudents} disabled={loading}>
+                  <Button onClick={fetchStudents} disabled={loading}>
                     {loading ? "Loading..." : "Search Students"}
                   </Button>
                   {showButtons && !isEditing && (
-                    <Button className="btn btn-warning mt-3 ms-2" onClick={handleEditRollNo}>
+                    <Button className="ms-2 btn-warning" onClick={handleEditRollNo}>
                       Edit RollNo
                     </Button>
                   )}
                   {isEditing && (
-                    <>
-                      <Button 
-                        className="btn btn-success mt-3 ms-2" 
-                        onClick={handleSaveRollNo} 
-                        disabled={loading}
-                      >
-                        {loading ? "Saving..." : "Save RollNo"}
-                      </Button>
-                    </>
+                    <Button className="ms-2 btn-success" onClick={handleSaveRollNo} disabled={loading}>
+                      {loading ? "Saving..." : "Save RollNo"}
+                    </Button>
                   )}
                 </Col>
               </Row>
@@ -253,24 +262,21 @@ const AssignRollNo = () => {
                     columns={[
                       {
                         name: "#",
-                        selector: (row, index) => index + 1,
-                        sortable: false,
+                        selector: (_, index) => index + 1,
                         width: "50px",
                       },
-                      { 
-                        name: "Student Name", 
-                        selector: (row) => `${row.first_name} ${row.middle_name || ""} ${row.last_name}`.trim(), 
-                        sortable: true 
+                      {
+                        name: "Student Name",
+                        selector: (row) =>
+                          `${row.first_name} ${row.middle_name || ""} ${row.last_name}`.trim(),
                       },
-                      { 
-                        name: "Adm No", 
-                        selector: (row) => row.registration_id || "N/A", 
-                        sortable: true 
+                      {
+                        name: "Adm No",
+                        selector: (row) => row.registration_id || "N/A",
                       },
-                      { 
-                        name: "Gender", 
-                        selector: (row) => row.gender_name || "N/A", 
-                        sortable: true 
+                      {
+                        name: "Gender",
+                        selector: (row) => row.gender_name || "N/A",
                       },
                       {
                         name: "Roll No",
@@ -281,12 +287,10 @@ const AssignRollNo = () => {
                               value={row.roll_no || ""}
                               onChange={(e) => handleRollNoChange(index, e.target.value)}
                               style={{ width: "60px" }}
-                              placeholder="Enter roll no"
                             />
                           ) : (
                             row.roll_no || "N/A"
                           ),
-                        sortable: true,
                       },
                     ]}
                     data={students}
