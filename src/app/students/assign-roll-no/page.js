@@ -141,8 +141,10 @@ const AssignRollNo = () => {
 
       if (response.data.success) {
         alert("Roll numbers updated successfully!");
+        fetchStudents();
         setStudents(response.data.data);
         setIsEditing(false);
+        
       } else {
         alert(response.data.message || "Failed to assign roll numbers.");
       }
