@@ -231,13 +231,6 @@ const AssignRollNo = () => {
                   {isEditing && (
                     <>
                       <Button 
-                        className="btn btn-info mt-3 ms-2" 
-                        onClick={handleApplyPrefix}
-                        disabled={!prefixKey}
-                      >
-                        Apply Prefix
-                      </Button>
-                      <Button 
                         className="btn btn-success mt-3 ms-2" 
                         onClick={handleSaveRollNo} 
                         disabled={loading}
