@@ -650,7 +650,7 @@ const UpdatePage = () => {
                         </FormSelect>
                         <p className="error">{studentError.class_name_error}</p>
                       </FormGroup>
-                      <FormGroup as={Col} md="3" controlId="validationCustom09">
+                      {/* <FormGroup as={Col} md="3" controlId="validationCustom09">
                         <FormLabel className="labelForm">Select Section</FormLabel>
                         <FormSelect
                           value={student?.section_name?._id || ""}
@@ -666,7 +666,30 @@ const UpdatePage = () => {
                               </option>
                             ))}
                         </FormSelect>
+                      </FormGroup> */}
+                      <FormGroup as={Col} md="3" controlId="validationCustom09">
+                        <FormLabel className="labelForm">Select Section</FormLabel>
+                        <FormSelect
+                          value={student?.section_name?._id || ""}
+                          onChange={(e) => {
+                            const selectedSection = sectionList?.sections?.find(
+                              (sec) => sec._id === e.target.value
+                            );
+                            setStudent((prev) => ({
+                              ...prev,
+                              section_name: selectedSection || { _id: e.target.value },
+                            }));
+                          }}
+                        >
+                          <option value="">Select Section</option>
+                          {sectionList?.sections?.map((sectionItem) => (
+                            <option key={sectionItem._id} value={sectionItem._id}>
+                              {sectionItem.section_name}
+                            </option>
+                          ))}
+                        </FormSelect>
                       </FormGroup>
+
                       <FormGroup as={Col} md="3" controlId="validationCustom10">
                         <FormLabel className="labelForm">Date Of Birth</FormLabel>
                         <FormControl
