@@ -36,12 +36,12 @@ const StudentMasterPage = () => {
     class_name: "",
     section_name: "",
     religion_name: "",
-    social_Category: "",
-    mother_Tongue: "",
+    category: "",
+    mother_tongue: "",
     nationality_name: "Indian",
     enrollment_no: "",
     aadhar_card_no: "",
-    fee_Book_No: "",
+    fee_book_no: "",
     caste_name: "",
     house_name: "",
     date_of_admission: "",
@@ -374,12 +374,12 @@ const StudentMasterPage = () => {
       class_name: "",
       section_name: "",
       religion_name: "",
-      social_Category: "",
-      mother_Tongue: "",
+      category: "",
+      mother_tongue: "",
       nationality_name: "",
       enrollment_no: "",
       aadhar_card_no: "",
-      fee_Book_No: "",
+      fee_book_no: "",
       caste_name: "",
       house_name: "",
       date_of_admission: "",
@@ -609,18 +609,18 @@ const StudentMasterPage = () => {
                         <FormGroup as={Col} md="3" controlId="validationCustom08">
                           <FormLabel className="labelForm">Select Category</FormLabel>
                           <FormSelect
-                            value={student?.category_name}
+                            value={student?.category}
                             onChange={handleChange}
-                            name="category_name"
+                            name="category"
                           >
                             <option value="">Select Category</option>
                             {categoryList?.length > 0 && categoryList?.map((categoryItem) => (
                               <option key={categoryItem?._id} value={categoryItem?._id}>
-                                {categoryItem?.category_name}
+                                {categoryItem?.category}
                               </option>
                             ))}
                           </FormSelect>
-                          <p className="error">{studentError.category_name_error}</p>
+                          <p className="error">{studentError.category_error}</p>
                         </FormGroup>
 
                         <FormGroup as={Col} md="3" controlId="validationCustom14">
@@ -674,10 +674,10 @@ const StudentMasterPage = () => {
                         <FormGroup as={Col} md="3" controlId="validationCustom18">
                           <FormLabel className="labelForm">Fee Book No</FormLabel>
                           <FormControl
-                            value={student?.fee_Book_No}
+                            value={student?.fee_book_no}
                             onChange={handleChange}
                             type="text"
-                            name="fee_Book_No"
+                            name="fee_book_no"
                             placeholder="Fee Book No."
                           />
                         </FormGroup>

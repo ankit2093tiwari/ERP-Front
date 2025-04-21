@@ -41,12 +41,12 @@ const UpdatePage = () => {
     class_name: "",
     section_name: "",
     religion_name: "",
-    social_Category: "",
-    mother_Tongue: "",
+    category: "",
+    mother_tongue: "",
     nationality_name: "",
     enrollment_no: "",
     aadhar_card_no: "",
-    fee_Book_No: "",
+    fee_book_no: "",
     caste_name: "",
     house_name: "",
     admission_date: "",
@@ -77,6 +77,8 @@ const UpdatePage = () => {
   const [casteList, setCasteList] = useState([]);
   const [stateList, setStateList] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedReligion, setSelectedReligion] = useState("");
+  const [selectedCaste, setSelectedCaste] = useState("");
 
 
 
@@ -222,6 +224,18 @@ const UpdatePage = () => {
     setStudentError((prev) => ({ ...prev, [`${name}_error`]: "" }));
 
     fetchSections(value)
+  };
+
+  const handleReligionChange = (e) => {
+    const { name, value } = e.target;
+    setSelectedReligion(value);
+    handleChange(e); // continue to use your existing handleChange logic
+  };
+
+  const handleCasteChange = (e) => {
+    const { name, value } = e.target;
+    setSelectedCaste(value);
+    handleChange(e); // continue to use your existing handleChange logic
   };
 
   const handleFileChange = (e, fieldName) => {
@@ -451,12 +465,12 @@ const UpdatePage = () => {
       class_name: "",
       section_name: "",
       religion_name: "",
-      social_Category: "",
-      mother_Tongue: "",
+      category: "",
+      mother_tongue: "",
       nationality_name: "",
       enrollment_no: "",
       aadhar_card_no: "",
-      fee_Book_No: "",
+      fee_book_no: "",
       caste_name: "",
       house_name: "",
       date_of_admission: "",
@@ -481,6 +495,13 @@ const UpdatePage = () => {
 
   const onOpen = () => setIsPopoverOpen(true);
   const onClose = () => setIsPopoverOpen(false);
+  const [selectedMotherTongue, setSelectedMotherTongue] = useState("");
+
+  const handleMotherTongueChange = (e) => {
+    setSelectedMotherTongue(e.target.value);
+    // If you're using a generic handler
+    handleChange(e);
+  };
 
   const motherOptions = motherTongueOptions();
   console.log('staudent', student);
@@ -685,7 +706,7 @@ const UpdatePage = () => {
                       <FormGroup as={Col} md="3" controlId="validationCustom08">
                         <FormLabel className="labelForm">Select Religion</FormLabel>
                         <FormSelect
-                          value={student?.religion_name}
+                          value={student?.religion_name?._id || ""}
                           onChange={handleChange}
                           name="religion_name"
                         >
@@ -701,18 +722,18 @@ const UpdatePage = () => {
                       <FormGroup as={Col} md="3" controlId="validationCustom08">
                         <FormLabel className="labelForm">Select Category</FormLabel>
                         <FormSelect
-                          value={student?.category_name}
+                          value={student?.category}
                           onChange={handleChange}
-                          name="category_name"
+                          name="category"
                         >
                           <option value="">Select Category</option>
                           {categoryList?.length > 0 && categoryList?.map((categoryItem) => (
                             <option key={categoryItem?._id} value={categoryItem?._id}>
-                              {categoryItem?.category_name}
+                              {categoryItem?.category}
                             </option>
                           ))}
                         </FormSelect>
-                        <p className="error">{studentError.category_name_error}</p>
+                        <p className="error">{studentError.category_error}</p>
                       </FormGroup>
 
                       <FormGroup as={Col} md="3" controlId="validationCustom14">
@@ -766,17 +787,17 @@ const UpdatePage = () => {
                       <FormGroup as={Col} md="3" controlId="validationCustom18">
                         <FormLabel className="labelForm">Fee Book No</FormLabel>
                         <FormControl
-                          value={student?.fee_Book_No}
+                          value={student?.fee_book_no}
                           onChange={handleChange}
                           type="text"
-                          name="fee_Book_No"
+                          name="fee_book_no"
                           placeholder="Fee Book No."
                         />
                       </FormGroup>
                       <FormGroup as={Col} md="3" controlId="validationCustom08">
                         <FormLabel className="labelForm">Select Caste</FormLabel>
                         <FormSelect
-                          value={student?.caste_name}
+                          value={student?.caste_name?._id || ""}
                           onChange={handleChange}
                           name="caste_name"
                         >
@@ -1012,21 +1033,21 @@ const UpdatePage = () => {
                       <FormGroup as={Col} md="4" controlId="validationCustom08">
                         <FormLabel className="labelForm">Select Category</FormLabel>
                         <FormSelect
-                          value={student?.category_name}
+                          value={student?.category}
                           onChange={handleChange}
-                          name="category_name"
+                          name="category"
                         >
                           <option value="">Select Category</option>
                           {categoryList?.length > 0 && categoryList?.map((categoryItem) => (
                             <option key={categoryItem?._id} value={categoryItem?._id}>
-                              {categoryItem?.category_name}
+                              {categoryItem?.category}
                             </option>
                           ))}
                         </FormSelect>
-                        <p className="error">{studentError.category_name_error}</p>
+                        <p className="error">{studentError.category_error}</p>
                       </FormGroup>
 
-                      <FormGroup as={Col} md="4" controlId="validationCustom14">
+                      {/* <FormGroup as={Col} md="4" controlId="validationCustom14">
                         <FormLabel className="labelForm">Mother Tongue</FormLabel>
                         <FormSelect>
                           <option>Select</option>
@@ -1036,7 +1057,23 @@ const UpdatePage = () => {
                             <option key={item?.label} value={item?.value}>{item?.label}</option>
                           )}
                         </FormSelect>
+                      </FormGroup> */}
+                      <FormGroup as={Col} md="3" controlId="validationCustom14">
+                        <FormLabel className="labelForm">Mother Tongue</FormLabel>
+                        <FormSelect
+                          name="mother_tongue"
+                          value={selectedMotherTongue}
+                          onChange={handleMotherTongueChange}
+                        >
+                          <option value="">Select</option>
+                          {motherTongueOptions()?.map(item => (
+                            <option key={item?.label} value={item?.value}>
+                              {item?.label}
+                            </option>
+                          ))}
+                        </FormSelect>
                       </FormGroup>
+
                     </Row>
                     <Row>
                       <Col>
