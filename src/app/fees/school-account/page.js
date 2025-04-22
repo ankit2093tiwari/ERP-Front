@@ -1,7 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import styles from "@/app/medical/routine-check-up/page.module.css";
 import Table from "@/app/component/DataTable";
 import { FaTrashAlt, FaEdit } from "react-icons/fa";
 import { Form, Row, Col, Container, Button, Breadcrumb, Modal } from "react-bootstrap";
@@ -10,12 +9,12 @@ import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { copyContent, printContent } from "@/app/utils";
 
 const SchoolAccount = () => {
-  const [data, setData] = useState([]); // School records data
-  const [loading, setLoading] = useState(false); // Loading state
-  const [error, setError] = useState(""); // Error state
-  const [showModal, setShowModal] = useState(false); // Modal visibility state
-  const [selectedSchool, setSelectedSchool] = useState(null); // Selected school for editing
-  const [schoolName, setSchoolName] = useState(""); // School name input for editing
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [schoolName, setSchoolName] = useState("");
+  const [currentSchoolId, setCurrentSchoolId] = useState(null);
 
   const columns = [
     {
@@ -39,49 +38,32 @@ const SchoolAccount = () => {
           >
             <FaEdit />
           </button>
-          {/* <button
-            className="editButton btn-danger"
-            onClick={() => handleDelete(row._id)}
-          >
-            <FaTrashAlt />
-          </button> */}
         </div>
       ),
     },
   ];
 
-  // Fetch data from API
+  // Fetch the single school instance
   const fetchData = async () => {
     setLoading(true);
     setError("");
     try {
       const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/schools/all");
-      const fetchedData = response.data.data || [];
-      setData(fetchedData);
+      const schoolData = response.data.data || [];
+      setData(schoolData);
+      if (schoolData.length > 0) {
+        setCurrentSchoolId(schoolData[0]._id);
+      }
     } catch (err) {
       console.error("Error fetching data:", err);
-      setError("Failed to fetch data. Please try again later.");
+      setError("Failed to fetch school data. Please try again later.");
     } finally {
       setLoading(false);
     }
   };
 
-  // Delete an entry
-  const handleDelete = async (id) => {
-    if (confirm("Are you sure you want to delete this entry?")) {
-      try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/schools/${id}`);
-        setData((prevData) => prevData.filter((row) => row._id !== id));
-      } catch (error) {
-        console.error("Error deleting data:", error);
-        setError("Failed to delete data. Please try again later.");
-      }
-    }
-  };
-
   // Handle edit button click
   const handleEdit = (school) => {
-    setSelectedSchool(school);
     setSchoolName(school.school_name);
     setShowModal(true);
   };
@@ -90,56 +72,50 @@ const SchoolAccount = () => {
     const headers = ["#", "School Name"];
     const rows = data.map((row, index) => `${index + 1}\t${row.school_name || "N/A"}`);
     copyContent(headers, rows);
+  };
 
-  }
+  const handlePrint = async () => {
+    const tableHeaders = [["#", "School Name"]];
+    const tableRows = data.map((row, index) => [
+      index + 1,
+      row.school_name || "N/A",
+    ]);
+    printContent(tableHeaders, tableRows);
+  };
 
-   const handlePrint = async () => {
-      const tableHeaders = [["#", "School Name"]];
-      const tableRows = data.map((row, index) => [
-        index + 1,
-        row.school_name || "N/A",
-      ]);
-  
-      printContent(tableHeaders, tableRows);
+  // Handle update school name
+  const handleUpdate = async () => {
+    if (!schoolName.trim()) {
+      setError("School name cannot be empty");
+      return;
     }
 
-  // Handle update school
-  const handleUpdate = async () => {
-    if (!selectedSchool) return;
-
     try {
-      const updatedSchool = {
-        school_name: schoolName, // Only send the field to be updated
-      };
-
       const response = await axios.put(
-        `https://erp-backend-fy3n.onrender.com/api/schools`, // Use selectedSchool._id
-        updatedSchool
+        "https://erp-backend-fy3n.onrender.com/api/schools", 
+        { school_name: schoolName }
       );
 
       if (response.data.success) {
-        console.log("Updated School:", response.data.data); // Debugging
         // Update the local state with the new data
-        setData((prevData) =>
-          prevData.map((row) =>
-            row._id === selectedSchool._id ? { ...row, school_name: schoolName } : row
-          )
-        );
+        setData([response.data.data]);
+        setShowModal(false);
         fetchData();
-        setShowModal(false); // Close the modal
       }
     } catch (error) {
       console.error("Error updating school:", error);
-      setError("Failed to update school. Please try again later.");
+      setError(error.response?.data?.message || "Failed to update school name");
     }
   };
 
-  // Fetch data on component mount
   useEffect(() => {
     fetchData();
   }, []);
 
-  const breadcrumbItems = [{ label: "Fee", link: "/fees/all-module" }, { label: "school-account", link: "null" }]
+  const breadcrumbItems = [
+    { label: "Fee", link: "/fees/all-module" }, 
+    { label: "school-account", link: "null" }
+  ];
 
   return (
     <>
@@ -157,10 +133,17 @@ const SchoolAccount = () => {
           <Row>
             <Col>
               <div className="tableSheet">
-                <h2>School Account Records</h2>
+                <h2>School Account</h2>
                 {loading && <p>Loading...</p>}
-                {error && <p style={{ color: "red" }}>{error}</p>}
-                {!loading && !error && <Table columns={columns} data={data} handleCopy={handleCopy} handlePrint={handlePrint}/>}
+                {error && <p className="text-danger">{error}</p>}
+                {!loading && !error && (
+                  <Table 
+                    columns={columns} 
+                    data={data} 
+                    handleCopy={handleCopy} 
+                    handlePrint={handlePrint}
+                  />
+                )}
               </div>
             </Col>
           </Row>
@@ -168,7 +151,7 @@ const SchoolAccount = () => {
           {/* Edit Modal */}
           <Modal show={showModal} onHide={() => setShowModal(false)}>
             <Modal.Header closeButton>
-              <Modal.Title>Edit School</Modal.Title>
+              <Modal.Title>Update School Name</Modal.Title>
             </Modal.Header>
             <Modal.Body>
               <Form>
@@ -180,11 +163,15 @@ const SchoolAccount = () => {
                     onChange={(e) => setSchoolName(e.target.value)}
                   />
                 </Form.Group>
+                {error && <p className="text-danger mt-2">{error}</p>}
               </Form>
             </Modal.Body>
             <Modal.Footer>
-              <Button variant="secondary" onClick={() => setShowModal(false)}>
-                Close
+              <Button variant="secondary" onClick={() => {
+                setShowModal(false);
+                setError("");
+              }}>
+                Cancel
               </Button>
               <Button variant="primary" onClick={handleUpdate}>
                 Save Changes

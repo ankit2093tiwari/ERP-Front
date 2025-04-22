@@ -79,6 +79,7 @@ const UpdatePage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedReligion, setSelectedReligion] = useState("");
   const [selectedCaste, setSelectedCaste] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("");
 
 
 
@@ -229,13 +230,19 @@ const UpdatePage = () => {
   const handleReligionChange = (e) => {
     const { name, value } = e.target;
     setSelectedReligion(value);
-    handleChange(e); // continue to use your existing handleChange logic
+    handleChange(e); 
+  };
+
+  const handleCategoryChange = (e) => {
+    const { name, value } = e.target;
+    setSelectedCategory(value);
+    handleChange(e); 
   };
 
   const handleCasteChange = (e) => {
     const { name, value } = e.target;
     setSelectedCaste(value);
-    handleChange(e); // continue to use your existing handleChange logic
+    handleChange(e); 
   };
 
   const handleFileChange = (e, fieldName) => {
@@ -745,19 +752,20 @@ const UpdatePage = () => {
                       <FormGroup as={Col} md="3" controlId="validationCustom08">
                         <FormLabel className="labelForm">Select Category</FormLabel>
                         <FormSelect
-                          value={student?.category_name}
+                          value={student?.category_name || ""}
                           onChange={handleChange}
                           name="category_name"
                         >
                           <option value="">Select Category</option>
-                          {categoryList?.length > 0 && categoryList?.map((categoryItem) => (
+                          {categoryList?.length > 0 && categoryList.map((categoryItem) => (
                             <option key={categoryItem?._id} value={categoryItem?._id}>
                               {categoryItem?.category_name}
                             </option>
                           ))}
                         </FormSelect>
-                        <p className="error">{studentError.category_name_error}</p>
+                        <p className="error">{studentError?.category_name_error}</p>
                       </FormGroup>
+
 
                       <FormGroup as={Col} md="3" controlId="validationCustom14">
                         <FormLabel className="labelForm">Mother Tongue</FormLabel>

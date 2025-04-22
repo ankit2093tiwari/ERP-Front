@@ -87,148 +87,131 @@ const GenerateIdCard = () => {
     );
   };
 
-  const generateAllSelectedInOnePDF = () => {
+  const generateAllSelectedInOnePDF = async () => {
     if (selectedStudents.length === 0) {
       alert("Please select at least one student.");
       return;
     }
   
-    const pdf = new jsPDF({
-      orientation: 'portrait',
-      unit: 'mm',
-      format: [90, 90] // Standard ID card size
-    });
+    try {
+      // Fetch school data
+      const schoolResponse = await axios.get("https://erp-backend-fy3n.onrender.com/api/schools/all");
+      const schoolData = schoolResponse.data.data || [];
+      const schoolName = schoolData.length > 0 ? schoolData[0].school_name : "R.D.S. MEMORIAL PUBLIC SCHOOL (English Medium)";
   
-    selectedStudents.forEach((studentId, index) => {
-      const student = students.find(s => s._id === studentId);
-      if (student) {
-        if (index !== 0) pdf.addPage();
+      const pdf = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: [90, 90] // ID card size
+      });
   
-        // School header - centered
-        pdf.setFontSize(12);
-        pdf.setTextColor(0, 0, 0);
-        pdf.setFont("helvetica", "bold");
-        pdf.text("R.D.S. MEMORIAL PUBLIC", 42.5, 7, { align: 'center' });
-        pdf.text("SCHOOL (English Medium)", 42.5, 12, { align: 'center' });
+      selectedStudents.forEach((studentId, index) => {
+        const student = students.find(s => s._id === studentId);
+        if (student) {
+          if (index !== 0) pdf.addPage();
   
-        // Contact
-        pdf.setFontSize(8);
-        pdf.setFont("helvetica", "normal");
-        pdf.text("Delhi", 42.5, 17, { align: 'center' });
-        pdf.text("9898989898", 42.5, 21, { align: 'center' });
+          const marginX = 8;
+          const marginY = 8;
+          const cardWidth = 90 - 2 * marginX;
+          const cardHeight = 90 - 2 * marginY;
   
-        // ID card title
-        pdf.setFontSize(10);
-        pdf.setFont("helvetica", "bold");
-        pdf.text("IDENTITY CARD", 42.5, 26, { align: 'center' });
+          const contentPadding = 3;
+          const centerX = marginX + cardWidth / 2;
   
-        // Horizontal line
-        pdf.setDrawColor(0, 0, 0);
-        pdf.line(10, 28, 75, 28);
+          // Outer Border
+          pdf.setDrawColor(0);
+          pdf.rect(marginX, marginY, cardWidth, cardHeight);
   
-        // Image box on the left
-        pdf.setDrawColor(150, 150, 150); // Light border
-        pdf.setFillColor(230, 230, 230); // Light background
-        pdf.roundedRect(10, 32, 20, 25, 2, 2, 'FD'); // x, y, width, height, rx, ry
-        pdf.setTextColor(100, 100, 100);
-        pdf.setFontSize(6);
-        pdf.text("Image not found", 20, 43, { align: 'center' });
-        pdf.text("or type unknown", 20, 46, { align: 'center' });
+          // Header - Use dynamic school name
+          pdf.setFontSize(10);
+          pdf.setFont("helvetica", "bold");
+          pdf.setTextColor(0);
+          
+          // Split school name into parts if needed
+          const schoolNameParts = schoolName.split('(');
+          pdf.text(schoolNameParts[0].trim(), centerX, marginY + contentPadding + 4, { align: 'center' });
+          if (schoolNameParts[1]) {
+            pdf.text(`(${schoolNameParts[1].trim()}`, centerX, marginY + contentPadding + 9, { align: 'center' });
+          }
   
-        // Student details on the right of image
-        pdf.setFontSize(9);
-        pdf.setTextColor(0, 0, 0);
-        pdf.setFont("helvetica", "normal");
+          // Contact
+          pdf.setFontSize(7);
+          pdf.setFont("helvetica", "normal");
+          pdf.text("Delhi", centerX, marginY + contentPadding + 14, { align: 'center' });
+          pdf.text("9898989898", centerX, marginY + contentPadding + 18, { align: 'center' });
   
-        const detailsX = 33; // starting X position (beside image)
-        pdf.text(`STUDENT'S NAME: ${student.first_name} ${student.last_name}`, detailsX, 34);
-        pdf.text(`FATHER'S NAME: ${student.father_name || "N/A"}`, detailsX, 39);
-        pdf.text(`CLASS: ${student.class_name?.class_name || "N/A"}`, detailsX, 44);
-        pdf.text(`SECTION: ${student.section_name?.section_name || "N/A"}`, detailsX, 49);
+          // Rest of your existing code remains the same...
+          // Title
+          pdf.setFontSize(9);
+          pdf.setFont("helvetica", "bold");
+          pdf.text("IDENTITY CARD", centerX, marginY + contentPadding + 24, { align: 'center' });
   
-        // Principal sign
-        pdf.setFontSize(8);
-        pdf.text("PRINCIPAL SIGN", 70, 54, { align: 'right' });
+          // Divider
+          pdf.setDrawColor(0);
+          pdf.line(marginX + 2, marginY + contentPadding + 26, marginX + cardWidth - 2, marginY + contentPadding + 26);
   
-        // Border around ID
-        pdf.setDrawColor(0, 0, 0);
-        pdf.rect(5, 5, 75, 50); // added padding from top/bottom
-      }
-    });
+          // Image box
+          const imgX = marginX + 4;
+          const imgY = marginY + contentPadding + 30;
+          const imgW = 22;
+          const imgH = 28;
+          pdf.setDrawColor(150);
+          pdf.setFillColor(230, 230, 230);
+          pdf.roundedRect(imgX, imgY, imgW, imgH, 2, 2, 'FD');
+          pdf.setTextColor(100);
+          pdf.setFontSize(6);
+          pdf.text("Image not found", imgX + imgW / 2, imgY + 12, { align: 'center' });
+          pdf.text("or type unknown", imgX + imgW / 2, imgY + 16, { align: 'center' });
   
-    pdf.save(`Student_ID_Cards.pdf`);
+          // Student details to the right of image
+          const detailsX = imgX + imgW + 4;
+          let detailsY = imgY;
+  
+          pdf.setFont("helvetica", "normal");
+          pdf.setFontSize(7.5);
+          pdf.setTextColor(0);
+  
+          // Detail lines with spacing
+          pdf.text("STUDENT'S NAME:", detailsX, detailsY);
+          pdf.setFont("helvetica", "bold");
+          pdf.text(`${student.first_name} ${student.last_name}`, detailsX, detailsY + 4);
+  
+          detailsY += 10;
+          pdf.setFont("helvetica", "normal");
+          pdf.text("FATHER'S NAME:", detailsX, detailsY);
+          pdf.setFont("helvetica", "bold");
+          pdf.text(`${student.father_name || "N/A"}`, detailsX, detailsY + 4);
+  
+          detailsY += 10;
+          pdf.setFont("helvetica", "normal");
+          pdf.text("CLASS:", detailsX, detailsY);
+          pdf.setFont("helvetica", "bold");
+          pdf.text(`${student.class_name?.class_name || "N/A"}`, detailsX, detailsY + 4);
+  
+          detailsY += 10;
+          pdf.setFont("helvetica", "normal");
+          pdf.text("SECTION:", detailsX, detailsY);
+          pdf.setFont("helvetica", "bold");
+          pdf.text(`${student.section_name?.section_name || "N/A"}`, detailsX, detailsY + 4);
+  
+          // Principal Sign
+          pdf.setFontSize(7);
+          pdf.setFont("helvetica", "normal");
+          pdf.text("PRINCIPAL SIGN", marginX + cardWidth - 3, marginY + cardHeight - 2, {
+            align: 'right'
+          });
+        }
+      });
+  
+      pdf.save(`Student_ID_Cards.pdf`);
+    } catch (error) {
+      console.error("Error fetching school data:", error);
+      alert("Failed to fetch school information. Using default school name.");
+      
+      // You might want to call the function again with default values or handle the error differently
+    }
   };
   
-
-  // const generateAllSelectedInOnePDF = () => {
-  //   if (selectedStudents.length === 0) {
-  //     alert("Please select at least one student.");
-  //     return;
-  //   }
-  
-  //   const pdf = new jsPDF({
-  //     orientation: 'portrait',
-  //     unit: 'mm',
-  //     format: [85, 85] // Standard ID card size
-  //   });
-  
-  //   selectedStudents.forEach((studentId, index) => {
-  //     const student = students.find(s => s._id === studentId);
-  //     if (student) {
-  //       if (index !== 0) pdf.addPage();
-  
-  //       // School header - centered and bold
-  //       pdf.setFontSize(12);
-  //       pdf.setTextColor(0, 0, 0);
-  //       pdf.setFont("helvetica", "bold");
-  //       pdf.text("R.D.S. MEMORIAL PUBLIC", 42.5, 5, { align: 'center' });
-  //       pdf.text("SCHOOL (English Medium)", 42.5, 10, { align: 'center' });
-  
-  //       // School contact info
-  //       pdf.setFontSize(8);
-  //       pdf.setFont("helvetica", "normal");
-  //       pdf.text("Delhi", 42.5, 15, { align: 'center' });
-  //       pdf.text("9898989898", 42.5, 19, { align: 'center' });
-  
-  //       // ID Card title
-  //       pdf.setFontSize(10);
-  //       pdf.setFont("helvetica", "bold");
-  //       pdf.text("IDENTITY CARD", 42.5, 24, { align: 'center' });
-  
-  //       // Horizontal divider line
-  //       pdf.setDrawColor(0, 0, 0);
-  //       pdf.line(10, 26, 75, 26);
-  
-  //       // Photo placeholder (right-aligned)
-  //       pdf.setDrawColor(150, 150, 150); // Light gray border
-  //       pdf.setFillColor(230, 230, 230); // Light gray background
-  //       pdf.roundedRect(55, 30, 20, 25, 2, 2, 'FD');
-  //       pdf.setTextColor(100, 100, 100);
-  //       pdf.setFontSize(6);
-  //       pdf.text("Image not found", 65, 42, { align: 'center' });
-  //       pdf.text("or type unknown", 65, 45, { align: 'center' });
-  
-  //       // Student details (left-aligned)
-  //       pdf.setFontSize(9);
-  //       pdf.setTextColor(0, 0, 0);
-  //       pdf.setFont("helvetica", "normal");
-  //       pdf.text(`STUDENT'S NAME: ${student.first_name} ${student.last_name}`, 10, 32);
-  //       pdf.text(`FATHER'S NAME: ${student.father_name || "N/A"}`, 10, 37);
-        
-  //       // Class/Section details
-  //       pdf.text(`CLASS: ${student.class_name?.class_name || "N/A"}`, 10, 42);
-  //       pdf.text(`SECTION: ${student.section_name?.section_name || "N/A"}`, 10, 47);
-  
-  //       // Border around the entire ID card
-  //       pdf.setDrawColor(0, 0, 0);
-  //       pdf.rect(5, 2, 75, 50);
-  //     }
-  //   });
-  
-  //   pdf.save(`Student_ID_Cards.pdf`);
-  // };
-
- 
   const generatePDF = () => {
     if (selectedStudents.length === 0) {
       alert("Please select at least one student.");

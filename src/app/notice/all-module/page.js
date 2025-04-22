@@ -9,13 +9,13 @@ import { Container, Row, Col, } from "react-bootstrap";
 const Page = () => {
   const cardData = [
     {
-      href: "/notice/add-notice",
+      href: "/notice/addNotice",
       icon: <Image src="/module/notice/notice.png" className="studentIcon" width={100} height={100} alt="" />,
       title: "Add Notice",
       description: "Add Basic Details Of Notice",
     },
     {
-      href: "/notice/notice-records",
+      href: "/notice/noticeRecords",
       icon: <Image src="/module/notice/record.png" className="studentIcon" width={100} height={100} alt="" />,
       title: "Notice Records",
       description: "Check Basic Details Of Notice",

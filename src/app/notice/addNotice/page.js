@@ -2,7 +2,6 @@
 
 import React, { useState } from "react";
 import dynamic from "next/dynamic";
-import styles from "@/app/medical/routine-check-up/page.module.css";
 import { Form, Row, Col, Container, FormLabel, FormControl, Button } from "react-bootstrap";
 import axios from "axios";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
@@ -49,7 +48,10 @@ const AddNotice = () => {
     }
   };
 
-  const breadcrumbItems = [{ label: "Notice", link: "/notice/all-module" }, { label: "Add Notice", link: "null" }]
+  const breadcrumbItems = [
+    { label: "Notice", link: "/notice/all-module" }, 
+    { label: "Add Notice", link: "null" }
+  ];
 
   return (
     <>
@@ -63,55 +65,53 @@ const AddNotice = () => {
         </Container>
       </div>
       <section>
-        <Container className={styles.formContainer}>
-          <h2 style={{ fontSize: "22px" }}>Add Notice</h2>
-          <Form className={styles.form}>
-            <Row>
-              <Col lg={6}>
-                <FormLabel className={styles.class}>Date</FormLabel>
-                <FormControl
-                  required
-                  type="date"
-                  value={newNotice.date}
-                  onChange={(e) => setNewNotice({ ...newNotice, date: e.target.value })}
-                />
-              </Col>
-              <Col lg={6}>
-                <FormLabel className={styles.class}>Short-Text</FormLabel>
-                <FormControl
-                  as="textarea"
-                  rows={1}
-                  required
-                  value={newNotice.short_text}
-                  onChange={(e) => setNewNotice({ ...newNotice, short_text: e.target.value })}
-                />
-              </Col>
-            </Row>
-            <br />
-            <Row>
-              <Col lg={6}>
-                <FormLabel className={styles.class}>
-                  Image (Format Support: jpeg, jpg, png, gif)
-                </FormLabel>
-                <FormControl
-                  type="file"
-                  required
-                  name="file"
-                  onChange={(e) => setNewNotice({ ...newNotice, image: e.target.files[0] })}
-                />
-              </Col>
-            </Row>
-            <br />
-            <Row>
-              <Col>
-                <Button className={styles.search} onClick={handleAdd}>
-                  Add Notice
-                </Button>
-              </Col>
-            </Row>
-            {successMessage && <p style={{ color: "green", marginTop: "10px" }}>{successMessage}</p>}
-            {error && <p style={{ color: "red", marginTop: "10px" }}>{error}</p>}
-          </Form>
+        <Container>
+          <div className="cover-sheet">
+            <div className="studentHeading">
+              <h2>Add Notice</h2>
+            </div>
+            <Form className="formSheet">
+              <Row>
+                <Col lg={6}>
+                  <FormLabel className="labelForm">Date</FormLabel>
+                  <FormControl
+                    required
+                    type="date"
+                    value={newNotice.date}
+                    onChange={(e) => setNewNotice({ ...newNotice, date: e.target.value })}
+                  />
+                </Col>
+                <Col lg={6}>
+                  <FormLabel className="labelForm">Short Text</FormLabel>
+                  <FormControl
+                    as="textarea"
+                    rows={1}
+                    required
+                    value={newNotice.short_text}
+                    onChange={(e) => setNewNotice({ ...newNotice, short_text: e.target.value })}
+                  />
+                </Col>
+              </Row>
+              <Row className="mt-3">
+                <Col lg={12}>
+                  <FormLabel className="labelForm">
+                    Image (Format Support: jpeg, jpg, png, gif)
+                  </FormLabel>
+                  <FormControl
+                    type="file"
+                    required
+                    name="file"
+                    onChange={(e) => setNewNotice({ ...newNotice, image: e.target.files[0] })}
+                  />
+                </Col>
+              </Row>
+              <Button onClick={handleAdd} className="btn btn-primary mt-3">
+                Add Notice
+              </Button>
+              {successMessage && <p className="text-success mt-2">{successMessage}</p>}
+              {error && <p className="text-danger mt-2">{error}</p>}
+            </Form>
+          </div>
         </Container>
       </section>
     </>

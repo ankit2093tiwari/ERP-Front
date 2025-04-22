@@ -32,6 +32,18 @@ const ReactApexChart = dynamic(() => import('react-apexcharts'), { ssr: false })
 const Dashboard = () => {
   const router = useRouter();
   const [dashboardData, setDashboardData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Check authentication and fetch data
+  useEffect(() => {
+    const token = localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
+    if (!token) {
+      router.push('/login');
+    } else {
+      fetchDashboardData();
+      setIsLoading(false);
+    }
+  }, [router]);
 
   // Simulated API Data
   const fetchDashboardData = async () => {
@@ -51,10 +63,6 @@ const Dashboard = () => {
     ];
     setDashboardData(mockData);
   };
-
-  useEffect(() => {
-    fetchDashboardData();
-  }, []);
 
   // Radial Chart State
   const [state, setState] = useState({
@@ -190,6 +198,10 @@ const Dashboard = () => {
 
   const [value, onChange] = useState(new Date());
   const breadcrumbItems = [{ label: "Dashboard", link: "null" }];
+
+  if (isLoading) {
+    return <div className="d-flex justify-content-center align-items-center vh-100">Loading...</div>;
+  }
 
   return (
     <>

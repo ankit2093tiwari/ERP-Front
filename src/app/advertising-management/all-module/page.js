@@ -8,13 +8,13 @@ import { Container, Row , Col } from "react-bootstrap";
 const Page = () => {
   const cardData = [
     {
-      href: "/advertisingManagement/create-type",
+      href: "/advertising-management/create-type",
       icon: <Image src="/module/advertisement/createType.png" className="studentIcon" width={100} height={100} alt="" />,
       title: "Create Type",
       description: "Add Basic Details Of Advertising Type",
     },
     {
-      href: "/advertisingManagement/enter-data",
+      href: "/advertising-management/enter-data",
       icon: <Image src="/module/advertisement/enterData.png" className="studentIcon" width={100} height={100} alt="" />,
       title: "Enter Data",
       description: "Add Basic Details Of Advertising",
