@@ -44,10 +44,10 @@ export default function LoginPage({ onLogin }) {
   };
 
   return (
-    <div className="container">
+    <div className="loginPage">
       <div className="loginBox">
         <h2 className="title">SIGN IN</h2>
-        <p className="subtitle">Verify your identity to continue</p>
+        <p className="subtitle">For your protection, please verify your identity.</p>
 
         {error && <div className="error">{error}</div>}
 
@@ -91,13 +91,6 @@ export default function LoginPage({ onLogin }) {
             {isLoading ? "Signing In..." : "Sign In"}
           </button>
         </form>
-
-        <div className="footerLinks">
-          <a href="#">Teacher Info</a>
-          <a href="#">Communication</a>
-          <a href="#">Students</a>
-          <a href="#">Attendance</a>
-        </div>
       </div>
     </div>
   );

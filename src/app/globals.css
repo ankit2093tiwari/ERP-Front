@@ -1189,14 +1189,14 @@ input::-webkit-inner-spin-button {
 
 /* for login page */
 
-/* .container {
+.loginPage {
   display: flex;
   justify-content: center;
   align-items: center;
   min-height: 100vh;
   background-color: #f5f5f5;
   font-family: Arial, sans-serif;
-} */
+}
 
 .loginBox {
   width: 400px;

@@ -41,8 +41,8 @@ export default function Header({ toggleSidebar, onLogout }) {
                       <DarkModeSwitch style={{ marginBottom: '0rem' }} checked={isDarkMode} onChange={toggleDarkMode} size={20} />
                     </Nav.Link>
                     <NavDropdown title={<span><Image src="/user.png" alt="dropdown icon" style={{ marginRight: "8px" }} width={25} height={25} /> User Name </span>} id="basic-nav-dropdown">
-                      <NavDropdown.Item href="#">Change Password</NavDropdown.Item>
-                      <NavDropdown.Divider />
+                      {/* <NavDropdown.Item href="#">Change Password</NavDropdown.Item> */}
+                      {/* <NavDropdown.Divider /> */}
                       <NavDropdown.Item onClick={onLogout}>Log out</NavDropdown.Item>
                     </NavDropdown>
                   </Nav>
