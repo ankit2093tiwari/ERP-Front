@@ -173,9 +173,9 @@ const SchoolAccount = () => {
       </div>
       <section>
         <Container>
-          <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
+          {/* <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
             <CgAddR /> Add School
-          </Button>
+          </Button> */}
 
           {isPopoverOpen && (
             <div className="cover-sheet">
