@@ -11,7 +11,6 @@ import {
   FormLabel,
   FormControl,
   Button,
-  Alert,
 } from "react-bootstrap";
 import axios from "axios";
 import Table from "@/app/component/DataTable";
@@ -21,8 +20,6 @@ import BreadcrumbComp from "@/app/component/Breadcrumb";
 const YearMasterPage = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
@@ -30,7 +27,6 @@ const YearMasterPage = () => {
     year_name: ""
   });
   const [classes, setClasses] = useState([]);
-  const [classesError, setClassesError] = useState("");
   const [classesLoading, setClassesLoading] = useState(false);
 
   // Fetch classes when component mounts
@@ -40,7 +36,6 @@ const YearMasterPage = () => {
       try {
         const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-classes");
         
-        // Handle different response formats
         let classesData = [];
         if (Array.isArray(response.data)) {
           classesData = response.data;
@@ -49,16 +44,33 @@ const YearMasterPage = () => {
         }
 
         setClasses(classesData);
-        setClassesError("");
       } catch (err) {
         console.error("Error fetching classes:", err);
-        setClassesError("Failed to fetch classes. Please try again later.");
         setClasses([]);
       } finally {
         setClassesLoading(false);
       }
     };
     fetchClasses();
+  }, []);
+
+  // Group data by class with multiple year names
+  const groupedData = data.reduce((acc, item) => {
+    const classId = item.class?._id;
+    if (!classId) return acc;
+    
+    const existingClass = acc.find(x => x.class?._id === classId);
+    if (existingClass) {
+      if (!existingClass.year_names.includes(item.year_name)) {
+        existingClass.year_names.push(item.year_name);
+      }
+    } else {
+      acc.push({
+        ...item,
+        year_names: [item.year_name]
+      });
+    }
+    return acc;
   }, []);
 
   const columns = [
@@ -71,89 +83,55 @@ const YearMasterPage = () => {
     {
       name: "Class Name",
       cell: (row) =>
-        editingId === row._id ? (
-          <Form.Control
-            as="select"
-            value={formData.class}
-            onChange={(e) => setFormData({...formData, class: e.target.value})}
-          >
-            <option value="">Select Class</option>
-            {Array.isArray(classes) && classes.map((cls) => (
-              <option key={cls._id} value={cls._id}>
-                {cls.class_name} ({cls.class_code})
-              </option>
-            ))}
-          </Form.Control>
-        ) : (
-          row.class ? `${row.class.class_name} (${row.class.class_code})` : "N/A"
-        ),
+        row.class
+          ? `${row.class.class_name} (${row.class.class_code})`
+          : "N/A",
       sortable: true,
     },
     {
-      name: "Year Name",
-      cell: (row) =>
-        editingId === row._id ? (
-          <FormControl
-            type="text"
-            value={formData.year_name}
-            onChange={(e) => setFormData({...formData, year_name: e.target.value})}
-          />
-        ) : (
-          row.year_name || "N/A"
-        ),
-      sortable: true,
-    },
-    {
-      name: "Actions",
+      name: "Year Names",
       cell: (row) => (
-        <div className="d-flex gap-2">
-          {editingId === row._id ? (
-            <>
-              <button
-                className="editButton"
-                onClick={() => handleUpdate(row._id)}
-              >
-                <FaSave />
-              </button>
-              <button
-                className="editButton btn-danger"
-                onClick={() => {
-                  setEditingId(null);
-                  setFormData({ class: "", year_name: "" });
-                  setError("");
-                }}
-              >
-                Cancel
-              </button>
-            </>
-          ) : (
-            <>
-              <button
-                className="editButton"
-                onClick={() => handleEdit(row)}
-              >
-                <FaEdit />
-              </button>
-              <button
-                className="editButton btn-danger"
-                onClick={() => handleDelete(row._id)}
-              >
-                <FaTrashAlt />
-              </button>
-            </>
-          )}
+        <div className="d-flex flex-column gap-2">
+          {row.year_names.map((yearName, idx) => (
+            <div key={idx} className="d-flex justify-content-between align-items-center">
+              <span>{yearName}</span>
+              <div className="d-flex gap-1">
+                <button
+                  className="editButton"
+                  onClick={() => handleEdit({ ...row, year_name: yearName })}
+                >
+                  <FaEdit />
+                </button>
+                <button
+                  className="editButton btn-danger"
+                  onClick={() => {
+                    const matching = data.find(
+                      (item) =>
+                        item.class?._id === row.class?._id &&
+                        item.year_name === yearName
+                    );
+                    if (matching) handleDelete(matching._id);
+                  }}
+                >
+                  <FaTrashAlt />
+                </button>
+              </div>
+            </div>
+          ))}
         </div>
       ),
+      sortable: false,
     },
   ];
+  
+
+
 
   const fetchData = async () => {
     setLoading(true);
-    setError("");
     try {
       const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/year/all-year");
       
-      // Handle different response formats
       let fetchedData = [];
       if (Array.isArray(response.data)) {
         fetchedData = response.data;
@@ -164,7 +142,6 @@ const YearMasterPage = () => {
       setData(fetchedData);
     } catch (err) {
       console.error("Error fetching data:", err);
-      setError("Failed to fetch data. Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -176,37 +153,27 @@ const YearMasterPage = () => {
       class: year.class?._id || "",
       year_name: year.year_name || ""
     });
-    setError("");
-    setSuccess("");
+    setIsPopoverOpen(true);
   };
 
   const handleUpdate = async (id) => {
-    if (!formData.class.trim()) {
-      setError("Please select a class");
-      return;
-    }
-    if (!formData.year_name.trim()) {
-      setError("Please enter year name");
-      return;
-    }
+    if (!formData.class.trim() || !formData.year_name.trim()) return;
 
     try {
-      const response = await axios.put(`https://erp-backend-fy3n.onrender.com/api/year/update-year/${id}`, {
+      await axios.put(`https://erp-backend-fy3n.onrender.com/api/year/update-year/${id}`, {
         class: formData.class,
         year_name: formData.year_name
       });
       
-      setSuccess("Year updated successfully");
-      setError("");
       fetchData();
       setEditingId(null);
       setFormData({ class: "", year_name: "" });
-      
-      // Clear success message after 3 seconds
-      setTimeout(() => setSuccess(""), 3000);
+      setIsPopoverOpen(false);
     } catch (error) {
       console.error("Error updating data:", error);
-      setError(error.response?.data?.message || "Failed to update year. Please try again later.");
+      if (error.response?.data?.error?.code === 11000) {
+        alert("A year with this name already exists for the selected class.");
+      }
     }
   };
 
@@ -214,67 +181,58 @@ const YearMasterPage = () => {
     if (confirm("Are you sure you want to delete this year entry?")) {
       try {
         await axios.delete(`https://erp-backend-fy3n.onrender.com/api/year/delete-year/${id}`);
-        setSuccess("Year deleted successfully");
-        setError("");
         fetchData();
-        
-        // Clear success message after 3 seconds
-        setTimeout(() => setSuccess(""), 3000);
       } catch (error) {
         console.error("Error deleting year:", error);
-        setError(error.response?.data?.message || "Failed to delete year. Please try again later.");
       }
     }
   };
 
   const handleAdd = async () => {
-    if (!formData.class.trim()) {
-      setError("Please select a class");
-      return;
-    }
-    if (!formData.year_name.trim()) {
-      setError("Please enter year name");
-      return;
-    }
+    if (!formData.class.trim() || !formData.year_name.trim()) return;
 
     try {
-      const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/year/create-year", {
+      // Check if year already exists for this class
+      const exists = data.some(item => 
+        item.class?._id === formData.class && 
+        item.year_name === formData.year_name
+      );
+      
+      if (exists) {
+        alert("This year already exists for the selected class.");
+        return;
+      }
+
+      await axios.post("https://erp-backend-fy3n.onrender.com/api/year/create-year", {
         class: formData.class,
         year_name: formData.year_name
       });
       
-      setSuccess("Year created successfully");
-      setError("");
       fetchData();
       setFormData({ class: "", year_name: "" });
       setIsPopoverOpen(false);
-      
-      // Clear success message after 3 seconds
-      setTimeout(() => setSuccess(""), 3000);
     } catch (error) {
       console.error("Error adding year:", error);
       if (error.response?.data?.error?.code === 11000) {
-        setError("A year with this name already exists for the selected class.");
-      } else {
-        setError(error.response?.data?.message || "Failed to add year. Please try again later.");
+        alert("This year already exists for the selected class.");
       }
     }
   };
 
   const handlePrint = () => {
-    const tableHeaders = [["#", "Class Name", "Year Name"]];
-    const tableRows = data.map((row, index) => [
+    const tableHeaders = [["#", "Class Name", "Year Names"]];
+    const tableRows = groupedData.map((row, index) => [
       index + 1,
       row.class ? `${row.class.class_name} (${row.class.class_code})` : "N/A",
-      row.year_name || "N/A",
+      row.year_names.join(", "),
     ]);
     printContent(tableHeaders, tableRows);
   };
 
   const handleCopy = () => {
-    const headers = ["#", "Class Name", "Year Name"];
-    const rows = data.map((row, index) => 
-      `${index + 1}\t${row.class ? `${row.class.class_name} (${row.class.class_code})` : "N/A"}\t${row.year_name || "N/A"}`
+    const headers = ["#", "Class Name", "Year Names"];
+    const rows = groupedData.map((row, index) => 
+      `${index + 1}\t${row.class ? `${row.class.class_name} (${row.class.class_code})` : "N/A"}\t${row.year_names.join(", ")}`
     );
     copyContent(headers, rows);
   };
@@ -301,34 +259,27 @@ const YearMasterPage = () => {
       </div>
       <section>
         <Container>
-          {success && (
-            <Alert variant="success" onClose={() => setSuccess("")} dismissible>
-              {success}
-            </Alert>
-          )}
-          {error && (
-            <Alert variant="danger" onClose={() => setError("")} dismissible>
-              {error}
-            </Alert>
-          )}
-
           <Button
-            onClick={() => setIsPopoverOpen(true)}
+            onClick={() => {
+              setIsPopoverOpen(true);
+              setEditingId(null);
+              setFormData({ class: "", year_name: "" });
+            }}
             className="btn-add mb-3"
           >
-            <CgAddR /> Add Year
+            <CgAddR /> {editingId ? "Edit Year" : "Add Year"}
           </Button>
 
           {isPopoverOpen && (
             <div className="cover-sheet">
               <div className="studentHeading">
-                <h2>Add New Year</h2>
+                <h2>{editingId ? "Edit Year" : "Add New Year"}</h2>
                 <button
                   className="closeForm"
                   onClick={() => {
                     setIsPopoverOpen(false);
-                    setError("");
                     setFormData({ class: "", year_name: "" });
+                    setEditingId(null);
                   }}
                 >
                   X
@@ -351,8 +302,6 @@ const YearMasterPage = () => {
                         </option>
                       ))}
                     </Form.Control>
-                    {classesLoading && <small>Loading classes...</small>}
-                    {classesError && <small className="text-danger">{classesError}</small>}
                   </Col>
                   <Col lg={6}>
                     <FormLabel className="labelForm">Year Name</FormLabel>
@@ -366,8 +315,11 @@ const YearMasterPage = () => {
                     />
                   </Col>
                 </Row>
-                <Button onClick={handleAdd} className="btn btn-primary">
-                  Add Year
+                <Button 
+                  onClick={editingId ? () => handleUpdate(editingId) : handleAdd} 
+                  className="btn btn-primary"
+                >
+                  {editingId ? "Update Year" : "Add Year"}
                 </Button>
               </Form>
             </div>
@@ -377,12 +329,10 @@ const YearMasterPage = () => {
             <h2>Year Records</h2>
             {loading ? (
               <p>Loading...</p>
-            ) : error ? (
-              <p style={{ color: "red" }}>{error}</p>
             ) : (
               <Table
                 columns={columns}
-                data={data}
+                data={groupedData}
                 handleCopy={handleCopy}
                 handlePrint={handlePrint}
               />
