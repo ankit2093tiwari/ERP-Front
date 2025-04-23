@@ -123,9 +123,6 @@ const YearMasterPage = () => {
       sortable: false,
     },
   ];
-  
-
-
 
   const fetchData = async () => {
     setLoading(true);
