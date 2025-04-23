@@ -103,12 +103,15 @@ const AssignRollNo = () => {
   };
 
   const handleEditRollNo = () => {
+    setIsEditing(true);
+  };
+
+  const handleAutoGenerate = () => {
     const updatedStudents = students.map((student, index) => ({
       ...student,
       roll_no: prefixKey ? `${prefixKey}-${index + 1}` : (index + 1).toString(),
     }));
     setStudents(updatedStudents);
-    setIsEditing(true);
   };
 
   const handleRollNoChange = (index, newRollNo) => {
@@ -244,9 +247,14 @@ const AssignRollNo = () => {
                     </Button>
                   )}
                   {isEditing && (
-                    <Button className="ms-2 btn-success" onClick={handleSaveRollNo} disabled={loading}>
-                      {loading ? "Saving..." : "Save RollNo"}
-                    </Button>
+                    <>
+                      <Button className="ms-2 btn-primary" onClick={handleAutoGenerate}>
+                        Auto Generate
+                      </Button>
+                      <Button className="ms-2 btn-success" onClick={handleSaveRollNo} disabled={loading}>
+                        {loading ? "Saving..." : "Save RollNo"}
+                      </Button>
+                    </>
                   )}
                 </Col>
               </Row>
