@@ -1196,7 +1196,7 @@ input::-webkit-inner-spin-button {
   height: 100vh;
   background-image: url('/loginbgnew.webp'); 
   background-size: cover; 
-  background-position: center;
+  background-position: right;
   background-repeat: no-repeat;
   padding: 0 50px; 
   box-sizing: border-box;
