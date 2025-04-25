@@ -1189,15 +1189,6 @@ input::-webkit-inner-spin-button {
 
 /* for login page */
 
-/* Make sure html and body are also 100% height, no margin */
-/* html, body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  overflow: hidden; 
-  font-family: Arial, sans-serif;
-} */
-
 .loginPage {
   display: flex;
   justify-content: left; 
@@ -1209,7 +1200,7 @@ input::-webkit-inner-spin-button {
   background-repeat: no-repeat;
   padding: 0 50px; 
   box-sizing: border-box;
-  /* overflow-y: hidden; */
+  overflow-y: hidden !important;
 }
 
 .loginBox {
@@ -1329,128 +1320,3 @@ input::-webkit-inner-spin-button {
 }
 
 
-/* .loginPage {
-  display: flex;
-  justify-content: left;
-  align-items: center;
-  min-height: 100vh;
-  background-image: url('/loginbgnew.webp'); 
-  background-size: cover; 
-  background-position: center;
-  font-family: Arial, sans-serif;
-  padding-left: 80px;
-}
-
-
-.loginBox {
-  width: 400px;
-  padding: 30px;
-  background-color: white;
-  border-radius: 8px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-.title {
-  text-align: center;
-  color: #333;
-  margin-bottom: 10px;
-  font-size: 24px;
-  font-weight: bold;
-}
-
-.subtitle {
-  text-align: center;
-  color: #666;
-  margin-bottom: 25px;
-  font-size: 14px;
-}
-
-.loginForm {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.formGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-}
-
-.formGroup label {
-  font-weight: bold;
-  color: #555;
-  font-size: 14px;
-}
-
-.inputField {
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
-}
-
-.inputField:focus {
-  outline: none;
-  border-color: #4a90e2;
-}
-
-.rememberMe {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin: 10px 0;
-}
-
-.checkbox {
-  width: 16px;
-  height: 16px;
-}
-
-.loginButton {
-  padding: 12px;
-  background-color: #4a90e2;
-  color: white;
-  border: none;
-  border-radius: 4px;
-  font-size: 16px;
-  font-weight: bold;
-  cursor: pointer;
-  transition: background-color 0.3s;
-}
-
-.loginButton:hover {
-  background-color: #3a80d2;
-}
-
-.loginButton:disabled {
-  background-color: #cccccc;
-  cursor: not-allowed;
-}
-
-.error {
-  color: #e74c3c;
-  padding: 10px;
-  border-radius: 4px;
-  margin-bottom: 15px;
-  font-size: 14px;
-  text-align: center;
-}
-
-.footerLinks {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 15px;
-  margin-top: 25px;
-  font-size: 13px;
-}
-
-.footerLinks a {
-  color: #4a90e2;
-  text-decoration: none;
-}
-
-.footerLinks a:hover {
-  text-decoration: underline;
-} */

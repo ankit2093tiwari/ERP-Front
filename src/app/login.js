@@ -49,8 +49,6 @@ export default function LoginPage({ onLogin }) {
         <h2 className="title">SIGN IN</h2>
         <p className="subtitle">For your protection, please verify your identity.</p>
 
-        {error && <div className="error">{error}</div>}
-
         <form onSubmit={handleLogin} className="loginForm">
           <div className="formGroup">
             <label htmlFor="email">EMAIL *</label>
