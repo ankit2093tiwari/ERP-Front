@@ -1212,6 +1212,17 @@ input::-webkit-inner-spin-button {
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
+.logoContainer {
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+/* .loginBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+} */
+
 /* Rest of your CSS remains the same */
 
 .title {

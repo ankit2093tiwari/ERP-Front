@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 export default function LoginPage({ onLogin }) {
   const [email, setEmail] = useState("admin@gmail.com");
@@ -25,13 +26,13 @@ export default function LoginPage({ onLogin }) {
       const response = await fetch("https://erp-backend-fy3n.onrender.com/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }), // ✅ email instead of username
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await response.json();
       if (data.success) {
         onLogin && onLogin(data.token, rememberMe);
-        router.push("/"); // Redirect after login
+        router.push("/");
       } else {
         setError(data.message || "Invalid credentials");
       }
@@ -46,6 +47,16 @@ export default function LoginPage({ onLogin }) {
   return (
     <div className="loginPage">
       <div className="loginBox">
+        <div className="logoContainer">
+          <Image 
+            src="/sbllogo.webp" 
+            alt="Company Logo"
+            width={150} 
+            height={70} 
+            priority 
+          />
+        </div>
+        
         <h2 className="title">SIGN IN</h2>
         <p className="subtitle">For your protection, please verify your identity.</p>
 
