@@ -1190,13 +1190,13 @@ input::-webkit-inner-spin-button {
 /* for login page */
 
 /* Make sure html and body are also 100% height, no margin */
-html, body {
+/* html, body {
   height: 100%;
   margin: 0;
   padding: 0;
   overflow: hidden; 
   font-family: Arial, sans-serif;
-}
+} */
 
 .loginPage {
   display: flex;
@@ -1209,6 +1209,7 @@ html, body {
   background-repeat: no-repeat;
   padding: 0 50px; 
   box-sizing: border-box;
+  /* overflow-y: hidden; */
 }
 
 .loginBox {
