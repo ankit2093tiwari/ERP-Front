@@ -18,14 +18,13 @@ import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const StateCityMasterPage = () => {
-  const [states, setStates] = useState([]);
-  const [cities, setCities] = useState([]);
+  const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [isStateFormOpen, setIsStateFormOpen] = useState(false);
   const [isCityFormOpen, setIsCityFormOpen] = useState(false);
-  const [editingStateId, setEditingStateId] = useState(null);
-  const [editingCityId, setEditingCityId] = useState(null);
+  const [editingState, setEditingState] = useState(null);
+  const [editingCity, setEditingCity] = useState(null);
   const [formData, setFormData] = useState({
     state_name: "",
     city_name: "",
@@ -41,27 +40,41 @@ const StateCityMasterPage = () => {
     },
     {
       name: "State Name",
-      cell: (row) =>
-        editingStateId === row._id ? (
-          <FormControl
-            type="text"
-            value={formData.state_name}
-            onChange={(e) => setFormData({...formData, state_name: e.target.value})}
-          />
-        ) : (
-          row.state_name || "N/A"
-        ),
+      cell: (row) => (
+        <div>
+          {editingState && editingState._id === row._id ? (
+            <FormControl
+              type="text"
+              value={formData.state_name}
+              onChange={(e) => setFormData({...formData, state_name: e.target.value})}
+            />
+          ) : (
+            row.state_name || "N/A"
+          )}
+          {editingState && editingState._id === row._id ? (
+            <button className="editButton ms-2" onClick={() => handleUpdateState(row._id)}>
+              <FaSave />
+            </button>
+          ) : (
+            <button className="editButton ms-2" onClick={() => handleEditState(row)}>
+              <FaEdit />
+            </button>
+          )}
+          <button className="editButton btn-danger ms-2" onClick={() => handleDeleteState(row._id)}>
+            <FaTrashAlt />
+          </button>
+        </div>
+      ),
       sortable: true,
     },
     {
       name: "Cities",
       cell: (row) => (
-        <ul>
-          {cities
-            .filter(city => city.state_id === row._id)
-            .map(city => (
-              <li key={city._id}>
-                {editingCityId === city._id ? (
+        <div>
+          {row.cities.length > 0 ? (
+            row.cities.map((city, index) => (
+              <div key={index}>
+                {editingCity && editingCity._id === city._id ? (
                   <>
                     <FormControl
                       as="select"
@@ -71,7 +84,7 @@ const StateCityMasterPage = () => {
                       style={{width: '150px'}}
                     >
                       <option value="">Select State</option>
-                      {states.map((state) => (
+                      {data.map((state) => (
                         <option key={state._id} value={state._id}>
                           {state.state_name}
                         </option>
@@ -84,109 +97,65 @@ const StateCityMasterPage = () => {
                       className="d-inline-block me-2"
                       style={{width: '150px'}}
                     />
-                    <button
-                      className="editButton"
-                      onClick={() => handleUpdateCity(city._id)}
-                    >
+                    <button className="editButton ms-2" onClick={() => handleUpdateCity(city._id)}>
                       <FaSave />
-                    </button>
-                    <button
-                      className="editButton btn-danger"
-                      onClick={() => handleDeleteCity(city._id)}
-                    >
-                      <FaTrashAlt />
                     </button>
                   </>
                 ) : (
-                  <>
-                    {city.city_name || "N/A"}
-                    <button
-                      className="editButton"
-                      onClick={() => handleEditCity(city)}
-                    >
-                      <FaEdit />
-                    </button>
-                    <button
-                      className="editButton btn-danger"
-                      onClick={() => handleDeleteCity(city._id)}
-                    >
-                      <FaTrashAlt />
-                    </button>
-                  </>
+                  city.city_name || "N/A"
                 )}
-              </li>
-            ))}
-        </ul>
-      ),
-    },
-    {
-      name: "Actions",
-      cell: (row) => (
-        <div className="d-flex gap-2">
-          {editingStateId === row._id ? (
-            <>
-              <button
-                className="editButton"
-                onClick={() => handleUpdateState(row._id)}
-              >
-                <FaSave />
-              </button>
-              <button
-                className="editButton btn-danger"
-                onClick={() => handleDeleteState(row._id)}
-              >
-                <FaTrashAlt />
-              </button>
-            </>
+                {editingCity && editingCity._id === city._id ? (
+                  <button className="editButton btn-danger ms-2" onClick={() => setEditingCity(null)}>
+                    Cancel
+                  </button>
+                ) : (
+                  <button className="editButton ms-2" onClick={() => handleEditCity(city)}>
+                    <FaEdit />
+                  </button>
+                )}
+                <button className="editButton btn-danger ms-2" onClick={() => handleDeleteCity(city._id)}>
+                  <FaTrashAlt />
+                </button>
+              </div>
+            ))
           ) : (
-            <>
-              <button
-                className="editButton"
-                onClick={() => handleEditState(row)}
-              >
-                <FaEdit />
-              </button>
-              <button
-                className="editButton btn-danger"
-                onClick={() => handleDeleteState(row._id)}
-              >
-                <FaTrashAlt />
-              </button>
-            </>
+            "No cities"
           )}
         </div>
       ),
     },
   ];
 
-  const fetchStates = async () => {
+  const fetchData = async () => {
     setLoading(true);
+    setError("");
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-states");
-      setStates(response.data.data || []);
+      const stateResponse = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-states");
+      const states = stateResponse.data.data;
+
+      const cityResponse = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-cities");
+      const cities = cityResponse.data.data;
+
+      const updatedData = states.map((state) => {
+        const stateCities = cities
+          .filter((city) => city.state === state._id)
+          .map((city) => ({
+            city_name: city.city_name,
+            _id: city._id,
+            state_id: city.state
+          }));
+
+        return { ...state, cities: stateCities };
+      });
+
+      setData(updatedData);
     } catch (err) {
-      setError("Failed to fetch state data.");
+      console.error("Error fetching data:", err);
+      setError("Failed to fetch data. Please try again later.");
     } finally {
       setLoading(false);
     }
   };
-
-  const fetchCities = async () => {
-    setLoading(true);
-    try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-cities");
-      setCities(response.data.data || []);
-    } catch (err) {
-      setError("Failed to fetch city data.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchStates();
-    fetchCities();
-  }, []);
 
   const handleAddState = async () => {
     if (!formData.state_name.trim()) {
@@ -198,11 +167,12 @@ const StateCityMasterPage = () => {
       await axios.post("https://erp-backend-fy3n.onrender.com/api/add-states", {
         state_name: formData.state_name,
       });
-      fetchStates();
+      fetchData();
       setFormData({...formData, state_name: ""});
       setIsStateFormOpen(false);
     } catch (err) {
-      setError("Failed to add state.");
+      console.error("Error adding state:", err);
+      setError("Failed to add state. Please try again later.");
     }
   };
 
@@ -214,19 +184,20 @@ const StateCityMasterPage = () => {
 
     try {
       await axios.post("https://erp-backend-fy3n.onrender.com/api/add-cities", {
-        state_id: formData.state_id,
+        state: formData.state_id,
         city_name: formData.city_name,
       });
-      fetchCities();
+      fetchData();
       setFormData({...formData, city_name: "", state_id: ""});
       setIsCityFormOpen(false);
     } catch (err) {
-      setError("Failed to add city.");
+      console.error("Error adding city:", err);
+      setError("Failed to add city. Please try again later.");
     }
   };
 
   const handleEditState = (state) => {
-    setEditingStateId(state._id);
+    setEditingState(state);
     setFormData({
       ...formData,
       state_name: state.state_name || ""
@@ -234,11 +205,11 @@ const StateCityMasterPage = () => {
   };
 
   const handleEditCity = (city) => {
-    setEditingCityId(city._id);
+    setEditingCity(city);
     setFormData({
       ...formData,
       city_name: city.city_name || "",
-      state_id: city.state_id || ""
+      state_id: city.state_id || city.state || ""
     });
   };
 
@@ -252,11 +223,12 @@ const StateCityMasterPage = () => {
       await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-states/${id}`, {
         state_name: formData.state_name,
       });
-      fetchStates();
-      setEditingStateId(null);
+      fetchData();
+      setEditingState(null);
       setFormData({...formData, state_name: ""});
     } catch (err) {
-      setError("Failed to update state.");
+      console.error("Error updating state:", err);
+      setError("Failed to update state. Please try again later.");
     }
   };
 
@@ -268,14 +240,15 @@ const StateCityMasterPage = () => {
 
     try {
       await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-cities/${id}`, {
-        state_id: formData.state_id,
+        state: formData.state_id,
         city_name: formData.city_name,
       });
-      fetchCities();
-      setEditingCityId(null);
+      fetchData();
+      setEditingCity(null);
       setFormData({...formData, city_name: "", state_id: ""});
     } catch (err) {
-      setError("Failed to update city.");
+      console.error("Error updating city:", err);
+      setError("Failed to update city. Please try again later.");
     }
   };
 
@@ -283,9 +256,10 @@ const StateCityMasterPage = () => {
     if (confirm("Are you sure you want to delete this state and all its cities?")) {
       try {
         await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-states/${id}`);
-        fetchStates();
+        fetchData();
       } catch (err) {
-        setError("Failed to delete state.");
+        console.error("Error deleting state:", err);
+        setError("Failed to delete state. Please try again later.");
       }
     }
   };
@@ -294,30 +268,35 @@ const StateCityMasterPage = () => {
     if (confirm("Are you sure you want to delete this city?")) {
       try {
         await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-cities/${id}`);
-        fetchCities();
+        fetchData();
       } catch (err) {
-        setError("Failed to delete city.");
+        console.error("Error deleting city:", err);
+        setError("Failed to delete city. Please try again later.");
       }
     }
   };
 
   const handlePrint = () => {
     const tableHeaders = [["#", "State Name", "Cities"]];
-    const tableRows = states.map((state, index) => [
+    const tableRows = data.map((state, index) => [
       index + 1,
       state.state_name || "N/A",
-      cities.filter(city => city.state_id === state._id).map(c => c.city_name).join(", ") || "N/A"
+      state.cities.map(c => c.city_name).join(", ") || "N/A"
     ]);
     printContent(tableHeaders, tableRows);
   };
 
   const handleCopy = () => {
     const headers = ["#", "State Name", "Cities"];
-    const rows = states.map((state, index) => 
-      `${index + 1}\t${state.state_name || "N/A"}\t${cities.filter(city => city.state_id === state._id).map(c => c.city_name).join(", ") || "N/A"}`
+    const rows = data.map((state, index) => 
+      `${index + 1}\t${state.state_name || "N/A"}\t${state.cities.map(c => c.city_name).join(", ") || "N/A"}`
     );
     copyContent(headers, rows);
   };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
 
   const breadcrumbItems = [
     { label: "Master Entry", link: "/master-entry/all-module" },
@@ -355,13 +334,14 @@ const StateCityMasterPage = () => {
           {isStateFormOpen && (
             <div className="cover-sheet">
               <div className="studentHeading">
-                <h2>Add New State</h2>
+                <h2>{editingState ? "Update State" : "Add New State"}</h2>
                 <button
                   className="closeForm"
                   onClick={() => {
                     setIsStateFormOpen(false);
                     setError("");
                     setFormData({...formData, state_name: ""});
+                    setEditingState(null);
                   }}
                 >
                   X
@@ -381,8 +361,12 @@ const StateCityMasterPage = () => {
                     />
                   </Col>
                 </Row>
-                <Button onClick={handleAddState} className="btn btn-primary">
-                  Add State
+                {error && <div className="text-danger mb-3">{error}</div>}
+                <Button 
+                  onClick={editingState ? () => handleUpdateState(editingState._id) : handleAddState} 
+                  className="btn btn-primary"
+                >
+                  {editingState ? "Update State" : "Add State"}
                 </Button>
               </Form>
             </div>
@@ -391,13 +375,14 @@ const StateCityMasterPage = () => {
           {isCityFormOpen && (
             <div className="cover-sheet">
               <div className="studentHeading">
-                <h2>Add New City</h2>
+                <h2>{editingCity ? "Update City" : "Add New City"}</h2>
                 <button
                   className="closeForm"
                   onClick={() => {
                     setIsCityFormOpen(false);
                     setError("");
                     setFormData({...formData, city_name: "", state_id: ""});
+                    setEditingCity(null);
                   }}
                 >
                   X
@@ -415,7 +400,7 @@ const StateCityMasterPage = () => {
                       }
                     >
                       <option value="">Select State</option>
-                      {states.map((state) => (
+                      {data.map((state) => (
                         <option key={state._id} value={state._id}>
                           {state.state_name}
                         </option>
@@ -436,8 +421,12 @@ const StateCityMasterPage = () => {
                     />
                   </Col>
                 </Row>
-                <Button onClick={handleAddCity} className="btn btn-primary">
-                  Add City
+                {error && <div className="text-danger mb-3">{error}</div>}
+                <Button 
+                  onClick={editingCity ? () => handleUpdateCity(editingCity._id) : handleAddCity} 
+                  className="btn btn-primary"
+                >
+                  {editingCity ? "Update City" : "Add City"}
                 </Button>
               </Form>
             </div>
@@ -452,7 +441,7 @@ const StateCityMasterPage = () => {
             ) : (
               <Table
                 columns={columns}
-                data={states}
+                data={data}
                 handleCopy={handleCopy}
                 handlePrint={handlePrint}
               />
