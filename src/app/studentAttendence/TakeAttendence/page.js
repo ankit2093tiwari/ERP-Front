@@ -228,6 +228,12 @@ const TakeAttendence = () => {
                                         </div>
                                         <Table
                                             columns={[
+                                                {
+                                                    name: "#",
+                                                    selector: (row, index) => index + 1,
+                                                    sortable: false,
+                                                    width: "50px",
+                                                },
                                                 { name: "Roll No", selector: (row) => row.roll_no || "N/A", sortable: true },
                                                 {
                                                     name: "Mark Leave",

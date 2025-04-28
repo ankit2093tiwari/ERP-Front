@@ -88,7 +88,7 @@ const MonthlyReport = () => {
     doc.save("Attendance_Report.pdf");
   };
 
-  const breadcrumbItems = [{ label: "Student Attendance", link: "/studentAttendence/allModule" }, { label: "Attendence-Report", link: "null" }]
+  const breadcrumbItems = [{ label: "Student Attendance", link: "/studentAttendence/allModule" }, { label: "Monthly-Report", link: "null" }]
 
   return (
     <>

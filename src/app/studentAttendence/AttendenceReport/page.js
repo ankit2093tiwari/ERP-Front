@@ -18,6 +18,10 @@ const AttendanceReport = () => {
 
   useEffect(() => {
     fetchClasses();
+    // Set today's date as default in YYYY-MM-DD format (required by input type="date")
+    const today = new Date();
+    const formattedDate = today.toISOString().split('T')[0];
+    setAttendanceDate(formattedDate);
   }, []);
 
   const fetchClasses = async () => {
@@ -85,8 +89,10 @@ const AttendanceReport = () => {
         const updatedReports = attendanceReports.map((report) =>
           report._id === attendanceId ? { ...report, status } : report
         );
-        setAttendanceReports(updatedReports); // Update the state
+        setAttendanceReports(updatedReports); 
+        
         alert("Attendance status updated successfully");
+        fetchAttendanceReports();
       } else {
         alert("Failed to update attendance status");
       }
@@ -95,30 +101,6 @@ const AttendanceReport = () => {
       alert("Failed to update attendance status. Please try again.");
     }
   };
-
-  // const handleAction = async (attendanceId, status) => {
-  //   try {
-  //     const response = await axios.put(
-  //       `https://erp-backend-fy3n.onrender.com/api/attendance/update`,
-  //       { attendance_id: attendanceId, status }
-  //     );
-
-  //     if (response.data.success) {
-  //       // Update the local state to reflect the change
-  //       const updatedReports = attendanceReports.map((report) =>
-  //         report._id === attendanceId ? { ...report, status } : report
-  //       );
-  //       setAttendanceReports(updatedReports);
-  //       fetchAttendanceReports();
-  //       alert("Attendance status updated successfully");
-  //     } else {
-  //       alert("Failed to update attendance status");
-  //     }
-  //   } catch (error) {
-  //     console.error("Error updating attendance status", error);
-  //     alert("Failed to update attendance status. Please try again.");
-  //   }
-  // };
 
   const breadcrumbItems = [{ label: "Student Attendance", link: "/studentAttendence/allModule" }, { label: "Attendence-Report", link: "null" }]
 
@@ -135,7 +117,6 @@ const AttendanceReport = () => {
       </div>
       <section>
         <Container>
-
           <div className="cover-sheet">
             <div className="studentHeading">
               <h2>Search Students</h2>
