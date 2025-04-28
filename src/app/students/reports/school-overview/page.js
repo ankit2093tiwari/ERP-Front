@@ -35,9 +35,9 @@ const SchoolOverview = () => {
   }, []);
 
   const handleClassToggle = (classId) => {
-    setSelectedClasses(prev => 
-      prev.includes(classId) 
-        ? prev.filter(id => id !== classId) 
+    setSelectedClasses(prev =>
+      prev.includes(classId)
+        ? prev.filter(id => id !== classId)
         : [...prev, classId]
     );
   };
@@ -55,7 +55,7 @@ const SchoolOverview = () => {
       alert("Please select at least one class.");
       return;
     }
-    
+
     setIsLoading(true);
     try {
       // Clear previous data
@@ -144,7 +144,7 @@ const SchoolOverview = () => {
             <div className="studentHeading">
               <h2>School Overview</h2>
             </div>
-            
+
             <div style={{ marginBottom: "20px", padding: "20px" }}>
               <h4>Select Class</h4>
               <div style={{ marginBottom: "10px" }}>
@@ -152,26 +152,26 @@ const SchoolOverview = () => {
                   {selectedClasses.length === 0 ? "Nothing selected" : `${selectedClasses.length} selected`}
                 </span>
               </div>
-              
+
               <div className="d-flex mb-3">
-                <Button 
-                  variant="link" 
+                <Button
+                  // variant="link" 
+                  className="btn-add"
                   onClick={handleSelectAll}
                   disabled={isFetchingClasses}
-                  style={{ padding: "0", marginRight: "15px" }}
                 >
                   Select All
                 </Button>
-                <Button 
-                  variant="link" 
+                <Button
+                  // variant="link" 
+                  className="btn-add"
                   onClick={handleDeselectAll}
                   disabled={isFetchingClasses}
-                  style={{ padding: "0" }}
                 >
                   Deselect All
                 </Button>
               </div>
-              
+
               <div style={{ maxHeight: "300px", overflowY: "auto", border: "1px solid #ddd", padding: "10px" }}>
                 {isFetchingClasses ? (
                   <div>Loading classes...</div>
