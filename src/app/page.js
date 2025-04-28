@@ -40,7 +40,7 @@ const Dashboard = () => {
     if (!token) {
       router.push('/login');
     } else {
-      fetchDashboardData();
+      // fetchDashboardData();
       setIsLoading(false);
     }
   }, [router]);
