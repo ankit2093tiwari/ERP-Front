@@ -1,13 +1,12 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import Select from "react-select";
 import { Button, Row } from "react-bootstrap";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
-import { Col, Container, FormLabel, Breadcrumb, FormSelect } from "react-bootstrap";
+import { Col, Container, FormLabel, Breadcrumb, FormSelect, Table, FormCheck } from "react-bootstrap";
 
 const SchoolOverview = () => {
-  const [selectedClass, setSelectedClass] = useState(null);
+  const [selectedClasses, setSelectedClasses] = useState([]);
   const [tableData, setTableData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [classOptions, setClassOptions] = useState([]);
@@ -21,8 +20,8 @@ const SchoolOverview = () => {
       try {
         const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-classes");
         const classes = response.data.data.map((cls) => ({
-          value: cls._id,
-          label: cls.class_name,
+          id: cls._id,
+          name: cls.class_name,
         }));
         setClassOptions(classes);
       } catch (error) {
@@ -35,60 +34,89 @@ const SchoolOverview = () => {
     fetchClasses();
   }, []);
 
+  const handleClassToggle = (classId) => {
+    setSelectedClasses(prev => 
+      prev.includes(classId) 
+        ? prev.filter(id => id !== classId) 
+        : [...prev, classId]
+    );
+  };
+
+  const handleSelectAll = () => {
+    setSelectedClasses(classOptions.map(cls => cls.id));
+  };
+
+  const handleDeselectAll = () => {
+    setSelectedClasses([]);
+  };
+
   const handleSearch = async () => {
-    if (!selectedClass) {
-      alert("Please select a class.");
+    if (selectedClasses.length === 0) {
+      alert("Please select at least one class.");
       return;
     }
+    
     setIsLoading(true);
     try {
-      const requestData = { class_name: selectedClass.value };
-      const response = await axios.post(
-        "https://erp-backend-fy3n.onrender.com/api/students/searchByClass",
-        requestData
-      );
+      // Clear previous data
+      setTableData([]);
+      setTotalBoys(0);
+      setTotalGirls(0);
 
-      const students = response.data.students;
-      const groupedData = {};
-      let boysCount = 0;
-      let girlsCount = 0;
+      // Fetch data for each selected class
+      for (const classId of selectedClasses) {
+        const requestData = { class_name: classId };
+        const response = await axios.post(
+          "https://erp-backend-fy3n.onrender.com/api/students/searchByClass",
+          requestData
+        );
 
-      students.forEach((student) => {
-        const className = student.class_name?.class_name;
-        const sectionName = student.section_name?.section_name;
+        const students = response.data.students;
+        const groupedData = {};
+        let boysCount = 0;
+        let girlsCount = 0;
 
-        if (!groupedData[className]) {
-          groupedData[className] = {};
-        }
+        students.forEach((student) => {
+          const className = student.class_name?.class_name;
+          const sectionName = student.section_name?.section_name;
 
-        if (!groupedData[className][sectionName]) {
-          groupedData[className][sectionName] = {
-            totalBoys: 0,
-            totalGirls: 0,
-            sectionTotal: 0,
-            dropoutStudents: 0,
-            newStudents: 0,
-          };
-        }
+          if (!groupedData[className]) {
+            groupedData[className] = {};
+          }
 
-        if (student.gender_name === "Male") {
-          groupedData[className][sectionName].totalBoys += 1;
-          boysCount += 1;
-        }
-        if (student.gender_name === "Female") {
-          groupedData[className][sectionName].totalGirls += 1;
-          girlsCount += 1;
-        }
-        groupedData[className][sectionName].sectionTotal += 1;
-        if (student.transfer_status === "Dropout") groupedData[className][sectionName].dropoutStudents += 1;
-        if (new Date(student.date_of_admission) >= new Date(new Date().getFullYear(), 0, 1)) {
-          groupedData[className][sectionName].newStudents += 1;
-        }
-      });
+          if (!groupedData[className][sectionName]) {
+            groupedData[className][sectionName] = {
+              totalBoys: 0,
+              totalGirls: 0,
+              sectionTotal: 0,
+              dropoutStudents: 0,
+              newStudents: 0,
+            };
+          }
 
-      setTableData(groupedData);
-      setTotalBoys(boysCount);
-      setTotalGirls(girlsCount);
+          if (student.gender_name === "Male") {
+            groupedData[className][sectionName].totalBoys += 1;
+            boysCount += 1;
+          }
+          if (student.gender_name === "Female") {
+            groupedData[className][sectionName].totalGirls += 1;
+            girlsCount += 1;
+          }
+          groupedData[className][sectionName].sectionTotal += 1;
+          if (student.transfer_status === "Dropout") groupedData[className][sectionName].dropoutStudents += 1;
+          if (new Date(student.date_of_admission) >= new Date(new Date().getFullYear(), 0, 1)) {
+            groupedData[className][sectionName].newStudents += 1;
+          }
+        });
+
+        setTableData(prevTableData => ({
+          ...prevTableData,
+          ...groupedData,
+        }));
+
+        setTotalBoys(prevBoys => prevBoys + boysCount);
+        setTotalGirls(prevGirls => prevGirls + girlsCount);
+      }
     } catch (error) {
       console.error("Error fetching data:", error.response?.data || error.message);
       alert("Failed to fetch data. Please try again.");
@@ -116,44 +144,82 @@ const SchoolOverview = () => {
             <div className="studentHeading">
               <h2>School Overview</h2>
             </div>
+            
             <div style={{ marginBottom: "20px", padding: "20px" }}>
-              <label>Select Class:</label>
-              <Select
-                options={classOptions}
-                value={selectedClass}
-                onChange={(selected) => setSelectedClass(selected)}
-                placeholder={isFetchingClasses ? "Loading classes..." : "Select a class..."}
-                isDisabled={isFetchingClasses}
-              />
+              <h4>Select Class</h4>
+              <div style={{ marginBottom: "10px" }}>
+                <span style={{ fontStyle: "italic" }}>
+                  {selectedClasses.length === 0 ? "Nothing selected" : `${selectedClasses.length} selected`}
+                </span>
+              </div>
+              
+              <div className="d-flex mb-3">
+                <Button 
+                  variant="link" 
+                  onClick={handleSelectAll}
+                  disabled={isFetchingClasses}
+                  style={{ padding: "0", marginRight: "15px" }}
+                >
+                  Select All
+                </Button>
+                <Button 
+                  variant="link" 
+                  onClick={handleDeselectAll}
+                  disabled={isFetchingClasses}
+                  style={{ padding: "0" }}
+                >
+                  Deselect All
+                </Button>
+              </div>
+              
+              <div style={{ maxHeight: "300px", overflowY: "auto", border: "1px solid #ddd", padding: "10px" }}>
+                {isFetchingClasses ? (
+                  <div>Loading classes...</div>
+                ) : (
+                  classOptions.map((cls) => (
+                    <div key={cls.id} className="d-flex align-items-center mb-2">
+                      <FormCheck
+                        type="checkbox"
+                        id={`class-${cls.id}`}
+                        checked={selectedClasses.includes(cls.id)}
+                        onChange={() => handleClassToggle(cls.id)}
+                        label={cls.name}
+                      />
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
 
             <Button
               className="btn btn-warning ms-4"
               onClick={handleSearch}
-              disabled={isLoading || isFetchingClasses}
+              disabled={isLoading || isFetchingClasses || selectedClasses.length === 0}
             >
               {isLoading ? "Searching..." : "Search"}
             </Button>
 
-            <table
+            <Table
+              striped
+              bordered
+              hover
+              responsive
               style={{
                 marginTop: "20px",
                 width: "100%",
-                borderCollapse: "collapse",
-                border: "1px solid black",
                 marginBottom: "40px",
               }}
             >
               <thead>
                 <tr>
-                  <th style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>Class</th>
-                  <th style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>Section</th>
-                  <th style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>Boys</th>
-                  <th style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>Girls</th>
-                  <th style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>Section Total</th>
-                  <th style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>TC</th>
-                  <th style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>Dropout</th>
-                  <th style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>New</th>
+                  <th style={{ textAlign: "center" }}>Class</th>
+                  <th style={{ textAlign: "center" }}>Section</th>
+                  <th style={{ textAlign: "center" }}>Boys</th>
+                  <th style={{ textAlign: "center" }}>Girls</th>
+                  <th style={{ textAlign: "center" }}>Section Total</th>
+                  <th style={{ textAlign: "center" }}>TC</th>
+                  <th style={{ textAlign: "center" }}>Dropout</th>
+                  <th style={{ textAlign: "center" }}>New</th>
                 </tr>
               </thead>
               <tbody>
@@ -164,43 +230,42 @@ const SchoolOverview = () => {
                         {secIndex === 0 && (
                           <td
                             rowSpan={Object.keys(sections).length}
-                            style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}
+                            style={{ textAlign: "center" }}
                           >
                             {className}
                           </td>
                         )}
-                        <td style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>
+                        <td style={{ textAlign: "center" }}>
                           {sectionName}
                         </td>
-                        <td style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>{data.totalBoys}</td>
-                        <td style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>{data.totalGirls}</td>
-                        <td style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>{data.sectionTotal}</td>
-                        <td style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>0</td>
-                        <td style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>{data.dropoutStudents}</td>
-                        <td style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>{data.newStudents}</td>
+                        <td style={{ textAlign: "center" }}>{data.totalBoys}</td>
+                        <td style={{ textAlign: "center" }}>{data.totalGirls}</td>
+                        <td style={{ textAlign: "center" }}>{data.sectionTotal}</td>
+                        <td style={{ textAlign: "center" }}>0</td>
+                        <td style={{ textAlign: "center" }}>{data.dropoutStudents}</td>
+                        <td style={{ textAlign: "center" }}>{data.newStudents}</td>
                       </tr>
                     ))
                   )
                 ) : (
                   <tr>
-                    <td colSpan="8" style={{ textAlign: "center", padding: "8px", border: "1px solid black" }}>
-                      No data to display. Please search for a class.
+                    <td colSpan="8" style={{ textAlign: "center" }}>
+                      No data to display. Please select classes and click Search.
                     </td>
                   </tr>
                 )}
               </tbody>
               <tfoot>
                 <tr>
-                  <td colSpan="2" style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>Total</td>
-                  <td style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>{totalBoys}</td>
-                  <td style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}>{totalGirls}</td>
-                  <td colSpan="5" style={{ border: "1px solid black", padding: "8px", textAlign: "center" }}></td>
+                  <td colSpan="2" style={{ textAlign: "center" }}>Total</td>
+                  <td style={{ textAlign: "center" }}>{totalBoys}</td>
+                  <td style={{ textAlign: "center" }}>{totalGirls}</td>
+                  <td colSpan="5" style={{ textAlign: "center" }}></td>
                 </tr>
               </tfoot>
-            </table>
+            </Table>
           </div>
         </Container>
-
       </section>
     </>
   );
