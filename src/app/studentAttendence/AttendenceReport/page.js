@@ -4,7 +4,6 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Form, Row, Col, Container, FormLabel, Button, Breadcrumb, FormSelect } from "react-bootstrap";
 import Table from "@/app/component/DataTable";
-import styles from "@/app/students/assign-roll-no/page.module.css";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const AttendanceReport = () => {
@@ -23,6 +22,16 @@ const AttendanceReport = () => {
     const formattedDate = today.toISOString().split('T')[0];
     setAttendanceDate(formattedDate);
   }, []);
+
+  useEffect(() => {
+    // Automatically fetch attendance when both class and section are selected
+    if (selectedClass && selectedSection && attendanceDate) {
+      fetchAttendanceReports();
+    } else {
+      // Clear reports if any selection is missing
+      setAttendanceReports([]);
+    }
+  }, [selectedClass, selectedSection, attendanceDate]);
 
   const fetchClasses = async () => {
     try {
@@ -45,10 +54,6 @@ const AttendanceReport = () => {
   };
 
   const fetchAttendanceReports = async () => {
-    if (!selectedClass || !selectedSection || !attendanceDate) {
-      alert("Please select class, section, and attendance date");
-      return;
-    }
     setLoading(true);
     try {
       const response = await axios.get(
@@ -79,26 +84,29 @@ const AttendanceReport = () => {
 
   const handleAction = async (attendanceId, status) => {
     try {
+      // Optimistically update the UI
+      const updatedReports = attendanceReports.map((report) =>
+        report._id === attendanceId ? { ...report, status } : report
+      );
+      setAttendanceReports(updatedReports);
+
+      // Make the API call
       const response = await axios.put(
         `https://erp-backend-fy3n.onrender.com/api/attendance/update`,
         { attendance_id: attendanceId, status }
       );
 
-      if (response.data.success) {
-        // Update the local state to reflect the change
-        const updatedReports = attendanceReports.map((report) =>
-          report._id === attendanceId ? { ...report, status } : report
-        );
-        setAttendanceReports(updatedReports); 
-        
-        alert("Attendance status updated successfully");
-        fetchAttendanceReports();
-      } else {
+      if (!response.data.success) {
+        // Revert if the API call fails
         alert("Failed to update attendance status");
+        fetchAttendanceReports(); // Refresh data from server
+      } else {
+        alert("Attendance status updated successfully");
       }
     } catch (error) {
       console.error("Error updating attendance status", error);
       alert("Failed to update attendance status. Please try again.");
+      fetchAttendanceReports(); // Refresh data from server
     }
   };
 
@@ -137,7 +145,11 @@ const AttendanceReport = () => {
                 </Col>
                 <Col>
                   <FormLabel className="labelForm">Select Section</FormLabel>
-                  <FormSelect value={selectedSection} onChange={handleSectionChange}>
+                  <FormSelect 
+                    value={selectedSection} 
+                    onChange={handleSectionChange}
+                    disabled={!selectedClass}
+                  >
                     <option value="">Select Section</option>
                     {sectionList.map((sec) => (
                       <option key={sec._id} value={sec._id}>
@@ -155,14 +167,6 @@ const AttendanceReport = () => {
                   />
                 </Col>
               </Row>
-              <br />
-              <Row>
-                <Col>
-                  <Button className="btn btn-primary" onClick={fetchAttendanceReports} disabled={loading}>
-                    {loading ? "Loading..." : "Search"}
-                  </Button>
-                </Col>
-              </Row>
             </Form>
           </div>
 
@@ -170,27 +174,63 @@ const AttendanceReport = () => {
             <Col>
               <div className="tableSheet">
                 <h2>Attendance Report</h2>
-                {attendanceReports.length > 0 ? (
+                {loading ? (
+                  <p className="text-center">Loading attendance data...</p>
+                ) : attendanceReports.length > 0 ? (
                   <Table
                     columns={[
                       { name: "#", selector: (row, index) => index + 1, sortable: true },
                       { name: "Roll No", selector: (row) => row.student_id?.roll_no || "N/A", sortable: true },
-                      { name: "Student Name", selector: (row) => `${row.student_id?.first_name} ${row.student_id?.last_name}`.trim(), sortable: true },
+                      { 
+                        name: "Student Name", 
+                        selector: (row) => `${row.student_id?.first_name} ${row.student_id?.last_name}`.trim(), 
+                        sortable: true 
+                      },
                       { name: "Father Name", selector: (row) => row.student_id?.father_name || "N/A", sortable: true },
-                      { name: "Date", selector: (row) => new Date(row.attendance_date).toLocaleDateString(), sortable: true },
-                      { name: "Status", selector: (row) => row.status || "N/A", sortable: true },
+                      { 
+                        name: "Date", 
+                        selector: (row) => new Date(row.attendance_date).toLocaleDateString(), 
+                        sortable: true 
+                      },
+                      { 
+                        name: "Status", 
+                        selector: (row) => row.status || "N/A", 
+                        sortable: true,
+                        cell: (row) => (
+                          <span style={{
+                            color: row.status === "Present" ? "green" : 
+                                  row.status === "Absent" ? "red" : 
+                                  row.status === "Leave" ? "orange" : "black",
+                            fontWeight: "bold"
+                          }}>
+                            {row.status || "N/A"}
+                          </span>
+                        )
+                      },
                       { name: "Taken By", selector: (row) => row.taken_by || "N/A", sortable: true },
                       {
                         name: "Action",
                         cell: (row) => (
                           <div>
-                            <Button variant="success" size="sm" onClick={() => handleAction(row._id, "Present")}>
+                            <Button 
+                              variant={row.status === "Present" ? "success" : "outline-success"} 
+                              size="sm" 
+                              onClick={() => handleAction(row._id, "Present")}
+                            >
                               Present
                             </Button>{" "}
-                            <Button variant="danger" size="sm" onClick={() => handleAction(row._id, "Absent")}>
+                            <Button 
+                              variant={row.status === "Absent" ? "danger" : "outline-danger"} 
+                              size="sm" 
+                              onClick={() => handleAction(row._id, "Absent")}
+                            >
                               Absent
                             </Button>{" "}
-                            <Button variant="warning" size="sm" onClick={() => handleAction(row._id, "Leave")}>
+                            <Button 
+                              variant={row.status === "Leave" ? "warning" : "outline-warning"} 
+                              size="sm" 
+                              onClick={() => handleAction(row._id, "Leave")}
+                            >
                               Leave
                             </Button>
                           </div>
@@ -200,7 +240,11 @@ const AttendanceReport = () => {
                     data={attendanceReports}
                   />
                 ) : (
-                  <p className="text-center">No attendance records found.</p>
+                  <p className="text-center">
+                    {selectedClass && selectedSection && attendanceDate 
+                      ? "No attendance records found for the selected criteria" 
+                      : "Please select a class, section, and date"}
+                  </p>
                 )}
               </div>
             </Col>

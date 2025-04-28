@@ -26,6 +26,17 @@ const TakeAttendence = () => {
         setAttendanceDate(formattedDate);
     }, []);
 
+    useEffect(() => {
+        // Automatically fetch students when both class and section are selected
+        if (selectedClass && selectedSection) {
+            fetchStudents();
+        } else {
+            // Clear students if either class or section is unselected
+            setStudents([]);
+            setAttendanceRecords([]);
+        }
+    }, [selectedClass, selectedSection]);
+
     const fetchClasses = async () => {
         try {
             const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-classes");
@@ -47,8 +58,7 @@ const TakeAttendence = () => {
     };
 
     const fetchStudents = async () => {
-        if (!selectedClass || !selectedSection || !attendanceDate) {
-            alert("Please select class, section, and attendance date");
+        if (!selectedClass || !selectedSection) {
             return;
         }
         setLoading(true);
@@ -80,7 +90,8 @@ const TakeAttendence = () => {
     };
 
     const handleSectionChange = (event) => {
-        setSelectedSection(event.target.value);
+        const sectionId = event.target.value;
+        setSelectedSection(sectionId);
     };
 
     const handleDateChange = (event) => {
@@ -183,7 +194,11 @@ const TakeAttendence = () => {
                                 </Col>
                                 <Col>
                                     <FormLabel className="labelForm">Select Section</FormLabel>
-                                    <FormSelect value={selectedSection} onChange={handleSectionChange}>
+                                    <FormSelect 
+                                        value={selectedSection} 
+                                        onChange={handleSectionChange}
+                                        disabled={!selectedClass}
+                                    >
                                         <option value="">Select Section</option>
                                         {sectionList.map((sec) => (
                                             <option key={sec._id} value={sec._id}>
@@ -204,11 +219,8 @@ const TakeAttendence = () => {
                             <br />
                             <Row>
                                 <Col>
-                                    <Button className="btn btn-primary" onClick={fetchStudents} disabled={loading}>
-                                        {loading ? "Loading..." : "Search Students"}
-                                    </Button>
                                     {students.length > 0 && (
-                                        <Button className="btn btn-success ms-2" onClick={submitAttendance} disabled={submitting}>
+                                        <Button className="btn btn-success" onClick={submitAttendance} disabled={submitting}>
                                             {submitting ? "Submitting..." : "Take Attendance"}
                                         </Button>
                                     )}
@@ -221,7 +233,9 @@ const TakeAttendence = () => {
                         <Col>
                             <div className="tableSheet">
                                 <h2>Take Student Attendance</h2>
-                                {students.length > 0 ? (
+                                {loading ? (
+                                    <p className="text-center">Loading students...</p>
+                                ) : students.length > 0 ? (
                                     <>
                                         <div className="attendance-summary">
                                             <p>Total Present: {totalPresent} & Total Absent: {totalAbsent} Total Leave: {totalLeave}</p>
@@ -236,7 +250,7 @@ const TakeAttendence = () => {
                                                 },
                                                 { name: "Roll No", selector: (row) => row.roll_no || "N/A", sortable: true },
                                                 {
-                                                    name: "Mark Leave",
+                                                    name: "Attendance Status",
                                                     cell: (row) => (
                                                         <FormSelect
                                                             value={attendanceRecords.find((record) => record.student_id === row._id)?.status || "present"}
@@ -255,7 +269,9 @@ const TakeAttendence = () => {
                                         />
                                     </>
                                 ) : (
-                                    <p className="text-center">No students found.</p>
+                                    <p className="text-center">
+                                        {selectedClass && selectedSection ? "No students found for this class and section" : "Please select a class and section"}
+                                    </p>
                                 )}
                             </div>
                         </Col>
