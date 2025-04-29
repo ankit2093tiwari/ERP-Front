@@ -7,6 +7,7 @@ import { CgAddR } from "react-icons/cg";
 import { Form, Row, Col, Container, FormLabel, FormControl, Button } from "react-bootstrap";
 import axios from "axios";
 import Table from "@/app/component/DataTable";
+import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const Thought = () => {
@@ -18,7 +19,7 @@ const Thought = () => {
   const [newThought, setNewThought] = useState({ date: today, thought_name: "" });
 
   const [editRowId, setEditRowId] = useState(null);
-  const [editValues, setEditValues] = useState({});
+  const [editValues, setEditValues] = useState({ date: today, thought_name: "" });
 
   const handleInputChange = (e, field) => {
     setEditValues({ ...editValues, [field]: e.target.value });
@@ -32,7 +33,7 @@ const Thought = () => {
         editRowId === row._id ? (
           <FormControl
             type="date"
-            value={editValues.date}
+            value={editValues.date || today}
             onChange={(e) => handleInputChange(e, "date")}
           />
         ) : (
@@ -63,7 +64,7 @@ const Thought = () => {
               <FaSave />
             </button>
           ) : (
-            <button className="editButton" onClick={() => handleEdit(row._id)}>
+            <button className="editButton" onClick={() => handleEdit(row)}>
               <FaEdit />
             </button>
           )}
@@ -101,10 +102,12 @@ const Thought = () => {
     }
   };
 
-  const handleEdit = (id) => {
-    const item = data.find((row) => row._id === id);
-    setEditRowId(id);
-    setEditValues({ ...item });
+  const handleEdit = (thought) => {
+    setEditRowId(thought._id);
+    setEditValues({ 
+      date: thought.date || today,
+      thought_name: thought.thought_name || ""
+    });
   };
 
   const handleSave = async (id) => {
@@ -129,6 +132,24 @@ const Thought = () => {
         setError("Failed to delete thought.");
       }
     }
+  };
+
+  const handlePrint = () => {
+    const tableHeaders = [["#", "Date", "Thought Name"]];
+    const tableRows = data.map((row, index) => [
+      index + 1,
+      new Date(row.date).toLocaleDateString("en-GB"),
+      row.thought_name || "N/A",
+    ]);
+    printContent(tableHeaders, tableRows);
+  };
+
+  const handleCopy = () => {
+    const headers = ["#", "Date", "Thought Name"];
+    const rows = data.map((row, index) => 
+      `${index + 1}\t${new Date(row.date).toLocaleDateString("en-GB")}\t${row.thought_name || "N/A"}`
+    );
+    copyContent(headers, rows);
   };
 
   useEffect(() => {
@@ -189,7 +210,14 @@ const Thought = () => {
             <h2>Thought Records</h2>
             {loading && <p>Loading...</p>}
             {error && <p style={{ color: "red" }}>{error}</p>}
-            {!loading && !error && <Table columns={columns} data={data} />}
+            {!loading && !error && (
+              <Table 
+                columns={columns} 
+                data={data} 
+                handleCopy={handleCopy}
+                handlePrint={handlePrint}
+              />
+            )}
           </div>
         </Container>
       </section>
