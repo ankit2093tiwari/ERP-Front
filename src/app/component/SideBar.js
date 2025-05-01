@@ -79,6 +79,44 @@ export default function Sidebar({ isOpen }) {
         { title: "Route Master", href: "/Transport/route-master", icon: <FaAngleDoubleRight /> },
         { title: "Fuel Filling", href: "/Transport/fuel-filling", icon: <FaAngleDoubleRight /> },
         { title: "Student Vehicle Relation", href: "/Transport/student-vehicle-relation", icon: <FaAngleDoubleRight /> },
+        {
+            title: "Reports",
+            href: "/Transport/reports/all-reports",
+            icon: <FaFileAlt />,
+            isOpen: true,
+            children: [
+                {
+                    title: "All Reports",
+                    href: "/Transport/reports/all-reports",
+                    icon: <FaAngleDoubleRight />,
+                },
+                {
+                    title: "All Transport Info",
+                    href: "/Transport/reports/all-transportInfo",
+                    icon: <FaAngleDoubleRight />,
+                },
+                {
+                    title: "Vehicle Fee Info",
+                    href: "/Transport/reports/vehicleFeeInfo",
+                    icon: <FaAngleDoubleRight />,
+                },
+                {
+                    title: "Transport Users",
+                    href: "/Transport/reports/transportUsers",
+                    icon: <FaAngleDoubleRight />,
+                },
+                {
+                    title: "All Fuel Filling",
+                    href: "/Transport/reports/all-fuelFilling",
+                    icon: <FaAngleDoubleRight />,
+                },
+                {
+                    title: "PickUp Point Report",
+                    href: "/Transport/reports/pickUpPointReport",
+                    icon: <FaAngleDoubleRight />,
+                },
+            ],
+        },
     ];
     const feeItems = [
         { title: "All Modules", href: "/fees/all-module", icon: <FaAngleDoubleRight /> },
@@ -308,7 +346,7 @@ export default function Sidebar({ isOpen }) {
                         </Accordion.Item>
 
                         {/* Transport */}
-                        <Accordion.Item eventKey="transport">
+                        {/* <Accordion.Item eventKey="transport">
                             <Accordion.Header>
                                 <span style={{ display: "flex", alignItems: "center" }}>
                                     <FaBus style={{ marginRight: (isOpen || sidebarHover) ? "10px" : "0" }} />
@@ -329,7 +367,42 @@ export default function Sidebar({ isOpen }) {
                                     ))}
                                 </ul>
                             </Accordion.Body>
+                        </Accordion.Item> */}
+                        <Accordion.Item eventKey="transport">
+                            <Accordion.Header>
+                                <span style={{ display: "flex", alignItems: "center" }}>
+                                    <FaBus style={{ marginRight: (isOpen || sidebarHover) ? "10px" : "0" }} />
+                                    {(isOpen || sidebarHover) && "Transport"}
+                                </span>
+                            </Accordion.Header>
+                            <Accordion.Body>
+                                <ul style={{ listStyle: "none", paddingLeft: (isOpen || sidebarHover) ? "20px" : "0" }}>
+                                    {transportItems.map((item, index) => (
+                                        <li key={index} style={{ padding: "5px 0" }}>
+                                            <div style={{ display: "flex", alignItems: "center" }}>
+                                                {item.icon}
+                                                <span style={{ marginLeft: "10px", display: (isOpen || sidebarHover) ? "inline" : "none" }}>
+                                                    <Link href={item.href}>{item.title}</Link>
+                                                </span>
+                                            </div>
+                                            {item.children && activeKey === "transport" && (
+                                                <ul style={{ listStyle: "none", paddingLeft: "20px" }}>
+                                                    {item.children.map((child, childIndex) => (
+                                                        <li key={childIndex} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
+                                                            {child.icon}
+                                                            <span style={{ marginLeft: "10px" }}>
+                                                                <Link href={child.href}>{child.title}</Link>
+                                                            </span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            )}
+                                        </li>
+                                    ))}
+                                </ul>
+                            </Accordion.Body>
                         </Accordion.Item>
+
 
                         <Accordion.Item eventKey="fee">
                             <Accordion.Header>
