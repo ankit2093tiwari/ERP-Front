@@ -6,26 +6,19 @@ const Table = ({ columns, data, handlePrint, handleCopy }) => {
   const [records, setRecords] = useState(data);
 
   // Filter data based on search input
-  // function handleFilter(event) {
-  //   const newData = data.filter(row => {
-  //     return row.className.toLowerCase().includes(event.target.value.toLowerCase());
-  //   });
-  //   setRecords(newData);
-  // }
+
   function handleFilter(event) {
     const searchText = event.target.value.toLowerCase();
-  
+
     const newData = data.filter(row =>
       Object.values(row).some(
         value => value && value.toString().toLowerCase().includes(searchText)
       )
     );
-  
+
     setRecords(newData);
   }
-  
 
-  // Custom styles for the table
   const customStyles = {
     headRow: {
       style: {
@@ -46,6 +39,7 @@ const Table = ({ columns, data, handlePrint, handleCopy }) => {
     },
     cells: {
       style: {
+        minHeight: '50px', // 👈 added min-height here
         '&:not(:last-of-type)': {
           borderRightStyle: 'solid',
           borderRightWidth: '1px',

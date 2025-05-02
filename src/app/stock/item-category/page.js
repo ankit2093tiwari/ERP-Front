@@ -2,13 +2,13 @@
 
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { FaPlus, FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
+import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
+import { CgAddR } from "react-icons/cg";
 import {
-  Container,
+  Form,
   Row,
   Col,
-  Breadcrumb,
-  Form,
+  Container,
   FormLabel,
   FormControl,
   Button,
@@ -16,20 +16,81 @@ import {
 } from "react-bootstrap";
 import axios from "axios";
 import Table from "@/app/component/DataTable";
-import { CgAddR } from 'react-icons/cg';
+import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const ItemCategory = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [successMessage, setSuccessMessage] = useState("");
-  const [editId, setEditId] = useState(null);
-  const [updatedCategory, setUpdatedCategory] = useState({});
-  // const [showAddForm, setShowAddForm] = useState(false);
-  const [newCategory, setNewCategory] = useState({ categoryName: "" });
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [editedName, setEditedName] = useState("");
+  const [formData, setFormData] = useState({
+    categoryName: ""
+  });
 
-  // Fetch item categories
+  const columns = [
+    {
+      name: "#",
+      selector: (row, index) => index + 1,
+      width: "80px",
+      sortable: false,
+    },
+    {
+      name: "Category Name",
+      cell: (row) =>
+        editingId === row._id ? (
+          <FormControl
+            type="text"
+            value={editedName}
+            onChange={(e) => setEditedName(e.target.value)}
+          />
+        ) : (
+          row.categoryName || "N/A"
+        ),
+      sortable: true,
+    },
+    {
+      name: "Actions",
+      cell: (row) => (
+        <div className="d-flex gap-2">
+          {editingId === row._id ? (
+            <>
+              <button
+                className="editButton"
+                onClick={() => handleUpdate(row._id)}
+              >
+                <FaSave />
+              </button>
+              <button
+                className="editButton btn-danger"
+                onClick={() => handleDelete(row._id)}
+              >
+                <FaTrashAlt />
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                className="editButton"
+                onClick={() => handleEdit(row)}
+              >
+                <FaEdit />
+              </button>
+              <button
+                className="editButton btn-danger"
+                onClick={() => handleDelete(row._id)}
+              >
+                <FaTrashAlt />
+              </button>
+            </>
+          )}
+        </div>
+      ),
+    },
+  ];
+
   const fetchData = async () => {
     setLoading(true);
     setError("");
@@ -37,195 +98,131 @@ const ItemCategory = () => {
       const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/itemCategories");
       setData(response.data.data || []);
     } catch (err) {
-      console.error(err);
-      setError("Failed to fetch item categories. Please try again.");
+      console.error("Error fetching data:", err);
+      setError("Failed to fetch item categories. Please try again later.");
     } finally {
       setLoading(false);
     }
   };
 
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const onOpen = () => setIsPopoverOpen(true);
-  const onClose = () => setIsPopoverOpen(false);
-
-
-  // Add new category
-  const handleAdd = async () => {
-    if (!newCategory.categoryName.trim()) {
-      alert("Please enter a category name.");
-      return;
-    }
-    setLoading(true);
-    try {
-      const response = await axios.post(
-        "https://erp-backend-fy3n.onrender.com/api/itemCategory",
-        newCategory
-      );
-      setData([...data, response.data]);
-      setNewCategory({ categoryName: "" });
-      setIsPopoverOpen(false);
-      fetchData();
-    } catch (err) {
-      console.error(err);
-      setError("Failed to add category. Please try again.");
-    } finally {
-      setLoading(false);
-    }
+  const handleEdit = (category) => {
+    setEditingId(category._id);
+    setEditedName(category.categoryName);
   };
 
-  // Edit category
-  const handleEdit = (id, categoryName) => {
-    setEditId(id);
-    setUpdatedCategory({ id, categoryName });
-  };
-
-  const handleSave = async (id) => {
-    if (!updatedCategory.categoryName.trim()) return;
-    setLoading(true);
+  const handleUpdate = async (id) => {
     try {
       await axios.put(`https://erp-backend-fy3n.onrender.com/api/itemCategory/${id}`, {
-        categoryName: updatedCategory.categoryName,
+        categoryName: editedName,
       });
-      setData((prevData) =>
-        prevData.map((item) => (item._id === id ? { ...item, categoryName: updatedCategory.categoryName } : item))
-      );
       fetchData();
-      setEditId(null);
-    } catch (err) {
-      console.error(err);
-      setError("Failed to update category. Please try again.");
-    } finally {
-      setLoading(false);
+      setEditingId(null);
+    } catch (error) {
+      console.error("Error updating data:", error);
+      setError("Failed to update category. Please try again later.");
     }
   };
 
-  // Delete category
   const handleDelete = async (id) => {
-    if (!confirm("Are you sure you want to delete this category?")) return;
-
-    setLoading(true);
-    try {
-      await axios.delete(`https://erp-backend-fy3n.onrender.com/api/itemCategory/${id}`);
-      setData((prevData) => prevData.filter((item) => item._id !== id));
-      fetchData();
-    } catch (err) {
-      console.error(err);
-      setError("Failed to delete category. Please try again.");
-    } finally {
-      setLoading(false);
+    if (confirm("Are you sure you want to delete this category?")) {
+      try {
+        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/itemCategory/${id}`);
+        fetchData();
+      } catch (error) {
+        console.error("Error deleting data:", error);
+        setError("Failed to delete category. Please try again later.");
+      }
     }
   };
 
-  const handlePrint = async () => {
-    const { jsPDF } = await import("jspdf");
-    const autoTable = (await import("jspdf-autotable")).default;
+  const handleAdd = async () => {
+    if (formData.categoryName.trim()) {
+      try {
+        const existingCategory = data.find(
+          (category) => category.categoryName === formData.categoryName
+        );
+        if (existingCategory) {
+          setError("Category name already exists.");
+          return;
+        }
 
-    const doc = new jsPDF();
+        await axios.post("https://erp-backend-fy3n.onrender.com/api/itemCategory", {
+          categoryName: formData.categoryName,
+        });
+        fetchData();
+        setFormData({ categoryName: "" });
+        setIsPopoverOpen(false);
+      } catch (error) {
+        console.error("Error adding data:", error);
+        setError("Failed to add category. Please try again later.");
+      }
+    } else {
+      alert("Please enter a valid category name.");
+    }
+  };
+
+  const handlePrint = () => {
     const tableHeaders = [["#", "Category Name"]];
     const tableRows = data.map((row, index) => [
       index + 1,
       row.categoryName || "N/A",
     ]);
-
-    autoTable(doc, {
-      head: tableHeaders,
-      body: tableRows,
-      theme: "grid",
-      styles: { fontSize: 10 },
-      headStyles: { fillColor: [41, 128, 185] },
-    });
-
-    // Open the print dialog instead of directly downloading
-    const pdfBlob = doc.output("blob");
-    const pdfUrl = URL.createObjectURL(pdfBlob);
-    const printWindow = window.open(pdfUrl);
-    printWindow.onload = () => {
-      printWindow.print();
-    };
+    printContent(tableHeaders, tableRows);
   };
 
   const handleCopy = () => {
-    const headers = ["#", "Category Name"].join("\t");
-    const rows = data.map((row, index) => `${index + 1}\t${row.categoryName || "N/A"}`).join("\n");
-    const fullData = `${headers}\n${rows}`;
-
-    navigator.clipboard.writeText(fullData)
-      .then(() => alert("Copied to clipboard!"))
-      .catch(() => alert("Failed to copy table data to clipboard."));
+    const headers = ["#", "Category Name"];
+    const rows = data.map((row, index) =>
+      `${index + 1}\t${row.categoryName || "N/A"}`
+    );
+    copyContent(headers, rows);
   };
 
   useEffect(() => {
     fetchData();
   }, []);
 
-  const columns = [
-    {
-      name: "#",
-      selector: (_, index) => index + 1,
-      sortable: false,
-      width: "80px",
-    },
-    {
-      name: "Category Name",
-      selector: (row) => row.categoryName || "N/A",
-      sortable: true,
-      cell: (row) =>
-        editId === row._id ? (
-          <FormControl
-            type="text"
-            value={updatedCategory.categoryName}
-            onChange={(e) => setUpdatedCategory({ ...updatedCategory, categoryName: e.target.value })}
-          />
-        ) : (
-          row.categoryName
-        ),
-    },
-    {
-      name: "Actions",
-      cell: (row) => (
-        <div className="d-flex gap-2">
-          {editId === row._id ? (
-            <button className="editButton" onClick={() => handleSave(row._id)}>
-              <FaSave />
-            </button>
-          ) : (
-            <button className="editButton" onClick={() => handleEdit(row._id, row.categoryName)}>
-              <FaEdit />
-            </button>
-          )}
-          <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
-            <FaTrashAlt />
-          </button>
-        </div>
-      ),
-    },
+  const breadcrumbItems = [
+    { label: "Stock", link: "/stock/all-module" },
+    { label: "Item Category", link: "null" },
   ];
-  const breadcrumbItems = [{ label: "Stock", link: "/stock/all-module" }, { label: "Item Category", link: "null" }]
+
   return (
-<>
-    <div className="breadcrumbSheet position-relative">
-      <Container>
-        <Row className="mt-1 mb-1">
-          <Col>
-          <BreadcrumbComp items={breadcrumbItems} />
-          </Col>
-        </Row>
-      </Container>
-    </div>
-     
-  <section>
-    <Container>
-    { successMessage && <Alert variant="success">{successMessage}</Alert> }
-    { error && <Alert variant="danger">{error}</Alert> }
-      <Row>
-        <Col>
-          <Button onClick={onOpen} className="btn-add">
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
+      </div>
+
+      <section>
+        <Container>
+          {error && <Alert variant="danger">{error}</Alert>}
+          
+          <Button
+            onClick={() => setIsPopoverOpen(true)}
+            className="btn-add"
+          >
             <CgAddR /> Add Category
           </Button>
+
           {isPopoverOpen && (
             <div className="cover-sheet">
-              <div className="studentHeading"><h2>Add Category</h2>
-                <button className='closeForm' onClick={onClose}> X </button>
+              <div className="studentHeading">
+                <h2>Add New Category</h2>
+                <button
+                  className="closeForm"
+                  onClick={() => {
+                    setIsPopoverOpen(false);
+                    setError("");
+                  }}
+                >
+                  X
+                </button>
               </div>
               <Form className="formSheet">
                 <Row className="mb-3">
@@ -234,47 +231,39 @@ const ItemCategory = () => {
                     <FormControl
                       type="text"
                       placeholder="Enter Category Name"
-                      value={newCategory.categoryName}
+                      value={formData.categoryName}
                       onChange={(e) =>
-                        setNewCategory({
-                          ...newCategory,
-                          categoryName: e.target.value,
-                        })
+                        setFormData({ categoryName: e.target.value })
                       }
                     />
                   </Col>
                 </Row>
-                <Row>
-                  <Col>
-                    <Button onClick={handleAdd} className="btn btn-primary mt-4">
-                      Add Category
-                    </Button>
-                  </Col>
-                </Row>
+                <Button onClick={handleAdd} className="btn btn-primary">
+                  Add Category
+                </Button>
               </Form>
             </div>
           )}
-        </Col>
-      </Row>
 
-      <Row>
-        <Col>
           <div className="tableSheet">
             <h2>Item Categories</h2>
             {loading ? (
               <p>Loading...</p>
-            ) : data.length > 0 ? (
-              <Table columns={columns} data={data} handleCopy={handleCopy} handlePrint={handlePrint} />
+            ) : error ? (
+              <p style={{ color: "red" }}>{error}</p>
             ) : (
-              <p>No categories available.</p>
+              <Table
+                columns={columns}
+                data={data}
+                handleCopy={handleCopy}
+                handlePrint={handlePrint}
+              />
             )}
           </div>
-        </Col>
-      </Row>
-    </Container>
-    </section>
+        </Container>
+      </section>
     </>
-    );
+  );
 };
 
-export default dynamic(() => Promise.resolve(ItemCategory), {ssr: false });
+export default dynamic(() => Promise.resolve(ItemCategory), { ssr: false });

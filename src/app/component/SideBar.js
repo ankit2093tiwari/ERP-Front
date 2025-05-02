@@ -156,6 +156,39 @@ export default function Sidebar({ isOpen }) {
         { title: "Return Item", href: "/stock/return-item", icon: <FaAngleDoubleRight /> },
         { title: "Write Off Entry", href: "/stock/write-off-entry", icon: <FaAngleDoubleRight /> },
         { title: "Generate Gate Pass", href: "/stock/generate-gate-pass", icon: <FaAngleDoubleRight /> },
+        {
+            title: "Reports",
+            href: "/stock/reports/all-reports",
+            icon: <FaFileAlt />,
+            isOpen: true,
+            children: [
+                {
+                    title: "All Reports",
+                    href: "/stock/reports/all-reports",
+                    icon: <FaAngleDoubleRight />,
+                },
+                {
+                    title: "All Item Details",
+                    href: "/stock/reports/all-itemDetails",
+                    icon: <FaAngleDoubleRight />,
+                },
+                {
+                    title: "Vendor Details",
+                    href: "/stock/reports/vendorDatabase",
+                    icon: <FaAngleDoubleRight />,
+                },
+                {
+                    title: "Quotation Details",
+                    href: "/stock/reports/quotationDetails",
+                    icon: <FaAngleDoubleRight />,
+                },
+                {
+                    title: "Purchase Order Details",
+                    href: "/stock/reports/purchaseOrderDetails",
+                    icon: <FaAngleDoubleRight />,
+                },
+            ],
+        },
     ];
     const accountItems = [
         { title: "All Modules", href: "/accounts/all-module", icon: <FaAngleDoubleRight /> },
@@ -345,29 +378,6 @@ export default function Sidebar({ isOpen }) {
                             </Accordion.Body>
                         </Accordion.Item>
 
-                        {/* Transport */}
-                        {/* <Accordion.Item eventKey="transport">
-                            <Accordion.Header>
-                                <span style={{ display: "flex", alignItems: "center" }}>
-                                    <FaBus style={{ marginRight: (isOpen || sidebarHover) ? "10px" : "0" }} />
-                                    {(isOpen || sidebarHover) && "Transport"}
-                                </span>
-                            </Accordion.Header>
-                            <Accordion.Body>
-                                <ul style={{ listStyle: "none", paddingLeft: (isOpen || sidebarHover) ? "20px" : "0" }}>
-                                    {transportItems.map((item, index) => (
-                                        <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
-                                            {item.icon}
-                                            <span style={{ display: (isOpen || sidebarHover) ? "inline" : "none" }}>
-                                                <Link href={item.href}>
-                                                    {item.title}
-                                                </Link>
-                                            </span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </Accordion.Body>
-                        </Accordion.Item> */}
                         <Accordion.Item eventKey="transport">
                             <Accordion.Header>
                                 <span style={{ display: "flex", alignItems: "center" }}>
@@ -402,7 +412,6 @@ export default function Sidebar({ isOpen }) {
                                 </ul>
                             </Accordion.Body>
                         </Accordion.Item>
-
 
                         <Accordion.Item eventKey="fee">
                             <Accordion.Header>
@@ -448,28 +457,42 @@ export default function Sidebar({ isOpen }) {
                                 </ul>
                             </Accordion.Body>
                         </Accordion.Item>
+
                         <Accordion.Item eventKey="stock">
                             <Accordion.Header>
                                 <span style={{ display: "flex", alignItems: "center" }}>
-                                    <FaBoxOpen style={{ marginRight: isOpen || activeKey ? "10px" : "0" }} />
-                                    {(isOpen || activeKey) && "Stock"}
+                                    <FaBoxOpen style={{ marginRight: (isOpen || sidebarHover) ? "10px" : "0" }} />
+                                    {(isOpen || sidebarHover) && "Stock"}
                                 </span>
                             </Accordion.Header>
                             <Accordion.Body>
-                                <ul style={{ listStyle: "none", paddingLeft: isOpen || activeKey ? "20px" : "0" }}>
+                                <ul style={{ listStyle: "none", paddingLeft: (isOpen || sidebarHover) ? "20px" : "0" }}>
                                     {stockItems.map((item, index) => (
-                                        <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
-                                            {item.icon}
-                                            <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>
-                                                <Link href={item.href}>
-                                                    {item.title}
-                                                </Link>
-                                            </span>
+                                        <li key={index} style={{ padding: "5px 0" }}>
+                                            <div style={{ display: "flex", alignItems: "center" }}>
+                                                {item.icon}
+                                                <span style={{ marginLeft: "10px", display: (isOpen || sidebarHover) ? "inline" : "none" }}>
+                                                    <Link href={item.href}>{item.title}</Link>
+                                                </span>
+                                            </div>
+                                            {item.children && activeKey === "stock" && (
+                                                <ul style={{ listStyle: "none", paddingLeft: "20px" }}>
+                                                    {item.children.map((child, childIndex) => (
+                                                        <li key={childIndex} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
+                                                            {child.icon}
+                                                            <span style={{ marginLeft: "10px" }}>
+                                                                <Link href={child.href}>{child.title}</Link>
+                                                            </span>
+                                                        </li>
+                                                    ))}
+                                                </ul>
+                                            )}
                                         </li>
                                     ))}
                                 </ul>
                             </Accordion.Body>
                         </Accordion.Item>
+
                         <Accordion.Item eventKey="account">
                             <Accordion.Header>
                                 <span style={{ display: "flex", alignItems: "center" }}>

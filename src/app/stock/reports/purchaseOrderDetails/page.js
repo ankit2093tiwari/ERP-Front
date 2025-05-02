@@ -45,8 +45,13 @@ const QuotationMaster = () => {
       sortable: true,
     },
     {
-      name: 'Price/Unit',
+      name: 'Quotation Price/Unit',
       selector: row => row.pricePerUnit ? `₹${row.pricePerUnit}` : 'N/A',
+      sortable: true,
+    },
+    {
+      name: 'Quotation No',
+      selector: row => row.quotationNo || 'N/A',
       sortable: true,
     },
     {
@@ -98,7 +103,7 @@ const QuotationMaster = () => {
 
   const breadcrumbItems = [
     { label: "Stock", link: "/stock/all-module" },
-    { label: "Purchase Master", link: "null" }
+    { label: "Purchase Order Details", link: "null" }
   ];
 
   return (
@@ -118,7 +123,7 @@ const QuotationMaster = () => {
           {error && <Alert variant="danger">{error}</Alert>}
 
           <div className="tableSheet">
-            <h2>Purchase List</h2>
+            <h2>Purchase Order Records</h2>
             {loading ? (
               <p>Loading...</p>
             ) : error ? (

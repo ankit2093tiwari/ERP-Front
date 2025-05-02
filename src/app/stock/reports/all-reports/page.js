@@ -10,34 +10,16 @@ import BreadcrumbComp from "@/app/component/Breadcrumb";
 const Page = () => {
     const cardData = [
         {
-            href: "/Transport/reports/all-transportInfo",
+            href: "/stock/reports/all-itemDetails",
             icon: <Image src="/module/student/studentListwizard.png" className="studentIcon" width={100} height={100} alt="" />,
-            title: "All Transport Info",
-            description: "Check All Details of Transport",
+            title: "All Item Details",
+            description: "Check All Details Of Item",
         },
         {
-            href: "/Transport/reports/vehicleFeeInfo",
+            href: "/stock/reports/vendorDatabase",
             icon: <Image src="/module/student/studentListwizard.png" className="studentIcon" width={100} height={100} alt="" />,
-            title: "Vehicle Fee Info",
-            description: "Check All Details of Transport",
-        },
-        {
-            href: "/Transport/reports/transportUsers",
-            icon: <Image src="/module/student/studentListwizard.png" className="studentIcon" width={100} height={100} alt="" />,
-            title: "Transport Users",
-            description: "Check All Details of Transport",
-        },
-        {
-            href: "/Transport/reports/all-fuelFilling",
-            icon: <Image src="/module/student/studentListwizard.png" className="studentIcon" width={100} height={100} alt="" />,
-            title: "All Fuel Filling",
-            description: "Check All Details of Transport",
-        },
-        {
-            href: "/Transport/reports/pickUpPointReport",
-            icon: <Image src="/module/student/studentListwizard.png" className="studentIcon" width={100} height={100} alt="" />,
-            title: "PickUp Point Report",
-            description: "Check All Details of Transport",
+            title: "Vendor Details",
+            description: "Check All Details Of Vendor",
         },
     ];
 
@@ -57,7 +39,7 @@ const Page = () => {
             <section>
                 <Container>
                     <div className="studentHeading">
-                        <h2>Transport Reports</h2>
+                        <h2>Stock Reports</h2>
                         <small>Manage your basic details....</small>
                     </div>
                     <div className="cardContainer">
