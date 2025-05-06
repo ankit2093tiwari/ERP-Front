@@ -1,42 +1,90 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import Table from "@/app/component/DataTable";
-import { FaEdit, FaTrashAlt } from "react-icons/fa";
-import { CgAddR } from 'react-icons/cg';
-import { Form, Row, Col, Container, FormLabel, FormControl, Button } from "react-bootstrap";
+import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
+import { CgAddR } from "react-icons/cg";
+import {
+  Form,
+  Row,
+  Col,
+  Container,
+  FormLabel,
+  FormControl,
+  Button,
+  Alert,
+} from "react-bootstrap";
 import axios from "axios";
+import Table from "@/app/component/DataTable";
+import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const AddCheckUp = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [newCheckUpType, setNewCheckUpType] = useState("");
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [editedName, setEditedName] = useState("");
+  const [formData, setFormData] = useState({
+    check_up_type: ""
+  });
 
   const columns = [
     {
       name: "#",
       selector: (row, index) => index + 1,
-      sortable: false,
       width: "80px",
+      sortable: false,
     },
     {
       name: "Check-Up Type",
-      selector: (row) => row.check_up_type || "N/A",
+      cell: (row) =>
+        editingId === row._id ? (
+          <FormControl
+            type="text"
+            value={editedName}
+            onChange={(e) => setEditedName(e.target.value)}
+          />
+        ) : (
+          row.check_up_type || "N/A"
+        ),
       sortable: true,
     },
     {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
-          <button className="editButton" onClick={() => handleEdit(row._id)}>
-            <FaEdit />
-          </button>
-          <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
-            <FaTrashAlt />
-          </button>
+          {editingId === row._id ? (
+            <>
+              <button
+                className="editButton"
+                onClick={() => handleUpdate(row._id)}
+              >
+                <FaSave />
+              </button>
+              <button
+                className="editButton btn-danger"
+                onClick={() => handleDelete(row._id)}
+              >
+                <FaTrashAlt />
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                className="editButton"
+                onClick={() => handleEdit(row)}
+              >
+                <FaEdit />
+              </button>
+              <button
+                className="editButton btn-danger"
+                onClick={() => handleDelete(row._id)}
+              >
+                <FaTrashAlt />
+              </button>
+            </>
+          )}
         </div>
       ),
     },
@@ -49,46 +97,28 @@ const AddCheckUp = () => {
       const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/checkup-types");
       setData(response.data.data || []);
     } catch (err) {
-      setError("Failed to fetch check-up types.");
+      console.error("Error fetching data:", err);
+      setError("Failed to fetch check-up types. Please try again later.");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleAdd = async () => {
-    if (newCheckUpType.trim()) {
-      try {
-        const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/checkup-types", {
-          check_up_type: newCheckUpType,
-        });
-        setData((prevData) => [...prevData, response.data]);
-        setNewCheckUpType("");
-        setShowAddForm(false);
-      } catch (error) {
-        setError("Failed to add check-up type.");
-      }
-    } else {
-      alert("Please enter a valid check-up type.");
-    }
+  const handleEdit = (checkUp) => {
+    setEditingId(checkUp._id);
+    setEditedName(checkUp.check_up_type);
   };
 
-  const handleEdit = async (id) => {
-    const item = data.find((row) => row._id === id);
-    const updatedName = prompt("Enter new check-up type:", item?.check_up_type || "");
-    
-    if (updatedName) {
-      try {
-        await axios.put(`https://erp-backend-fy3n.onrender.com/api/checkup-types/${id}`, {
-          check_up_type: updatedName,
-        });
-        setData((prevData) =>
-          prevData.map((row) =>
-            row._id === id ? { ...row, check_up_type: updatedName } : row
-          )
-        );
-      } catch (error) {
-        setError("Failed to update check-up type.");
-      }
+  const handleUpdate = async (id) => {
+    try {
+      await axios.put(`https://erp-backend-fy3n.onrender.com/api/checkup-types/${id}`, {
+        check_up_type: editedName,
+      });
+      fetchData();
+      setEditingId(null);
+    } catch (error) {
+      console.error("Error updating data:", error);
+      setError("Failed to update check-up type. Please try again later.");
     }
   };
 
@@ -96,11 +126,55 @@ const AddCheckUp = () => {
     if (confirm("Are you sure you want to delete this check-up type?")) {
       try {
         await axios.delete(`https://erp-backend-fy3n.onrender.com/api/checkup-types/${id}`);
-        setData((prevData) => prevData.filter((row) => row._id !== id));
+        fetchData();
       } catch (error) {
-        setError("Failed to delete check-up type.");
+        console.error("Error deleting data:", error);
+        setError("Failed to delete check-up type. Please try again later.");
       }
     }
+  };
+
+  const handleAdd = async () => {
+    if (formData.check_up_type.trim()) {
+      try {
+        const existingCheckUp = data.find(
+          (checkUp) => checkUp.check_up_type === formData.check_up_type
+        );
+        if (existingCheckUp) {
+          setError("Check-up type already exists.");
+          return;
+        }
+
+        await axios.post("https://erp-backend-fy3n.onrender.com/api/checkup-types", {
+          check_up_type: formData.check_up_type,
+        });
+        fetchData();
+        setFormData({ check_up_type: "" });
+        setIsPopoverOpen(false);
+      } catch (error) {
+        console.error("Error adding data:", error);
+        setError("Failed to add check-up type. Please try again later.");
+      }
+    } else {
+      alert("Please enter a valid check-up type.");
+    }
+  };
+
+  const handlePrint = () => {
+    const tableHeaders = [["#", "Check-Up Type"]];
+    const tableRows = data.map((row, index) => [
+      index + 1,
+      row.check_up_type || "N/A",
+    ]);
+    printContent(tableHeaders, tableRows);
+  };
+
+  const handleCopy = () => {
+    const headers = ["#", "Check-Up Type"];
+    const rows = data.map((row, index) =>
+      `${index + 1}\t${row.check_up_type || "N/A"}`
+    );
+    copyContent(headers, rows);
   };
 
   useEffect(() => {
@@ -108,8 +182,8 @@ const AddCheckUp = () => {
   }, []);
 
   const breadcrumbItems = [
-    { label: "Medical", link: "/medical/all-module" }, 
-    { label: "Add CheckUp Type", link: "null" }
+    { label: "Medical", link: "/medical/all-module" },
+    { label: "Add CheckUp Type", link: "null" },
   ];
 
   return (
@@ -123,44 +197,67 @@ const AddCheckUp = () => {
           </Row>
         </Container>
       </div>
+
       <section>
         <Container>
-          <Button onClick={() => setShowAddForm(true)} className="btn-add">
+          {error && <Alert variant="danger">{error}</Alert>}
+          
+          <Button
+            onClick={() => setIsPopoverOpen(true)}
+            className="btn-add"
+          >
             <CgAddR /> Add Check-Up Type
           </Button>
-          
-          {showAddForm && (
+
+          {isPopoverOpen && (
             <div className="cover-sheet">
               <div className="studentHeading">
-                <h2>Add Check-Up Type</h2>
-                <button className="closeForm" onClick={() => setShowAddForm(false)}>
+                <h2>Add New Check-Up Type</h2>
+                <button
+                  className="closeForm"
+                  onClick={() => {
+                    setIsPopoverOpen(false);
+                    setError("");
+                  }}
+                >
                   X
                 </button>
               </div>
               <Form className="formSheet">
-                <Row>
-                  <Col lg={12}>
+                <Row className="mb-3">
+                  <Col lg={6}>
                     <FormLabel className="labelForm">Check-Up Type</FormLabel>
                     <FormControl
                       type="text"
                       placeholder="Enter Check-Up Type"
-                      value={newCheckUpType}
-                      onChange={(e) => setNewCheckUpType(e.target.value)}
+                      value={formData.check_up_type}
+                      onChange={(e) =>
+                        setFormData({ check_up_type: e.target.value })
+                      }
                     />
                   </Col>
                 </Row>
-                <Button onClick={handleAdd} className="btn btn-primary mt-3">
+                <Button onClick={handleAdd} className="btn btn-primary">
                   Add Check-Up Type
                 </Button>
               </Form>
             </div>
           )}
 
-          <div className="tableSheet mt-4">
+          <div className="tableSheet">
             <h2>Check-Up Type Records</h2>
-            {loading && <p>Loading...</p>}
-            {error && <p>{error}</p>}
-            {!loading && !error && <Table columns={columns} data={data} />}
+            {loading ? (
+              <p>Loading...</p>
+            ) : error ? (
+              <p style={{ color: "red" }}>{error}</p>
+            ) : (
+              <Table
+                columns={columns}
+                data={data}
+                handleCopy={handleCopy}
+                handlePrint={handlePrint}
+              />
+            )}
           </div>
         </Container>
       </section>

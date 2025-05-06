@@ -7,49 +7,36 @@ import axios from "axios";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const AddNotice = () => {
-  const [newNotice, setNewNotice] = useState({ date: "", short_text: "", image: null });
+  const [newNotice, setNewNotice] = useState({
+    short_text: "",
+    image: null
+  });
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
 
   const handleAdd = async () => {
-    // Validation for all fields
-    if (!newNotice.date) {
-      setError("Date field is required.");
-      setSuccessMessage("");
-      return;
-    }
-    if (!newNotice.short_text) {
-      setError("Short text field is required.");
-      setSuccessMessage("");
-      return;
-    }
-    if (!newNotice.image) {
-      setError("Image field is required.");
-      setSuccessMessage("");
-      return;
-    }
-
     const formData = new FormData();
-    formData.append("date", newNotice.date);
-    formData.append("short_text", newNotice.short_text);
-    formData.append("image", newNotice.image);
+
+    // Only append fields that have values
+    if (newNotice.short_text) formData.append("short_text", newNotice.short_text);
+    if (newNotice.image) formData.append("image", newNotice.image);
 
     try {
       await axios.post("https://erp-backend-fy3n.onrender.com/api/notices", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      setNewNotice({ date: "", short_text: "", image: null });
+      setNewNotice({ short_text: "", image: null });
       setSuccessMessage("Notice added successfully!");
       setError("");
     } catch (error) {
       console.error("Error adding notice:", error);
-      setError("Failed to add notice.");
+      setError(error.response?.data?.message || "Failed to add notice.");
       setSuccessMessage("");
     }
   };
 
   const breadcrumbItems = [
-    { label: "Notice", link: "/notice/all-module" }, 
+    { label: "Notice", link: "/notice/all-module" },
     { label: "Add Notice", link: "null" }
   ];
 
@@ -82,11 +69,10 @@ const AddNotice = () => {
                   />
                 </Col>
                 <Col lg={6}>
-                  <FormLabel className="labelForm">Short Text</FormLabel>
+                  <FormLabel className="labelForm">Short Text (Optional)</FormLabel>
                   <FormControl
                     as="textarea"
-                    rows={1}
-                    required
+                    rows={3}
                     value={newNotice.short_text}
                     onChange={(e) => setNewNotice({ ...newNotice, short_text: e.target.value })}
                   />
@@ -95,11 +81,10 @@ const AddNotice = () => {
               <Row className="mt-3">
                 <Col lg={12}>
                   <FormLabel className="labelForm">
-                    Image (Format Support: jpeg, jpg, png, gif)
+                    Image (Optional - Format Support: jpeg, jpg, png, gif)
                   </FormLabel>
                   <FormControl
                     type="file"
-                    required
                     name="file"
                     onChange={(e) => setNewNotice({ ...newNotice, image: e.target.files[0] })}
                   />

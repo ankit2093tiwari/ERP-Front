@@ -30,20 +30,20 @@ const QuotationMaster = () => {
       sortable: true,
     },
     {
-      name: 'Vendor',
-      cell: row => (
-        <div>
-          <strong>{row.vendorName?.organizationName || 'N/A'}</strong>
-          {row.vendorName?.contactPersonName && (
-            <div className="text-muted small">{row.vendorName.contactPersonName}</div>
-          )}
-          {row.vendorName?.contactNumber && (
-            <div className="text-muted small">{row.vendorName.contactNumber}</div>
-          )}
-        </div>
-      ),
-      sortable: true,
-    },
+        name: 'Vendor',
+        cell: row => (
+          <div>
+            <strong>{row.vendorName?.organizationName || 'N/A'}</strong>
+            {row.vendorName?.contactPersonName && (
+              <div className="text-muted small">{row.vendorName.contactPersonName}</div>
+            )}
+            {row.vendorName?.contactNumber && (
+              <div className="text-muted small">{row.vendorName.contactNumber}</div>
+            )}
+          </div>
+        ),
+        sortable: true,
+      },
     {
       name: 'Quotation Price/Unit',
       selector: row => row.pricePerUnit ? `₹${row.pricePerUnit}` : 'N/A',

@@ -19,8 +19,8 @@ const QuotationMaster = () => {
   const [editingId, setEditingId] = useState(null);
   const [itemCategories, setItemCategories] = useState([]);
   const [vendors, setVendors] = useState([]);
-  const [items, setItems] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]);
+  const [allItems, setAllItems] = useState([]);
 
   const [formData, setFormData] = useState({
     itemCategory: '',
@@ -49,64 +49,11 @@ const QuotationMaster = () => {
       width: '80px',
       sortable: false,
     },
-    // {
-    //   name: 'Item',
-    //   cell: (row) => (
-    //     <div>
-    //       {editingId === row._id ? (
-    //         <>
-    //           <FormSelect
-    //             value={editedData.itemCategory || ''}
-    //             onChange={(e) => {
-    //               const newCategory = e.target.value;
-    //               setEditedData({
-    //                 ...editedData,
-    //                 itemCategory: newCategory,
-    //                 itemName: ''
-    //               });
-    //             }}
-    //             required
-    //             className="mb-2"
-    //           >
-    //             <option value="">Select Category</option>
-    //             {itemCategories.map(category => (
-    //               <option key={category._id} value={category._id}>
-    //                 {category.categoryName}
-    //               </option>
-    //             ))}
-    //           </FormSelect>
-    //           <FormSelect
-    //             value={editedData.itemName || ''}
-    //             onChange={(e) => setEditedData({...editedData, itemName: e.target.value})}
-    //             required
-    //             disabled={!editedData.itemCategory}
-    //           >
-    //             <option value="">Select Item</option>
-    //             {items
-    //               .filter(item => item.itemCategory?._id === editedData.itemCategory || item.itemCategory === editedData.itemCategory)
-    //               .map(item => (
-    //                 <option key={item._id} value={item._id}>
-    //                   {item.itemName}
-    //                 </option>
-    //               ))}
-    //           </FormSelect>
-    //         </>
-    //       ) : (
-    //         <div>
-    //           <strong>{row.itemName?.itemName || row.itemName || 'N/A'}</strong>
-    //           <div className="text-muted small">
-    //             {row.itemCategory?.categoryName || 'N/A'}
-    //           </div>
-    //         </div>
-    //       )}
-    //     </div>
-    //   ),
-    //   sortable: true,
-    // },
     {
       name: 'Item Name',
-      cell: (row) =>
-        editingId === row._id ? (
+      cell: (row) => {
+        const item = allItems.find(i => i._id === row.itemName) || {};
+        return editingId === row._id ? (
           <FormSelect
             value={editedData.itemName || ''}
             onChange={(e) => setEditedData({ ...editedData, itemName: e.target.value })}
@@ -114,17 +61,16 @@ const QuotationMaster = () => {
             disabled={!editedData.itemCategory}
           >
             <option value="">Select Item</option>
-            {items
-              .filter(item => item.itemCategory?._id === editedData.itemCategory || item.itemCategory === editedData.itemCategory)
-              .map(item => (
-                <option key={item._id} value={item._id}>
-                  {item.itemName}
-                </option>
-              ))}
+            {filteredItems.map(item => (
+              <option key={item._id} value={item._id}>
+                {item.itemName}
+              </option>
+            ))}
           </FormSelect>
         ) : (
-          row.itemName?.itemName || row.itemName || 'N/A'
-        ),
+          item.itemName || 'N/A'
+        );
+      },
       sortable: true,
     },
     {
@@ -140,6 +86,7 @@ const QuotationMaster = () => {
                 itemCategory: newCategory,
                 itemName: ''
               });
+              fetchItemsByCategory(newCategory);
             }}
             required
           >
@@ -199,7 +146,7 @@ const QuotationMaster = () => {
               step="0.01"
             />
           ) : (
-            row.pricePerUnit ? `₹${row.pricePerUnit}` : 'N/A'
+            row.pricePerUnit ? `${parseFloat(row.pricePerUnit).toFixed(2)}` : 'N/A'
           )}
         </div>
       ),
@@ -223,37 +170,45 @@ const QuotationMaster = () => {
       ),
       sortable: true,
     },
-    {
-      name: 'Date',
-      cell: (row) => (
-        <div>
-          {editingId === row._id ? (
-            <DatePicker
-              selected={editedData.date ? new Date(editedData.date) : new Date()}
-              onChange={(date) => setEditedData({ ...editedData, date })}
-              dateFormat="dd/MM/yyyy"
-              className="form-control"
-            />
-          ) : (
-            row.date ? new Date(row.date).toLocaleDateString() : 'N/A'
-          )}
-        </div>
-      ),
-      sortable: true,
-    },
+    // {
+    //   name: 'Date',
+    //   cell: (row) => {
+    //     const date = row.date ? new Date(row.date) : null;
+    //     return (
+    //       <div>
+    //         {editingId === row._id ? (
+    //           <DatePicker
+    //             selected={editedData.date ? new Date(editedData.date) : new Date()}
+    //             onChange={(date) => setEditedData({ ...editedData, date })}
+    //             dateFormat="dd/MM/yyyy"
+    //             className="form-control"
+    //           />
+    //         ) : (
+    //           date ? date.toLocaleDateString('en-GB') : 'N/A'
+    //         )}
+    //       </div>
+    //     );
+    //   },
+    //   sortable: true,
+    // },
     {
       name: 'Actions',
       cell: (row) => (
         <div className="d-flex gap-2">
           {editingId === row._id ? (
             <>
-
+              <Button variant="success" size="sm" onClick={() => handleUpdate(row._id)}>
+                <FaSave /> Save
+              </Button>
+              <Button variant="secondary" size="sm" onClick={() => setEditingId(null)}>
+                <FaTimes /> Cancel
+              </Button>
             </>
           ) : (
             <>
-              <button className="editButton" onClick={() => handlePurchase(row._id)}>
+              <Button variant="info" size="sm" onClick={() => handlePurchase(row._id)}>
                 Purchase
-              </button>
+              </Button>
             </>
           )}
         </div>
@@ -293,26 +248,43 @@ const QuotationMaster = () => {
     }
   };
 
-  const fetchItems = async () => {
+  const fetchAllItems = async () => {
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/items");
-      setItems(response.data.data || []);
+      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/itemMasters");
+      setAllItems(response.data.data || []);
     } catch (err) {
-      console.error("Error fetching items:", err);
+      console.error("Error fetching all items:", err);
+    }
+  };
+
+  const fetchItemsByCategory = async (categoryId) => {
+    try {
+      if (!categoryId) {
+        setFilteredItems([]);
+        return;
+      }
+      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/items-by-category/${categoryId}`);
+      setFilteredItems(response.data.data || []);
+    } catch (err) {
+      console.error("Error fetching items by category:", err);
+      setFilteredItems([]);
     }
   };
 
   const handleEdit = (quotation) => {
     setEditingId(quotation._id);
     setEditedData({
-      itemCategory: quotation.itemCategory?._id || quotation.itemCategory || '',
-      itemName: quotation.itemName?._id || quotation.itemName || '',
+      itemCategory: quotation.itemCategory || '',
+      itemName: quotation.itemName || '',
       pricePerUnit: quotation.pricePerUnit || '',
-      vendorName: quotation.vendorName?._id || quotation.vendorName || '',
+      vendorName: quotation.vendorName || '',
       quotationNo: quotation.quotationNo || '',
       remarks: quotation.remarks || '',
-      date: quotation.date ? new Date(quotation.date) : new Date()
+      // date: quotation.date ? new Date(quotation.date) : new Date()
     });
+    if (quotation.itemCategory) {
+      fetchItemsByCategory(quotation.itemCategory);
+    }
   };
 
   const handleUpdate = async (id) => {
@@ -387,32 +359,47 @@ const QuotationMaster = () => {
       setFormData({
         ...formData,
         itemCategory: value,
-        itemName: '' // Reset itemName when category changes
+        itemName: ''
       });
+      fetchItemsByCategory(value);
     } else {
       setFormData({ ...formData, [name]: value });
     }
   };
 
   const handlePrint = () => {
-    const tableHeaders = [["#", "Item", "Category", "Vendor", "Price/Unit", "Quotation No", "Date"]];
-    const tableRows = data.map((row, index) => [
-      index + 1,
-      row.itemName?.itemName || row.itemName || "N/A",
-      row.itemCategory?.categoryName || "N/A",
-      row.vendorName?.organizationName || "N/A",
-      row.pricePerUnit ? `₹${row.pricePerUnit}` : "N/A",
-      row.quotationNo || "N/A",
-      row.date ? new Date(row.date).toLocaleDateString() : "N/A"
-    ]);
+    const tableHeaders = [["#", "Item Name", "Item Category", "Vendor", "Quotation Price/Unit", "Quotation No", "Actions"]];
+    const tableRows = data.map((row, index) => {
+      // Find the actual item, category, and vendor objects
+      const item = allItems.find(i => i._id === row.itemName) || {};
+      const category = itemCategories.find(c => c._id === row.itemCategory) || {};
+      const vendor = vendors.find(v => v._id === row.vendorName) || {};
+      // const date = row.date ? new Date(row.date) : null;
+  
+      return [
+        index + 1,
+        item.itemName || row.itemName || 'N/A',
+        category.categoryName || row.itemCategory?.categoryName || row.itemCategory || 'N/A',
+        vendor.organizationName || row.vendorName?.organizationName || row.vendorName || 'N/A',
+        row.pricePerUnit ? `${parseFloat(row.pricePerUnit).toFixed(2)}` : 'N/A',
+        row.quotationNo || 'N/A',
+        // date ? date.toLocaleDateString('en-GB') : 'N/A',
+        "Purchase"
+      ];
+    });
     printContent(tableHeaders, tableRows);
   };
-
+  
   const handleCopy = () => {
-    const headers = ["#", "Item", "Category", "Vendor", "Price/Unit", "Quotation No", "Date"];
-    const rows = data.map((row, index) =>
-      `${index + 1}\t${row.itemName?.itemName || row.itemName || "N/A"}\t${row.itemCategory?.categoryName || "N/A"}\t${row.vendorName?.organizationName || "N/A"}\t${row.pricePerUnit ? `₹${row.pricePerUnit}` : "N/A"}\t${row.quotationNo || "N/A"}\t${row.date ? new Date(row.date).toLocaleDateString() : "N/A"}`
-    );
+    const headers = ["#", "Item Name", "Item Category", "Vendor", "Quotation Price/Unit", "Quotation No",  "Actions"];
+    const rows = data.map((row, index) => {
+      const item = allItems.find(i => i._id === row.itemName) || {};
+      const category = itemCategories.find(c => c._id === row.itemCategory) || {};
+      const vendor = vendors.find(v => v._id === row.vendorName) || {};
+      const date = row.date ? new Date(row.date) : null;
+  
+      return `${index + 1}\t${item.itemName || row.itemName || 'N/A'}\t${category.categoryName || row.itemCategory?.categoryName || row.itemCategory || 'N/A'}\t${vendor.organizationName || row.vendorName?.organizationName || row.vendorName || 'N/A'}\t${row.pricePerUnit ? `${parseFloat(row.pricePerUnit).toFixed(2)}` : 'N/A'}\t${row.quotationNo || 'N/A'}\tPurchase`;
+    });
     copyContent(headers, rows);
   };
 
@@ -420,7 +407,7 @@ const QuotationMaster = () => {
     fetchData();
     fetchItemCategories();
     fetchVendors();
-    fetchItems();
+    fetchAllItems();
   }, []);
 
   const breadcrumbItems = [
@@ -490,13 +477,11 @@ const QuotationMaster = () => {
                         required
                       >
                         <option value="">Select Item</option>
-                        {items
-                          .filter(item => item.itemCategory?._id === formData.itemCategory || item.itemCategory === formData.itemCategory)
-                          .map(item => (
-                            <option key={item._id} value={item._id}>
-                              {item.itemName}
-                            </option>
-                          ))}
+                        {filteredItems.map(item => (
+                          <option key={item._id} value={item._id}>
+                            {item.itemName}
+                          </option>
+                        ))}
                       </FormSelect>
                     ) : (
                       <FormControl
@@ -551,18 +536,7 @@ const QuotationMaster = () => {
                       type="text"
                     />
                   </FormGroup>
-                  <FormGroup as={Col} md="6" controlId="date">
-                    <FormLabel className="labelForm">Date</FormLabel>
-                    <DatePicker
-                      selected={formData.date}
-                      onChange={(date) => setFormData({ ...formData, date })}
-                      dateFormat="dd/MM/yyyy"
-                      className="form-control"
-                    />
-                  </FormGroup>
-                </Row>
-                <Row className='mb-3'>
-                  <FormGroup as={Col} md="12" controlId="remarks">
+                  <FormGroup as={Col} md="6" controlId="remarks">
                     <FormLabel className="labelForm">Remarks</FormLabel>
                     <FormControl
                       as="textarea"

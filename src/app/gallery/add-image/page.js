@@ -1,9 +1,9 @@
 "use client";
 import { useState, useEffect } from "react";
 import axios from "axios";
-import styles from "../add-image/page.module.css";
-import { Form, Row, Col, Container, FormLabel, FormControl, Button, Breadcrumb } from "react-bootstrap";
+import { Form, Row, Col, Container, FormLabel, FormControl, Button, Alert } from "react-bootstrap";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import { CgAddR } from "react-icons/cg";
 
 const AddImage = () => {
   const [imageData, setImageData] = useState({
@@ -16,17 +16,14 @@ const AddImage = () => {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [galleryGroups, setGalleryGroups] = useState([]);
+  const [preview, setPreview] = useState("");
 
   // Fetch gallery groups for the dropdown
   useEffect(() => {
     const fetchGalleryGroups = async () => {
       try {
         const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/galleryGroups");
-        if (response.data && Array.isArray(response.data.data)) {
-          setGalleryGroups(response.data.data);
-        } else {
-          throw new Error("Unexpected response structure.");
-        }
+        setGalleryGroups(response.data.data || []);
       } catch (err) {
         console.error("Error fetching gallery groups:", err);
         setError("Failed to fetch gallery groups. Please try again later.");
@@ -45,43 +42,59 @@ const AddImage = () => {
     }));
   };
 
+  // Handle file change with preview
   const handleFileChange = (e) => {
-    setImageData((prevData) => ({
-      ...prevData,
-      image: e.target.files[0],
-    }));
+    const file = e.target.files[0];
+    if (file) {
+      setImageData((prevData) => ({
+        ...prevData,
+        image: file,
+      }));
+
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    // Validate required fields
-    if (!imageData.image) {
-      setError("Please select an image file.");
-      return;
-    }
-    if (!imageData.groupName) {
-      setError("Please select a gallery group.");
-      return;
-    }
-
     setLoading(true);
     setError("");
     setSuccess("");
 
-    const formData = new FormData();
-    formData.append("date", imageData.date);
-    formData.append("image", imageData.image);
-    formData.append("groupName", imageData.groupName);
-    formData.append("shortText", imageData.shortText);
+    // Validate required fields
+    if (!imageData.image) {
+      setError("Please select an image file.");
+      setLoading(false);
+      return;
+    }
+    if (!imageData.groupName) {
+      setError("Please select a gallery group.");
+      setLoading(false);
+      return;
+    }
 
     try {
-      const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/images/add", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      const formData = new FormData();
+      formData.append("date", imageData.date || new Date().toISOString().split('T')[0]);
+      formData.append("image", imageData.image);
+      formData.append("groupName", imageData.groupName);
+      formData.append("shortText", imageData.shortText);
+
+      const response = await axios.post(
+        "https://erp-backend-fy3n.onrender.com/api/images/add",
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
 
       setSuccess("Image added successfully!");
       setImageData({
@@ -90,6 +103,7 @@ const AddImage = () => {
         groupName: "",
         shortText: "",
       });
+      setPreview("");
     } catch (err) {
       console.error("Error adding image:", err);
       setError(
@@ -100,7 +114,10 @@ const AddImage = () => {
     }
   };
 
-  const breadcrumbItems = [{ label: "Gallery", link: "/gallery/all-module" }, { label: "Add Image", link: "null" }]
+  const breadcrumbItems = [
+    { label: "Gallery", link: "/gallery/all-module" },
+    { label: "Add Image", link: "null" },
+  ];
 
   return (
     <>
@@ -116,7 +133,9 @@ const AddImage = () => {
       <section>
         <Container>
           <div className="cover-sheet">
-            <div className="studentHeading"><h2>Add Image</h2> </div>
+            <div className="studentHeading">
+              <h2>Add Image</h2>
+            </div>
             <Form onSubmit={handleSubmit} className="formSheet">
               <Row className="mb-3">
                 <Col lg={6}>
@@ -126,11 +145,12 @@ const AddImage = () => {
                     name="date"
                     value={imageData.date}
                     onChange={handleInputChange}
-                    required
                   />
                 </Col>
                 <Col lg={6}>
-                  <FormLabel className="labelForm">Image (jpeg, jpg, png, gif)</FormLabel>
+                  <FormLabel className="labelForm">
+                    Image (jpeg, jpg, png, gif)
+                  </FormLabel>
                   <FormControl
                     type="file"
                     name="image"
@@ -138,6 +158,15 @@ const AddImage = () => {
                     onChange={handleFileChange}
                     required
                   />
+                  {preview && (
+                    <div className="mt-2">
+                      <img
+                        src={preview}
+                        alt="Preview"
+                        style={{ maxWidth: "200px", maxHeight: "200px" }}
+                      />
+                    </div>
+                  )}
                 </Col>
               </Row>
               <Row className="mb-3">
@@ -150,17 +179,11 @@ const AddImage = () => {
                     required
                   >
                     <option value="">Select a group</option>
-                    {galleryGroups.length > 0 ? (
-                      galleryGroups.map((group) => (
-                        <option key={group._id} value={group._id}>
-                          {group.groupName}
-                        </option>
-                      ))
-                    ) : (
-                      <option value="" disabled>
-                        No groups available
+                    {galleryGroups.map((group) => (
+                      <option key={group._id} value={group._id}>
+                        {group.groupName}
                       </option>
-                    )}
+                    ))}
                   </Form.Select>
                 </Col>
                 <Col lg={6}>
@@ -175,13 +198,15 @@ const AddImage = () => {
                   />
                 </Col>
               </Row>
-              {error && <p style={{ color: "red" }}>{error}</p>}
-              {success && <p style={{ color: "green" }}>{success}</p>}
-              <div className={styles.buttons}>
-                <Button type="submit" disabled={loading} className="btn btn-primary mt-4">
-                  {loading ? "Adding..." : "Add Image"}
-                </Button>
-              </div>
+              {error && <Alert variant="danger">{error}</Alert>}
+              {success && <Alert variant="success">{success}</Alert>}
+              <Button
+                type="submit"
+                disabled={loading}
+                className="btn btn-primary mt-4"
+              >
+                {loading ? "Uploading..." : "Add Image"}
+              </Button>
             </Form>
           </div>
         </Container>

@@ -2,8 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import styles from "@/app/medical/routine-check-up/page.module.css";
-import { FaEdit, FaTrashAlt } from "react-icons/fa";
+import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
 import { CgAddR } from "react-icons/cg";
 import {
   Form,
@@ -13,19 +12,88 @@ import {
   FormLabel,
   FormControl,
   Button,
-  Table,
+  Alert,
 } from "react-bootstrap";
 import axios from "axios";
+import Table from "@/app/component/DataTable";
+import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const CreateType = () => {
-  const [data, setData] = useState([]); // Table data
-  const [loading, setLoading] = useState(false); // Loading state
-  const [error, setError] = useState(""); // Error state
-  const [showForm, setShowForm] = useState(false); // Form visibility
-  const [newTypeName, setNewTypeName] = useState(""); // New type name
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [formData, setFormData] = useState({
+    type_name: ""
+  });
+  const [editFormData, setEditFormData] = useState({
+    type_name: ""
+  });
 
-  // Fetch data from API
+  const columns = [
+    {
+      name: "#",
+      selector: (row, index) => index + 1,
+      width: "80px",
+      sortable: false,
+    },
+    {
+      name: "Type Name",
+      cell: (row) =>
+        editingId === row._id ? (
+          <FormControl
+            type="text"
+            value={editFormData.type_name}
+            onChange={(e) => setEditFormData({...editFormData, type_name: e.target.value})}
+          />
+        ) : (
+          row.type_name || "N/A"
+        ),
+      sortable: true,
+    },
+    {
+      name: "Actions",
+      cell: (row) => (
+        <div className="d-flex gap-2">
+          {editingId === row._id ? (
+            <>
+              <button
+                className="editButton"
+                onClick={() => handleUpdate(row._id)}
+              >
+                <FaSave />
+              </button>
+              <button
+                className="editButton btn-danger"
+                onClick={() => setEditingId(null)}
+              >
+                Cancel
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                className="editButton"
+                onClick={() => handleEdit(row)}
+              >
+                <FaEdit />
+              </button>
+              <button
+                className="editButton btn-danger"
+                onClick={() => handleDelete(row._id)}
+              >
+                <FaTrashAlt />
+              </button>
+            </>
+          )}
+        </div>
+      ),
+    },
+  ];
+
   const fetchData = async () => {
     setLoading(true);
     setError("");
@@ -33,185 +101,186 @@ const CreateType = () => {
       const response = await axios.get(
         "https://erp-backend-fy3n.onrender.com/api/advertisings"
       );
-      if (response.status === 200 && response.data.data) {
-        setData(response.data.data);
-      } else {
-        setError("Failed to load data. Please try again later.");
-      }
+      setData(response.data.data || []);
     } catch (err) {
       console.error("Error fetching data:", err);
-      setError("Failed to fetch data. Please check the API URL.");
+      setError("Failed to fetch advertising types. Please try again later.");
     } finally {
       setLoading(false);
     }
   };
 
-  // Add a new type
-  const handleAdd = async () => {
-    if (newTypeName.trim()) {
-      try {
-        const response = await axios.post(
-          "https://erp-backend-fy3n.onrender.com/api/advertisings",
-          { type_name: newTypeName }
-        );
-        if (response.status === 201) {
-          setData((prevData) => [...prevData, response.data.data]);
-          setNewTypeName("");
-          setShowForm(false);
-        } else {
-          alert("Failed to add type. Please try again.");
-        }
-      } catch (error) {
-        console.error("Error adding data:", error);
-        setError("Failed to add type. Please try again.");
-      }
-    } else {
-      alert("Please enter a valid type name.");
+  const handleEdit = (type) => {
+    setEditingId(type._id);
+    setEditFormData({
+      type_name: type.type_name || ""
+    });
+  };
+
+  const handleUpdate = async (id) => {
+    if (!editFormData.type_name.trim()) {
+      alert("Please enter a type name.");
+      return;
+    }
+
+    try {
+      await axios.put(
+        `https://erp-backend-fy3n.onrender.com/api/advertisings/${id}`,
+        editFormData
+      );
+      fetchData();
+      setEditingId(null);
+      // setSuccessMessage("Type updated successfully!");
+    } catch (error) {
+      console.error("Error updating data:", error);
+      setError("Failed to update advertising type. Please try again later.");
     }
   };
 
-  // Edit type
-  const handleEdit = async (id) => {
-    const item = data.find((row) => row._id === id);
-    const updatedName = prompt("Enter new type name:", item?.type_name || "");
-    if (updatedName) {
-      try {
-        const response = await axios.put(
-          `https://erp-backend-fy3n.onrender.com/api/advertisings/${id}`,
-          { type_name: updatedName }
-        );
-        if (response.status === 200) {
-          setData((prevData) =>
-            prevData.map((row) =>
-              row._id === id ? { ...row, type_name: updatedName } : row
-            )
-          );
-        } else {
-          alert("Failed to update type. Please try again.");
-        }
-      } catch (error) {
-        console.error("Error updating data:", error);
-        setError("Failed to update type. Please try again.");
-      }
-    }
-  };
-
-  // Delete type
   const handleDelete = async (id) => {
-    if (confirm("Are you sure you want to delete this type?")) {
+    if (confirm("Are you sure you want to delete this advertising type?")) {
       try {
-        const response = await axios.delete(
+        await axios.delete(
           `https://erp-backend-fy3n.onrender.com/api/advertisings/${id}`
         );
-        if (response.status === 200) {
-          setData((prevData) => prevData.filter((row) => row._id !== id));
-        } else {
-          alert("Failed to delete type. Please try again.");
-        }
+        fetchData();
+        // setSuccessMessage("Type deleted successfully!");
       } catch (error) {
         console.error("Error deleting data:", error);
-        setError("Failed to delete type. Please try again.");
+        setError("Failed to delete advertising type. Please try again later.");
       }
     }
   };
 
-  // Fetch data on component mount
+  const handleAdd = async () => {
+    if (!formData.type_name.trim()) {
+      alert("Please enter a type name.");
+      return;
+    }
+
+    try {
+      const existingType = data.find(
+        (type) => type.type_name.toLowerCase() === formData.type_name.toLowerCase()
+      );
+      if (existingType) {
+        setError("Type with this name already exists.");
+        return;
+      }
+
+      await axios.post(
+        "https://erp-backend-fy3n.onrender.com/api/advertisings",
+        formData
+      );
+      fetchData();
+      setFormData({
+        type_name: ""
+      });
+      setIsPopoverOpen(false);
+      // setSuccessMessage("Type added successfully!");
+    } catch (error) {
+      console.error("Error adding data:", error);
+      setError("Failed to add advertising type. Please try again later.");
+    }
+  };
+
+  const handlePrint = () => {
+    const tableHeaders = [["#", "Type Name"]];
+    const tableRows = data.map((row, index) => [
+      index + 1,
+      row.type_name || "N/A",
+    ]);
+    printContent(tableHeaders, tableRows);
+  };
+
+  const handleCopy = () => {
+    const headers = ["#", "Type Name"];
+    const rows = data.map((row, index) =>
+      `${index + 1}\t${row.type_name || "N/A"}`
+    );
+    copyContent(headers, rows);
+  };
+
   useEffect(() => {
     fetchData();
   }, []);
 
-  const breadcrumbItems = [{ label: "Advertising Management", link: "/advertising-management/all-module" }, { label: "Create Type", link: "null" }]
+  const breadcrumbItems = [
+    { label: "Advertising Management", link: "/advertising-management/all-module" },
+    { label: "Create Type", link: "null" },
+  ];
 
   return (
     <>
       <div className="breadcrumbSheet position-relative">
         <Container>
-          <Row>
+          <Row className="mt-1 mb-1">
             <Col>
               <BreadcrumbComp items={breadcrumbItems} />
             </Col>
           </Row>
         </Container>
       </div>
-      <section>
-        <Container className={styles.formContainer}>
-          <Form className={styles.form}>
-            {/* Add New Type Button */}
-            <Button
-              onClick={() => setShowForm(!showForm)}
-              className={`mb-4 ${styles.search}`}
-            >
-              <CgAddR /> New Type
-            </Button>
 
-            {/* Add Type Form */}
-            {showForm && (
-              <div className="mb-4">
+      <section>
+        <Container>
+          {successMessage && <Alert variant="success">{successMessage}</Alert>}
+          {error && <Alert variant="danger">{error}</Alert>}
+          
+          <Button
+            onClick={() => setIsPopoverOpen(true)}
+            className="btn-add"
+          >
+            <CgAddR /> Add Advertising Type
+          </Button>
+
+          {isPopoverOpen && (
+            <div className="cover-sheet">
+              <div className="studentHeading">
+                <h2>Add New Advertising Type</h2>
+                <button
+                  className="closeForm"
+                  onClick={() => {
+                    setIsPopoverOpen(false);
+                    setError("");
+                  }}
+                >
+                  X
+                </button>
+              </div>
+              <Form className="formSheet">
                 <Row className="mb-3">
-                  <Col lg={6}>
-                    <FormLabel>Type Name</FormLabel>
+                  <Col lg={12}>
+                    <FormLabel className="labelForm">Type Name</FormLabel>
                     <FormControl
                       type="text"
                       placeholder="Enter Type Name"
-                      value={newTypeName}
-                      onChange={(e) => setNewTypeName(e.target.value)}
+                      value={formData.type_name}
+                      onChange={(e) => setFormData({...formData, type_name: e.target.value})}
                     />
                   </Col>
                 </Row>
-                <Row>
-                  <Col>
-                    <Button onClick={handleAdd} className={styles.search}>
-                      Add Type
-                    </Button>
-                  </Col>
-                </Row>
-              </div>
-            )}
+                <Button onClick={handleAdd} className="btn btn-primary">
+                  Add Type
+                </Button>
+              </Form>
+            </div>
+          )}
 
-            {/* Table Section */}
-            <Row>
-              <Col>
-                <h2 style={{ fontSize: "22px" }}>Advertising Type Records</h2>
-                {loading && <p>Loading...</p>}
-                {error && <p style={{ color: "red" }}>{error}</p>}
-                {!loading && !error && (
-                  <Table bordered>
-                    <thead>
-                      <tr>
-                        <th>#</th>
-                        <th>Type Name</th>
-                        <th>Actions</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {data.map((row, index) => (
-                        <tr key={row._id}>
-                          <td>{index + 1}</td>
-                          <td>{row.type_name || "N/A"}</td>
-                          <td>
-                            <div className="d-flex gap-2">
-                              <button
-                                className="editButton"
-                                onClick={() => handleEdit(row._id)}
-                              >
-                                <FaEdit />
-                              </button>
-                              <button
-                                className="editButton btn-danger"
-                                onClick={() => handleDelete(row._id)}
-                              >
-                                <FaTrashAlt />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </Table>
-                )}
-              </Col>
-            </Row>
-          </Form>
+          <div className="tableSheet">
+            <h2>Advertising Type Records</h2>
+            {loading ? (
+              <p>Loading...</p>
+            ) : error ? (
+              <p style={{ color: "red" }}>{error}</p>
+            ) : (
+              <Table
+                columns={columns}
+                data={data}
+                handleCopy={handleCopy}
+                handlePrint={handlePrint}
+              />
+            )}
+          </div>
         </Container>
       </section>
     </>

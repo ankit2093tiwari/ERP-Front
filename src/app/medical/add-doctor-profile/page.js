@@ -1,22 +1,40 @@
 "use client";
-
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import styles from "@/app/medical/routine-check-up/page.module.css";
-import Table from "@/app/component/DataTable";
-import { FaEdit, FaTrashAlt } from "react-icons/fa";
-import { Form, Row, Col, Container, FormLabel, FormControl, Button, FormSelect, Breadcrumb } from "react-bootstrap";
+import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
+import { CgAddR } from "react-icons/cg";
+import {
+  Form,
+  Row,
+  Col,
+  Container,
+  FormLabel,
+  FormControl,
+  Button,
+  Alert,
+  FormSelect,
+} from "react-bootstrap";
 import axios from "axios";
-import { CgAddR } from 'react-icons/cg';
+import Table from "@/app/component/DataTable";
+import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const AddDoctorProfile = () => {
-  const [data, setData] = useState([]); // Table data
-  const [loading, setLoading] = useState(false); // Loading state
-  const [error, setError] = useState(""); // Error state
-  // const [showAddForm, setShowAddForm] = useState(false);
-  const [specialistOptions, setSpecialistOptions] = useState([]); // Specialist dropdown options
-  const [formValues, setFormValues] = useState({
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  const [specialistOptions, setSpecialistOptions] = useState([]);
+  const [formData, setFormData] = useState({
+    doctor_name: "",
+    mobile_no: "",
+    email_id: "",
+    address: "",
+    specialist: "",
+    description: "",
+  });
+  const [editFormData, setEditFormData] = useState({
     doctor_name: "",
     mobile_no: "",
     email_id: "",
@@ -25,36 +43,138 @@ const AddDoctorProfile = () => {
     description: "",
   });
 
-  // Table columns configuration
   const columns = [
-    { name: "#", selector: (row, index) => index + 1, sortable: false, width: "80px" },
-    { name: "Doctor Name", selector: (row) => String(row.doctor_name || "N/A"), sortable: true },
-    { name: "Mobile No", selector: (row) => String(row.mobile_no || "N/A"), sortable: false },
-    { name: "Email Id", selector: (row) => String(row.email_id || "N/A"), sortable: false },
-    { name: "Address", selector: (row) => String(row.address || "N/A"), sortable: false },
-    { name: "Specialist", selector: (row) => String(row.specialist?.check_up_type || "N/A"), sortable: false },
-    { name: "Description", selector: (row) => String(row.description || "N/A"), sortable: true },
+    {
+      name: "#",
+      selector: (row, index) => index + 1,
+      width: "80px",
+      sortable: false,
+    },
+    {
+      name: "Doctor Name",
+      cell: (row) =>
+        editingId === row._id ? (
+          <FormControl
+            type="text"
+            value={editFormData.doctor_name}
+            onChange={(e) => setEditFormData({...editFormData, doctor_name: e.target.value})}
+          />
+        ) : (
+          row.doctor_name || "N/A"
+        ),
+      sortable: true,
+    },
+    {
+      name: "Mobile No",
+      cell: (row) =>
+        editingId === row._id ? (
+          <FormControl
+            type="text"
+            value={editFormData.mobile_no}
+            onChange={(e) => setEditFormData({...editFormData, mobile_no: e.target.value})}
+          />
+        ) : (
+          row.mobile_no || "N/A"
+        ),
+    },
+    {
+      name: "Email ID",
+      cell: (row) =>
+        editingId === row._id ? (
+          <FormControl
+            type="email"
+            value={editFormData.email_id}
+            onChange={(e) => setEditFormData({...editFormData, email_id: e.target.value})}
+          />
+        ) : (
+          row.email_id || "N/A"
+        ),
+    },
+    {
+      name: "Address",
+      cell: (row) =>
+        editingId === row._id ? (
+          <FormControl
+            type="text"
+            value={editFormData.address}
+            onChange={(e) => setEditFormData({...editFormData, address: e.target.value})}
+          />
+        ) : (
+          row.address || "N/A"
+        ),
+    },
+    {
+      name: "Specialist",
+      cell: (row) =>
+        editingId === row._id ? (
+          <FormSelect
+            value={editFormData.specialist}
+            onChange={(e) => setEditFormData({...editFormData, specialist: e.target.value})}
+          >
+            <option value="">Select</option>
+            {specialistOptions.map((option) => (
+              <option key={option._id} value={option._id}>
+                {option.check_up_type}
+              </option>
+            ))}
+          </FormSelect>
+        ) : (
+          row.specialist?.check_up_type || "N/A"
+        ),
+    },
+    {
+      name: "Description",
+      cell: (row) =>
+        editingId === row._id ? (
+          <FormControl
+            as="textarea"
+            value={editFormData.description}
+            onChange={(e) => setEditFormData({...editFormData, description: e.target.value})}
+          />
+        ) : (
+          row.description || "N/A"
+        ),
+    },
     {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
-          <button className="editButton" onClick={() => handleEdit(row._id)}>
-            <FaEdit />
-          </button>
-          <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
-            <FaTrashAlt />
-          </button>
+          {editingId === row._id ? (
+            <>
+              <button
+                className="editButton"
+                onClick={() => handleUpdate(row._id)}
+              >
+                <FaSave />
+              </button>
+              <button
+                className="editButton btn-danger"
+                onClick={() => setEditingId(null)}
+              >
+                Cancel
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                className="editButton"
+                onClick={() => handleEdit(row)}
+              >
+                <FaEdit />
+              </button>
+              <button
+                className="editButton btn-danger"
+                onClick={() => handleDelete(row._id)}
+              >
+                <FaTrashAlt />
+              </button>
+            </>
+          )}
         </div>
       ),
     },
   ];
 
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const onOpen = () => setIsPopoverOpen(true);
-  const onClose = () => setIsPopoverOpen(false);
-
-
-  // Fetch data from API
   const fetchData = async () => {
     setLoading(true);
     setError("");
@@ -63,13 +183,12 @@ const AddDoctorProfile = () => {
       setData(response.data.data || []);
     } catch (err) {
       console.error("Error fetching data:", err);
-      setError("Failed to fetch data. Please try again later.");
+      setError("Failed to fetch doctors. Please try again later.");
     } finally {
       setLoading(false);
     }
   };
 
-  // Fetch specialist options
   const fetchSpecialists = async () => {
     try {
       const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/checkup-types");
@@ -80,51 +199,56 @@ const AddDoctorProfile = () => {
     }
   };
 
-  // Edit existing entry
-  const handleEdit = async (id) => {
-    const item = data.find((row) => row._id === id);
-    const updatedName = prompt("Enter new name:", item?.doctor_name || "");
-    if (updatedName) {
-      try {
-        await axios.put(`https://erp-backend-fy3n.onrender.com/api/doctors/${id}`, {
-          doctor_name: updatedName,
-        });
-        fetchData(); // Refresh data
-      } catch (error) {
-        console.error("Error updating data:", error);
-        setError("Failed to update data. Please try again later.");
-      }
+  const handleEdit = (doctor) => {
+    setEditingId(doctor._id);
+    setEditFormData({
+      doctor_name: doctor.doctor_name || "",
+      mobile_no: doctor.mobile_no || "",
+      email_id: doctor.email_id || "",
+      address: doctor.address || "",
+      specialist: doctor.specialist?._id || "",
+      description: doctor.description || "",
+    });
+  };
+
+  const handleUpdate = async (id) => {
+    try {
+      await axios.put(`https://erp-backend-fy3n.onrender.com/api/doctors/${id}`, editFormData);
+      fetchData();
+      setEditingId(null);
+    } catch (error) {
+      console.error("Error updating data:", error);
+      setError("Failed to update doctor. Please try again later.");
     }
   };
 
-  // Delete an entry
   const handleDelete = async (id) => {
-    if (confirm("Are you sure you want to delete this entry?")) {
+    if (confirm("Are you sure you want to delete this doctor?")) {
       try {
         await axios.delete(`https://erp-backend-fy3n.onrender.com/api/doctors/${id}`);
-        fetchData(); // Refresh data
+        fetchData();
       } catch (error) {
         console.error("Error deleting data:", error);
-        setError("Failed to delete data. Please try again later.");
+        setError("Failed to delete doctor. Please try again later.");
       }
     }
   };
 
-  // Add a new entry
   const handleAdd = async () => {
-    const { doctor_name, mobile_no, email_id, address, specialist, description } = formValues;
+    const { doctor_name, mobile_no } = formData;
     if (doctor_name.trim() && mobile_no.trim()) {
       try {
-        await axios.post("https://erp-backend-fy3n.onrender.com/api/doctors", {
-          doctor_name,
-          mobile_no,
-          email_id,
-          address,
-          specialist,
-          description,
-        });
-        fetchData(); // Refresh data
-        setFormValues({
+        const existingDoctor = data.find(
+          (doctor) => doctor.email_id === formData.email_id
+        );
+        if (existingDoctor) {
+          setError("Doctor with this email already exists.");
+          return;
+        }
+
+        await axios.post("https://erp-backend-fy3n.onrender.com/api/doctors", formData);
+        fetchData();
+        setFormData({
           doctor_name: "",
           mobile_no: "",
           email_id: "",
@@ -132,23 +256,47 @@ const AddDoctorProfile = () => {
           specialist: "",
           description: "",
         });
-        setShowAddForm(false);
+        setIsPopoverOpen(false);
       } catch (error) {
         console.error("Error adding data:", error);
-        setError("Please select different email.");
+        setError("Failed to add doctor. Please try again later.");
       }
     } else {
       alert("Please fill out all required fields.");
     }
   };
 
-  // Fetch data on component mount
+  const handlePrint = () => {
+    const tableHeaders = [["#", "Doctor Name", "Mobile No", "Email ID", "Address", "Specialist", "Description"]];
+    const tableRows = data.map((row, index) => [
+      index + 1,
+      row.doctor_name || "N/A",
+      row.mobile_no || "N/A",
+      row.email_id || "N/A",
+      row.address || "N/A",
+      row.specialist?.check_up_type || "N/A",
+      row.description || "N/A",
+    ]);
+    printContent(tableHeaders, tableRows);
+  };
+
+  const handleCopy = () => {
+    const headers = ["#", "Doctor Name", "Mobile No", "Email ID", "Address", "Specialist", "Description"];
+    const rows = data.map((row, index) =>
+      `${index + 1}\t${row.doctor_name || "N/A"}\t${row.mobile_no || "N/A"}\t${row.email_id || "N/A"}\t${row.address || "N/A"}\t${row.specialist?.check_up_type || "N/A"}\t${row.description || "N/A"}`
+    );
+    copyContent(headers, rows);
+  };
+
   useEffect(() => {
     fetchData();
     fetchSpecialists();
   }, []);
 
-  const breadcrumbItems = [{ label: "Medical", link: "/medical/all-module" }, { label: "Add Doctor Profile", link: "null" }]
+  const breadcrumbItems = [
+    { label: "Medical", link: "/medical/all-module" },
+    { label: "Add Doctor Profile", link: "null" },
+  ];
 
   return (
     <>
@@ -161,17 +309,31 @@ const AddDoctorProfile = () => {
           </Row>
         </Container>
       </div>
+
       <section>
         <Container>
-          <Button onClick={onOpen} className="btn-add">
+          {error && <Alert variant="danger">{error}</Alert>}
+          
+          <Button
+            onClick={() => setIsPopoverOpen(true)}
+            className="btn-add"
+          >
             <CgAddR /> Add Doctor Profile
           </Button>
 
           {isPopoverOpen && (
-
             <div className="cover-sheet">
-              <div className="studentHeading"><h2>Add Doctor Profile</h2>
-                <button className='closeForm' onClick={onClose}> X </button>
+              <div className="studentHeading">
+                <h2>Add New Doctor Profile</h2>
+                <button
+                  className="closeForm"
+                  onClick={() => {
+                    setIsPopoverOpen(false);
+                    setError("");
+                  }}
+                >
+                  X
+                </button>
               </div>
               <Form className="formSheet">
                 <Row className="mb-3">
@@ -180,8 +342,8 @@ const AddDoctorProfile = () => {
                     <FormControl
                       type="text"
                       placeholder="Enter Doctor Name"
-                      value={formValues.doctor_name}
-                      onChange={(e) => setFormValues({ ...formValues, doctor_name: e.target.value })}
+                      value={formData.doctor_name}
+                      onChange={(e) => setFormData({...formData, doctor_name: e.target.value})}
                     />
                   </Col>
                   <Col lg={6}>
@@ -189,8 +351,8 @@ const AddDoctorProfile = () => {
                     <FormControl
                       type="text"
                       placeholder="Enter Mobile Number"
-                      value={formValues.mobile_no}
-                      onChange={(e) => setFormValues({ ...formValues, mobile_no: e.target.value })}
+                      value={formData.mobile_no}
+                      onChange={(e) => setFormData({...formData, mobile_no: e.target.value})}
                     />
                   </Col>
                 </Row>
@@ -200,8 +362,8 @@ const AddDoctorProfile = () => {
                     <FormControl
                       type="email"
                       placeholder="Enter Email ID"
-                      value={formValues.email_id}
-                      onChange={(e) => setFormValues({ ...formValues, email_id: e.target.value })}
+                      value={formData.email_id}
+                      onChange={(e) => setFormData({...formData, email_id: e.target.value})}
                     />
                   </Col>
                   <Col lg={6}>
@@ -209,8 +371,8 @@ const AddDoctorProfile = () => {
                     <FormControl
                       type="text"
                       placeholder="Enter Address"
-                      value={formValues.address}
-                      onChange={(e) => setFormValues({ ...formValues, address: e.target.value })}
+                      value={formData.address}
+                      onChange={(e) => setFormData({...formData, address: e.target.value})}
                     />
                   </Col>
                 </Row>
@@ -218,8 +380,8 @@ const AddDoctorProfile = () => {
                   <Col lg={6}>
                     <FormLabel className="labelForm">Specialist</FormLabel>
                     <FormSelect
-                      value={formValues.specialist}
-                      onChange={(e) => setFormValues({ ...formValues, specialist: e.target.value })}
+                      value={formData.specialist}
+                      onChange={(e) => setFormData({...formData, specialist: e.target.value})}
                     >
                       <option value="">Select</option>
                       {specialistOptions.map((option) => (
@@ -234,31 +396,33 @@ const AddDoctorProfile = () => {
                     <FormControl
                       as="textarea"
                       placeholder="Enter Description"
-                      value={formValues.description}
-                      onChange={(e) => setFormValues({ ...formValues, description: e.target.value })}
+                      value={formData.description}
+                      onChange={(e) => setFormData({...formData, description: e.target.value})}
                     />
                   </Col>
                 </Row>
-                <Button className="btn btn-primary mt-4" onClick={handleAdd}>
-                  Submit
+                <Button onClick={handleAdd} className="btn btn-primary">
+                  Add Doctor Profile
                 </Button>
               </Form>
             </div>
           )}
 
-          {/* Table Section */}
-          <Row>
-            <Col>
-              <div className="tableSheet">
-                <h2>Doctor Profile Records</h2>
-                {loading && <p>Loading...</p>}
-                {error && <p style={{ color: "red" }}>{error}</p>}
-                {!loading && !error && <Table columns={columns} data={data} />}
-
-              </div>
-            </Col>
-          </Row>
-
+          <div className="tableSheet">
+            <h2>Doctor Profile Records</h2>
+            {loading ? (
+              <p>Loading...</p>
+            ) : error ? (
+              <p style={{ color: "red" }}>{error}</p>
+            ) : (
+              <Table
+                columns={columns}
+                data={data}
+                handleCopy={handleCopy}
+                handlePrint={handlePrint}
+              />
+            )}
+          </div>
         </Container>
       </section>
     </>
