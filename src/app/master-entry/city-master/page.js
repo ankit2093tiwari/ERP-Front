@@ -73,15 +73,14 @@ const StateCityMasterPage = () => {
         <div>
           {row.cities.length > 0 ? (
             row.cities.map((city, index) => (
-              <div key={index}>
+              <div key={index} className="mb-2">
                 {editingCity && editingCity._id === city._id ? (
-                  <>
+                  <div className="d-flex align-items-center gap-2">
                     <FormControl
                       as="select"
                       value={formData.state_id}
                       onChange={(e) => setFormData({...formData, state_id: e.target.value})}
-                      className="d-inline-block me-2"
-                      style={{width: '150px'}}
+                      className="flex-grow-1"
                     >
                       <option value="">Select State</option>
                       {data.map((state) => (
@@ -94,28 +93,27 @@ const StateCityMasterPage = () => {
                       type="text"
                       value={formData.city_name}
                       onChange={(e) => setFormData({...formData, city_name: e.target.value})}
-                      className="d-inline-block me-2"
-                      style={{width: '150px'}}
+                      className="flex-grow-1"
+                      placeholder="City Name"
                     />
-                    <button className="editButton ms-2" onClick={() => handleUpdateCity(city._id)}>
+                    <button className="editButton" onClick={() => handleUpdateCity(city._id)}>
                       <FaSave />
                     </button>
-                  </>
+                    <button className="editButton btn-danger" onClick={() => setEditingCity(null)}>
+                      Cancel
+                    </button>
+                  </div>
                 ) : (
-                  city.city_name || "N/A"
+                  <div className="d-flex align-items-center gap-2">
+                    <span>{city.city_name || "N/A"}</span>
+                    <button className="editButton" onClick={() => handleEditCity(city)}>
+                      <FaEdit />
+                    </button>
+                    <button className="editButton btn-danger" onClick={() => handleDeleteCity(city._id)}>
+                      <FaTrashAlt />
+                    </button>
+                  </div>
                 )}
-                {editingCity && editingCity._id === city._id ? (
-                  <button className="editButton btn-danger ms-2" onClick={() => setEditingCity(null)}>
-                    Cancel
-                  </button>
-                ) : (
-                  <button className="editButton ms-2" onClick={() => handleEditCity(city)}>
-                    <FaEdit />
-                  </button>
-                )}
-                <button className="editButton btn-danger ms-2" onClick={() => handleDeleteCity(city._id)}>
-                  <FaTrashAlt />
-                </button>
               </div>
             ))
           ) : (
@@ -138,11 +136,11 @@ const StateCityMasterPage = () => {
 
       const updatedData = states.map((state) => {
         const stateCities = cities
-          .filter((city) => city.state === state._id)
+          .filter((city) => city.state._id === state._id || city.state === state._id)
           .map((city) => ({
             city_name: city.city_name,
             _id: city._id,
-            state_id: city.state
+            state_id: city.state._id || city.state
           }));
 
         return { ...state, cities: stateCities };
@@ -172,7 +170,7 @@ const StateCityMasterPage = () => {
       setIsStateFormOpen(false);
     } catch (err) {
       console.error("Error adding state:", err);
-      setError("Failed to add state. Please try again later.");
+      setError(err.response?.data?.message || "Failed to add state. Please try again later.");
     }
   };
 
@@ -192,7 +190,7 @@ const StateCityMasterPage = () => {
       setIsCityFormOpen(false);
     } catch (err) {
       console.error("Error adding city:", err);
-      setError("Failed to add city. Please try again later.");
+      setError(err.response?.data?.message || "Failed to add city. Please try again later.");
     }
   };
 
@@ -209,7 +207,7 @@ const StateCityMasterPage = () => {
     setFormData({
       ...formData,
       city_name: city.city_name || "",
-      state_id: city.state_id || city.state || ""
+      state_id: city.state_id || city.state?._id || city.state || ""
     });
   };
 
@@ -228,7 +226,7 @@ const StateCityMasterPage = () => {
       setFormData({...formData, state_name: ""});
     } catch (err) {
       console.error("Error updating state:", err);
-      setError("Failed to update state. Please try again later.");
+      setError(err.response?.data?.message || "Failed to update state. Please try again later.");
     }
   };
 
@@ -248,7 +246,7 @@ const StateCityMasterPage = () => {
       setFormData({...formData, city_name: "", state_id: ""});
     } catch (err) {
       console.error("Error updating city:", err);
-      setError("Failed to update city. Please try again later.");
+      setError(err.response?.data?.message || "Failed to update city. Please try again later.");
     }
   };
 
@@ -259,7 +257,7 @@ const StateCityMasterPage = () => {
         fetchData();
       } catch (err) {
         console.error("Error deleting state:", err);
-        setError("Failed to delete state. Please try again later.");
+        setError(err.response?.data?.message || "Failed to delete state. Please try again later.");
       }
     }
   };
@@ -271,7 +269,7 @@ const StateCityMasterPage = () => {
         fetchData();
       } catch (err) {
         console.error("Error deleting city:", err);
-        setError("Failed to delete city. Please try again later.");
+        setError(err.response?.data?.message || "Failed to delete city. Please try again later.");
       }
     }
   };

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
-import { CgAddR } from 'react-icons/cg';
+import { CgAddR } from "react-icons/cg";
 import {
   Form,
   Row,
@@ -11,18 +11,18 @@ import {
   Container,
   FormLabel,
   FormControl,
-  Button
+  Button,
 } from "react-bootstrap";
 import axios from "axios";
 import Table from "@/app/component/DataTable";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { copyContent, printContent } from "@/app/utils";
 
-const DepartmentMasterPage = () => {
+const LeaveMasterPage = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [newDepartmentName, setNewDepartmentName] = useState("");
+  const [newLeaveName, setNewLeaveName] = useState("");
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [editedName, setEditedName] = useState("");
@@ -31,11 +31,10 @@ const DepartmentMasterPage = () => {
     {
       name: "#",
       selector: (row, index) => index + 1,
-      sortable: false,
       width: "80px",
     },
     {
-      name: "Department Name",
+      name: "Leave Name",
       cell: (row) =>
         editingId === row._id ? (
           <FormControl
@@ -44,7 +43,7 @@ const DepartmentMasterPage = () => {
             onChange={(e) => setEditedName(e.target.value)}
           />
         ) : (
-          row.department_name || "N/A"
+          row.LeaveName || "N/A"
         ),
       sortable: true,
     },
@@ -57,11 +56,17 @@ const DepartmentMasterPage = () => {
               <FaSave />
             </button>
           ) : (
-            <button className="editButton" onClick={() => handleEdit(row._id, row.department_name)}>
+            <button
+              className="editButton"
+              onClick={() => handleEdit(row._id, row.LeaveName)}
+            >
               <FaEdit />
             </button>
           )}
-          <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
+          <button
+            className="editButton btn-danger"
+            onClick={() => handleDelete(row._id)}
+          >
             <FaTrashAlt />
           </button>
         </div>
@@ -69,20 +74,15 @@ const DepartmentMasterPage = () => {
     },
   ];
 
-  const handlePrint = async () => {
-    const tableHeaders = [["#", "Department Name"]];
-    const tableRows = data.map((row, index) => [
-      index + 1,
-      row.department_name || "N/A",
-    ]);
-
+  const handlePrint = () => {
+    const tableHeaders = [["#", "Leave Name"]];
+    const tableRows = data.map((row, index) => [index + 1, row.LeaveName || "N/A"]);
     printContent(tableHeaders, tableRows);
   };
 
   const handleCopy = () => {
-    const headers = ["#", "Department Name"];
-    const rows = data.map((row, index) => `${index + 1}\t${row.department_name || "N/A"}`);
-
+    const headers = ["#", "Leave Name"];
+    const rows = data.map((row, index) => `${index + 1}\t${row.LeaveName || "N/A"}`);
     copyContent(headers, rows);
   };
 
@@ -90,15 +90,10 @@ const DepartmentMasterPage = () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-departments");
-      const fetchedData = response.data.data || [];
-      const normalizedData = fetchedData.map((item) => ({
-        ...item,
-        department_name: item.department_name || "N/A",
-      }));
-      setData(normalizedData);
+      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-leave");
+      setData(response.data.data || []);
     } catch (err) {
-      console.error("Error fetching data:", err);
+      console.error("Fetch error:", err);
       setError("Failed to fetch data. Please try again later.");
     } finally {
       setLoading(false);
@@ -112,70 +107,62 @@ const DepartmentMasterPage = () => {
 
   const handleSave = async (id) => {
     if (!editedName.trim()) {
-      setError("Department name cannot be empty");
+      setError("Leave name cannot be empty");
       return;
     }
-
     try {
-      await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-departments/${id}`, {
-        department_name: editedName,
+      await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-leave/${id}`, {
+        LeaveName: editedName,
       });
-      setData((prevData) =>
-        prevData.map((row) =>
-          row._id === id ? { ...row, department_name: editedName } : row
-        )
-      );
       fetchData();
       setEditingId(null);
-    } catch (error) {
-      if (error.response?.status === 409) {
-        setError("Department name already exists");
+    } catch (err) {
+      if (err.response?.status === 409) {
+        setError("Leave name already exists");
       } else {
-        setError("Failed to update data. Please try again later.");
+        setError("Failed to update leave. Try again.");
       }
     }
   };
 
   const handleDelete = async (id) => {
-    if (confirm("Are you sure you want to delete this department?")) {
+    if (confirm("Are you sure you want to delete this leave?")) {
       try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-departments/${id}`);
-        setData((prevData) => prevData.filter((row) => row._id !== id));
+        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-leave/${id}`);
         fetchData();
-      } catch (error) {
-        console.error("Error deleting data:", error);
-        setError("Failed to delete data. Please try again later.");
+      } catch (err) {
+        console.error("Delete error:", err);
+        setError("Failed to delete leave. Try again.");
       }
     }
   };
 
   const handleAdd = async () => {
-    if (!newDepartmentName.trim()) {
-      setError("Department name cannot be empty");
+    if (!newLeaveName.trim()) {
+      setError("Leave name cannot be empty");
+      return;
+    }
+
+    const existing = data.find(
+      (item) => item.LeaveName.toLowerCase() === newLeaveName.toLowerCase()
+    );
+    if (existing) {
+      setError("Leave name already exists");
       return;
     }
 
     try {
-      const existingDepartment = data.find(
-        (dept) => dept.department_name.toLowerCase() === newDepartmentName.toLowerCase()
-      );
-      if (existingDepartment) {
-        setError("Department name already exists");
-        return;
-      }
-
-      const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/create-departments", {
-        department_name: newDepartmentName,
+      await axios.post("https://erp-backend-fy3n.onrender.com/api/create-leave", {
+        LeaveName: newLeaveName,
       });
-      setData((prevData) => [...prevData, response.data]);
-      setNewDepartmentName("");
+      setNewLeaveName("");
       setIsPopoverOpen(false);
       fetchData();
-    } catch (error) {
-      if (error.response?.status === 409) {
-        setError("Department name already exists");
+    } catch (err) {
+      if (err.response?.status === 409) {
+        setError("Leave name already exists");
       } else {
-        setError("Failed to add data. Please try again later.");
+        setError("Failed to add leave. Try again.");
       }
     }
   };
@@ -185,8 +172,8 @@ const DepartmentMasterPage = () => {
   }, []);
 
   const breadcrumbItems = [
-    { label: "HRD", link: "/hrd/allModule" }, 
-    { label: "Department Master", link: "null" }
+    { label: "HRD", link: "/hrd/allModule" },
+    { label: "Leave Master", link: null },
   ];
 
   return (
@@ -200,16 +187,17 @@ const DepartmentMasterPage = () => {
           </Row>
         </Container>
       </div>
+
       <section>
         <Container>
           <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
-            <CgAddR /> Add Department
+            <CgAddR /> Add Leave
           </Button>
 
           {isPopoverOpen && (
             <div className="cover-sheet">
               <div className="studentHeading">
-                <h2>Add New Department</h2>
+                <h2>Add New Leave</h2>
                 <button
                   className="closeForm"
                   onClick={() => {
@@ -223,36 +211,35 @@ const DepartmentMasterPage = () => {
               <Form className="formSheet">
                 <Row className="mb-3">
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Department Name*</FormLabel>
+                    <FormLabel className="labelForm">Leave Name*</FormLabel>
                     <FormControl
                       type="text"
-                      placeholder="Enter Department Name"
-                      value={newDepartmentName}
+                      placeholder="Enter Leave Name"
+                      value={newLeaveName}
                       onChange={(e) => {
-                        setNewDepartmentName(e.target.value);
+                        setNewLeaveName(e.target.value);
                         setError("");
                       }}
-                      required
                     />
                   </Col>
                 </Row>
                 <Button onClick={handleAdd} className="btn btn-primary">
-                  Add Department
+                  Add Leave
                 </Button>
               </Form>
             </div>
           )}
 
           <div className="tableSheet">
-            <h2>Department Records</h2>
+            <h2>Leave Records</h2>
             {loading && <p>Loading...</p>}
             {error && <p style={{ color: "red" }}>{error}</p>}
             {!loading && !error && (
-              <Table 
-                columns={columns} 
-                data={data} 
-                handleCopy={handleCopy} 
-                handlePrint={handlePrint} 
+              <Table
+                columns={columns}
+                data={data}
+                handleCopy={handleCopy}
+                handlePrint={handlePrint}
               />
             )}
           </div>
@@ -262,4 +249,4 @@ const DepartmentMasterPage = () => {
   );
 };
 
-export default dynamic(() => Promise.resolve(DepartmentMasterPage), { ssr: false });
+export default dynamic(() => Promise.resolve(LeaveMasterPage), { ssr: false });

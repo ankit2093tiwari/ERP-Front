@@ -18,11 +18,11 @@ import Table from "@/app/component/DataTable";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { copyContent, printContent } from "@/app/utils";
 
-const DepartmentMasterPage = () => {
+const LoanMasterPage = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [newDepartmentName, setNewDepartmentName] = useState("");
+  const [newLoanName, setNewLoanName] = useState("");
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [editedName, setEditedName] = useState("");
@@ -31,11 +31,10 @@ const DepartmentMasterPage = () => {
     {
       name: "#",
       selector: (row, index) => index + 1,
-      sortable: false,
       width: "80px",
     },
     {
-      name: "Department Name",
+      name: "Loan Name",
       cell: (row) =>
         editingId === row._id ? (
           <FormControl
@@ -44,7 +43,7 @@ const DepartmentMasterPage = () => {
             onChange={(e) => setEditedName(e.target.value)}
           />
         ) : (
-          row.department_name || "N/A"
+          row.LoanName || "N/A"
         ),
       sortable: true,
     },
@@ -57,7 +56,7 @@ const DepartmentMasterPage = () => {
               <FaSave />
             </button>
           ) : (
-            <button className="editButton" onClick={() => handleEdit(row._id, row.department_name)}>
+            <button className="editButton" onClick={() => handleEdit(row._id, row.LoanName)}>
               <FaEdit />
             </button>
           )}
@@ -69,20 +68,18 @@ const DepartmentMasterPage = () => {
     },
   ];
 
-  const handlePrint = async () => {
-    const tableHeaders = [["#", "Department Name"]];
+  const handlePrint = () => {
+    const tableHeaders = [["#", "Loan Name"]];
     const tableRows = data.map((row, index) => [
       index + 1,
-      row.department_name || "N/A",
+      row.LoanName || "N/A",
     ]);
-
     printContent(tableHeaders, tableRows);
   };
 
   const handleCopy = () => {
-    const headers = ["#", "Department Name"];
-    const rows = data.map((row, index) => `${index + 1}\t${row.department_name || "N/A"}`);
-
+    const headers = ["#", "Loan Name"];
+    const rows = data.map((row, index) => `${index + 1}\t${row.LoanName || "N/A"}`);
     copyContent(headers, rows);
   };
 
@@ -90,15 +87,10 @@ const DepartmentMasterPage = () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-departments");
-      const fetchedData = response.data.data || [];
-      const normalizedData = fetchedData.map((item) => ({
-        ...item,
-        department_name: item.department_name || "N/A",
-      }));
-      setData(normalizedData);
+      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-loans");
+      setData(response.data.data || []);
     } catch (err) {
-      console.error("Error fetching data:", err);
+      console.error("Fetch error:", err);
       setError("Failed to fetch data. Please try again later.");
     } finally {
       setLoading(false);
@@ -112,70 +104,62 @@ const DepartmentMasterPage = () => {
 
   const handleSave = async (id) => {
     if (!editedName.trim()) {
-      setError("Department name cannot be empty");
+      setError("Loan name cannot be empty");
       return;
     }
-
     try {
-      await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-departments/${id}`, {
-        department_name: editedName,
+      await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-loan/${id}`, {
+        LoanName: editedName,
       });
-      setData((prevData) =>
-        prevData.map((row) =>
-          row._id === id ? { ...row, department_name: editedName } : row
-        )
-      );
       fetchData();
       setEditingId(null);
-    } catch (error) {
-      if (error.response?.status === 409) {
-        setError("Department name already exists");
+    } catch (err) {
+      if (err.response?.status === 409) {
+        setError("Loan name already exists");
       } else {
-        setError("Failed to update data. Please try again later.");
+        setError("Failed to update loan name. Try again.");
       }
     }
   };
 
   const handleDelete = async (id) => {
-    if (confirm("Are you sure you want to delete this department?")) {
+    if (confirm("Are you sure you want to delete this loan?")) {
       try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-departments/${id}`);
-        setData((prevData) => prevData.filter((row) => row._id !== id));
+        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-loan/${id}`);
         fetchData();
-      } catch (error) {
-        console.error("Error deleting data:", error);
-        setError("Failed to delete data. Please try again later.");
+      } catch (err) {
+        console.error("Delete error:", err);
+        setError("Failed to delete loan. Try again.");
       }
     }
   };
 
   const handleAdd = async () => {
-    if (!newDepartmentName.trim()) {
-      setError("Department name cannot be empty");
+    if (!newLoanName.trim()) {
+      setError("Loan name cannot be empty");
       return;
     }
 
     try {
-      const existingDepartment = data.find(
-        (dept) => dept.department_name.toLowerCase() === newDepartmentName.toLowerCase()
+      const existing = data.find(
+        (item) => item.LoanName.toLowerCase() === newLoanName.toLowerCase()
       );
-      if (existingDepartment) {
-        setError("Department name already exists");
+      if (existing) {
+        setError("Loan name already exists");
         return;
       }
 
-      const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/create-departments", {
-        department_name: newDepartmentName,
+      await axios.post("https://erp-backend-fy3n.onrender.com/api/create-loan", {
+        LoanName: newLoanName,
       });
-      setData((prevData) => [...prevData, response.data]);
-      setNewDepartmentName("");
+      setNewLoanName("");
       setIsPopoverOpen(false);
       fetchData();
-    } catch (error) {
-      if (error.response?.status === 409) {
-        setError("Department name already exists");
+    } catch (err) {
+      if (err.response?.status === 409) {
+        setError("Loan name already exists");
       } else {
-        setError("Failed to add data. Please try again later.");
+        setError("Failed to add loan. Try again.");
       }
     }
   };
@@ -185,8 +169,8 @@ const DepartmentMasterPage = () => {
   }, []);
 
   const breadcrumbItems = [
-    { label: "HRD", link: "/hrd/allModule" }, 
-    { label: "Department Master", link: "null" }
+    { label: "HRD", link: "/hrd/allModule" },
+    { label: "Loan Master", link: null },
   ];
 
   return (
@@ -200,16 +184,17 @@ const DepartmentMasterPage = () => {
           </Row>
         </Container>
       </div>
+
       <section>
         <Container>
           <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
-            <CgAddR /> Add Department
+            <CgAddR /> Add Loan
           </Button>
 
           {isPopoverOpen && (
             <div className="cover-sheet">
               <div className="studentHeading">
-                <h2>Add New Department</h2>
+                <h2>Add New Loan</h2>
                 <button
                   className="closeForm"
                   onClick={() => {
@@ -223,28 +208,27 @@ const DepartmentMasterPage = () => {
               <Form className="formSheet">
                 <Row className="mb-3">
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Department Name*</FormLabel>
+                    <FormLabel className="labelForm">Loan Name*</FormLabel>
                     <FormControl
                       type="text"
-                      placeholder="Enter Department Name"
-                      value={newDepartmentName}
+                      placeholder="Enter Loan Name"
+                      value={newLoanName}
                       onChange={(e) => {
-                        setNewDepartmentName(e.target.value);
+                        setNewLoanName(e.target.value);
                         setError("");
                       }}
-                      required
                     />
                   </Col>
                 </Row>
                 <Button onClick={handleAdd} className="btn btn-primary">
-                  Add Department
+                  Add Loan
                 </Button>
               </Form>
             </div>
           )}
 
           <div className="tableSheet">
-            <h2>Department Records</h2>
+            <h2>Loan Records</h2>
             {loading && <p>Loading...</p>}
             {error && <p style={{ color: "red" }}>{error}</p>}
             {!loading && !error && (
@@ -262,4 +246,4 @@ const DepartmentMasterPage = () => {
   );
 };
 
-export default dynamic(() => Promise.resolve(DepartmentMasterPage), { ssr: false });
+export default dynamic(() => Promise.resolve(LoanMasterPage), { ssr: false });
