@@ -112,8 +112,8 @@ const SessionMasterPage = () => {
               ) : (
                 <div className="d-flex justify-content-between align-items-center">
                   <div>
-                    <strong>{session.sessionName || "N/A"}</strong> - 
-                    <span className="ms-2">{new Date(session.date).toLocaleDateString() || "N/A"}</span>
+                    <strong>{session.sessionName || "N/A"}</strong> 
+                    {/* <span className="ms-2">{new Date(session.date).toLocaleDateString() || "N/A"}</span> */}
                   </div>
                   <div className="d-flex gap-1">
                     <button
