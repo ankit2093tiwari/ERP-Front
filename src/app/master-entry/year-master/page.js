@@ -20,41 +20,16 @@ import BreadcrumbComp from "@/app/component/Breadcrumb";
 const SessionMasterPage = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [error, setError] = useState("");
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
     sessionName: "",
-    class_id: [],
+    class_id: "",
     date: ""
   });
   const [classes, setClasses] = useState([]);
   const [classesLoading, setClassesLoading] = useState(false);
-  const [selectedClasses, setSelectedClasses] = useState([]);
-
-  // Fetch classes when component mounts
-  useEffect(() => {
-    const fetchClasses = async () => {
-      setClassesLoading(true);
-      try {
-        const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-classes");
-        
-        let classesData = [];
-        if (Array.isArray(response.data)) {
-          classesData = response.data;
-        } else if (response.data && Array.isArray(response.data.data)) {
-          classesData = response.data.data;
-        }
-
-        setClasses(classesData);
-      } catch (err) {
-        console.error("Error fetching classes:", err);
-        setClasses([]);
-      } finally {
-        setClassesLoading(false);
-      }
-    };
-    fetchClasses();
-  }, []);
 
   const columns = [
     {
@@ -64,65 +39,136 @@ const SessionMasterPage = () => {
       sortable: false,
     },
     {
-      name: "Session Name",
-      selector: (row) => row.sessionName,
+      name: "Class Name",
+      cell: (row) => (
+        <div>
+          {editingId === row._id ? (
+            <FormControl
+              as="select"
+              value={formData.class_id}
+              onChange={(e) => setFormData({...formData, class_id: e.target.value})}
+            >
+              <option value="">Select Class</option>
+              {classes.map((cls) => (
+                <option key={cls._id} value={cls._id}>{cls.class_name}</option>
+              ))}
+            </FormControl>
+          ) : (
+            row.class_id[0]?.class?.class_name || "N/A"
+          )}
+        </div>
+      ),
       sortable: true,
     },
     {
-      name: "Classes",
+      name: "Session Name",
       cell: (row) => (
-        <div className="d-flex flex-column gap-2">
-          {row.class_id.map((classItem, idx) => (
-            <div key={idx}>
-              {classItem.class?.class_name} ({classItem.class?.class_code})
-            </div>
-          ))}
+        <div>
+          {editingId === row._id ? (
+            <FormControl
+              type="text"
+              value={formData.sessionName}
+              onChange={(e) => setFormData({...formData, sessionName: e.target.value})}
+            />
+          ) : (
+            row.sessionName || "N/A"
+          )}
         </div>
       ),
-      sortable: false,
+      sortable: true,
     },
     {
       name: "Date",
-      selector: (row) => new Date(row.date).toLocaleDateString(),
+      cell: (row) => (
+        <div>
+          {editingId === row._id ? (
+            <FormControl
+              type="date"
+              value={formData.date}
+              onChange={(e) => setFormData({...formData, date: e.target.value})}
+            />
+          ) : (
+            new Date(row.date).toLocaleDateString() || "N/A"
+          )}
+        </div>
+      ),
       sortable: true,
     },
     {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-1">
-          <button
-            className="editButton"
-            onClick={() => handleEdit(row)}
-          >
-            <FaEdit />
-          </button>
-          <button
-            className="editButton btn-danger"
-            onClick={() => handleDelete(row._id)}
-          >
-            <FaTrashAlt />
-          </button>
+          {editingId === row._id ? (
+            <>
+              <button
+                className="editButton"
+                onClick={() => handleUpdate(row._id)}
+              >
+                <FaSave />
+              </button>
+              <button
+                className="editButton btn-danger"
+                onClick={() => {
+                  setEditingId(null);
+                  setFormData({
+                    sessionName: "",
+                    class_id: "",
+                    date: ""
+                  });
+                }}
+              >
+                Cancel
+              </button>
+            </>
+          ) : (
+            <>
+              <button
+                className="editButton"
+                onClick={() => handleEdit(row)}
+              >
+                <FaEdit />
+              </button>
+              <button
+                className="editButton btn-danger"
+                onClick={() => handleDelete(row._id)}
+              >
+                <FaTrashAlt />
+              </button>
+            </>
+          )}
         </div>
       ),
       sortable: false,
     },
   ];
 
+  // Fetch classes when component mounts
+  useEffect(() => {
+    const fetchClasses = async () => {
+      setClassesLoading(true);
+      try {
+        const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-classes");
+        setClasses(response.data.data || []);
+      } catch (err) {
+        console.error("Error fetching classes:", err);
+        setError("Failed to fetch classes");
+        setClasses([]);
+      } finally {
+        setClassesLoading(false);
+      }
+    };
+    fetchClasses();
+  }, []);
+
   const fetchData = async () => {
     setLoading(true);
+    setError("");
     try {
       const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-session/");
-      
-      let fetchedData = [];
-      if (Array.isArray(response.data)) {
-        fetchedData = response.data;
-      } else if (response.data && Array.isArray(response.data.data)) {
-        fetchedData = response.data.data;
-      }
-
-      setData(fetchedData);
+      setData(response.data.data || []);
     } catch (err) {
       console.error("Error fetching data:", err);
+      setError("Failed to fetch sessions");
     } finally {
       setLoading(false);
     }
@@ -132,18 +178,19 @@ const SessionMasterPage = () => {
     setEditingId(session._id);
     setFormData({
       sessionName: session.sessionName,
-      class_id: session.class_id.map(item => item.class._id),
+      class_id: session.class_id[0]?.class?._id || "",
       date: session.date
     });
-    setSelectedClasses(session.class_id.map(item => item.class._id));
-    setIsPopoverOpen(true);
   };
 
   const handleUpdate = async (id) => {
-    if (!formData.sessionName.trim() || formData.class_id.length === 0) return;
+    if (!formData.sessionName.trim() || !formData.class_id) {
+      setError("Session name and class are required");
+      return;
+    }
 
     try {
-      const class_id = selectedClasses.map(classId => ({ class: classId }));
+      const class_id = [{ class: formData.class_id }];
       
       await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-session/${id}`, {
         sessionName: formData.sessionName,
@@ -153,14 +200,14 @@ const SessionMasterPage = () => {
       
       fetchData();
       setEditingId(null);
-      setFormData({ sessionName: "", class_id: [], date: "" });
-      setSelectedClasses([]);
-      setIsPopoverOpen(false);
+      setFormData({
+        sessionName: "",
+        class_id: "",
+        date: ""
+      });
     } catch (error) {
       console.error("Error updating data:", error);
-      if (error.response?.data?.error?.code === 11000) {
-        alert("A session with this name already exists.");
-      }
+      setError(error.response?.data?.message || "Failed to update session");
     }
   };
 
@@ -171,15 +218,19 @@ const SessionMasterPage = () => {
         fetchData();
       } catch (error) {
         console.error("Error deleting session:", error);
+        setError("Failed to delete session");
       }
     }
   };
 
   const handleAdd = async () => {
-    if (!formData.sessionName.trim() || selectedClasses.length === 0) return;
+    if (!formData.sessionName.trim() || !formData.class_id) {
+      setError("Session name and class are required");
+      return;
+    }
 
     try {
-      const class_id = selectedClasses.map(classId => ({ class: classId }));
+      const class_id = [{ class: formData.class_id }];
       
       await axios.post("https://erp-backend-fy3n.onrender.com/api/create-session", {
         sessionName: formData.sessionName,
@@ -188,42 +239,35 @@ const SessionMasterPage = () => {
       });
       
       fetchData();
-      setFormData({ sessionName: "", class_id: [], date: "" });
-      setSelectedClasses([]);
-      setIsPopoverOpen(false);
+      setIsFormOpen(false);
+      setFormData({
+        sessionName: "",
+        class_id: "",
+        date: ""
+      });
     } catch (error) {
       console.error("Error adding session:", error);
-      if (error.response?.data?.error?.code === 11000) {
-        alert("A session with this name already exists.");
-      }
+      setError(error.response?.data?.message || "Failed to add session");
     }
   };
 
   const handlePrint = () => {
-    const tableHeaders = [["#", "Session Name", "Classes", "Date"]];
+    const tableHeaders = [["#", "Class Name", "Session Name", "Date"]];
     const tableRows = data.map((row, index) => [
       index + 1,
+      row.class_id[0]?.class?.class_name || "N/A",
       row.sessionName,
-      row.class_id.map(c => `${c.class?.class_name} (${c.class?.class_code})`).join(", "),
       new Date(row.date).toLocaleDateString()
     ]);
     printContent(tableHeaders, tableRows);
   };
 
   const handleCopy = () => {
-    const headers = ["#", "Session Name", "Classes", "Date"];
+    const headers = ["#", "Class Name", "Session Name", "Date"];
     const rows = data.map((row, index) => 
-      `${index + 1}\t${row.sessionName}\t${row.class_id.map(c => `${c.class?.class_name} (${c.class?.class_code})`).join(", ")}\t${new Date(row.date).toLocaleDateString()}`
+      `${index + 1}\t${row.class_id[0]?.class?.class_name || "N/A"}\t${row.sessionName}\t${new Date(row.date).toLocaleDateString()}`
     );
     copyContent(headers, rows);
-  };
-
-  const toggleClassSelection = (classId) => {
-    setSelectedClasses(prev => 
-      prev.includes(classId) 
-        ? prev.filter(id => id !== classId) 
-        : [...prev, classId]
-    );
   };
 
   useEffect(() => {
@@ -232,7 +276,7 @@ const SessionMasterPage = () => {
 
   const breadcrumbItems = [
     { label: "Master Entry", link: "/master-entry/all-module" },
-    { label: "Year Master", link: "null" },
+    { label: "Session Master", link: "null" },
   ];
 
   return (
@@ -250,27 +294,33 @@ const SessionMasterPage = () => {
         <Container>
           <Button
             onClick={() => {
-              setIsPopoverOpen(true);
+              setIsFormOpen(true);
               setEditingId(null);
-              setFormData({ sessionName: "", class_id: [], date: "" });
-              setSelectedClasses([]);
+              setFormData({
+                sessionName: "",
+                class_id: "",
+                date: ""
+              });
             }}
             className="btn-add mb-3"
           >
-            <CgAddR /> {editingId ? "Edit Session" : "Add Session"}
+            <CgAddR /> Add Session
           </Button>
 
-          {isPopoverOpen && (
+          {isFormOpen && (
             <div className="cover-sheet">
               <div className="studentHeading">
-                <h2>{editingId ? "Edit Session" : "Add New Session"}</h2>
+                <h2>Add New Session</h2>
                 <button
                   className="closeForm"
                   onClick={() => {
-                    setIsPopoverOpen(false);
-                    setFormData({ sessionName: "", class_id: [], date: "" });
-                    setSelectedClasses([]);
-                    setEditingId(null);
+                    setIsFormOpen(false);
+                    setFormData({
+                      sessionName: "",
+                      class_id: "",
+                      date: ""
+                    });
+                    setError("");
                   }}
                 >
                   X
@@ -302,29 +352,33 @@ const SessionMasterPage = () => {
                 </Row>
                 <Row className="mb-3">
                   <Col lg={12}>
-                    <FormLabel className="labelForm">Select Classes</FormLabel>
+                    <FormLabel className="labelForm">Select Class</FormLabel>
                     {classesLoading ? (
                       <p>Loading classes...</p>
                     ) : (
-                      <div className="d-flex flex-wrap gap-2">
+                      <FormControl
+                        as="select"
+                        value={formData.class_id}
+                        onChange={(e) =>
+                          setFormData({...formData, class_id: e.target.value})
+                        }
+                      >
+                        <option value="">Select Class</option>
                         {classes.map((cls) => (
-                          <Button
-                            key={cls._id}
-                            variant={selectedClasses.includes(cls._id) ? "primary" : "outline-primary"}
-                            onClick={() => toggleClassSelection(cls._id)}
-                          >
-                            {cls.class_name} ({cls.class_code})
-                          </Button>
+                          <option key={cls._id} value={cls._id}>
+                            {cls.class_name}
+                          </option>
                         ))}
-                      </div>
+                      </FormControl>
                     )}
                   </Col>
                 </Row>
+                {error && <div className="text-danger mb-3">{error}</div>}
                 <Button 
-                  onClick={editingId ? () => handleUpdate(editingId) : handleAdd} 
+                  onClick={handleAdd} 
                   className="btn btn-primary"
                 >
-                  {editingId ? "Update Session" : "Add Session"}
+                  Add Session
                 </Button>
               </Form>
             </div>
@@ -334,6 +388,8 @@ const SessionMasterPage = () => {
             <h2>Session Records</h2>
             {loading ? (
               <p>Loading...</p>
+            ) : error ? (
+              <p className="text-danger">{error}</p>
             ) : (
               <Table
                 columns={columns}
