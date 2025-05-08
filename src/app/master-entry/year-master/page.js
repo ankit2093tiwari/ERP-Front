@@ -17,17 +17,19 @@ import Table from "@/app/component/DataTable";
 import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 
-const YearMasterPage = () => {
+const SessionMasterPage = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [formData, setFormData] = useState({
-    class: "",
-    year_name: ""
+    sessionName: "",
+    class_id: [],
+    date: ""
   });
   const [classes, setClasses] = useState([]);
   const [classesLoading, setClassesLoading] = useState(false);
+  const [selectedClasses, setSelectedClasses] = useState([]);
 
   // Fetch classes when component mounts
   useEffect(() => {
@@ -54,25 +56,6 @@ const YearMasterPage = () => {
     fetchClasses();
   }, []);
 
-  // Group data by class with multiple year names
-  const groupedData = data.reduce((acc, item) => {
-    const classId = item.class?._id;
-    if (!classId) return acc;
-    
-    const existingClass = acc.find(x => x.class?._id === classId);
-    if (existingClass) {
-      if (!existingClass.year_names.includes(item.year_name)) {
-        existingClass.year_names.push(item.year_name);
-      }
-    } else {
-      acc.push({
-        ...item,
-        year_names: [item.year_name]
-      });
-    }
-    return acc;
-  }, []);
-
   const columns = [
     {
       name: "#",
@@ -81,43 +64,44 @@ const YearMasterPage = () => {
       sortable: false,
     },
     {
-      name: "Class Name",
-      cell: (row) =>
-        row.class
-          ? `${row.class.class_name} (${row.class.class_code})`
-          : "N/A",
+      name: "Session Name",
+      selector: (row) => row.sessionName,
       sortable: true,
     },
     {
-      name: "Year Names",
+      name: "Classes",
       cell: (row) => (
         <div className="d-flex flex-column gap-2">
-          {row.year_names.map((yearName, idx) => (
-            <div key={idx} className="d-flex justify-content-between align-items-center">
-              <span>{yearName}</span>
-              <div className="d-flex gap-1">
-                <button
-                  className="editButton"
-                  onClick={() => handleEdit({ ...row, year_name: yearName })}
-                >
-                  <FaEdit />
-                </button>
-                <button
-                  className="editButton btn-danger"
-                  onClick={() => {
-                    const matching = data.find(
-                      (item) =>
-                        item.class?._id === row.class?._id &&
-                        item.year_name === yearName
-                    );
-                    if (matching) handleDelete(matching._id);
-                  }}
-                >
-                  <FaTrashAlt />
-                </button>
-              </div>
+          {row.class_id.map((classItem, idx) => (
+            <div key={idx}>
+              {classItem.class?.class_name} ({classItem.class?.class_code})
             </div>
           ))}
+        </div>
+      ),
+      sortable: false,
+    },
+    {
+      name: "Date",
+      selector: (row) => new Date(row.date).toLocaleDateString(),
+      sortable: true,
+    },
+    {
+      name: "Actions",
+      cell: (row) => (
+        <div className="d-flex gap-1">
+          <button
+            className="editButton"
+            onClick={() => handleEdit(row)}
+          >
+            <FaEdit />
+          </button>
+          <button
+            className="editButton btn-danger"
+            onClick={() => handleDelete(row._id)}
+          >
+            <FaTrashAlt />
+          </button>
         </div>
       ),
       sortable: false,
@@ -127,7 +111,7 @@ const YearMasterPage = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/year/all-year");
+      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-session/");
       
       let fetchedData = [];
       if (Array.isArray(response.data)) {
@@ -144,94 +128,102 @@ const YearMasterPage = () => {
     }
   };
 
-  const handleEdit = (year) => {
-    setEditingId(year._id);
+  const handleEdit = (session) => {
+    setEditingId(session._id);
     setFormData({
-      class: year.class?._id || "",
-      year_name: year.year_name || ""
+      sessionName: session.sessionName,
+      class_id: session.class_id.map(item => item.class._id),
+      date: session.date
     });
+    setSelectedClasses(session.class_id.map(item => item.class._id));
     setIsPopoverOpen(true);
   };
 
   const handleUpdate = async (id) => {
-    if (!formData.class.trim() || !formData.year_name.trim()) return;
+    if (!formData.sessionName.trim() || formData.class_id.length === 0) return;
 
     try {
-      await axios.put(`https://erp-backend-fy3n.onrender.com/api/year/update-year/${id}`, {
-        class: formData.class,
-        year_name: formData.year_name
+      const class_id = selectedClasses.map(classId => ({ class: classId }));
+      
+      await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-session/${id}`, {
+        sessionName: formData.sessionName,
+        class_id,
+        date: formData.date
       });
       
       fetchData();
       setEditingId(null);
-      setFormData({ class: "", year_name: "" });
+      setFormData({ sessionName: "", class_id: [], date: "" });
+      setSelectedClasses([]);
       setIsPopoverOpen(false);
     } catch (error) {
       console.error("Error updating data:", error);
       if (error.response?.data?.error?.code === 11000) {
-        alert("A year with this name already exists for the selected class.");
+        alert("A session with this name already exists.");
       }
     }
   };
 
   const handleDelete = async (id) => {
-    if (confirm("Are you sure you want to delete this year entry?")) {
+    if (confirm("Are you sure you want to delete this session?")) {
       try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/year/delete-year/${id}`);
+        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-session/${id}`);
         fetchData();
       } catch (error) {
-        console.error("Error deleting year:", error);
+        console.error("Error deleting session:", error);
       }
     }
   };
 
   const handleAdd = async () => {
-    if (!formData.class.trim() || !formData.year_name.trim()) return;
+    if (!formData.sessionName.trim() || selectedClasses.length === 0) return;
 
     try {
-      // Check if year already exists for this class
-      const exists = data.some(item => 
-        item.class?._id === formData.class && 
-        item.year_name === formData.year_name
-      );
+      const class_id = selectedClasses.map(classId => ({ class: classId }));
       
-      if (exists) {
-        alert("This year already exists for the selected class.");
-        return;
-      }
-
-      await axios.post("https://erp-backend-fy3n.onrender.com/api/year/create-year", {
-        class: formData.class,
-        year_name: formData.year_name
+      await axios.post("https://erp-backend-fy3n.onrender.com/api/create-session", {
+        sessionName: formData.sessionName,
+        class_id,
+        date: formData.date
       });
       
       fetchData();
-      setFormData({ class: "", year_name: "" });
+      setFormData({ sessionName: "", class_id: [], date: "" });
+      setSelectedClasses([]);
       setIsPopoverOpen(false);
     } catch (error) {
-      console.error("Error adding year:", error);
+      console.error("Error adding session:", error);
       if (error.response?.data?.error?.code === 11000) {
-        alert("This year already exists for the selected class.");
+        alert("A session with this name already exists.");
       }
     }
   };
 
   const handlePrint = () => {
-    const tableHeaders = [["#", "Class Name", "Year Names"]];
-    const tableRows = groupedData.map((row, index) => [
+    const tableHeaders = [["#", "Session Name", "Classes", "Date"]];
+    const tableRows = data.map((row, index) => [
       index + 1,
-      row.class ? `${row.class.class_name} (${row.class.class_code})` : "N/A",
-      row.year_names.join(", "),
+      row.sessionName,
+      row.class_id.map(c => `${c.class?.class_name} (${c.class?.class_code})`).join(", "),
+      new Date(row.date).toLocaleDateString()
     ]);
     printContent(tableHeaders, tableRows);
   };
 
   const handleCopy = () => {
-    const headers = ["#", "Class Name", "Year Names"];
-    const rows = groupedData.map((row, index) => 
-      `${index + 1}\t${row.class ? `${row.class.class_name} (${row.class.class_code})` : "N/A"}\t${row.year_names.join(", ")}`
+    const headers = ["#", "Session Name", "Classes", "Date"];
+    const rows = data.map((row, index) => 
+      `${index + 1}\t${row.sessionName}\t${row.class_id.map(c => `${c.class?.class_name} (${c.class?.class_code})`).join(", ")}\t${new Date(row.date).toLocaleDateString()}`
     );
     copyContent(headers, rows);
+  };
+
+  const toggleClassSelection = (classId) => {
+    setSelectedClasses(prev => 
+      prev.includes(classId) 
+        ? prev.filter(id => id !== classId) 
+        : [...prev, classId]
+    );
   };
 
   useEffect(() => {
@@ -240,7 +232,7 @@ const YearMasterPage = () => {
 
   const breadcrumbItems = [
     { label: "Master Entry", link: "/master-entry/all-module" },
-    { label: "year-master", link: "null" },
+    { label: "Year Master", link: "null" },
   ];
 
   return (
@@ -260,22 +252,24 @@ const YearMasterPage = () => {
             onClick={() => {
               setIsPopoverOpen(true);
               setEditingId(null);
-              setFormData({ class: "", year_name: "" });
+              setFormData({ sessionName: "", class_id: [], date: "" });
+              setSelectedClasses([]);
             }}
             className="btn-add mb-3"
           >
-            <CgAddR /> {editingId ? "Edit Year" : "Add Year"}
+            <CgAddR /> {editingId ? "Edit Session" : "Add Session"}
           </Button>
 
           {isPopoverOpen && (
             <div className="cover-sheet">
               <div className="studentHeading">
-                <h2>{editingId ? "Edit Year" : "Add New Year"}</h2>
+                <h2>{editingId ? "Edit Session" : "Add New Session"}</h2>
                 <button
                   className="closeForm"
                   onClick={() => {
                     setIsPopoverOpen(false);
-                    setFormData({ class: "", year_name: "" });
+                    setFormData({ sessionName: "", class_id: [], date: "" });
+                    setSelectedClasses([]);
                     setEditingId(null);
                   }}
                 >
@@ -285,51 +279,65 @@ const YearMasterPage = () => {
               <Form className="formSheet">
                 <Row className="mb-3">
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Class</FormLabel>
-                    <Form.Control
-                      as="select"
-                      value={formData.class}
-                      onChange={(e) => setFormData({...formData, class: e.target.value})}
-                      disabled={classesLoading}
-                    >
-                      <option value="">Select Class</option>
-                      {Array.isArray(classes) && classes.map((cls) => (
-                        <option key={cls._id} value={cls._id}>
-                          {cls.class_name} ({cls.class_code})
-                        </option>
-                      ))}
-                    </Form.Control>
-                  </Col>
-                  <Col lg={6}>
-                    <FormLabel className="labelForm">Year Name</FormLabel>
+                    <FormLabel className="labelForm">Session Name</FormLabel>
                     <FormControl
                       type="text"
-                      placeholder="Enter Year Name"
-                      value={formData.year_name}
+                      placeholder="Enter Session Name"
+                      value={formData.sessionName}
                       onChange={(e) =>
-                        setFormData({...formData, year_name: e.target.value})
+                        setFormData({...formData, sessionName: e.target.value})
                       }
                     />
+                  </Col>
+                  <Col lg={6}>
+                    <FormLabel className="labelForm">Date</FormLabel>
+                    <FormControl
+                      type="date"
+                      value={formData.date}
+                      onChange={(e) =>
+                        setFormData({...formData, date: e.target.value})
+                      }
+                    />
+                  </Col>
+                </Row>
+                <Row className="mb-3">
+                  <Col lg={12}>
+                    <FormLabel className="labelForm">Select Classes</FormLabel>
+                    {classesLoading ? (
+                      <p>Loading classes...</p>
+                    ) : (
+                      <div className="d-flex flex-wrap gap-2">
+                        {classes.map((cls) => (
+                          <Button
+                            key={cls._id}
+                            variant={selectedClasses.includes(cls._id) ? "primary" : "outline-primary"}
+                            onClick={() => toggleClassSelection(cls._id)}
+                          >
+                            {cls.class_name} ({cls.class_code})
+                          </Button>
+                        ))}
+                      </div>
+                    )}
                   </Col>
                 </Row>
                 <Button 
                   onClick={editingId ? () => handleUpdate(editingId) : handleAdd} 
                   className="btn btn-primary"
                 >
-                  {editingId ? "Update Year" : "Add Year"}
+                  {editingId ? "Update Session" : "Add Session"}
                 </Button>
               </Form>
             </div>
           )}
 
           <div className="tableSheet">
-            <h2>Year Records</h2>
+            <h2>Session Records</h2>
             {loading ? (
               <p>Loading...</p>
             ) : (
               <Table
                 columns={columns}
-                data={groupedData}
+                data={data}
                 handleCopy={handleCopy}
                 handlePrint={handlePrint}
               />
@@ -341,4 +349,4 @@ const YearMasterPage = () => {
   );
 };
 
-export default dynamic(() => Promise.resolve(YearMasterPage), { ssr: false });
+export default dynamic(() => Promise.resolve(SessionMasterPage), { ssr: false });
