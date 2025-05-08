@@ -31,6 +31,32 @@ const SessionMasterPage = () => {
   const [classes, setClasses] = useState([]);
   const [classesLoading, setClassesLoading] = useState(false);
 
+  // Group sessions by class
+  const groupSessionsByClass = (sessions) => {
+    const grouped = {};
+    
+    sessions.forEach(session => {
+      const classId = session.class_id[0]?.class?._id;
+      const className = session.class_id[0]?.class?.class_name || "N/A";
+      
+      if (!grouped[classId]) {
+        grouped[classId] = {
+          _id: classId,
+          class_name: className,
+          sessions: []
+        };
+      }
+      
+      grouped[classId].sessions.push({
+        _id: session._id,
+        sessionName: session.sessionName,
+        date: session.date
+      });
+    });
+    
+    return Object.values(grouped);
+  };
+
   const columns = [
     {
       name: "#",
@@ -40,102 +66,73 @@ const SessionMasterPage = () => {
     },
     {
       name: "Class Name",
-      cell: (row) => (
-        <div>
-          {editingId === row._id ? (
-            <FormControl
-              as="select"
-              value={formData.class_id}
-              onChange={(e) => setFormData({...formData, class_id: e.target.value})}
-            >
-              <option value="">Select Class</option>
-              {classes.map((cls) => (
-                <option key={cls._id} value={cls._id}>{cls.class_name}</option>
-              ))}
-            </FormControl>
-          ) : (
-            row.class_id[0]?.class?.class_name || "N/A"
-          )}
-        </div>
-      ),
+      selector: row => row.class_name,
       sortable: true,
     },
     {
-      name: "Session Name",
+      name: "Sessions",
       cell: (row) => (
         <div>
-          {editingId === row._id ? (
-            <FormControl
-              type="text"
-              value={formData.sessionName}
-              onChange={(e) => setFormData({...formData, sessionName: e.target.value})}
-            />
-          ) : (
-            row.sessionName || "N/A"
-          )}
-        </div>
-      ),
-      sortable: true,
-    },
-    {
-      name: "Date",
-      cell: (row) => (
-        <div>
-          {editingId === row._id ? (
-            <FormControl
-              type="date"
-              value={formData.date}
-              onChange={(e) => setFormData({...formData, date: e.target.value})}
-            />
-          ) : (
-            new Date(row.date).toLocaleDateString() || "N/A"
-          )}
-        </div>
-      ),
-      sortable: true,
-    },
-    {
-      name: "Actions",
-      cell: (row) => (
-        <div className="d-flex gap-1">
-          {editingId === row._id ? (
-            <>
-              <button
-                className="editButton"
-                onClick={() => handleUpdate(row._id)}
-              >
-                <FaSave />
-              </button>
-              <button
-                className="editButton btn-danger"
-                onClick={() => {
-                  setEditingId(null);
-                  setFormData({
-                    sessionName: "",
-                    class_id: "",
-                    date: ""
-                  });
-                }}
-              >
-                Cancel
-              </button>
-            </>
-          ) : (
-            <>
-              <button
-                className="editButton"
-                onClick={() => handleEdit(row)}
-              >
-                <FaEdit />
-              </button>
-              <button
-                className="editButton btn-danger"
-                onClick={() => handleDelete(row._id)}
-              >
-                <FaTrashAlt />
-              </button>
-            </>
-          )}
+          {row.sessions.map((session, idx) => (
+            <div key={session._id} className="mb-2">
+              {editingId === session._id ? (
+                <div className="d-flex gap-2 align-items-center">
+                  <FormControl
+                    type="text"
+                    value={formData.sessionName}
+                    onChange={(e) => setFormData({...formData, sessionName: e.target.value})}
+                    size="sm"
+                  />
+                  <FormControl
+                    type="date"
+                    value={formData.date}
+                    onChange={(e) => setFormData({...formData, date: e.target.value})}
+                    size="sm"
+                  />
+                  <button
+                    className="editButton btn-sm"
+                    onClick={() => handleUpdate(session._id)}
+                  >
+                    <FaSave />
+                  </button>
+                  <button
+                    className="editButton btn-sm btn-danger"
+                    onClick={() => {
+                      setEditingId(null);
+                      setFormData({
+                        sessionName: "",
+                        class_id: "",
+                        date: ""
+                      });
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              ) : (
+                <div className="d-flex justify-content-between align-items-center">
+                  <div>
+                    <strong>{session.sessionName || "N/A"}</strong> - 
+                    <span className="ms-2">{new Date(session.date).toLocaleDateString() || "N/A"}</span>
+                  </div>
+                  <div className="d-flex gap-1">
+                    <button
+                      className="editButton btn-sm"
+                      onClick={() => handleEdit(row._id, session)}
+                    >
+                      <FaEdit />
+                    </button>
+                    <button
+                      className="editButton btn-sm btn-danger"
+                      onClick={() => handleDelete(session._id)}
+                    >
+                      <FaTrashAlt />
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       ),
       sortable: false,
@@ -165,7 +162,8 @@ const SessionMasterPage = () => {
     setError("");
     try {
       const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-session/");
-      setData(response.data.data || []);
+      const groupedData = groupSessionsByClass(response.data.data || []);
+      setData(groupedData);
     } catch (err) {
       console.error("Error fetching data:", err);
       setError("Failed to fetch sessions");
@@ -174,11 +172,11 @@ const SessionMasterPage = () => {
     }
   };
 
-  const handleEdit = (session) => {
+  const handleEdit = (classId, session) => {
     setEditingId(session._id);
     setFormData({
       sessionName: session.sessionName,
-      class_id: session.class_id[0]?.class?._id || "",
+      class_id: classId,
       date: session.date
     });
   };
@@ -253,19 +251,23 @@ const SessionMasterPage = () => {
 
   const handlePrint = () => {
     const tableHeaders = [["#", "Class Name", "Session Name", "Date"]];
-    const tableRows = data.map((row, index) => [
-      index + 1,
-      row.class_id[0]?.class?.class_name || "N/A",
-      row.sessionName,
-      new Date(row.date).toLocaleDateString()
-    ]);
+    const tableRows = data.flatMap((row, index) => 
+      row.sessions.map(session => [
+        index + 1,
+        row.class_name,
+        session.sessionName,
+        new Date(session.date).toLocaleDateString()
+      ])
+    );
     printContent(tableHeaders, tableRows);
   };
 
   const handleCopy = () => {
     const headers = ["#", "Class Name", "Session Name", "Date"];
-    const rows = data.map((row, index) => 
-      `${index + 1}\t${row.class_id[0]?.class?.class_name || "N/A"}\t${row.sessionName}\t${new Date(row.date).toLocaleDateString()}`
+    const rows = data.flatMap((row, index) => 
+      row.sessions.map(session => 
+        `${index + 1}\t${row.class_name}\t${session.sessionName}\t${new Date(session.date).toLocaleDateString()}`
+      )
     );
     copyContent(headers, rows);
   };
