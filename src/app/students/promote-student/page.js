@@ -92,7 +92,7 @@ const PromoteStudentPage = () => {
   };
 
   // ... (other handler functions remain the same)
-  const handlePrint = async () => {
+   const handlePrint = async () => {
 
     const tableHeaders = [["#", "Student Name", "Father Name", "Adm No", "Gender", "Roll No"]];
 
@@ -244,6 +244,8 @@ const PromoteStudentPage = () => {
 
   ];
 
+
+
   return (
     <>
       <div className="breadcrumbSheet position-relative">
@@ -268,8 +270,8 @@ const PromoteStudentPage = () => {
                 <Row>
                   <Col lg={4}>
                     <FormLabel className="labelForm">Current Session</FormLabel>
-                    <FormSelect
-                      value={currentSessionId}
+                    <FormSelect 
+                      value={currentSessionId} 
                       onChange={(e) => setCurrentSessionId(e.target.value)}
                     >
                       <option value="">Select Current Session</option>
@@ -282,11 +284,11 @@ const PromoteStudentPage = () => {
                   </Col>
                   <Col lg={4}>
                     <FormLabel className="labelForm">Current Class</FormLabel>
-                    <FormSelect
-                      value={selectedClass}
-                      onChange={(e) => {
-                        setSelectedClass(e.target.value);
-                        fetchSections(e.target.value, setSectionList);
+                    <FormSelect 
+                      value={selectedClass} 
+                      onChange={(e) => { 
+                        setSelectedClass(e.target.value); 
+                        fetchSections(e.target.value, setSectionList); 
                       }}
                     >
                       <option value="">Select Current Class</option>
@@ -297,8 +299,8 @@ const PromoteStudentPage = () => {
                   </Col>
                   <Col lg={4}>
                     <FormLabel className="labelForm">Current Section</FormLabel>
-                    <FormSelect
-                      value={selectedSection}
+                    <FormSelect 
+                      value={selectedSection} 
                       onChange={(e) => setSelectedSection(e.target.value)}
                     >
                       <option value="">Select Current Section</option>
@@ -321,8 +323,8 @@ const PromoteStudentPage = () => {
                 <Row>
                   <Col lg={4}>
                     <FormLabel className="labelForm">Promotion Session</FormLabel>
-                    <FormSelect
-                      value={promotionSessionId}
+                    <FormSelect 
+                      value={promotionSessionId} 
                       onChange={(e) => setPromotionSessionId(e.target.value)}
                     >
                       <option value="">Select Promotion Session</option>
@@ -335,11 +337,11 @@ const PromoteStudentPage = () => {
                   </Col>
                   <Col lg={4}>
                     <FormLabel className="labelForm">Promoted Class</FormLabel>
-                    <FormSelect
-                      value={promotedClass}
-                      onChange={(e) => {
-                        setPromotedClass(e.target.value);
-                        fetchSections(e.target.value, setPromotedSectionList);
+                    <FormSelect 
+                      value={promotedClass} 
+                      onChange={(e) => { 
+                        setPromotedClass(e.target.value); 
+                        fetchSections(e.target.value, setPromotedSectionList); 
                       }}
                     >
                       <option value="">Select Promoted Class</option>
@@ -350,8 +352,8 @@ const PromoteStudentPage = () => {
                   </Col>
                   <Col lg={4}>
                     <FormLabel className="labelForm">Promoted Section</FormLabel>
-                    <FormSelect
-                      value={promotedSection}
+                    <FormSelect 
+                      value={promotedSection} 
                       onChange={(e) => setPromotedSection(e.target.value)}
                     >
                       <option value="">Select Promoted Section</option>
@@ -363,12 +365,12 @@ const PromoteStudentPage = () => {
                 </Row>
                 <Row className="mt-3">
                   <Col>
-                    <Button
-                      onClick={handlePromote}
+                    <Button 
+                      onClick={handlePromote} 
                       disabled={
-                        !selectedStudents.length ||
-                        !promotedClass ||
-                        !promotedSection ||
+                        !selectedStudents.length || 
+                        !promotedClass || 
+                        !promotedSection || 
                         !promotionSessionId
                       }
                     >
@@ -386,11 +388,11 @@ const PromoteStudentPage = () => {
               <div className="tableSheet">
                 <h2>Students Records</h2>
                 {students.length > 0 ? (
-                  <Table
-                    columns={columns}
-                    data={students}
-                    handlePrint={handlePrint}
-                    handleCopy={handleCopy}
+                  <Table 
+                    columns={columns} 
+                    data={students} 
+                    handlePrint={handlePrint} 
+                    handleCopy={handleCopy} 
                   />
                 ) : (
                   <p className="text-center">No students found.</p>

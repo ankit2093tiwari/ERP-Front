@@ -1,7 +1,12 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+
+const SpeechRecognition =
+  typeof window !== "undefined"
+    ? window.SpeechRecognition || window.webkitSpeechRecognition
+    : null;
 
 export default function LoginPage({ onLogin }) {
   const [email, setEmail] = useState("");
@@ -12,8 +17,12 @@ export default function LoginPage({ onLogin }) {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isFetchingSessions, setIsFetchingSessions] = useState(false);
-  const router = useRouter();
+  const [isListening, setIsListening] = useState(false);
 
+  const router = useRouter();
+  const recognitionRef = useRef(null);
+
+  // Fetch sessions
   useEffect(() => {
     const fetchSessions = async () => {
       setIsFetchingSessions(true);
@@ -36,6 +45,38 @@ export default function LoginPage({ onLogin }) {
     fetchSessions();
   }, []);
 
+  // Voice recognition logic
+  useEffect(() => {
+    if (!SpeechRecognition) return;
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = false;
+    recognition.lang = "en-US";
+    recognitionRef.current = recognition;
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
+      console.log("Heard:", transcript);
+      if (transcript.includes("login")) {
+        handleLogin(new Event("submit"));
+      }
+    };
+
+    recognition.onerror = (event) => {
+      console.error("Speech recognition error:", event.error);
+    };
+
+    if (isListening) {
+      recognition.start();
+    } else {
+      recognition.stop();
+    }
+
+    return () => recognition.stop();
+  }, [isListening]);
+
+  // Handle login
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
@@ -73,15 +114,9 @@ export default function LoginPage({ onLogin }) {
     <div className="loginPage">
       <div className="loginBox">
         <div className="logoContainer">
-          <Image 
-            src="/sbllogo.webp" 
-            alt="Company Logo"
-            width={120} 
-            height={50} 
-            priority 
-          />
+          <Image src="/sbllogo.webp" alt="Company Logo" width={120} height={50} priority />
         </div>
-        
+
         <h2 className="title">SIGN IN</h2>
         <p className="subtitle">For your protection, please verify your identity.</p>
 
@@ -143,15 +178,23 @@ export default function LoginPage({ onLogin }) {
 
           {error && <div className="errorMessage">{error}</div>}
 
-          <button 
-            type="submit" 
-            className="loginButton" 
+          <button
+            type="submit"
+            className="loginButton"
             disabled={isLoading || isFetchingSessions}
           >
             {isLoading ? "Signing In..." : "Sign In"}
           </button>
+
         </form>
       </div>
+      <button
+        type="button"
+        onClick={() => setIsListening((prev) => !prev)}
+        className="mic-button"
+      >
+        🎤 {isListening ? "Stop Listening" : "Voice"}
+      </button>
     </div>
   );
 }
