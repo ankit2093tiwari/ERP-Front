@@ -9,7 +9,7 @@ import "./globals.css";
 import "./darkMode.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { ToastContainer } from "react-toastify";
-// import LoginPage from "./login/page";
+import "react-toastify/dist/ReactToastify.css";
 import LoginPage from "./login";
 
 export default function RootLayout({ children }) {
@@ -24,9 +24,9 @@ export default function RootLayout({ children }) {
     const token = localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
     setIsAuthenticated(!!token);
     setIsLoading(false);
-    
-    if (!token && !window.location.pathname.includes('/login')) {
-      router.push('/login');
+
+    if (!token && !window.location.pathname.includes("/login")) {
+      router.push("/login");
     }
   }, [router]);
 
@@ -37,14 +37,14 @@ export default function RootLayout({ children }) {
       sessionStorage.setItem("authToken", token);
     }
     setIsAuthenticated(true);
-    router.push('/dashboard');
+    router.push("/dashboard");
   };
 
   const handleLogout = () => {
     localStorage.removeItem("authToken");
     sessionStorage.removeItem("authToken");
     setIsAuthenticated(false);
-    router.push('/login');
+    router.push("/login");
   };
 
   if (isLoading) {
@@ -68,19 +68,22 @@ export default function RootLayout({ children }) {
         />
 
         {isAuthenticated ? (
-          <div className="layout">
-            <SideBar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
-            <div className={`main-content ${isSidebarOpen ? "with-sidebar" : "full-width"}`}>
-              <Header toggleSidebar={toggleSidebar} onLogout={handleLogout} />
-              <main>{children}</main>
-              <Footer />
+          <>
+            <div className="layout">
+              <SideBar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
+              <div className={`main-content ${isSidebarOpen ? "with-sidebar" : "full-width"}`}>
+                <Header toggleSidebar={toggleSidebar} onLogout={handleLogout} />
+                <main>{children}</main>
+                <Footer />
+              </div>
             </div>
-          </div>
+            {/* ✅ Only render toast for authenticated layout */}
+            <ToastContainer position="top-center" />
+          </>
         ) : (
+          // ❌ No layout or padding for login page
           <LoginPage onLogin={handleLogin} />
         )}
-
-        <ToastContainer position="top-center" />
       </body>
     </html>
   );
