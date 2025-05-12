@@ -1,11 +1,16 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import { Form, Row, Col, Container, FormLabel, Button, Breadcrumb, FormSelect } from "react-bootstrap";
 import Table from "@/app/component/DataTable";
 import styles from "@/app/students/assign-roll-no/page.module.css";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+
+const SpeechRecognition =
+  typeof window !== "undefined"
+    ? window.SpeechRecognition || window.webkitSpeechRecognition
+    : null;
 
 const StudentBulkUpdate = () => {
   const [classList, setClassList] = useState([]);
@@ -15,10 +20,46 @@ const StudentBulkUpdate = () => {
   const [students, setStudents] = useState([]);
   const [updatedStudents, setUpdatedStudents] = useState([]);
   const [showUpdateButton, setShowUpdateButton] = useState(false);
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef(null);
 
   useEffect(() => {
     fetchClasses();
   }, []);
+
+  // Voice recognition logic
+  useEffect(() => {
+    if (!SpeechRecognition) return;
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = false;
+    recognition.lang = "en-US";
+    recognitionRef.current = recognition;
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
+      console.log("Heard:", transcript);
+      
+      if (transcript.includes("search students") && selectedClass && selectedSection) {
+        fetchStudents();
+      } else if (transcript.includes("update students") && showUpdateButton) {
+        handleUpdateStudents();
+      }
+    };
+
+    recognition.onerror = (event) => {
+      console.error("Speech recognition error:", event.error);
+    };
+
+    if (isListening) {
+      recognition.start();
+    } else {
+      recognition.stop();
+    }
+
+    return () => recognition.stop();
+  }, [isListening, selectedClass, selectedSection, showUpdateButton]);
 
   const fetchClasses = async () => {
     try {
@@ -32,9 +73,7 @@ const StudentBulkUpdate = () => {
   const fetchSections = async (classId) => {
     try {
       const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/sections/class/${classId}`);
-      console.log('testttttnnn', response)
       setSectionList(Array.isArray(response.data.data) ? response.data.data : []);
-      console.log('testttttnnn', response.data)
     } catch (error) {
       console.error("Failed to fetch sections", error);
     }
@@ -192,7 +231,6 @@ const StudentBulkUpdate = () => {
       </div>
       <section>
         <Container>
-
           <div className="cover-sheet">
             <div className="studentHeading">
               <h2>Search Students</h2>

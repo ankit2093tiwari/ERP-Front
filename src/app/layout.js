@@ -1,3 +1,4 @@
+// app/layout.js
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
@@ -11,6 +12,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import LoginPage from "./login";
+import SpeechRecognitionProvider from "@/app/component/SpeechRecognitionProvider";
 
 export default function RootLayout({ children }) {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
@@ -26,7 +28,7 @@ export default function RootLayout({ children }) {
     setIsLoading(false);
 
     if (!token && !window.location.pathname.includes("/login")) {
-      router.push("/login");
+      router.replace("/login");
     }
   }, [router]);
 
@@ -37,14 +39,25 @@ export default function RootLayout({ children }) {
       sessionStorage.setItem("authToken", token);
     }
     setIsAuthenticated(true);
-    router.push("/dashboard");
+    router.replace("/dashboard");
   };
 
   const handleLogout = () => {
     localStorage.removeItem("authToken");
     sessionStorage.removeItem("authToken");
     setIsAuthenticated(false);
-    router.push("/login");
+    router.replace("/login");
+  };
+
+  const handleVoiceCommand = (command) => {
+    if (command.includes("logout")) {
+      handleLogout();
+    } else if (command.includes("dashboard")) {
+      router.replace("/");
+    } else if (command.includes("login")) {
+      router.replace("/login");
+    }
+    
   };
 
   if (isLoading) {
@@ -77,11 +90,10 @@ export default function RootLayout({ children }) {
                 <Footer />
               </div>
             </div>
-            {/* ✅ Only render toast for authenticated layout */}
             <ToastContainer position="top-center" />
+            <SpeechRecognitionProvider onCommand={handleVoiceCommand} />
           </>
         ) : (
-          // ❌ No layout or padding for login page
           <LoginPage onLogin={handleLogin} />
         )}
       </body>

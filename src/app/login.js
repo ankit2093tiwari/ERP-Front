@@ -183,7 +183,7 @@ export default function LoginPage({ onLogin }) {
             className="loginButton"
             disabled={isLoading || isFetchingSessions}
           >
-            {isLoading ? "Signing In..." : "Sign In"}
+            {isLoading ? "Log In..." : "Log In"}
           </button>
 
         </form>
@@ -198,3 +198,5 @@ export default function LoginPage({ onLogin }) {
     </div>
   );
 }
+
+
