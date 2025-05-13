@@ -33,12 +33,13 @@ const Dashboard = () => {
   const router = useRouter();
   const [dashboardData, setDashboardData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
+   const [studentCount, setStudentCount] = useState(0);
 
   // Check authentication and fetch data
   useEffect(() => {
     const token = localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
     if (!token) {
-      router.push('/login');
+      router.push('/');
     } else {
       // fetchDashboardData();
       setIsLoading(false);
@@ -224,9 +225,11 @@ const Dashboard = () => {
                   <Col lg={6}>
                     <div className="card widget-first overflow-hidden pt-4 mb-3">
                       <div className="card-body position-relative z-1">
-                        <h4 className="fw-normal mt-5 pt-7 mb-1 fw-bold text-start"> Students </h4>
+                        <h4 className="fw-normal mt-5 pt-7 mb-1 fw-bold text-start">Student</h4>
                         <div className="hstack gap-2">
-                          <h5 className="card-title mb-0 fs-7"> 78,298 </h5>
+                          <h5 className="card-title mb-0 fs-7">
+                            {studentCount.toLocaleString()} 
+                          </h5>
                         </div>
                       </div>
                     </div>

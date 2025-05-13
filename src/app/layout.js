@@ -39,7 +39,7 @@ export default function RootLayout({ children }) {
       sessionStorage.setItem("authToken", token);
     }
     setIsAuthenticated(true);
-    router.replace("/dashboard");
+    router.replace("/");
   };
 
   const handleLogout = () => {
@@ -52,10 +52,24 @@ export default function RootLayout({ children }) {
   const handleVoiceCommand = (command) => {
     if (command.includes("logout")) {
       handleLogout();
-    } else if (command.includes("dashboard")) {
+    } else if (command.includes("go to dashboard")) {
       router.replace("/");
     } else if (command.includes("login")) {
       router.replace("/login");
+    } else if (command.includes("go to student module")) {
+      router.replace("/students/all-module");
+    } else if (command.includes("go to master entry module")) {
+      router.replace("/master-entry/all-module");
+    } else if (command.includes("go to transport module")) {
+      router.replace("/Transport/all-module");
+    } else if (command.includes("go to fee module")) {
+      router.replace("/fees/all-module");
+    } else if (command.includes("go to medical module")) {
+      router.replace("/medical/all-module");
+    } else if (command.includes("go to stock module")) {
+      router.replace("/stock/all-module");
+    } else if (command.includes("go to notice module")) {
+      router.replace("/notice/all-module");
     }
     
   };
