@@ -355,8 +355,8 @@ const FeeStatement = () => {
             <Col>
               <Breadcrumb>
                 <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-                <Breadcrumb.Item href="/fees/fee-Statement">Fee Settings</Breadcrumb.Item>
-                <Breadcrumb.Item active>Manage Fee Settings</Breadcrumb.Item>
+                <Breadcrumb.Item href="/fees/fee-Statement">Fee Structure</Breadcrumb.Item>
+                <Breadcrumb.Item active>Manage Fee Structure</Breadcrumb.Item>
               </Breadcrumb>
             </Col>
           </Row>
