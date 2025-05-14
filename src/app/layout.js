@@ -56,23 +56,49 @@ export default function RootLayout({ children }) {
       router.replace("/");
     } else if (command.includes("login")) {
       router.replace("/login");
-    } else if (command.includes("go to student module")) {
+    } else if (command.includes("go to student")) {
       router.replace("/students/all-module");
-    } else if (command.includes("go to master entry module")) {
+    } else if (command.includes("go to master entry")) {
       router.replace("/master-entry/all-module");
-    } else if (command.includes("go to transport module")) {
+    } else if (command.includes("go to transport")) {
       router.replace("/Transport/all-module");
-    } else if (command.includes("go to fee module")) {
+    } else if (command.includes("go to fees")) {
       router.replace("/fees/all-module");
-    } else if (command.includes("go to medical module")) {
+    } else if (command.includes("go to medical")) {
       router.replace("/medical/all-module");
-    } else if (command.includes("go to stock module")) {
+    } else if (command.includes("go to stock")) {
       router.replace("/stock/all-module");
-    } else if (command.includes("go to notice module")) {
+    } else if (command.includes("go to notice")) {
       router.replace("/notice/all-module");
-    }  else if (command.includes("home")) {
-      router.replace("/go to home page");
-    }
+    }  else if (command.includes("go to home")) {
+      router.replace("/home");
+    } else if (command.includes("go to advertising management")) {
+      router.replace("/advertising-management/all-module");
+    } else if (command.includes("go to appointment")) {
+      router.replace("/appointment");
+    } else if (command.includes("go to dailydairy")) {
+      router.replace("/dailyDairy");
+    } else if (command.includes("go to exam")) {
+      router.replace("/exam/all-module");
+    } else if (command.includes("go to front office")) {
+      router.replace("/front-office/all-module");
+    } else if (command.includes("go to gallery")) {
+      router.replace("/gallery/all-module");
+    } else if (command.includes("go to hrd")) {
+      router.replace("/hrd/allModule");
+    } else if (command.includes("go to important SMS")) {
+      router.replace("/importantSMS");
+    } else if (command.includes("go to library")) {
+      router.replace("/library/all-module");
+    } else if (command.includes("go to student attendance")) {
+      router.replace("/studentAttendence/allModule");
+    } else if (command.includes("go to thought")) {
+      router.replace("/thought");
+    } else if (command.includes("go to user management")) {
+      router.replace("/userManagement/all-module");
+    } else if (command.includes("go to accounts")) {
+      router.replace("/accounts/all-module");
+    } 
     
   };
 
