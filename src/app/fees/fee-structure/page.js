@@ -248,6 +248,7 @@ const FeeStatement = () => {
               : item
           )
         );
+        fetchData();
         
         resetForm();
         setIsPopoverOpen(false);
