@@ -129,7 +129,7 @@ export default function Sidebar({ isOpen }) {
         { title: "Bank Master", href: "/fees/bank-master", icon: <FaAngleDoubleRight /> },
         { title: "Petty Head", href: "/fees/pettyHeadMaster", icon: <FaAngleDoubleRight /> },
         { title: "Fee Structure", href: "/fees/fee-structure", icon: <FaAngleDoubleRight /> },
-        { title: "Fee Statement", href: "/fees/fee-Statement", icon: <FaAngleDoubleRight /> },
+        // { title: "Fee Statement", href: "/fees/fee-Statement", icon: <FaAngleDoubleRight /> },
         { title: "Fixed Amount", href: "/fees/fixed-amount", icon: <FaAngleDoubleRight /> },
         { title: "Fee Entry", href: "/fees/fee-entry", icon: <FaAngleDoubleRight /> },
         { title: "Fee Entryy", href: "/fees/feeEntryy", icon: <FaAngleDoubleRight /> },
