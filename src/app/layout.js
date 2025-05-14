@@ -70,6 +70,8 @@ export default function RootLayout({ children }) {
       router.replace("/stock/all-module");
     } else if (command.includes("go to notice module")) {
       router.replace("/notice/all-module");
+    }  else if (command.includes("home")) {
+      router.replace("/go to home page");
     }
     
   };
