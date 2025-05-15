@@ -190,18 +190,18 @@ const FeeStatement = () => {
         total_amount: newFeeSetting.monthly_fees.reduce((sum, month) => sum + (month.total_fee || 0), 0)
       };
       
-      const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/add-fee-structure", payload);
+      const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/create-fee-structure", payload);
       
       if (response.data?.success) {
         fetchData();
         resetForm();
         setIsPopoverOpen(false);
       } else {
-        throw new Error(response.data?.message || "Failed to add fee setting");
+        throw new Error(response.data?.message || "Failed to add fee structure");
       }
     } catch (err) {
       console.error("Add error:", err);
-      setError(err.response?.data?.message || "Failed to add fee setting.");
+      setError(err.response?.data?.message || "Failed to add fee structure");
     }
   };
 
@@ -253,11 +253,11 @@ const FeeStatement = () => {
         resetForm();
         setIsPopoverOpen(false);
       } else {
-        throw new Error(response.data?.message || "Failed to update fee setting");
+        throw new Error(response.data?.message || "Failed to update fee structure");
       }
     } catch (err) {
       console.error("Update error:", err);
-      setError(err.response?.data?.message || "Failed to update fee setting.");
+      setError(err.response?.data?.message || "Failed to update fee structure");
       fetchData();
     }
   };
@@ -286,14 +286,14 @@ const FeeStatement = () => {
 
   const handleDelete = async (id) => {
     if (!id) return;
-    if (!window.confirm("Are you sure you want to delete this fee setting?")) return;
+    if (!window.confirm("Are you sure you want to delete this fee structure?")) return;
     
     try {
       await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-fee-structure/${id}`);
       fetchData();
     } catch (err) {
       console.error("Delete error:", err);
-      setError("Failed to delete fee setting.");
+      setError("Failed to delete fee structure");
     }
   };
 
