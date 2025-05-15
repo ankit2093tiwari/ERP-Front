@@ -27,8 +27,24 @@ const GenerateIdCard = () => {
   useEffect(() => {
     if (selectedClass) {
       fetchSections(selectedClass);
+      // Reset section and students when class changes
+      setSelectedSection("");
+      setStudents([]);
+      setSelectedStudents([]);
+      setNoRecordsFound(false);
     }
   }, [selectedClass]);
+
+  useEffect(() => {
+    if (selectedClass && selectedSection) {
+      fetchStudents();
+    } else {
+      // Reset students when section is cleared
+      setStudents([]);
+      setSelectedStudents([]);
+      setNoRecordsFound(false);
+    }
+  }, [selectedClass, selectedSection]);
 
   const fetchClasses = async () => {
     try {
@@ -49,11 +65,6 @@ const GenerateIdCard = () => {
   };
 
   const fetchStudents = async () => {
-    if (!selectedClass || !selectedSection) {
-      alert("Please select both Class and Section.");
-      return;
-    }
-
     setLoading(true);
     setNoRecordsFound(false);
     try {
@@ -140,7 +151,6 @@ const GenerateIdCard = () => {
           pdf.text("Delhi", centerX, marginY + contentPadding + 14, { align: 'center' });
           pdf.text("9898989898", centerX, marginY + contentPadding + 18, { align: 'center' });
   
-          // Rest of your existing code remains the same...
           // Title
           pdf.setFontSize(9);
           pdf.setFont("helvetica", "bold");
@@ -207,8 +217,6 @@ const GenerateIdCard = () => {
     } catch (error) {
       console.error("Error fetching school data:", error);
       alert("Failed to fetch school information. Using default school name.");
-      
-      // You might want to call the function again with default values or handle the error differently
     }
   };
   
@@ -218,7 +226,6 @@ const GenerateIdCard = () => {
       return;
     }
 
-    // Generate individual PDFs for each selected student
     selectedStudents.forEach(studentId => {
       const student = students.find(s => s._id === studentId);
       if (student) {
@@ -275,7 +282,6 @@ const GenerateIdCard = () => {
       ),
       width: "70px",
     },
-   
     {
       name: "Class",
       selector: (row) => row.class_name?.class_name || "N/A",
@@ -306,7 +312,6 @@ const GenerateIdCard = () => {
       selector: (row) => row.phone_no || "N/A",
       sortable: true,
     },
-
   ];
 
   const breadcrumbItems = [
@@ -350,6 +355,7 @@ const GenerateIdCard = () => {
                   <FormSelect
                     value={selectedSection}
                     onChange={(e) => setSelectedSection(e.target.value)}
+                    disabled={!selectedClass}
                   >
                     <option value="">Select Section</option>
                     {sectionList.map((sec) => (
@@ -357,13 +363,6 @@ const GenerateIdCard = () => {
                     ))}
                   </FormSelect>
                 </Col>
-                <Row>
-                  <Col className="d-flex align-items-end mt-4">
-                    <Button variant="primary" onClick={fetchStudents}>
-                      Search Students
-                    </Button>
-                  </Col>
-                </Row>
               </Row>
             </Form>
           </div>
@@ -371,7 +370,7 @@ const GenerateIdCard = () => {
           {students.length > 0 && (
             <div className="mt-3 mb-3">
               <Button
-                variant="secondary"
+                variant="primary"
                 onClick={handleSelectAll}
                 className="me-2"
               >
@@ -384,7 +383,6 @@ const GenerateIdCard = () => {
               >
                 Generate ID Cards ({selectedStudents.length} Selected)
               </Button>
-
             </div>
           )}
 
