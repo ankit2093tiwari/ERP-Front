@@ -240,7 +240,7 @@ const StudentMasterPage = () => {
       errors.pin_No_error = "PIN must be exactly 6 digits";
       isValid = false;
     }
-  
+
 
     // Phone number validation
     if (student.father_mobile_no && !validatePhoneNumber(student.father_mobile_no)) {
@@ -306,7 +306,13 @@ const StudentMasterPage = () => {
       const response = await axios[method](url, student);
 
       if (response?.data?.status === 'success') {
-        toast.success(`Student ${student._id ? "Updated" : "Created"} Successfully`);
+        // toast.success(`Student ${student._id ? "Updated" : "Created"} Successfully`);
+        toast.success(`Student ${student._id ? "Updated" : "Created"} Successfully`, {
+          toastClassName: 'toast-success',
+          icon: '✅',
+        });
+
+
         fetchData();
         // Reset form to initial state
         setStudent(initialStudentState);
@@ -953,7 +959,7 @@ const StudentMasterPage = () => {
                   </div>
                 </Tab>
                 {/* ... (keep other tabs) ... */}
-                
+
                 <Tab eventKey="document-upload" title="Document Uploads" className='cover-sheet'>
                   <Row>
                     <Col>

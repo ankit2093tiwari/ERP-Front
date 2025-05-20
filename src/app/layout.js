@@ -70,7 +70,7 @@ export default function RootLayout({ children }) {
       router.replace("/stock/all-module");
     } else if (command.includes("go to notice")) {
       router.replace("/notice/all-module");
-    }  else if (command.includes("go to home")) {
+    } else if (command.includes("go to home")) {
       router.replace("/home");
     } else if (command.includes("go to advertising management")) {
       router.replace("/advertising-management/all-module");
@@ -98,8 +98,8 @@ export default function RootLayout({ children }) {
       router.replace("/userManagement/all-module");
     } else if (command.includes("go to accounts")) {
       router.replace("/accounts/all-module");
-    } 
-    
+    }
+
   };
 
   if (isLoading) {
@@ -132,7 +132,18 @@ export default function RootLayout({ children }) {
                 <Footer />
               </div>
             </div>
-            <ToastContainer position="top-center" />
+            {/* <ToastContainer position="top-center" /> */}
+            <ToastContainer
+              position="top-right"
+              autoClose={5000}
+              hideProgressBar={false}
+              newestOnTop={false}
+              closeOnClick
+              rtl={false}
+              pauseOnFocusLoss
+              draggable
+              pauseOnHover
+            />
             <SpeechRecognitionProvider onCommand={handleVoiceCommand} />
           </>
         ) : (

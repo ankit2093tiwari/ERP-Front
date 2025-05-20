@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import { Form, Row, Col, Container, FormLabel, Button, Breadcrumb, FormSelect } from "react-bootstrap";
+import { Form, Row, Col, Container, FormLabel, Button, Breadcrumb, FormSelect, Alert } from "react-bootstrap";
 import Table from "@/app/component/DataTable";
 import styles from "@/app/students/assign-roll-no/page.module.css";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
@@ -21,11 +21,37 @@ const StudentBulkUpdate = () => {
   const [updatedStudents, setUpdatedStudents] = useState([]);
   const [showUpdateButton, setShowUpdateButton] = useState(false);
   const [isListening, setIsListening] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [noRecordsFound, setNoRecordsFound] = useState(false);
   const recognitionRef = useRef(null);
 
   useEffect(() => {
     fetchClasses();
   }, []);
+
+  useEffect(() => {
+    if (selectedClass) {
+      fetchSections(selectedClass);
+      // Reset section and students when class changes
+      setSelectedSection("");
+      setStudents([]);
+      setUpdatedStudents([]);
+      setShowUpdateButton(false);
+      setNoRecordsFound(false);
+    }
+  }, [selectedClass]);
+
+  useEffect(() => {
+    if (selectedClass && selectedSection) {
+      fetchStudents();
+    } else {
+      // Reset students when section is cleared
+      setStudents([]);
+      setUpdatedStudents([]);
+      setShowUpdateButton(false);
+      setNoRecordsFound(false);
+    }
+  }, [selectedClass, selectedSection]);
 
   // Voice recognition logic
   useEffect(() => {
@@ -41,9 +67,7 @@ const StudentBulkUpdate = () => {
       const transcript = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
       console.log("Heard:", transcript);
       
-      if (transcript.includes("search students") && selectedClass && selectedSection) {
-        fetchStudents();
-      } else if (transcript.includes("update students") && showUpdateButton) {
+      if (transcript.includes("update students") && showUpdateButton) {
         handleUpdateStudents();
       }
     };
@@ -59,7 +83,7 @@ const StudentBulkUpdate = () => {
     }
 
     return () => recognition.stop();
-  }, [isListening, selectedClass, selectedSection, showUpdateButton]);
+  }, [isListening, showUpdateButton]);
 
   const fetchClasses = async () => {
     try {
@@ -80,28 +104,36 @@ const StudentBulkUpdate = () => {
   };
 
   const fetchStudents = async () => {
-    if (!selectedClass || !selectedSection) {
-      alert("Please select both class and section");
-      return;
-    }
+    setLoading(true);
+    setNoRecordsFound(false);
     try {
       const response = await axios.get(
         `https://erp-backend-fy3n.onrender.com/api/students/search?class_name=${selectedClass}&section_name=${selectedSection}`
       );
 
-      setStudents(response.data.data || []);
-      setUpdatedStudents(response.data.data || []);
-      setShowUpdateButton(true);
+      if (response.data.data && response.data.data.length > 0) {
+        setStudents(response.data.data);
+        setUpdatedStudents(response.data.data);
+        setShowUpdateButton(true);
+      } else {
+        setStudents([]);
+        setUpdatedStudents([]);
+        setShowUpdateButton(false);
+        setNoRecordsFound(true);
+      }
     } catch (error) {
       console.error("Failed to fetch students", error);
+      setStudents([]);
+      setUpdatedStudents([]);
+      setShowUpdateButton(false);
+      setNoRecordsFound(true);
     }
+    setLoading(false);
   };
 
   const handleClassChange = (event) => {
     const classId = event.target.value;
     setSelectedClass(classId);
-    setSelectedSection("");
-    fetchSections(classId);
   };
 
   const handleSectionChange = (event) => {
@@ -251,7 +283,11 @@ const StudentBulkUpdate = () => {
                 </Col>
                 <Col>
                   <FormLabel className="labelForm">Select Section</FormLabel>
-                  <FormSelect value={selectedSection} onChange={handleSectionChange}>
+                  <FormSelect 
+                    value={selectedSection} 
+                    onChange={handleSectionChange}
+                    disabled={!selectedClass}
+                  >
                     <option value="">Select Section</option>
                     {Array.isArray(sectionList) && sectionList.map((sec) => (
                       <option key={sec._id} value={sec._id}>
@@ -262,18 +298,15 @@ const StudentBulkUpdate = () => {
                 </Col>
               </Row>
               <br />
-              <Row>
-                <Col>
-                  <Button className="btn btn-primary" onClick={fetchStudents}>
-                    Search Students
-                  </Button>
-                  {showUpdateButton && (
-                    <Button className="btn btn-success mt-3" onClick={handleUpdateStudents}>
+              {showUpdateButton && (
+                <Row>
+                  <Col>
+                    <Button className="btn btn-success" onClick={handleUpdateStudents}>
                       Update Students
                     </Button>
-                  )}
-                </Col>
-              </Row>
+                  </Col>
+                </Row>
+              )}
             </Form>
           </div>
 
@@ -281,10 +314,14 @@ const StudentBulkUpdate = () => {
             <Col>
               <div className="tableSheet">
                 <h2>Students Records</h2>
-                {students.length > 0 ? (
+                {loading ? (
+                  <p>Loading...</p>
+                ) : noRecordsFound ? (
+                  <Alert variant="info">There is no record to display.</Alert>
+                ) : students.length > 0 ? (
                   <Table columns={columns} data={students} />
                 ) : (
-                  <p className="text-center">No students found for the selected class and section.</p>
+                  <p className="text-center">Please select both class and section to view students.</p>
                 )}
               </div>
             </Col>

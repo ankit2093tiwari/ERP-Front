@@ -11,7 +11,7 @@ const SpeechRecognition =
 export default function LoginPage({ onLogin }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [sessionName, setSessionName] = useState("");
+  const [sessionId, setSessionId] = useState("");
   const [sessions, setSessions] = useState([]);
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
@@ -82,7 +82,7 @@ export default function LoginPage({ onLogin }) {
     setError("");
     setIsLoading(true);
 
-    if (!email || !password || !sessionName) {
+    if (!email || !password || !sessionId) {
       setError("Email, Password, and Session are required");
       setIsLoading(false);
       return;
@@ -92,12 +92,12 @@ export default function LoginPage({ onLogin }) {
       const response = await fetch("https://erp-backend-fy3n.onrender.com/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, sessionName }),
+        body: JSON.stringify({ email, password, sessionId }),
       });
 
       const data = await response.json();
       if (data.success) {
-        onLogin && onLogin(data.token, rememberMe, sessionName);
+        onLogin && onLogin(data.token, rememberMe, data.session.sessionName);
         router.push("/");
       } else {
         setError(data.message || "Invalid credentials");
@@ -146,18 +146,18 @@ export default function LoginPage({ onLogin }) {
           </div>
 
           <div className="formGroup">
-            <label htmlFor="sessionName">SESSION *</label>
+            <label htmlFor="sessionId">SESSION *</label>
             <select
-              id="sessionName"
-              value={sessionName}
-              onChange={(e) => setSessionName(e.target.value)}
+              id="sessionId"
+              value={sessionId}
+              onChange={(e) => setSessionId(e.target.value)}
               className="inputField"
               required
               disabled={isFetchingSessions}
             >
               <option value="">Select a session</option>
               {sessions.map((session) => (
-                <option key={session._id} value={session.sessionName}>
+                <option key={session._id} value={session._id}>
                   {session.sessionName}
                 </option>
               ))}
@@ -185,7 +185,6 @@ export default function LoginPage({ onLogin }) {
           >
             {isLoading ? "Log In..." : "Log In"}
           </button>
-
         </form>
       </div>
       <button
@@ -198,5 +197,3 @@ export default function LoginPage({ onLogin }) {
     </div>
   );
 }
-
-
