@@ -71,10 +71,10 @@ const StateCityMasterPage = () => {
       name: "Cities",
       cell: (row) => (
         <div>
-          {row.cities.length > 0 ? (
+          {row.cities && row.cities.length > 0 ? (
             row.cities.map((city, index) => (
               <div key={index} className="mb-2">
-                {editingCity && editingCity._id === city._id ? (
+                {editingCity && editingCity._id === city?._id ? (
                   <div className="d-flex align-items-center gap-2">
                     <FormControl
                       as="select"
@@ -105,11 +105,11 @@ const StateCityMasterPage = () => {
                   </div>
                 ) : (
                   <div className="d-flex align-items-center gap-2">
-                    <span>{city.city_name || "N/A"}</span>
+                    <span>{city?.city_name || "N/A"}</span>
                     <button className="editButton" onClick={() => handleEditCity(city)}>
                       <FaEdit />
                     </button>
-                    <button className="editButton btn-danger" onClick={() => handleDeleteCity(city._id)}>
+                    <button className="editButton btn-danger" onClick={() => handleDeleteCity(city?._id)}>
                       <FaTrashAlt />
                     </button>
                   </div>
@@ -129,21 +129,21 @@ const StateCityMasterPage = () => {
     setError("");
     try {
       const stateResponse = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-states");
-      const states = stateResponse.data.data;
+      const states = stateResponse.data.data || [];
 
       const cityResponse = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-cities");
-      const cities = cityResponse.data.data;
+      const cities = cityResponse.data.data || [];
 
       const updatedData = states.map((state) => {
         const stateCities = cities
-          .filter((city) => city.state._id === state._id || city.state === state._id)
+          .filter((city) => city?.state?._id === state?._id || city?.state === state?._id)
           .map((city) => ({
-            city_name: city.city_name,
-            _id: city._id,
-            state_id: city.state._id || city.state
+            city_name: city?.city_name,
+            _id: city?._id,
+            state_id: city?.state?._id || city?.state || ""
           }));
 
-        return { ...state, cities: stateCities };
+        return { ...state, cities: stateCities || [] };
       });
 
       setData(updatedData);
@@ -195,23 +195,26 @@ const StateCityMasterPage = () => {
   };
 
   const handleEditState = (state) => {
+    if (!state) return;
     setEditingState(state);
     setFormData({
       ...formData,
-      state_name: state.state_name || ""
+      state_name: state?.state_name || ""
     });
   };
 
   const handleEditCity = (city) => {
+    if (!city) return;
     setEditingCity(city);
     setFormData({
       ...formData,
-      city_name: city.city_name || "",
-      state_id: city.state_id || city.state?._id || city.state || ""
+      city_name: city?.city_name || "",
+      state_id: city?.state_id || city?.state?._id || city?.state || ""
     });
   };
 
   const handleUpdateState = async (id) => {
+    if (!id) return;
     if (!formData.state_name.trim()) {
       setError("State name is required");
       return;
@@ -231,6 +234,7 @@ const StateCityMasterPage = () => {
   };
 
   const handleUpdateCity = async (id) => {
+    if (!id) return;
     if (!formData.state_id || !formData.city_name.trim()) {
       setError("Both state and city name are required");
       return;
@@ -251,6 +255,7 @@ const StateCityMasterPage = () => {
   };
 
   const handleDeleteState = async (id) => {
+    if (!id) return;
     if (confirm("Are you sure you want to delete this state and all its cities?")) {
       try {
         await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-states/${id}`);
@@ -263,6 +268,7 @@ const StateCityMasterPage = () => {
   };
 
   const handleDeleteCity = async (id) => {
+    if (!id) return;
     if (confirm("Are you sure you want to delete this city?")) {
       try {
         await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-cities/${id}`);
@@ -278,8 +284,8 @@ const StateCityMasterPage = () => {
     const tableHeaders = [["#", "State Name", "Cities"]];
     const tableRows = data.map((state, index) => [
       index + 1,
-      state.state_name || "N/A",
-      state.cities.map(c => c.city_name).join(", ") || "N/A"
+      state?.state_name || "N/A",
+      state?.cities?.map(c => c?.city_name).join(", ") || "N/A"
     ]);
     printContent(tableHeaders, tableRows);
   };
@@ -287,7 +293,7 @@ const StateCityMasterPage = () => {
   const handleCopy = () => {
     const headers = ["#", "State Name", "Cities"];
     const rows = data.map((state, index) => 
-      `${index + 1}\t${state.state_name || "N/A"}\t${state.cities.map(c => c.city_name).join(", ") || "N/A"}`
+      `${index + 1}\t${state?.state_name || "N/A"}\t${state?.cities?.map(c => c?.city_name).join(", ") || "N/A"}`
     );
     copyContent(headers, rows);
   };
@@ -361,7 +367,7 @@ const StateCityMasterPage = () => {
                 </Row>
                 {error && <div className="text-danger mb-3">{error}</div>}
                 <Button 
-                  onClick={editingState ? () => handleUpdateState(editingState._id) : handleAddState} 
+                  onClick={editingState ? () => handleUpdateState(editingState?._id) : handleAddState} 
                   className="btn btn-primary"
                 >
                   {editingState ? "Update State" : "Add State"}
@@ -399,8 +405,8 @@ const StateCityMasterPage = () => {
                     >
                       <option value="">Select State</option>
                       {data.map((state) => (
-                        <option key={state._id} value={state._id}>
-                          {state.state_name}
+                        <option key={state?._id} value={state?._id}>
+                          {state?.state_name}
                         </option>
                       ))}
                     </FormControl>
@@ -421,7 +427,7 @@ const StateCityMasterPage = () => {
                 </Row>
                 {error && <div className="text-danger mb-3">{error}</div>}
                 <Button 
-                  onClick={editingCity ? () => handleUpdateCity(editingCity._id) : handleAddCity} 
+                  onClick={editingCity ? () => handleUpdateCity(editingCity?._id) : handleAddCity} 
                   className="btn btn-primary"
                 >
                   {editingCity ? "Update City" : "Add City"}
