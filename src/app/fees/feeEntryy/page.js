@@ -12,40 +12,48 @@ import Image from "next/image";
 import { FaSearch } from "react-icons/fa";
 import { FaPrint } from "react-icons/fa";
 
-
 const FeeEntryy = () => {
-
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
-  let student_field = {
-    class_name: "",
-    section_name: "",
-  }
-
-  const [student, setStudent] = useState(student_field);
+  
+  const [selectedClass, setSelectedClass] = useState("");
+  const [selectedSection, setSelectedSection] = useState("");
   const [classList, setClassList] = useState([]);
   const [sectionList, setSectionList] = useState([]);
+  const [students, setStudents] = useState([]);
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [searchKeyword, setSearchKeyword] = useState("");
 
   useEffect(() => {
     fetchClasses();
   }, []);
 
-  const handleClassChange = (e) => {
-    const { name, value } = e.target;
+  useEffect(() => {
+    if (selectedClass) {
+      fetchSections(selectedClass);
+      // Reset section and students when class changes
+      setSelectedSection("");
+      setStudents([]);
+      setSelectedStudent(null);
+    }
+  }, [selectedClass]);
 
-
-    setStudent((prev) => ({ ...prev, [name]: value }));
-    fetchSections(value)
-  };
+  useEffect(() => {
+    if (selectedClass && selectedSection) {
+      fetchStudents();
+    } else {
+      // Reset students when section is cleared
+      setStudents([]);
+      setSelectedStudent(null);
+    }
+  }, [selectedClass, selectedSection]);
 
   const fetchClasses = async () => {
     try {
       const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/all-classes`);
       const resp = response.data;
-
       setClassList(resp?.data || []);
-
     } catch (err) {
       setError("Failed to fetch classes.");
     }
@@ -53,36 +61,99 @@ const FeeEntryy = () => {
 
   const fetchSections = async (classId) => {
     try {
-      console.log('testinggg', classId)
-      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/sections/class/${classId} `);
-      console.log('response', response);
+      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/sections/class/${classId}`);
       if (response?.data?.success) {
         setSectionList(response?.data?.data);
       } else {
         setSectionList([]);
       }
-      console.log('testingg', response.data);
     } catch (err) {
       setError("Failed to fetch sections.");
     }
   };
+
+  const fetchStudents = async () => {
+    setLoading(true);
+    try {
+      const response = await axios.get(
+        `https://erp-backend-fy3n.onrender.com/api/students/search?class_name=${selectedClass}&section_name=${selectedSection}`
+      );
+      if (response.data.data && response.data.data.length > 0) {
+        setStudents(response.data.data);
+      } else {
+        setStudents([]);
+      }
+      setSelectedStudent(null);
+    } catch (error) {
+      console.error("Failed to fetch students", error);
+      setStudents([]);
+    }
+    setLoading(false);
+  };
+
+  const handleSearch = () => {
+    if (!searchKeyword) return;
+    
+    const filtered = students.filter(student => 
+      student.first_name.toLowerCase().includes(searchKeyword.toLowerCase()) ||
+      student.last_name.toLowerCase().includes(searchKeyword.toLowerCase()) ||
+      student.roll_no?.toString().includes(searchKeyword) ||
+      student.admission_no?.toString().includes(searchKeyword)
+    );
+    
+    setStudents(filtered);
+  };
+
+  const handleResetSearch = () => {
+    setSearchKeyword("");
+    if (selectedClass && selectedSection) {
+      fetchStudents();
+    }
+  };
+
+  const handleStudentSelect = (student) => {
+    setSelectedStudent(student);
+  };
+
   const columns = [
     { name: "#", selector: (row, index) => index + 1, width: "50px" },
-    { name: "ADMISSINON NO.", selector: (row) => row.name || "N/A" },
-    { name: "ROLL NUMBER", selector: (row) => row.class_section || "N/A" },
+    // { name: "ADMISSION NO.", selector: (row) => row.admission_no || "N/A" },
+    {
+      name: "Admission No",
+      selector: (row) => row.registration_id || "N/A",
+    },
+    { name: "ROLL NUMBER", selector: (row) => row.roll_no || "N/A" },
+    { name: "STUDENT NAME", selector: (row) => `${row.first_name} ${row.last_name}` || "N/A" },
+    { name: "FATHER NAME", selector: (row) => row.father_name || "N/A" },
+    { name: "CLASS/SECTION", selector: (row) => 
+      `${row.class_name?.class_name || "N/A"} (${row.section_name?.section_name || "N/A"})` 
+    },
+    {
+      name: "Actions",
+      cell: (row) => (
+        <Button 
+          variant="primary" 
+          size="sm"
+          onClick={() => handleStudentSelect(row)}
+        >
+          Select
+        </Button>
+      ),
+    },
+  ];
+
+  const feeColumns = [
+    { name: "#", selector: (row, index) => index + 1, width: "50px" },
     { name: "RECEIPT NO", selector: (row) => row.receipt_no || "N/A" },
     { name: "FEE GROUP", selector: (row) => row.fee_group || "N/A" },
     { name: "FEE CODE", selector: (row) => row.fee_code || "N/A" },
     { name: "DESCRIPTION", selector: (row) => row.description || "N/A" },
-    { name: "STATUS", selector: (row) => new Date(row.status).toLocaleDateString() || "N/A" },
+    { name: "STATUS", selector: (row) => row.status || "N/A" },
     { name: "DATE", selector: (row) => row.date || "N/A" },
     { name: "DISCOUNT", selector: (row) => row.discount || "N/A" },
     { name: "FINE", selector: (row) => row.fine || "N/A" },
     { name: "PAID AMOUNT", selector: (row) => row.paid_amount || "N/A" },
     { name: "UNPAID AMOUNT", selector: (row) => row.unpaid || "N/A" },
-    // { name: "STATUS", selector: (row) => row.status || "N/A" },
-
-
     {
       name: "Actions",
       cell: (row) => (
@@ -101,31 +172,14 @@ const FeeEntryy = () => {
     },
   ];
 
-  const data = [
+  // Sample fee data - in a real app, this would come from an API
+  const feeData = [
     {
       id: 1,
-      name: 'SAURABH AGRAHARI',
-      class_section: '1st(A)',
       receipt_no: '773',
       fee_group: '1st Class Fees,Development Fees(Nur - 5)',
       fee_code: 'TUTION FEES,DEVELOPMENT FEES',
-      description: 'April-MAy',
-      status: 'Paid',
-      date: '14-08-2024',
-      discount: '1050',
-      fine: '0',
-      paid_amount: 'pending',
-      unpaid: '3400',
-
-    },
-    {
-      id: 2,
-      name: 'SAURABH AGRAHARI',
-      class_section: '1st(A)',
-      receipt_no: '773',
-      fee_group: '1st Class Fees,Development Fees(Nur - 5)',
-      fee_code: 'TUTION FEES,DEVELOPMENT FEES',
-      description: 'April-MAy',
+      description: 'April-May',
       status: 'Paid',
       date: '14-08-2024',
       discount: '1050',
@@ -133,68 +187,7 @@ const FeeEntryy = () => {
       paid_amount: '3400',
       unpaid: '-',
     },
-    {
-      id: 3,
-      name: 'SAURABH AGRAHARI',
-      class_section: '1st(A)',
-      receipt_no: '773',
-      fee_group: '1st Class Fees,Development Fees(Nur - 5)',
-      fee_code: 'TUTION FEES,DEVELOPMENT FEES',
-      description: 'April-MAy',
-      status: 'Paid',
-      date: '14-08-2024',
-      discount: '1050',
-      fine: '0',
-      paid_amount: '3400',
-      unpaid: '-',
-    },
-    {
-      id: 4,
-      name: 'SAURABH AGRAHARI',
-      class_section: '1st(A)',
-      receipt_no: '773',
-      fee_group: '1st Class Fees,Development Fees(Nur - 5)',
-      fee_code: 'TUTION FEES,DEVELOPMENT FEES',
-      description: 'April-MAy',
-      status: 'Paid',
-      date: '14-08-2024',
-      discount: '1050',
-      fine: '0',
-      paid_amount: '3400',
-      unpaid: '-',
-    },
-    {
-      id: 5,
-      name: 'SAURABH AGRAHARI',
-      class_section: '1st(A)',
-      receipt_no: '773',
-      fee_group: '1st Class Fees,Development Fees(Nur - 5)',
-      fee_code: 'TUTION FEES,DEVELOPMENT FEES',
-      description: 'April-MAy',
-      status: 'Paid',
-      date: '14-08-2024',
-      discount: '1050',
-      fine: '0',
-      paid_amount: '3400',
-      unpaid: '-',
-    },
-    {
-      id: 6,
-      name: 'SAURABH AGRAHARI',
-      class_section: '1st(A)',
-      receipt_no: '773',
-      fee_group: '1st Class Fees,Development Fees(Nur - 5)',
-      fee_code: 'TUTION FEES,DEVELOPMENT FEES',
-      description: 'April-MAy',
-      status: 'Paid',
-      date: '14-08-2024',
-      discount: '1050',
-      fine: '0',
-      paid_amount: '3400',
-      unpaid: '-',
-    },
-
-
+    // ... more fee records
   ];
 
   return (
@@ -211,7 +204,6 @@ const FeeEntryy = () => {
         </Row>
       </div>
 
-
       <Row>
         <Col>
           <div className="card shadow-none">
@@ -220,16 +212,15 @@ const FeeEntryy = () => {
             </div>
             <div className="card-body">
               <Row className="text-start">
-                <Col lg={3}>
+                <Col lg={6}>
                   <FormGroup controlId="validationCustom08">
                     <FormLabel className="labelForm">Select Class</FormLabel>
                     <FormSelect
-                      value={student?.class_name}
-                      onChange={handleClassChange}
-                      name="class_name"
+                      value={selectedClass}
+                      onChange={(e) => setSelectedClass(e.target.value)}
                     >
                       <option value="">Select Class</option>
-                      {classList?.length && classList?.map((classItem) => (
+                      {classList?.map((classItem) => (
                         <option key={classItem?._id} value={classItem?._id}>
                           {classItem?.class_name}
                         </option>
@@ -237,17 +228,16 @@ const FeeEntryy = () => {
                     </FormSelect>
                   </FormGroup>
                 </Col>
-                <Col lg={3}>
+                <Col lg={6}>
                   <FormGroup controlId="validationCustom09">
                     <FormLabel className="labelForm">Select Section</FormLabel>
                     <FormSelect
-                      value={student.section_name}
-                      onChange={(e) =>
-                        setStudent({ ...student, section_name: e.target.value })
-                      }
+                      value={selectedSection}
+                      onChange={(e) => setSelectedSection(e.target.value)}
+                      disabled={!selectedClass}
                     >
                       <option value="">Select Section</option>
-                      {sectionList?.length > 0 && sectionList?.map((sectionItem) => (
+                      {sectionList?.map((sectionItem) => (
                         <option key={sectionItem?._id} value={sectionItem?._id}>
                           {sectionItem?.section_name} ({sectionItem?.section_code})
                         </option>
@@ -257,113 +247,162 @@ const FeeEntryy = () => {
                 </Col>
 
                 <Col lg={6}>
-                  <FormGroup controlId="validationCustom02">
+                  {/* <FormGroup controlId="validationCustom02">
                     <FormLabel className="labelForm">Search By Keyword</FormLabel>
-                    <FormControl required type="text" />
-                  </FormGroup>
+                    <div className="d-flex">
+                      <FormControl 
+                        type="text" 
+                        value={searchKeyword}
+                        onChange={(e) => setSearchKeyword(e.target.value)}
+                        placeholder="Search by name, roll no, etc."
+                      />
+                      <Button 
+                        variant="primary" 
+                        className="ms-2"
+                        onClick={handleSearch}
+                        disabled={!searchKeyword}
+                      >
+                        <FaSearch /> Search
+                      </Button>
+                      <Button 
+                        variant="secondary" 
+                        className="ms-2"
+                        onClick={handleResetSearch}
+                        disabled={!searchKeyword}
+                      >
+                        Reset
+                      </Button>
+                    </div>
+                  </FormGroup> */}
                 </Col>
               </Row>
-              <div className="d-flex justify-content-end mt-3">
-                <Button variant="primary">
-                  <FaSearch /> Search
-                </Button>
-              </div>
             </div>
           </div>
         </Col>
       </Row>
 
-      <div className="tableSheet">
-        <h2> Fees Statement </h2>
-
-        <div className="card-body">
-          <Row>
-            <Col lg={3}>
-              <div className="idBox">
-                <div className="profilePhoto">
-                  <Image src="/t-01.jpg" alt="" width="100" height="100" />
-                </div>
-                <h4>SAURABH AGRAHARI</h4>
+      {students.length > 0 && (
+        <>
+          <Row className="mt-3">
+            <Col>
+              <div className="tableSheet">
+                <h2>Students List</h2>
+                <Table 
+                  columns={columns} 
+                  data={students} 
+                  pagination
+                  highlightOnHover
+                />
               </div>
             </Col>
-            <Col lg={9}>
-              <BootstrapTable striped bordered hover>
-                <tbody>
-                  <tr>
-                    <td>NAME</td>
-                    <td>SAURABH AGRAHARI</td>
-                    <td>CLASS/ SECTION</td>
-                    <td>1ST (A)</td>
-                  </tr>
-                  <tr>
-                    <td>FATHER NAME</td>
-                    <td>MR. MANOJ</td>
-                    <td>ADMISSION NO.</td>
-                    <td>SCS 90087</td>
-                  </tr>
-                  <tr>
-                    <td>MOBILE NUMBER</td>
-                    <td>9637999855</td>
-                    <td>ROLL NUMBER</td>
-                    <td>125</td>
-                  </tr>
-                  <tr>
-                    <td>CATEGORY</td>
-                    <td>OBC</td>
-                    <td>RTE</td>
-                    <td style={{ color: "red", fontWeight: "bold" }}>No</td>
-                  </tr>
-                  <tr>
-                    <td>TOTAL ASSIGNED</td>
-                    <td>17400</td>
-                    <td></td>
-                    <td></td>
-                  </tr>
-                </tbody>
-              </BootstrapTable>
-            </Col>
           </Row>
-        </div>
 
-        <Row className="justify-content-between mt-3 align-items-center">
-          <Col lg={3}>
-           Date : 30:10:2024
-          </Col>
-          <Col lg={9}>
-            <div className="text-end">
-              <Button variant="primary" className="btn-action">
-                <FaPrint /> Assign Fees
-              </Button>
-              <Button variant="primary" className="btn-action">
-                <FaPrint /> Assign Discount
-              </Button>
-              <Button variant="primary" className="btn-action">
-                <FaPrint /> Paid History
-              </Button>
-              <Button variant="success" className="btn-action">
-                <FaPrint /> Pay Fees
-              </Button>
+          {selectedStudent && (
+            <>
+              <Row className="mt-3">
+                <Col>
+                  <div className="tableSheet">
+                    <h2> Fees Statement </h2>
+                    <div className="card-body">
+                      <Row>
+                        <Col lg={4}>
+                          <div className="idBox">
+                            <div className="profilePhoto">
+                              <Image src="/t-01.jpg" alt="" width="100" height="100" />
+                            </div>
+                            <h4>{selectedStudent.first_name} {selectedStudent.last_name}</h4>
+                          </div>
+                        </Col>
+                        <Col lg={8}>
+                          <BootstrapTable striped bordered hover>
+                            <tbody>
+                              <tr>
+                                <td>NAME</td>
+                                <td>{selectedStudent.first_name} {selectedStudent.last_name}</td>
+                                <td>CLASS/ SECTION</td>
+                                <td>
+                                  {selectedStudent.class_name?.class_name || 'N/A'} 
+                                  ({selectedStudent.section_name?.section_name || 'N/A'})
+                                </td>
+                              </tr>
+                              <tr>
+                                <td>FATHER NAME</td>
+                                <td>{selectedStudent.father_name || 'N/A'}</td>
+                                <td>ADMISSION NO.</td>
+                                <td>{selectedStudent.registration_id || 'N/A'}</td>
+                              </tr>
+                              <tr>
+                                <td>MOBILE NUMBER</td>
+                                <td>{selectedStudent.phone_no || 'N/A'}</td>
+                                <td>ROLL NUMBER</td>
+                                <td>{selectedStudent.roll_no || 'N/A'}</td>
+                              </tr>
+                            </tbody>
+                          </BootstrapTable>
+                        </Col>
+                      </Row>
+                    </div>
+
+                    <Row className="justify-content-between mt-3 align-items-center">
+                      <Col lg={12}>
+                        <div className="text-end">
+                          <Button variant="primary" className="btn-action me-2">
+                            <FaPrint /> Assign Fees
+                          </Button>
+                          <Button variant="primary" className="btn-action me-2">
+                            <FaPrint /> Assign Discount
+                          </Button>
+                          <Button variant="primary" className="btn-action me-2">
+                            <FaPrint /> Paid History
+                          </Button>
+                          <Button variant="success" className="btn-action">
+                            <FaPrint /> Pay Fees
+                          </Button>
+                        </div>
+                      </Col>
+                    </Row>
+
+                    <hr />
+
+                    <div className="card-title">
+                      <h2>Fees Details List</h2>
+                    </div>
+
+                    <div className="card-body">
+                      <div className="tableSheet">
+                        {error && <p style={{ color: "red" }}>{error}</p>}
+                        <Table columns={feeColumns} data={feeData} />
+                      </div>
+                    </div>
+                  </div>
+                </Col>
+              </Row>
+            </>
+          )}
+        </>
+      )}
+
+      {loading && (
+        <Row className="mt-3">
+          <Col>
+            <div className="text-center">
+              <p>Loading students...</p>
             </div>
           </Col>
         </Row>
+      )}
 
-        <hr />
-
-        <div className="card-title">
-          <h2>Fees Details List</h2>
-        </div>
-
-        <div className="card-body">
-          <div className="tableSheet">
-            {error && <p style={{ color: "red" }}>{error}</p>}
-            {console.log("loading", !loading, !error)}
-            {(!loading && !error) ? <Table columns={columns} data={data} /> : ""}
-          </div>
-        </div>
-      </div>
-
-
+      {!loading && students.length === 0 && selectedClass && selectedSection && (
+        <Row className="mt-3">
+          <Col>
+            <div className="alert alert-info">
+              No students found for the selected class and section.
+            </div>
+          </Col>
+        </Row>
+      )}
     </Container>
   );
 };
+
 export default FeeEntryy;

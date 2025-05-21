@@ -11,8 +11,9 @@ import {
   Button,
   Breadcrumb,
   FormSelect,
+  Alert
 } from "react-bootstrap";
-import Table from "@/app/component/DataTable";
+import DataTable from "@/app/component/DataTable";
 import styles from "@/app/students/assign-roll-no/page.module.css";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 
@@ -26,6 +27,7 @@ const AssignRollNo = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [prefixKey, setPrefixKey] = useState("");
   const [loading, setLoading] = useState(false);
+  const [noRecordsFound, setNoRecordsFound] = useState(false);
 
   // Fetch classes on first render
   useEffect(() => {
@@ -36,8 +38,23 @@ const AssignRollNo = () => {
   useEffect(() => {
     if (selectedClass) {
       fetchSections(selectedClass);
+      // Reset section and students when class changes
+      setSelectedSection("");
+      setStudents([]);
+      setNoRecordsFound(false);
     }
   }, [selectedClass]);
+
+  // Auto-fetch students when both class and section are selected
+  useEffect(() => {
+    if (selectedClass && selectedSection) {
+      fetchStudents();
+    } else {
+      // Reset students when section is cleared
+      setStudents([]);
+      setNoRecordsFound(false);
+    }
+  }, [selectedClass, selectedSection]);
 
   const fetchClasses = async () => {
     try {
@@ -62,44 +79,31 @@ const AssignRollNo = () => {
   };
 
   const fetchStudents = async () => {
-    if (!selectedClass || !selectedSection) {
-      alert("Please select both class and section");
-      return;
-    }
-
     setLoading(true);
-    setStudents([]);
-    setIsEditing(false);
-
+    setNoRecordsFound(false);
     try {
       const response = await axios.get(
         `https://erp-backend-fy3n.onrender.com/api/students/search?class_name=${selectedClass}&section_name=${selectedSection}`
       );
-      const studentData = response.data.data || [];
-      setStudents(studentData);
-      setShowButtons(studentData.length > 0);
+      if (response.data.data && response.data.data.length > 0) {
+        // Initialize roll numbers if they don't exist
+        const studentsWithRollNo = response.data.data.map((student, index) => ({
+          ...student,
+          roll_no: student.roll_no || ""
+        }));
+        setStudents(studentsWithRollNo);
+        setShowButtons(true);
+      } else {
+        setStudents([]);
+        setNoRecordsFound(true);
+      }
     } catch (error) {
       console.error("Failed to fetch students", error);
-      alert("Error fetching students. Try again.");
+      setStudents([]);
+      setNoRecordsFound(true);
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleClassChange = (event) => {
-    const classId = event.target.value;
-    setSelectedClass(classId);
-    setSelectedSection("");
-    setStudents([]); // clear students when changing class
-    setIsEditing(false);
-    setShowButtons(false);
-  };
-
-  const handleSectionChange = (event) => {
-    setSelectedSection(event.target.value);
-    setStudents([]); // clear students when changing section
-    setIsEditing(false);
-    setShowButtons(false);
   };
 
   const handleEditRollNo = () => {
@@ -177,6 +181,42 @@ const AssignRollNo = () => {
     { label: "Assign-roll-no", link: "null" },
   ];
 
+  const columns = [
+    {
+      name: "#",
+      selector: (_, index) => index + 1,
+      width: "50px",
+    },
+    {
+      name: "Student Name",
+      selector: (row) =>
+        `${row.first_name} ${row.middle_name || ""} ${row.last_name}`.trim(),
+    },
+    {
+      name: "Adm No",
+      selector: (row) => row.registration_id || "N/A",
+    },
+    {
+      name: "Gender",
+      selector: (row) => row.gender_name || "N/A",
+    },
+    {
+      name: "Roll No",
+      cell: (row, index) =>
+        isEditing ? (
+          <input
+            type="text"
+            value={row.roll_no || ""}
+            onChange={(e) => handleRollNoChange(index, e.target.value)}
+            style={{ width: "60px" }}
+            className="form-control"
+          />
+        ) : (
+          row.roll_no || "N/A"
+        ),
+    },
+  ];
+
   return (
     <>
       <div className="breadcrumbSheet position-relative">
@@ -193,14 +233,17 @@ const AssignRollNo = () => {
         <Container>
           <div className="cover-sheet">
             <div className="studentHeading">
-              <h2>Search Students</h2>
+              <h2>Assign Roll Numbers</h2>
             </div>
 
             <Form className="formSheet">
               <Row>
-                <Col>
+                <Col lg={6}>
                   <FormLabel className="labelForm">Select Class</FormLabel>
-                  <FormSelect value={selectedClass} onChange={handleClassChange}>
+                  <FormSelect 
+                    value={selectedClass} 
+                    onChange={(e) => setSelectedClass(e.target.value)}
+                  >
                     <option value="">Select Class</option>
                     {classList.map((cls) => (
                       <option key={cls._id} value={cls._id}>
@@ -210,9 +253,13 @@ const AssignRollNo = () => {
                   </FormSelect>
                 </Col>
 
-                <Col>
+                <Col lg={6}>
                   <FormLabel className="labelForm">Select Section</FormLabel>
-                  <FormSelect value={selectedSection} onChange={handleSectionChange}>
+                  <FormSelect 
+                    value={selectedSection} 
+                    onChange={(e) => setSelectedSection(e.target.value)}
+                    disabled={!selectedClass}
+                  >
                     <option value="">Select Section</option>
                     {sectionList.map((sec) => (
                       <option key={sec._id} value={sec._id}>
@@ -224,7 +271,7 @@ const AssignRollNo = () => {
               </Row>
 
               <Row className="mt-3">
-                <Col>
+                <Col lg={6}>
                   <FormLabel className="labelForm">Prefix Key (Optional)</FormLabel>
                   <input
                     type="text"
@@ -238,21 +285,30 @@ const AssignRollNo = () => {
 
               <Row className="mt-3">
                 <Col>
-                  <Button onClick={fetchStudents} disabled={loading}>
-                    {loading ? "Loading..." : "Search Students"}
-                  </Button>
                   {showButtons && !isEditing && (
-                    <Button className="ms-2 btn-warning" onClick={handleEditRollNo}>
-                      Edit RollNo
+                    <Button 
+                      variant="warning" 
+                      onClick={handleEditRollNo}
+                      className="me-2"
+                    >
+                      Edit Roll Numbers
                     </Button>
                   )}
                   {isEditing && (
                     <>
-                      <Button className="ms-2 btn-primary" onClick={handleAutoGenerate}>
+                      <Button 
+                        variant="primary" 
+                        onClick={handleAutoGenerate}
+                        className="me-2"
+                      >
                         Auto Generate
                       </Button>
-                      <Button className="ms-2 btn-success" onClick={handleSaveRollNo} disabled={loading}>
-                        {loading ? "Saving..." : "Save RollNo"}
+                      <Button 
+                        variant="success" 
+                        onClick={handleSaveRollNo} 
+                        disabled={loading}
+                      >
+                        {loading ? "Saving..." : "Save Roll Numbers"}
                       </Button>
                     </>
                   )}
@@ -264,47 +320,17 @@ const AssignRollNo = () => {
           <Row>
             <Col>
               <div className="tableSheet">
-                <h2>Students Records</h2>
-                {students.length > 0 ? (
-                  <Table
-                    columns={[
-                      {
-                        name: "#",
-                        selector: (_, index) => index + 1,
-                        width: "50px",
-                      },
-                      {
-                        name: "Student Name",
-                        selector: (row) =>
-                          `${row.first_name} ${row.middle_name || ""} ${row.last_name}`.trim(),
-                      },
-                      {
-                        name: "Adm No",
-                        selector: (row) => row.registration_id || "N/A",
-                      },
-                      {
-                        name: "Gender",
-                        selector: (row) => row.gender_name || "N/A",
-                      },
-                      {
-                        name: "Roll No",
-                        cell: (row, index) =>
-                          isEditing ? (
-                            <input
-                              type="text"
-                              value={row.roll_no || ""}
-                              onChange={(e) => handleRollNoChange(index, e.target.value)}
-                              style={{ width: "60px" }}
-                            />
-                          ) : (
-                            row.roll_no || "N/A"
-                          ),
-                      },
-                    ]}
-                    data={students}
-                  />
+                <h2>Students List</h2>
+                {loading ? (
+                  <p>Loading students...</p>
+                ) : noRecordsFound ? (
+                  <Alert variant="info">No students found for the selected class and section.</Alert>
                 ) : (
-                  <p className="text-center">No students found.</p>
+                  <DataTable
+                    columns={columns}
+                    data={students}
+                    key={students.length} // Add this to force re-render when students change
+                  />
                 )}
               </div>
             </Col>
