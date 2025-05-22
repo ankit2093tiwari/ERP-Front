@@ -290,42 +290,6 @@ const StudentMasterPage = () => {
     setStudentError(prev => ({ ...prev, [`${name}_error`]: "" }));
   };
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    if (file) {
-      // Validate file type and size
-      const validTypes = ['image/jpeg', 'image/png', 'image/gif'];
-      const maxSize = 5 * 1024 * 1024; // 5MB
-
-      if (!validTypes.includes(file.type)) {
-        setStudentError(prev => ({
-          ...prev,
-          profile_Pic_error: "Only JPEG, PNG, or GIF images are allowed"
-        }));
-        return;
-      }
-
-      if (file.size > maxSize) {
-        setStudentError(prev => ({
-          ...prev,
-          profile_Pic_error: "Image size must be less than 5MB"
-        }));
-        return;
-      }
-
-      setStudent(prev => ({ ...prev, profile_Pic: file }));
-      setStudentError(prev => ({ ...prev, profile_Pic_error: "" }));
-
-      // Preview the image
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        // You can use this for preview if needed
-        // setPreviewImage(event.target.result);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
 
   // const handleChange = (e) => {
   //   const { name, value } = e.target;
@@ -363,37 +327,29 @@ const StudentMasterPage = () => {
     if (!validateForm()) return;
 
     try {
-      const formData = new FormData();
-
-      // Append all student data to formData
-      for (const key in student) {
-        if (key === 'profile_Pic') continue; // Skip profile pic, handle separately
-        formData.append(key, student[key]);
-      }
-
-      // Append the file if it exists
-      if (student.profile_Pic instanceof File) {
-        formData.append('profile_Pic', student.profile_Pic);
-      }
-
       const endpoint = "https://erp-backend-fy3n.onrender.com/api/students";
       const method = student._id ? "put" : "post";
       const url = student._id ? `${endpoint}/${student._id}` : endpoint;
 
-      const response = await axios[method](url, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
+      const response = await axios[method](url, student);
 
       if (response?.data?.status === 'success') {
+        // toast.success(`Student ${student._id ? "Updated" : "Created"} Successfully`);
         toast.success(`Student ${student._id ? "Updated" : "Created"} Successfully`, {
           toastClassName: 'toast-success',
           icon: '✅',
         });
 
+
         fetchData();
-        resetStudentForm();
+        // Reset form to initial state
+        setStudent(initialStudentState);
+        setSourceText("");
+        setTargetText("");
+        setCopyChecked(false);
+        setSelectedValue("");
+        setStudentError({});
+        // Reset other form fields as needed
       } else {
         const errorMessage = response?.data?.message || "An error occurred. Please try again.";
         setError(errorMessage);
@@ -406,48 +362,6 @@ const StudentMasterPage = () => {
       toast.error(errorMessage);
     }
   };
-
-
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   if (!validateForm()) return;
-
-  //   try {
-  //     const endpoint = "https://erp-backend-fy3n.onrender.com/api/students";
-  //     const method = student._id ? "put" : "post";
-  //     const url = student._id ? `${endpoint}/${student._id}` : endpoint;
-
-  //     const response = await axios[method](url, student);
-
-  //     if (response?.data?.status === 'success') {
-  //       // toast.success(`Student ${student._id ? "Updated" : "Created"} Successfully`);
-  //       toast.success(`Student ${student._id ? "Updated" : "Created"} Successfully`, {
-  //         toastClassName: 'toast-success',
-  //         icon: '✅',
-  //       });
-
-
-  //       fetchData();
-  //       // Reset form to initial state
-  //       setStudent(initialStudentState);
-  //       setSourceText("");
-  //       setTargetText("");
-  //       setCopyChecked(false);
-  //       setSelectedValue("");
-  //       setStudentError({});
-  //       // Reset other form fields as needed
-  //     } else {
-  //       const errorMessage = response?.data?.message || "An error occurred. Please try again.";
-  //       setError(errorMessage);
-  //       toast.error(errorMessage);
-  //     }
-  //   } catch (err) {
-  //     console.error("Error submitting data:", err.response || err);
-  //     const errorMessage = err?.response?.data?.message || "Failed to submit data. Please check the API endpoint.";
-  //     setError(errorMessage);
-  //     toast.error(errorMessage);
-  //   }
-  // };
 
   // ... (keep all other functions)
   const handleEdit = async (id) => {
@@ -583,32 +497,23 @@ const StudentMasterPage = () => {
                           />
 
                         </FormGroup>
-                        {/* <FormGroup as={Col} md="3" className="position-relative ">
+                        {/* <FormGroup as={Col} md="3" className="position-relative mb-3">
+                          <FormLabel className="labelForm">Profile Pic</FormLabel>
+                          <FormControl
+                            type="file"
+                            name="file"
+                            value={student?.profile_Pic}
+                            onChange={handleChange}
+                          />
+
+                        </FormGroup> */}
+                        <FormGroup as={Col} md="3" className="position-relative ">
                           <FormLabel className="labelForm">Profile Pic</FormLabel>
                           <FormControl
                             type="file"
                             name="profile_Pic"
                             onChange={handleChange}
                           />
-                        </FormGroup> */}
-                        <FormGroup as={Col} md="3" className="position-relative mb-3">
-                          <FormLabel className="labelForm">Profile Pic</FormLabel>
-                          <FormControl
-                            type="file"
-                            name="profile_Pic"
-                            onChange={handleFileChange}
-                            accept="image/jpeg, image/png, image/gif"
-                          />
-                          {studentError.profile_Pic_error && (
-                            <p className="error">{studentError.profile_Pic_error}</p>
-                          )}
-                          {student.profile_Pic && typeof student.profile_Pic === 'string' && (
-                            <img
-                              src={student.profile_Pic}
-                              alt="Profile Preview"
-                              style={{ width: '100px', height: '100px', marginTop: '10px' }}
-                            />
-                          )}
                         </FormGroup>
 
                       </Row>
