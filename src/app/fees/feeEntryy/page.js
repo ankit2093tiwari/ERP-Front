@@ -91,57 +91,10 @@ const FeeEntryy = () => {
     setLoading(false);
   };
 
-  const handleSearch = () => {
-    if (!searchKeyword) return;
-
-    const filtered = students.filter(student =>
-      student.first_name.toLowerCase().includes(searchKeyword.toLowerCase()) ||
-      student.last_name.toLowerCase().includes(searchKeyword.toLowerCase()) ||
-      student.roll_no?.toString().includes(searchKeyword) ||
-      student.admission_no?.toString().includes(searchKeyword)
-    );
-
-    setStudents(filtered);
-  };
-
-  const handleResetSearch = () => {
-    setSearchKeyword("");
-    if (selectedClass && selectedSection) {
-      fetchStudents();
-    }
-  };
-
-  const handleStudentSelect = (student) => {
+  const handleStudentSelect = (studentId) => {
+    const student = students.find(s => s._id === studentId);
     setSelectedStudent(student);
   };
-
-  const columns = [
-    { name: "#", selector: (row, index) => index + 1, width: "50px" },
-    // { name: "ADMISSION NO.", selector: (row) => row.admission_no || "N/A" },
-    {
-      name: "Admission No",
-      selector: (row) => row.registration_id || "N/A",
-    },
-    { name: "ROLL NUMBER", selector: (row) => row.roll_no || "N/A" },
-    { name: "STUDENT NAME", selector: (row) => `${row.first_name} ${row.last_name}` || "N/A" },
-    { name: "FATHER NAME", selector: (row) => row.father_name || "N/A" },
-    {
-      name: "CLASS/SECTION", selector: (row) =>
-        `${row.class_name?.class_name || "N/A"} (${row.section_name?.section_name || "N/A"})`
-    },
-    {
-      name: "Actions",
-      cell: (row) => (
-        <Button
-          variant="primary"
-          size="sm"
-          onClick={() => handleStudentSelect(row)}
-        >
-          Select
-        </Button>
-      ),
-    },
-  ];
 
   const feeColumns = [
     { name: "#", selector: (row, index) => index + 1, width: "50px" },
@@ -213,7 +166,7 @@ const FeeEntryy = () => {
             </div>
             <div className="card-body">
               <Row className="text-start">
-                <Col lg={6}>
+                <Col lg={4}>
                   <FormGroup controlId="validationCustom08">
                     <FormLabel className="labelForm">Select Class</FormLabel>
                     <FormSelect
@@ -229,7 +182,7 @@ const FeeEntryy = () => {
                     </FormSelect>
                   </FormGroup>
                 </Col>
-                <Col lg={6}>
+                <Col lg={4}>
                   <FormGroup controlId="validationCustom09">
                     <FormLabel className="labelForm">Select Section</FormLabel>
                     <FormSelect
@@ -246,35 +199,22 @@ const FeeEntryy = () => {
                     </FormSelect>
                   </FormGroup>
                 </Col>
-
-                <Col lg={6}>
-                  {/* <FormGroup controlId="validationCustom02">
-                    <FormLabel className="labelForm">Search By Keyword</FormLabel>
-                    <div className="d-flex">
-                      <FormControl 
-                        type="text" 
-                        value={searchKeyword}
-                        onChange={(e) => setSearchKeyword(e.target.value)}
-                        placeholder="Search by name, roll no, etc."
-                      />
-                      <Button 
-                        variant="primary" 
-                        className="ms-2"
-                        onClick={handleSearch}
-                        disabled={!searchKeyword}
-                      >
-                        <FaSearch /> Search
-                      </Button>
-                      <Button 
-                        variant="secondary" 
-                        className="ms-2"
-                        onClick={handleResetSearch}
-                        disabled={!searchKeyword}
-                      >
-                        Reset
-                      </Button>
-                    </div>
-                  </FormGroup> */}
+                <Col lg={4}>
+                  <FormGroup controlId="validationCustom10">
+                    <FormLabel className="labelForm">Select Student</FormLabel>
+                    <FormSelect
+                      value={selectedStudent?._id || ""}
+                      onChange={(e) => handleStudentSelect(e.target.value)}
+                      disabled={!selectedClass || !selectedSection || students.length === 0}
+                    >
+                      <option value="">Select Student</option>
+                      {students.map((student) => (
+                        <option key={student._id} value={student._id}>
+                          {student.first_name} {student.last_name} (Roll: {student.roll_no || 'N/A'})
+                        </option>
+                      ))}
+                    </FormSelect>
+                  </FormGroup>
                 </Col>
               </Row>
             </div>
@@ -282,115 +222,95 @@ const FeeEntryy = () => {
         </Col>
       </Row>
 
-      {students.length > 0 && (
-        <>
-          <Row className="mt-3">
-            <Col>
-              <div className="tableSheet">
-                <h2>Students List</h2>
-                <Table
-                  columns={columns}
-                  data={students}
-                  pagination
-                  highlightOnHover
-                />
-              </div>
-            </Col>
-          </Row>
-
-          {selectedStudent && (
-            <>
-              <Row className="mt-3">
-                <Col>
-                  <div className="tableSheet">
-                    <h2> Fees Statement </h2>
-                    <div className="card-body">
-                      <Row>
-                        <Col lg={4}>
-                          <div className="idBox">
-                            <div className="profilePhoto">
-                              {selectedStudent.profile_Pic ? (
-                                <Image
-                                  src={selectedStudent.profile_Pic}
-                                  alt="Profile Pic"
-                                  width="100"
-                                  height="100"
-                                />
-                              ) : (
-                                <Image src="/t-01.jpg" alt="Default Pic" width="100" height="100" />
-                              )}
-                            </div>
-
-                            <h4>{selectedStudent.first_name} {selectedStudent.last_name}</h4>
-                          </div>
-                        </Col>
-                        <Col lg={8}>
-                          <BootstrapTable striped bordered hover>
-                            <tbody>
-                              <tr>
-                                <td>NAME</td>
-                                <td>{selectedStudent.first_name} {selectedStudent.last_name}</td>
-                                <td>CLASS/ SECTION</td>
-                                <td>
-                                  {selectedStudent.class_name?.class_name || 'N/A'}
-                                  ({selectedStudent.section_name?.section_name || 'N/A'})
-                                </td>
-                              </tr>
-                              <tr>
-                                <td>FATHER NAME</td>
-                                <td>{selectedStudent.father_name || 'N/A'}</td>
-                                <td>ADMISSION NO.</td>
-                                <td>{selectedStudent.registration_id || 'N/A'}</td>
-                              </tr>
-                              <tr>
-                                <td>MOBILE NUMBER</td>
-                                <td>{selectedStudent.phone_no || 'N/A'}</td>
-                                <td>ROLL NUMBER</td>
-                                <td>{selectedStudent.roll_no || 'N/A'}</td>
-                              </tr>
-                            </tbody>
-                          </BootstrapTable>
-                        </Col>
-                      </Row>
-                    </div>
-
-                    <Row className="justify-content-between mt-3 align-items-center">
-                      <Col lg={12}>
-                        <div className="text-end">
-                          <Button variant="primary" className="btn-action me-2">
-                            <FaPrint /> Assign Fees
-                          </Button>
-                          <Button variant="primary" className="btn-action me-2">
-                            <FaPrint /> Assign Discount
-                          </Button>
-                          <Button variant="primary" className="btn-action me-2">
-                            <FaPrint /> Paid History
-                          </Button>
-                          <Button variant="success" className="btn-action">
-                            <FaPrint /> Pay Fees
-                          </Button>
-                        </div>
-                      </Col>
-                    </Row>
-
-                    <hr />
-
-                    <div className="card-title">
-                      <h2>Fees Details List</h2>
-                    </div>
-
-                    <div className="card-body">
-                      <div className="tableSheet">
-                        {error && <p style={{ color: "red" }}>{error}</p>}
-                        <Table columns={feeColumns} data={feeData} />
+      {selectedStudent && (
+        <Row className="mt-3">
+          <Col>
+            <div className="tableSheet">
+              <h2> Fees Statement </h2>
+              <div className="card-body">
+                <Row>
+                  <Col lg={4}>
+                    <div className="idBox">
+                      <div className="profilePhoto">
+                        {selectedStudent.profile_Pic ? (
+                          <Image
+                            src={selectedStudent.profile_Pic}
+                            alt="Profile Pic"
+                            width="100"
+                            height="100"
+                          />
+                        ) : (
+                          <Image src="/t-01.jpg" alt="Default Pic" width="100" height="100" />
+                        )}
                       </div>
+
+                      <h4>{selectedStudent.first_name} {selectedStudent.last_name}</h4>
                     </div>
+                  </Col>
+                  <Col lg={8}>
+                    <BootstrapTable striped bordered hover>
+                      <tbody>
+                        <tr>
+                          <td>NAME</td>
+                          <td>{selectedStudent.first_name} {selectedStudent.last_name}</td>
+                          <td>CLASS/ SECTION</td>
+                          <td>
+                            {selectedStudent.class_name?.class_name || 'N/A'}
+                            ({selectedStudent.section_name?.section_name || 'N/A'})
+                          </td>
+                        </tr>
+                        <tr>
+                          <td>FATHER NAME</td>
+                          <td>{selectedStudent.father_name || 'N/A'}</td>
+                          <td>ADMISSION NO.</td>
+                          <td>{selectedStudent.registration_id || 'N/A'}</td>
+                        </tr>
+                        <tr>
+                          <td>MOBILE NUMBER</td>
+                          <td>{selectedStudent.phone_no || 'N/A'}</td>
+                          <td>ROLL NUMBER</td>
+                          <td>{selectedStudent.roll_no || 'N/A'}</td>
+                        </tr>
+                      </tbody>
+                    </BootstrapTable>
+                  </Col>
+                </Row>
+              </div>
+
+              <Row className="justify-content-between mt-3 align-items-center">
+                <Col lg={12}>
+                  <div className="text-end">
+                    <Button variant="primary" className="btn-action me-2">
+                      <FaPrint /> Assign Fees
+                    </Button>
+                    <Button variant="primary" className="btn-action me-2">
+                      <FaPrint /> Assign Discount
+                    </Button>
+                    <Button variant="primary" className="btn-action me-2">
+                      <FaPrint /> Paid History
+                    </Button>
+                    <Button variant="success" className="btn-action">
+                      <FaPrint /> Pay Fees
+                    </Button>
                   </div>
                 </Col>
               </Row>
-            </>
-          )}
-        </>
+
+              <hr />
+
+              <div className="card-title">
+                <h2>Fees Details List</h2>
+              </div>
+
+              <div className="card-body">
+                <div className="tableSheet">
+                  {error && <p style={{ color: "red" }}>{error}</p>}
+                  <Table columns={feeColumns} data={feeData} />
+                </div>
+              </div>
+            </div>
+          </Col>
+        </Row>
       )}
 
       {loading && (

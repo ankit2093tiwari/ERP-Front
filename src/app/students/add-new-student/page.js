@@ -463,7 +463,7 @@ const StudentMasterPage = () => {
                   <div className="formSheet">
                     <Form className={styles.form} onSubmit={handleSubmit}>
                       {/* ... (keep all form fields exactly as they are) ... */}
-                      <Row className="mb-3">
+                      <Row >
                         <FormGroup as={Col} md="3" controlId="validationCustom01">
                           <FormLabel className="labelForm">Student name</FormLabel>
                           <FormControl
@@ -507,7 +507,7 @@ const StudentMasterPage = () => {
                           />
 
                         </FormGroup> */}
-                        <FormGroup as={Col} md="3" className="position-relative mb-3">
+                        <FormGroup as={Col} md="3" className="position-relative ">
                           <FormLabel className="labelForm">Profile Pic</FormLabel>
                           <FormControl
                             type="file"
@@ -517,7 +517,7 @@ const StudentMasterPage = () => {
                         </FormGroup>
 
                       </Row>
-                      <Row className="mb-3">
+                      <Row >
                         <FormGroup as={Col} md="3" controlId="validationCustom04">
                           <FormLabel className="labelForm" >Father Name</FormLabel>
                           <FormControl
@@ -562,7 +562,7 @@ const StudentMasterPage = () => {
                           <p className="error"> {studentError.phone_no_error}</p>
                         </FormGroup>
                       </Row>
-                      <Row className='mb-3'>
+                      <Row >
                         <FormGroup as={Col} md="3" controlId="validationCustom08">
                           <FormLabel className="labelForm">Select Class</FormLabel>
                           <FormSelect
@@ -632,7 +632,7 @@ const StudentMasterPage = () => {
                           <p className="error"> {studentError.gender_name_error}</p>
                         </FormGroup>
                       </Row>
-                      <Row className='mb-3'>
+                      <Row >
                         <FormGroup as={Col} md="3" controlId="validationCustom08">
                           <FormLabel className="labelForm">Select Religion</FormLabel>
                           <FormSelect
@@ -692,7 +692,7 @@ const StudentMasterPage = () => {
                           </FormSelect>
                         </FormGroup>
                       </Row>
-                      <Row className='mb-3'>
+                      <Row >
                         <FormGroup as={Col} md="3" controlId="validationCustom16">
                           <FormLabel className="labelForm">Enrollment No</FormLabel>
                           <FormControl
@@ -741,7 +741,7 @@ const StudentMasterPage = () => {
                           <p className="error">{studentError.caste_name_error}</p>
                         </FormGroup>
                       </Row>
-                      <Row className='mb-3'>
+                      <Row >
                         <FormGroup as={Col} md="3" controlId="validationCustom20">
                           <FormLabel className="labelForm">House</FormLabel>
                           <FormSelect>
@@ -785,7 +785,7 @@ const StudentMasterPage = () => {
                           />
                         </FormGroup>
                       </Row>
-                      <Row className='mb-3'>
+                      <Row className='mb-5'>
                         <FormGroup as={Col} md="3" controlId="validationCustom24">
                           <FormLabel className="labelForm">Scholar No</FormLabel>
                           <FormControl
