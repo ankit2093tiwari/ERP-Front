@@ -264,9 +264,18 @@ const StudentMasterPage = () => {
   };
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, files } = e.target;
 
-    // Validate phone numbers and Aadhar as user types
+    // ✅ Handle file input
+    if (type === "file") {
+      if (files && files.length > 0) {
+        setStudent(prev => ({ ...prev, [name]: files[0] }));
+        setStudentError(prev => ({ ...prev, [`${name}_error`]: "" }));
+      }
+      return;
+    }
+
+    // ✅ Validate phone numbers and Aadhar
     if (name === 'father_mobile_no' || name === 'phone_no') {
       if (value && !/^[0-9]*$/.test(value)) return; // Only allow numbers
       if (value.length > 10) return; // Max 10 digits
@@ -280,6 +289,25 @@ const StudentMasterPage = () => {
     setStudent(prev => ({ ...prev, [name]: value }));
     setStudentError(prev => ({ ...prev, [`${name}_error`]: "" }));
   };
+
+
+  // const handleChange = (e) => {
+  //   const { name, value } = e.target;
+
+  //   // Validate phone numbers and Aadhar as user types
+  //   if (name === 'father_mobile_no' || name === 'phone_no') {
+  //     if (value && !/^[0-9]*$/.test(value)) return; // Only allow numbers
+  //     if (value.length > 10) return; // Max 10 digits
+  //   }
+
+  //   if (name === 'aadhar_card_no') {
+  //     if (value && !/^[0-9]*$/.test(value)) return; // Only allow numbers
+  //     if (value.length > 12) return; // Max 12 digits
+  //   }
+
+  //   setStudent(prev => ({ ...prev, [name]: value }));
+  //   setStudentError(prev => ({ ...prev, [`${name}_error`]: "" }));
+  // };
 
   const handleClassChange = (e) => {
     const { name, value } = e.target;
@@ -469,7 +497,7 @@ const StudentMasterPage = () => {
                           />
 
                         </FormGroup>
-                        <FormGroup as={Col} md="3" className="position-relative mb-3">
+                        {/* <FormGroup as={Col} md="3" className="position-relative mb-3">
                           <FormLabel className="labelForm">Profile Pic</FormLabel>
                           <FormControl
                             type="file"
@@ -478,7 +506,16 @@ const StudentMasterPage = () => {
                             onChange={handleChange}
                           />
 
+                        </FormGroup> */}
+                        <FormGroup as={Col} md="3" className="position-relative mb-3">
+                          <FormLabel className="labelForm">Profile Pic</FormLabel>
+                          <FormControl
+                            type="file"
+                            name="profile_Pic"
+                            onChange={handleChange}
+                          />
                         </FormGroup>
+
                       </Row>
                       <Row className="mb-3">
                         <FormGroup as={Col} md="3" controlId="validationCustom04">

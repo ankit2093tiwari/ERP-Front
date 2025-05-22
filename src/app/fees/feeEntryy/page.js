@@ -16,7 +16,7 @@ const FeeEntryy = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
-  
+
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedSection, setSelectedSection] = useState("");
   const [classList, setClassList] = useState([]);
@@ -93,14 +93,14 @@ const FeeEntryy = () => {
 
   const handleSearch = () => {
     if (!searchKeyword) return;
-    
-    const filtered = students.filter(student => 
+
+    const filtered = students.filter(student =>
       student.first_name.toLowerCase().includes(searchKeyword.toLowerCase()) ||
       student.last_name.toLowerCase().includes(searchKeyword.toLowerCase()) ||
       student.roll_no?.toString().includes(searchKeyword) ||
       student.admission_no?.toString().includes(searchKeyword)
     );
-    
+
     setStudents(filtered);
   };
 
@@ -125,14 +125,15 @@ const FeeEntryy = () => {
     { name: "ROLL NUMBER", selector: (row) => row.roll_no || "N/A" },
     { name: "STUDENT NAME", selector: (row) => `${row.first_name} ${row.last_name}` || "N/A" },
     { name: "FATHER NAME", selector: (row) => row.father_name || "N/A" },
-    { name: "CLASS/SECTION", selector: (row) => 
-      `${row.class_name?.class_name || "N/A"} (${row.section_name?.section_name || "N/A"})` 
+    {
+      name: "CLASS/SECTION", selector: (row) =>
+        `${row.class_name?.class_name || "N/A"} (${row.section_name?.section_name || "N/A"})`
     },
     {
       name: "Actions",
       cell: (row) => (
-        <Button 
-          variant="primary" 
+        <Button
+          variant="primary"
           size="sm"
           onClick={() => handleStudentSelect(row)}
         >
@@ -287,9 +288,9 @@ const FeeEntryy = () => {
             <Col>
               <div className="tableSheet">
                 <h2>Students List</h2>
-                <Table 
-                  columns={columns} 
-                  data={students} 
+                <Table
+                  columns={columns}
+                  data={students}
                   pagination
                   highlightOnHover
                 />
@@ -308,8 +309,18 @@ const FeeEntryy = () => {
                         <Col lg={4}>
                           <div className="idBox">
                             <div className="profilePhoto">
-                              <Image src="/t-01.jpg" alt="" width="100" height="100" />
+                              {selectedStudent.profile_Pic ? (
+                                <Image
+                                  src={selectedStudent.profile_Pic}
+                                  alt="Profile Pic"
+                                  width="100"
+                                  height="100"
+                                />
+                              ) : (
+                                <Image src="/t-01.jpg" alt="Default Pic" width="100" height="100" />
+                              )}
                             </div>
+
                             <h4>{selectedStudent.first_name} {selectedStudent.last_name}</h4>
                           </div>
                         </Col>
@@ -321,7 +332,7 @@ const FeeEntryy = () => {
                                 <td>{selectedStudent.first_name} {selectedStudent.last_name}</td>
                                 <td>CLASS/ SECTION</td>
                                 <td>
-                                  {selectedStudent.class_name?.class_name || 'N/A'} 
+                                  {selectedStudent.class_name?.class_name || 'N/A'}
                                   ({selectedStudent.section_name?.section_name || 'N/A'})
                                 </td>
                               </tr>
