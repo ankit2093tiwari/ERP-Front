@@ -77,9 +77,9 @@ const Studentlist = () => {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
-          <button className="editButton" onClick={() => handleEdit(row._id)}>
+          {/* <button className="editButton" onClick={() => handleEdit(row._id)}>
             <FaEdit />
-          </button>
+          </button> */}
           <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
             <FaTrashAlt />
           </button>
