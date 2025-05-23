@@ -344,15 +344,6 @@ const AssignRollNo = () => {
           </Row>
         </Container>
       </section>
-
-
-      {/* <DataTable
-        columns={columns}
-        data={students}
-        key={tableKey} // Use the tableKey here
-      />
-       */}
-      {/* ... (rest of your JSX) */}
     </>
   );
 };
