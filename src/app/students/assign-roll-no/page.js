@@ -294,7 +294,7 @@ const AssignRollNo = () => {
                 <Col>
                   {showButtons && !isEditing && (
                     <Button
-                      variant="warning"
+                      // variant="warning"
                       onClick={handleEditRollNo}
                       className="me-2"
                     >
