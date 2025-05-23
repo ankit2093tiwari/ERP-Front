@@ -266,7 +266,7 @@ const StudentMasterPage = () => {
   const handleChange = (e) => {
     const { name, value, type, files } = e.target;
 
-    // ✅ Handle file input
+    // Handle file input
     if (type === "file") {
       if (files && files.length > 0) {
         setStudent(prev => ({ ...prev, [name]: files[0] }));
@@ -275,20 +275,47 @@ const StudentMasterPage = () => {
       return;
     }
 
-    // ✅ Validate phone numbers and Aadhar
+    // Rest of your existing handleChange logic
     if (name === 'father_mobile_no' || name === 'phone_no') {
-      if (value && !/^[0-9]*$/.test(value)) return; // Only allow numbers
-      if (value.length > 10) return; // Max 10 digits
+      if (value && !/^[0-9]*$/.test(value)) return;
+      if (value.length > 10) return;
     }
 
     if (name === 'aadhar_card_no') {
-      if (value && !/^[0-9]*$/.test(value)) return; // Only allow numbers
-      if (value.length > 12) return; // Max 12 digits
+      if (value && !/^[0-9]*$/.test(value)) return;
+      if (value.length > 12) return;
     }
 
     setStudent(prev => ({ ...prev, [name]: value }));
     setStudentError(prev => ({ ...prev, [`${name}_error`]: "" }));
   };
+
+  // const handleChange = (e) => {
+  //   const { name, value, type, files } = e.target;
+
+  //   // ✅ Handle file input
+  //   if (type === "file") {
+  //     if (files && files.length > 0) {
+  //       setStudent(prev => ({ ...prev, [name]: files[0] }));
+  //       setStudentError(prev => ({ ...prev, [`${name}_error`]: "" }));
+  //     }
+  //     return;
+  //   }
+
+  //   // ✅ Validate phone numbers and Aadhar
+  //   if (name === 'father_mobile_no' || name === 'phone_no') {
+  //     if (value && !/^[0-9]*$/.test(value)) return; // Only allow numbers
+  //     if (value.length > 10) return; // Max 10 digits
+  //   }
+
+  //   if (name === 'aadhar_card_no') {
+  //     if (value && !/^[0-9]*$/.test(value)) return; // Only allow numbers
+  //     if (value.length > 12) return; // Max 12 digits
+  //   }
+
+  //   setStudent(prev => ({ ...prev, [name]: value }));
+  //   setStudentError(prev => ({ ...prev, [`${name}_error`]: "" }));
+  // };
 
 
   // const handleChange = (e) => {
@@ -325,43 +352,95 @@ const StudentMasterPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
-
+  
     try {
+      const formData = new FormData();
+  
+      // Append all form fields except the profile_Pic
+      Object.entries(student).forEach(([key, value]) => {
+        if (key !== 'profile_Pic' && value !== undefined && value !== null) {
+          formData.append(key, value);
+        }
+      });
+  
+      // Append profile picture only if it is a File instance
+      if (student.profile_Pic instanceof File) {
+        formData.append('profile_Pic', student.profile_Pic);
+      }
+  
+      // Determine if this is a create or update action
+      const isUpdate = !!student._id;
       const endpoint = "https://erp-backend-fy3n.onrender.com/api/students";
-      const method = student._id ? "put" : "post";
-      const url = student._id ? `${endpoint}/${student._id}` : endpoint;
-
-      const response = await axios[method](url, student);
-
-      if (response?.data?.status === 'success') {
-        // toast.success(`Student ${student._id ? "Updated" : "Created"} Successfully`);
-        toast.success(`Student ${student._id ? "Updated" : "Created"} Successfully`, {
-          toastClassName: 'toast-success',
-          icon: '✅',
-        });
-
-
+      const url = isUpdate ? `${endpoint}/${student._id}` : endpoint;
+      const method = isUpdate ? "put" : "post";
+  
+      const response = await axios({
+        method,
+        url,
+        data: formData,
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          'Authorization': `Bearer ${TOKEN}`,
+        },
+        
+      });
+  
+      if (response.data.success) {
+        toast.success(`Student ${isUpdate ? "Updated" : "Created"} Successfully`);
         fetchData();
-        // Reset form to initial state
         setStudent(initialStudentState);
-        setSourceText("");
-        setTargetText("");
-        setCopyChecked(false);
-        setSelectedValue("");
-        setStudentError({});
-        // Reset other form fields as needed
       } else {
-        const errorMessage = response?.data?.message || "An error occurred. Please try again.";
-        setError(errorMessage);
-        toast.error(errorMessage);
+        throw new Error(response.data.message || "Operation failed");
       }
     } catch (err) {
-      console.error("Error submitting data:", err.response || err);
-      const errorMessage = err?.response?.data?.message || "Failed to submit data. Please check the API endpoint.";
+      const errorMessage = err.response?.data?.message || err.message || "Failed to submit data";
+      console.error("Upload error:", err);
       setError(errorMessage);
       toast.error(errorMessage);
     }
   };
+  
+
+  // const handleSubmit = async (e) => {
+  //   e.preventDefault();
+  //   if (!validateForm()) return;
+
+  //   try {
+  //     const endpoint = "https://erp-backend-fy3n.onrender.com/api/students";
+  //     const method = student._id ? "put" : "post";
+  //     const url = student._id ? `${endpoint}/${student._id}` : endpoint;
+
+  //     const response = await axios[method](url, student);
+
+  //     if (response?.data?.status === 'success') {
+  //       // toast.success(`Student ${student._id ? "Updated" : "Created"} Successfully`);
+  //       toast.success(`Student ${student._id ? "Updated" : "Created"} Successfully`, {
+  //         toastClassName: 'toast-success',
+  //         icon: '✅',
+  //       });
+
+
+  //       fetchData();
+  //       // Reset form to initial state
+  //       setStudent(initialStudentState);
+  //       setSourceText("");
+  //       setTargetText("");
+  //       setCopyChecked(false);
+  //       setSelectedValue("");
+  //       setStudentError({});
+  //       // Reset other form fields as needed
+  //     } else {
+  //       const errorMessage = response?.data?.message || "An error occurred. Please try again.";
+  //       setError(errorMessage);
+  //       toast.error(errorMessage);
+  //     }
+  //   } catch (err) {
+  //     console.error("Error submitting data:", err.response || err);
+  //     const errorMessage = err?.response?.data?.message || "Failed to submit data. Please check the API endpoint.";
+  //     setError(errorMessage);
+  //     toast.error(errorMessage);
+  //   }
+  // };
 
   // ... (keep all other functions)
   const handleEdit = async (id) => {
@@ -497,25 +576,28 @@ const StudentMasterPage = () => {
                           />
 
                         </FormGroup>
-                        {/* <FormGroup as={Col} md="3" className="position-relative mb-3">
-                          <FormLabel className="labelForm">Profile Pic</FormLabel>
-                          <FormControl
-                            type="file"
-                            name="file"
-                            value={student?.profile_Pic}
-                            onChange={handleChange}
-                          />
-
-                        </FormGroup> */}
-                        <FormGroup as={Col} md="3" className="position-relative ">
+                        {/* <FormGroup as={Col} md="3" className="position-relative ">
                           <FormLabel className="labelForm">Profile Pic</FormLabel>
                           <FormControl
                             type="file"
                             name="profile_Pic"
                             onChange={handleChange}
                           />
+                        </FormGroup> */}
+                        <FormGroup as={Col} md="3" className="position-relative">
+                          <FormLabel className="labelForm">Profile Pic</FormLabel>
+                          <FormControl
+                            type="file"
+                            name="profile_Pic"
+                            onChange={handleChange}
+                            accept="image/*"
+                          />
+                          {student.profile_Pic && (
+                            <div className="mt-2">
+                              <small>Selected: {student.profile_Pic.name}</small>
+                            </div>
+                          )}
                         </FormGroup>
-
                       </Row>
                       <Row >
                         <FormGroup as={Col} md="3" controlId="validationCustom04">

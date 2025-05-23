@@ -79,7 +79,14 @@ const FeeEntryy = () => {
         `https://erp-backend-fy3n.onrender.com/api/students/search?class_name=${selectedClass}&section_name=${selectedSection}`
       );
       if (response.data.data && response.data.data.length > 0) {
-        setStudents(response.data.data);
+        // Process students to ensure profile_Pic URLs are correct
+        const processedStudents = response.data.data.map(student => ({
+          ...student,
+          profile_Pic: student.profile_Pic 
+            ? `https://erp-backend-fy3n.onrender.com/uploads/${student.profile_Pic}`
+            : null
+        }));
+        setStudents(processedStudents);
       } else {
         setStudents([]);
       }
@@ -233,14 +240,21 @@ const FeeEntryy = () => {
                     <div className="idBox">
                       <div className="profilePhoto">
                         {selectedStudent.profile_Pic ? (
-                          <Image
+                          <img
                             src={selectedStudent.profile_Pic}
                             alt="Profile Pic"
                             width="100"
                             height="100"
+                            style={{ borderRadius: '50%', objectFit: 'cover' }}
                           />
                         ) : (
-                          <Image src="/t-01.jpg" alt="Default Pic" width="100" height="100" />
+                          <img 
+                            src="/t-01.jpg" 
+                            alt="Default Pic" 
+                            width="100" 
+                            height="100" 
+                            style={{ borderRadius: '50%', objectFit: 'cover' }}
+                          />
                         )}
                       </div>
 
