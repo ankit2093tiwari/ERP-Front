@@ -28,7 +28,9 @@ const AssignRollNo = () => {
   const [prefixKey, setPrefixKey] = useState("");
   const [loading, setLoading] = useState(false);
   const [noRecordsFound, setNoRecordsFound] = useState(false);
+  const [tableKey, setTableKey] = useState(Date.now()); // Add this line
 
+  // ... (keep all your existing useEffect hooks and fetch functions the same)
   // Fetch classes on first render
   useEffect(() => {
     fetchClasses();
@@ -116,15 +118,15 @@ const AssignRollNo = () => {
       roll_no: prefixKey ? `${prefixKey}-${index + 1}` : (index + 1).toString(),
     }));
     setStudents(updatedStudents);
+    setTableKey(Date.now()); // Force table to re-render
   };
 
+  // ... (keep all other handler functions the same)
   const handleRollNoChange = (index, newRollNo) => {
     if (newRollNo === "" || /^\d+$/.test(newRollNo)) {
-      setStudents((prev) => {
-        const updated = [...prev];
-        updated[index] = { ...updated[index], roll_no: newRollNo };
-        return updated;
-      });
+      const updatedStudents = [...students];
+      updatedStudents[index] = { ...updatedStudents[index], roll_no: newRollNo };
+      setStudents(updatedStudents);
     }
   };
 
@@ -181,6 +183,7 @@ const AssignRollNo = () => {
     { label: "Assign-roll-no", link: "null" },
   ];
 
+
   const columns = [
     {
       name: "#",
@@ -202,23 +205,27 @@ const AssignRollNo = () => {
     },
     {
       name: "Roll No",
-      cell: (row, index) =>
-        isEditing ? (
-          <input
-            type="text"
-            value={row.roll_no || ""}
-            onChange={(e) => handleRollNoChange(index, e.target.value)}
-            style={{ width: "60px" }}
-            className="form-control"
-          />
-        ) : (
-          row.roll_no || "N/A"
-        ),
+      cell: (row, index) => (
+        <div key={`rollno-${index}-${row.roll_no}`}> {/* Add key here */}
+          {isEditing ? (
+            <input
+              type="text"
+              value={row.roll_no || ""}
+              onChange={(e) => handleRollNoChange(index, e.target.value)}
+              style={{ width: "60px" }}
+              className="form-control"
+            />
+          ) : (
+            row.roll_no || "N/A"
+          )}
+        </div>
+      ),
     },
   ];
 
   return (
     <>
+      {/* ... (keep all your existing JSX the same until the DataTable) */}
       <div className="breadcrumbSheet position-relative">
         <Container>
           <Row className="mt-1 mb-1">
@@ -240,8 +247,8 @@ const AssignRollNo = () => {
               <Row>
                 <Col lg={6}>
                   <FormLabel className="labelForm">Select Class</FormLabel>
-                  <FormSelect 
-                    value={selectedClass} 
+                  <FormSelect
+                    value={selectedClass}
                     onChange={(e) => setSelectedClass(e.target.value)}
                   >
                     <option value="">Select Class</option>
@@ -255,8 +262,8 @@ const AssignRollNo = () => {
 
                 <Col lg={6}>
                   <FormLabel className="labelForm">Select Section</FormLabel>
-                  <FormSelect 
-                    value={selectedSection} 
+                  <FormSelect
+                    value={selectedSection}
                     onChange={(e) => setSelectedSection(e.target.value)}
                     disabled={!selectedClass}
                   >
@@ -286,8 +293,8 @@ const AssignRollNo = () => {
               <Row className="mt-3">
                 <Col>
                   {showButtons && !isEditing && (
-                    <Button 
-                      variant="warning" 
+                    <Button
+                      variant="warning"
                       onClick={handleEditRollNo}
                       className="me-2"
                     >
@@ -296,16 +303,16 @@ const AssignRollNo = () => {
                   )}
                   {isEditing && (
                     <>
-                      <Button 
-                        variant="primary" 
+                      <Button
+                        variant="primary"
                         onClick={handleAutoGenerate}
                         className="me-2"
                       >
                         Auto Generate
                       </Button>
-                      <Button 
-                        variant="success" 
-                        onClick={handleSaveRollNo} 
+                      <Button
+                        variant="success"
+                        onClick={handleSaveRollNo}
                         disabled={loading}
                       >
                         {loading ? "Saving..." : "Save Roll Numbers"}
@@ -329,7 +336,7 @@ const AssignRollNo = () => {
                   <DataTable
                     columns={columns}
                     data={students}
-                    key={students.length} // Add this to force re-render when students change
+                    key={tableKey} // Use the tableKey here
                   />
                 )}
               </div>
@@ -337,6 +344,15 @@ const AssignRollNo = () => {
           </Row>
         </Container>
       </section>
+
+
+      {/* <DataTable
+        columns={columns}
+        data={students}
+        key={tableKey} // Use the tableKey here
+      />
+       */}
+      {/* ... (rest of your JSX) */}
     </>
   );
 };
