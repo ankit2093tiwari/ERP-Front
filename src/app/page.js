@@ -33,7 +33,8 @@ const Dashboard = () => {
   const router = useRouter();
   const [dashboardData, setDashboardData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-   const [studentCount, setStudentCount] = useState(0);
+  const [studentCount, setStudentCount] = useState(0);
+  const [studentsByClass, setStudentsByClass] = useState([]);
 
   // Check authentication and fetch data
   useEffect(() => {
@@ -41,15 +42,41 @@ const Dashboard = () => {
     if (!token) {
       router.push('/');
     } else {
-      // fetchDashboardData();
-      setIsLoading(false);
+      fetchStudentData();
+      fetchDashboardData();
     }
   }, [router]);
 
-  // Simulated API Data
+  // Fetch student count data from API
+  const fetchStudentData = async () => {
+    try {
+      const response = await fetch('https://erp-backend-fy3n.onrender.com/api/students-total');
+      if (!response.ok) {
+        throw new Error('Failed to fetch student data');
+      }
+      const data = await response.json();
+      if (data.success) {
+        setStudentCount(data.data.totalStudents);
+        setStudentsByClass(data.data.studentsByClass);
+      }
+    } catch (error) {
+      console.error("Error fetching student data:", error);
+      // Fallback to default values if API fails
+      setStudentCount(1500);
+      setStudentsByClass([
+        { className: "Class 10", count: 120 },
+        { className: "Class 9", count: 110 },
+        { className: "Class 8", count: 90 }
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Simulated API Data for other dashboard items
   const fetchDashboardData = async () => {
     const mockData = [
-      { name: "STUDENTS", icon: studentImg, count: 1500, label: "Count" },
+      // { name: "STUDENTS", icon: studentImg, count: 1500, label: "Count" },
       { name: "FEES", icon: feeImg, count: 750000, label: "Amount" },
       { name: "TRANSPORT", icon: busImg, count: 100, label: "Vehicles" },
       { name: "STOCKS", icon: stocksImg, count: 200, label: "Items" },
@@ -242,7 +269,7 @@ const Dashboard = () => {
                         </div>
                         <h5 className="mt-2 pt-7 mb-1 text-center"> Subject </h5>
                         <div className="hstack d-block">
-                          <h5 className="card-title mb-0 fs-7"> 50000 </h5>
+                          <h5 className="card-title mb-0 fs-7"> 50 </h5>
                         </div>
                       </div>
                     </div>
@@ -255,7 +282,7 @@ const Dashboard = () => {
                         </div>
                         <h5 className="mt-2 pt-7 mb-1 text-center"> Department </h5>
                         <div className="hstack d-block">
-                          <h5 className="card-title mb-0 fs-7">  50000 </h5>
+                          <h5 className="card-title mb-0 fs-7">  850 </h5>
                         </div>
                       </div>
                     </div>
@@ -268,7 +295,7 @@ const Dashboard = () => {
                         </div>
                         <h5 className="mt-2 pt-7 mb-1 text-center"> Teaching Staff </h5>
                         <div className="hstack d-block">
-                          <h5 className="card-title mb-0 fs-7"> 50000 </h5>
+                          <h5 className="card-title mb-0 fs-7"> 650 </h5>
                         </div>
                       </div>
                     </div>
@@ -281,7 +308,7 @@ const Dashboard = () => {
                         </div>
                         <h5 className="mt-2 pt-7 mb-1 text-center"> Non-Teaching Staff </h5>
                         <div className="hstack d-block">
-                          <h5 className="card-title mb-0 fs-7"> 50000 </h5>
+                          <h5 className="card-title mb-0 fs-7"> 250 </h5>
                         </div>
                       </div>
                     </div>
@@ -294,7 +321,7 @@ const Dashboard = () => {
                         </div>
                         <h5 className="mt-2 pt-7 mb-1 text-center"> Books </h5>
                         <div className="hstack d-block">
-                          <h5 className="card-title mb-0 fs-7"> 50000 </h5>
+                          <h5 className="card-title mb-0 fs-7"> 500 </h5>
                         </div>
                       </div>
                     </div>
@@ -509,7 +536,7 @@ const Dashboard = () => {
                 </div>
               </Col>
             </Row>
-            <Row>
+            {/* <Row>
               <Col lg={12}>
                 <div className="card overflow-hidden pt-2 mb-3 shadow-none">
                   <div className="card-header">
@@ -527,7 +554,7 @@ const Dashboard = () => {
                   label={card.label}
                 />
               ))}
-            </div>
+            </div> */}
           </div>
         </Container>
       </section>

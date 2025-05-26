@@ -11,39 +11,13 @@ const SpeechRecognition =
 export default function LoginPage({ onLogin }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [sessionId, setSessionId] = useState("");
-  const [sessions, setSessions] = useState([]);
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [isFetchingSessions, setIsFetchingSessions] = useState(false);
   const [isListening, setIsListening] = useState(false);
 
   const router = useRouter();
   const recognitionRef = useRef(null);
-
-  // Fetch sessions
-  useEffect(() => {
-    const fetchSessions = async () => {
-      setIsFetchingSessions(true);
-      try {
-        const response = await fetch("https://erp-backend-fy3n.onrender.com/api/all-session");
-        const data = await response.json();
-        if (data.success) {
-          setSessions(data.data);
-        } else {
-          setError("Failed to fetch sessions");
-        }
-      } catch (error) {
-        setError("Error fetching sessions");
-        console.error("Session fetch error:", error);
-      } finally {
-        setIsFetchingSessions(false);
-      }
-    };
-
-    fetchSessions();
-  }, []);
 
   // Voice recognition logic
   useEffect(() => {
@@ -82,8 +56,8 @@ export default function LoginPage({ onLogin }) {
     setError("");
     setIsLoading(true);
 
-    if (!email || !password || !sessionId) {
-      setError("Email, Password, and Session are required");
+    if (!email || !password) {
+      setError("Email and Password are required");
       setIsLoading(false);
       return;
     }
@@ -92,12 +66,12 @@ export default function LoginPage({ onLogin }) {
       const response = await fetch("https://erp-backend-fy3n.onrender.com/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, sessionId }),
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await response.json();
       if (data.success) {
-        onLogin && onLogin(data.token, rememberMe, data.session.sessionName);
+        onLogin && onLogin(data.token, rememberMe);
         router.push("/");
       } else {
         setError(data.message || "Invalid credentials");
@@ -145,26 +119,6 @@ export default function LoginPage({ onLogin }) {
             />
           </div>
 
-          <div className="formGroup">
-            <label htmlFor="sessionId">SESSION *</label>
-            <select
-              id="sessionId"
-              value={sessionId}
-              onChange={(e) => setSessionId(e.target.value)}
-              className="inputField"
-              required
-              disabled={isFetchingSessions}
-            >
-              <option value="">Select a session</option>
-              {sessions.map((session) => (
-                <option key={session._id} value={session._id}>
-                  {session.sessionName}
-                </option>
-              ))}
-            </select>
-            {isFetchingSessions && <p>Loading sessions...</p>}
-          </div>
-
           <div className="rememberMe">
             <input
               id="rememberMe"
@@ -181,7 +135,7 @@ export default function LoginPage({ onLogin }) {
           <button
             type="submit"
             className="loginButton"
-            disabled={isLoading || isFetchingSessions}
+            disabled={isLoading}
           >
             {isLoading ? "Log In..." : "Log In"}
           </button>
