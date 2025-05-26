@@ -1,13 +1,23 @@
 "use client";
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { Form, Row, Col, Container, FormLabel, FormControl, Button, Alert } from "react-bootstrap";
+import {
+  Form,
+  Row,
+  Col,
+  Container,
+  FormLabel,
+  FormControl,
+  Button,
+  Alert,
+} from "react-bootstrap";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
-import { CgAddR } from "react-icons/cg";
 
 const AddImage = () => {
+  const today = new Date().toISOString().split("T")[0]; // get today's date in yyyy-mm-dd format
+
   const [imageData, setImageData] = useState({
-    date: "",
+    date: today,
     image: null,
     groupName: "",
     shortText: "",
@@ -18,22 +28,23 @@ const AddImage = () => {
   const [galleryGroups, setGalleryGroups] = useState([]);
   const [preview, setPreview] = useState("");
 
-  // Fetch gallery groups for the dropdown
+  // Fetch gallery groups
   useEffect(() => {
     const fetchGalleryGroups = async () => {
       try {
-        const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/galleryGroups");
+        const response = await axios.get(
+          "https://erp-backend-fy3n.onrender.com/api/galleryGroups"
+        );
         setGalleryGroups(response.data.data || []);
       } catch (err) {
         console.error("Error fetching gallery groups:", err);
-        setError("Failed to fetch gallery groups. Please try again later.");
+        setError("Failed to fetch gallery groups.");
       }
     };
 
     fetchGalleryGroups();
   }, []);
 
-  // Handle form input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setImageData((prevData) => ({
@@ -42,7 +53,6 @@ const AddImage = () => {
     }));
   };
 
-  // Handle file change with preview
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -51,7 +61,6 @@ const AddImage = () => {
         image: file,
       }));
 
-      // Create preview
       const reader = new FileReader();
       reader.onloadend = () => {
         setPreview(reader.result);
@@ -60,16 +69,14 @@ const AddImage = () => {
     }
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setError("");
     setSuccess("");
+    setLoading(true);
 
-    // Validate required fields
     if (!imageData.image) {
-      setError("Please select an image file.");
+      setError("Please select an image.");
       setLoading(false);
       return;
     }
@@ -81,13 +88,13 @@ const AddImage = () => {
 
     try {
       const formData = new FormData();
-      formData.append("date", imageData.date || new Date().toISOString().split('T')[0]);
-      formData.append("image", imageData.image);
-      formData.append("groupName", imageData.groupName);
+      formData.append("date", imageData.date || today);
       formData.append("shortText", imageData.shortText);
+      formData.append("groupName", imageData.groupName);
+      formData.append("image", imageData.image);
 
       const response = await axios.post(
-        "https://erp-backend-fy3n.onrender.com/api/images/add",
+        "https://erp-backend-fy3n.onrender.com/api/images",
         formData,
         {
           headers: {
@@ -96,18 +103,18 @@ const AddImage = () => {
         }
       );
 
-      setSuccess("Image added successfully!");
+      // setSuccess("Image added successfully.");
       setImageData({
-        date: "",
+        date: today,
         image: null,
         groupName: "",
         shortText: "",
       });
       setPreview("");
     } catch (err) {
-      console.error("Error adding image:", err);
+      console.error("Error uploading image:", err);
       setError(
-        err.response?.data?.message || "Failed to add image. Please try again later."
+        err.response?.data?.message || "Failed to upload image. Please try again."
       );
     } finally {
       setLoading(false);
@@ -130,6 +137,7 @@ const AddImage = () => {
           </Row>
         </Container>
       </div>
+
       <section>
         <Container>
           <div className="cover-sheet">
@@ -147,6 +155,7 @@ const AddImage = () => {
                     onChange={handleInputChange}
                   />
                 </Col>
+
                 <Col lg={6}>
                   <FormLabel className="labelForm">
                     Image (jpeg, jpg, png, gif)
@@ -156,7 +165,6 @@ const AddImage = () => {
                     name="image"
                     accept="image/*"
                     onChange={handleFileChange}
-                    required
                   />
                   {preview && (
                     <div className="mt-2">
@@ -169,6 +177,7 @@ const AddImage = () => {
                   )}
                 </Col>
               </Row>
+
               <Row className="mb-3">
                 <Col lg={6}>
                   <FormLabel className="labelForm">Group Name</FormLabel>
@@ -176,7 +185,6 @@ const AddImage = () => {
                     name="groupName"
                     value={imageData.groupName}
                     onChange={handleInputChange}
-                    required
                   >
                     <option value="">Select a group</option>
                     {galleryGroups.map((group) => (
@@ -186,6 +194,7 @@ const AddImage = () => {
                     ))}
                   </Form.Select>
                 </Col>
+
                 <Col lg={6}>
                   <FormLabel className="labelForm">Short Text</FormLabel>
                   <FormControl
@@ -194,17 +203,14 @@ const AddImage = () => {
                     rows={1}
                     value={imageData.shortText}
                     onChange={handleInputChange}
-                    required
                   />
                 </Col>
               </Row>
+
               {error && <Alert variant="danger">{error}</Alert>}
               {success && <Alert variant="success">{success}</Alert>}
-              <Button
-                type="submit"
-                disabled={loading}
-                className="btn btn-primary mt-4"
-              >
+
+              <Button type="submit" disabled={loading} className="btn btn-primary mt-4">
                 {loading ? "Uploading..." : "Add Image"}
               </Button>
             </Form>
