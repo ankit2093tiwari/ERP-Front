@@ -1348,21 +1348,6 @@ input::-webkit-inner-spin-button {
 }
 
 
-/* styles/toast.module.css or your global CSS file */
-
-/* Success toast */
-.Toastify__toast--success {
-  background: #4BB543 !important;
-  color: white !important;
-}
-
-/* Error toast */
-.Toastify__toast--error {
-  color: #4BB543 !important;
-  background: white !important;
-}
-
-/* You can add more customizations if needed */
 .Toastify__toast {
   font-size: 14px;
   border-radius: 4px;
