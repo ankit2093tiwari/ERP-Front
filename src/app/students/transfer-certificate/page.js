@@ -12,6 +12,7 @@ const TransferCertificate = () => {
   const [studentData, setStudentData] = useState(null);
   const [studentId, setStudentId] = useState("");
   const [showPreview, setShowPreview] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [formData, setFormData] = useState({
     registration_id: '',
@@ -36,10 +37,28 @@ const TransferCertificate = () => {
     total_working_days: '',
     present_working_days: '',
     reason_for_leaving_school: '',
-    date_of_application: '',
+    date_of_application: new Date().toISOString().split('T')[0],
     date_of_issue: new Date().toISOString().split('T')[0],
     remarks: ''
   });
+
+  // Initialize TC number when component mounts
+  useEffect(() => {
+    const fetchLastTcNumber = async () => {
+      try {
+        const response = await axios.get('https://erp-backend-fy3n.onrender.com/api/transfer-certificates/last-tc-number');
+        const lastNumber = response.data.lastTcNumber || 0;
+        const newTcNumber = `TC${String(lastNumber + 1).padStart(4, '0')}`;
+        setFormData(prev => ({ ...prev, tc_no: newTcNumber }));
+      } catch (error) {
+        console.error("Error fetching last TC number:", error);
+        // Fallback to timestamp if API fails
+        setFormData(prev => ({ ...prev, tc_no: `TC${Date.now()}` }));
+      }
+    };
+
+    fetchLastTcNumber();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -47,9 +66,9 @@ const TransferCertificate = () => {
       const index = parseInt(name.split("_")[2], 10);
       const newSubjects = [...formData.subject_studies];
       newSubjects[index] = value;
-      setFormData((prev) => ({ ...prev, subject_studies: newSubjects }));
+      setFormData(prev => ({ ...prev, subject_studies: newSubjects }));
     } else {
-      setFormData((prev) => ({ ...prev, [name]: value }));
+      setFormData(prev => ({ ...prev, [name]: value }));
       if (name === "registration_id") {
         setStudentId(value);
       }
@@ -58,15 +77,22 @@ const TransferCertificate = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
+
     try {
-      const url = 'https://erp-backend-fy3n.onrender.com/api/transfer-certificates/test';
+      const url = 'https://erp-backend-fy3n.onrender.com/api/transfer-certificates';
       const response = await axios.post(url, formData);
-      
+
       if (response.data.success) {
-        alert(response.data.message);
+        alert("Transfer Certificate generated successfully!");
+
+        // Reset form with new TC number
+        const newNumber = parseInt(formData.tc_no.replace(/^TC0*/, '')) + 1;
+        const newTcNumber = `TC${String(newNumber).padStart(4, '0')}`;
+
         setFormData({
           registration_id: '',
-          tc_no: '',
+          tc_no: newTcNumber,
           student_name: '',
           class_section: '',
           class_section_inWords: '',
@@ -87,26 +113,32 @@ const TransferCertificate = () => {
           total_working_days: '',
           present_working_days: '',
           reason_for_leaving_school: '',
-          date_of_application: '',
+          date_of_application: new Date().toISOString().split('T')[0],
           date_of_issue: new Date().toISOString().split('T')[0],
           remarks: ''
         });
+
+        setStudentData(null);
+        setStudentId("");
       } else {
-        alert(response?.data.message);
+        alert(response.data.message || "Failed to generate Transfer Certificate");
       }
     } catch (error) {
       console.error("Error submitting form:", error);
-      alert("An error occurred while submitting the form");
+      alert(error.response?.data?.message || "An error occurred while submitting the form");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
+  // ... rest of your component code remains the same ...
   const togglePreview = () => {
     setShowPreview((prev) => !prev);
   };
 
   useEffect(() => {
     if (!studentId) return;
-    
+
     const fetchStudentInfo = async () => {
       try {
         const url = `https://erp-backend-fy3n.onrender.com/api/students/search?registration_id=${studentId}`;
@@ -125,7 +157,7 @@ const TransferCertificate = () => {
 
   useEffect(() => {
     if (!studentData) return;
-    
+
     setFormData(prev => ({
       ...prev,
       student_name: studentData.first_name,
@@ -148,6 +180,7 @@ const TransferCertificate = () => {
 
   return (
     <>
+      {/* Your existing JSX remains the same */}
       <div className="breadcrumbSheet position-relative">
         <Container>
           <Row className="mt-1 mb-1">
@@ -473,11 +506,16 @@ const TransferCertificate = () => {
                           />
                         </FormGroup>
                       </Row>
-
                       <Row>
                         <Col>
                           <div className="buttons1">
-                            <Button type="submit" id="submit">Submit form</Button>
+                            <Button
+                              type="submit"
+                              id="submit"
+                              disabled={isSubmitting}
+                            >
+                              {isSubmitting ? "Submitting..." : "Submit form"}
+                            </Button>
                           </div>
                         </Col>
                       </Row>
