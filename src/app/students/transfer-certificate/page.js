@@ -15,7 +15,7 @@ const TransferCertificate = () => {
 
   const [formData, setFormData] = useState({
     registration_id: '',
-    tc_no: `TC${Date.now()}`,
+    tc_no: '',
     student_name: '',
     class_section: '',
     class_section_inWords: '',
@@ -59,14 +59,14 @@ const TransferCertificate = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const url = 'http://localhost:9000/api/transfer-certificates/test';
+      const url = 'https://erp-backend-fy3n.onrender.com/api/transfer-certificates/test';
       const response = await axios.post(url, formData);
       
       if (response.data.success) {
         alert(response.data.message);
         setFormData({
           registration_id: '',
-          tc_no: `TC${Date.now()}`,
+          tc_no: '',
           student_name: '',
           class_section: '',
           class_section_inWords: '',
