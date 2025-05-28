@@ -213,7 +213,7 @@ const CertificateWizard = () => {
         doc.setFontSize(12);
         doc.setFont("helvetica", "normal");
         const textLines = [
-          "This is to certify that Master " + studentFirstName + " " + studentLastName + " D/o Mr. " + studentFatherName,
+          "This is to certify that Master " + studentFirstName + " " + studentLastName + " D/S/o Mr. " + studentFatherName,
           "and Mrs. " + studentMotherName + " is student of",
           studentClassName + (studentSectionName ? "#" + studentSectionName : "") + ", academic session " + (studentAcademicYear || "2020-2021") + " in this Institution.",
           "His Date of Birth is " + (studentDOB ? studentDOB : "2014-09-21") + " as per the scholar register."

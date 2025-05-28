@@ -10,7 +10,6 @@ export default function Header({ toggleSidebar, onLogout }) {
   const [showModal, setShowModal] = useState(false);
   const [sessions, setSessions] = useState([]);
   const [selectedSession, setSelectedSession] = useState(null);
-  const [loadingSessions, setLoadingSessions] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     currentPassword: "",
@@ -19,27 +18,21 @@ export default function Header({ toggleSidebar, onLogout }) {
   });
   const [message, setMessage] = useState("");
 
-  // Fetch sessions on component mount
   useEffect(() => {
     const fetchSessions = async () => {
-      setLoadingSessions(true);
       try {
         const response = await fetch("https://erp-backend-fy3n.onrender.com/api/all-session");
         const data = await response.json();
 
         if (data.success && data.data) {
-          // Handle both possible response formats
           let allSessions = [];
 
-          // Check if data is already an array of sessions
           if (Array.isArray(data.data)) {
             allSessions = data.data.map(session => ({
               ...session,
               className: session.class_name || "N/A"
             }));
-          }
-          // Check if data is grouped by class (from your SessionMasterPage component)
-          else if (typeof data.data === 'object' && !Array.isArray(data.data)) {
+          } else if (typeof data.data === 'object') {
             allSessions = Object.values(data.data).flatMap(group =>
               group.sessions.map(session => ({
                 ...session,
@@ -49,16 +42,9 @@ export default function Header({ toggleSidebar, onLogout }) {
           }
 
           setSessions(allSessions);
-
-          // Set the first session as default if available
-          if (allSessions.length > 0) {
-            setSelectedSession(allSessions[0]);
-          }
         }
       } catch (error) {
         console.error("Error fetching sessions:", error);
-      } finally {
-        setLoadingSessions(false);
       }
     };
 
@@ -116,8 +102,6 @@ export default function Header({ toggleSidebar, onLogout }) {
     const session = sessions.find(s => s._id === sessionId);
     if (session) {
       setSelectedSession(session);
-      // You can add additional logic here to handle session changes
-      // For example, update the application state or refresh data
     }
   };
 
@@ -137,17 +121,15 @@ export default function Header({ toggleSidebar, onLogout }) {
             <Col className="col-md-6">
               <Navbar expand="lg" className="rightNavbar justify-content-end">
                 <Navbar.Collapse id="basic-navbar-nav" className="justify-content-end">
+
                   {/* Session Dropdown */}
                   <NavDropdown
                     title={
                       <span className="d-flex align-items-center">
-                        {loadingSessions ? (
-                          <span className="text-muted">Loading sessions...</span>
+                        {selectedSession ? (
+                          <strong>{selectedSession.sessionName}</strong>
                         ) : (
-                          <>
-                            <span className="me-1">Select Session</span>
-                            {/* <strong>{selectedSession?.sessionName || "Select"}</strong> */}
-                          </>
+                          <span className="sess">Select Session</span>
                         )}
                       </span>
                     }
@@ -161,17 +143,13 @@ export default function Header({ toggleSidebar, onLogout }) {
                           active={selectedSession?._id === session._id}
                           onClick={() => handleSessionChange(session._id)}
                         >
-                          <div className="d-flex">
-                            <span>{session.sessionName}</span>
-                            {/* <small className="text-muted">{session.className}</small> */}
-                          </div>
+                          {session.sessionName}
                         </NavDropdown.Item>
                       ))
                     ) : (
                       <NavDropdown.Item disabled>No sessions available</NavDropdown.Item>
                     )}
                   </NavDropdown>
-
 
                   <Nav>
                     <Nav.Link href="#link">

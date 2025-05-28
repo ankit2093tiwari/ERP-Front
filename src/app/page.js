@@ -25,6 +25,7 @@ import Image from "next/image";
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import axios from "axios";
 
 // Dynamically import ReactApexChart with SSR disabled
 const ReactApexChart = dynamic(() => import('react-apexcharts'), { ssr: false });
@@ -35,6 +36,7 @@ const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [studentCount, setStudentCount] = useState(0);
   const [studentsByClass, setStudentsByClass] = useState([]);
+  const [thoughtOfTheDay, setThoughtOfTheDay] = useState("");
 
   // Check authentication and fetch data
   useEffect(() => {
@@ -44,8 +46,25 @@ const Dashboard = () => {
     } else {
       fetchStudentData();
       fetchDashboardData();
+      fetchThoughtOfTheDay();
     }
   }, [router]);
+
+  // Fetch thought of the day
+  const fetchThoughtOfTheDay = async () => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/thoughts?date=${today}`);
+      if (response.data.data && response.data.data.length > 0) {
+        setThoughtOfTheDay(response.data.data[0].thought_name);
+      } else {
+        setThoughtOfTheDay("No thought for today. Add one to inspire!");
+      }
+    } catch (error) {
+      console.error("Error fetching thought of the day:", error);
+      setThoughtOfTheDay("Error loading today's thought");
+    }
+  };
 
   // Fetch student count data from API
   const fetchStudentData = async () => {
@@ -76,7 +95,6 @@ const Dashboard = () => {
   // Simulated API Data for other dashboard items
   const fetchDashboardData = async () => {
     const mockData = [
-      // { name: "STUDENTS", icon: studentImg, count: 1500, label: "Count" },
       { name: "FEES", icon: feeImg, count: 750000, label: "Amount" },
       { name: "TRANSPORT", icon: busImg, count: 100, label: "Vehicles" },
       { name: "STOCKS", icon: stocksImg, count: 200, label: "Items" },
@@ -255,7 +273,7 @@ const Dashboard = () => {
                         <h4 className="fw-normal mt-5 pt-7 mb-1 fw-bold text-start">Student</h4>
                         <div className="hstack gap-2">
                           <h5 className="card-title mb-0 fs-7">
-                            {studentCount.toLocaleString()} 
+                            {studentCount.toLocaleString()}
                           </h5>
                         </div>
                       </div>
@@ -535,26 +553,29 @@ const Dashboard = () => {
                   </div>
                 </div>
               </Col>
-            </Row>
-            {/* <Row>
-              <Col lg={12}>
+              <Col lg={4}>
                 <div className="card overflow-hidden pt-2 mb-3 shadow-none">
                   <div className="card-header">
+                    <h5 className="fw-normal mb-1 fw-bold text-start">Thought of the Day</h5>
+                  </div>
+                  <div className="card-body position-relative z-1 notice-box-wrap text-start">
+                    <div className="thought-of-day">
+                      <div className="thought-content">
+                        <p className="thought-text">{thoughtOfTheDay}</p>
+                        <div className="thought-date">
+                          {new Date().toLocaleDateString('en-US', {
+                            weekday: 'long',
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          })}
+                        </div>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </Col>
             </Row>
-            <div className="studentCardDetails">
-              {dashboardData.map((card, index) => (
-                <Card1
-                  key={index}
-                  user={card.icon}
-                  name={card.name}
-                  count={card.count}
-                  label={card.label}
-                />
-              ))}
-            </div> */}
           </div>
         </Container>
       </section>

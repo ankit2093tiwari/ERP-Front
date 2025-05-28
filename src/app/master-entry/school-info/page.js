@@ -19,8 +19,7 @@ const SchoolInfo = () => {
     bank_name: "",
     branch_name: "",
     logo_image: null,
-    logo_file: null,
-    contentType: ""
+    logo_file: null
   });
 
   const [errors, setErrors] = useState({});
@@ -38,17 +37,16 @@ const SchoolInfo = () => {
           const schoolData = response.data.data[0];
           setHasExistingSchool(true);
           
-          // Convert base64 logo data to URL if exists
+          // Create logo URL from filename
           let logoUrl = "";
-          if (schoolData.logo_image?.data) {
-            logoUrl = `data:${schoolData.logo_image.contentType};base64,${schoolData.logo_image.data}`;
+          if (schoolData.logo_image) {
+            logoUrl = `https://erp-backend-fy3n.onrender.com/uploads/${schoolData.logo_image}`;
           }
 
           setSchool({
             ...schoolData,
             logo_file: null,
-            logo_image: logoUrl,
-            contentType: schoolData.logo_image?.contentType || ""
+            logo_image: logoUrl
           });
         } else {
           setHasExistingSchool(false);
@@ -80,8 +78,7 @@ const SchoolInfo = () => {
         setSchool(prev => ({ 
           ...prev, 
           logo_file: file,
-          logo_image: event.target.result,
-          contentType: file.type
+          logo_image: event.target.result
         }));
       };
       
@@ -125,7 +122,7 @@ const SchoolInfo = () => {
       const formData = new FormData();
       
       // Append all school data
-      const { logo_file, logo_image, contentType, ...schoolData } = school;
+      const { logo_file, logo_image, ...schoolData } = school;
       Object.keys(schoolData).forEach(key => {
         formData.append(key, schoolData[key]);
       });
