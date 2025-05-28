@@ -1,352 +1,643 @@
 "use client";
-
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Table from "@/app/component/DataTable";
-import styles from "@/app/medical/routine-check-up/page.module.css";
-import { FaEdit, FaTrashAlt } from "react-icons/fa";
-import { Container, Row, Col, Breadcrumb, Button, Table as BootstrapTable, FormGroup, FormLabel, FormControl, FormSelect } from "react-bootstrap";
+import {
+  Form,
+  Row,
+  Col,
+  Container,
+  FormLabel,
+  FormControl,
+  Button,
+  FormSelect,
+  FormGroup,
+  Table
+} from "react-bootstrap";
 import axios from "axios";
-import { CgAddR } from "react-icons/cg";
-import Image from "next/image";
-import { FaSearch } from "react-icons/fa";
-import { FaPrint } from "react-icons/fa";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
+import Select from "react-select";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 const FeeEntryy = () => {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const router = useRouter();
-
+  const [receiptDate, setReceiptDate] = useState(new Date());
+  const [receiptNo, setReceiptNo] = useState("");
   const [selectedClass, setSelectedClass] = useState("");
-  const [selectedSection, setSelectedSection] = useState("");
-  const [classList, setClassList] = useState([]);
-  const [sectionList, setSectionList] = useState([]);
-  const [students, setStudents] = useState([]);
+  const [selectedAccountType, setSelectedAccountType] = useState("");
+  const [selectedPayType, setSelectedPayType] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [studentListData, setStudentListData] = useState([]);
+  const [studentListOptions, setStudentListOptions] = useState([]);
   const [selectedStudent, setSelectedStudent] = useState(null);
-  const [searchKeyword, setSearchKeyword] = useState("");
+  const [feeGroups, setFeeGroups] = useState([]);
+  const [selectedFeeGroup, setSelectedFeeGroup] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [schools, setSchools] = useState([]);
+  const [selectedSchool, setSelectedSchool] = useState("");
+  const [paymentTypes, setPaymentTypes] = useState([]);
+  const [installments, setInstallments] = useState([]);
+  const [selectedInstallment, setSelectedInstallment] = useState(null);
+  const [feeHeads, setFeeHeads] = useState([]);
+  const [feeAmounts, setFeeAmounts] = useState({});
+  const [remarks, setRemarks] = useState({});
+  const [totalDues, setTotalDues] = useState(0);
+  const [paidAmount, setPaidAmount] = useState(0);
+  const [lateFine, setLateFine] = useState(0);
+  const [serviceCharges, setServiceCharges] = useState([]);
+  const [payMode, setPayMode] = useState("Cash");
+  const [installmentDetails, setInstallmentDetails] = useState([]);
+
+  const breadcrumbItems = [
+    { label: "Fee", link: "/fees/all-module" },
+    { label: "deposit-entry", link: "null" }
+  ];
+
+  const accountTypes = [
+    { value: "School", label: "School" },
+  ];
+
+  const payModes = [
+    { value: "Cheque", label: "Cheque" },
+    { value: "Cash", label: "Cash" },
+    { value: "RTGS", label: "RTGS" },
+    { value: "Debit Card", label: "Debit Card" },
+    { value: "Credit Card", label: "Credit Card" },
+    { value: "Online", label: "Online" }
+  ];
+
+  const months = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+
+  const getAllStudent = async () => {
+    try {
+      const response = await axios.get(
+        `https://erp-backend-fy3n.onrender.com/api/students/search`
+      );
+      if (response?.data?.success) {
+        const options = response?.data?.data?.map((item) => ({
+          value: item?.registration_id,
+          label: `${item?.first_name} - Father: ${item?.father_name} - ID: ${item?.registration_id}`,
+          data: item
+        }));
+        setStudentListData(response.data.data);
+        setStudentListOptions(options);
+      }
+    } catch (error) {
+      console.error("Failed to fetch students", error);
+    }
+  };
+
+  const getAllSchools = async () => {
+    try {
+      const response = await axios.get(
+        `https://erp-backend-fy3n.onrender.com/api/schools`
+      );
+      if (response?.data?.success) {
+        setSchools(response.data.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch schools", error);
+    }
+  };
+
+  const getPaymentTypes = async () => {
+    try {
+      const response = await axios.get(
+        `https://erp-backend-fy3n.onrender.com/api/all-payment-type`
+      );
+      if (response?.data?.success) {
+        const options = response.data.paymentTypes.map(type => ({
+          value: type._id,
+          label: type.payment_type === 'installment' ? 'Installment' : 'Multi Installment',
+          type: type.payment_type
+        }));
+        setPaymentTypes(options);
+      }
+    } catch (error) {
+      console.error("Failed to fetch payment types", error);
+    }
+  };
+
+  const getInstallments = async () => {
+    try {
+      const response = await axios.get(
+        `https://erp-backend-fy3n.onrender.com/api/all-installments`
+      );
+      if (response?.data?.success) {
+        const options = response.data.data.map(installment => ({
+          value: installment._id,
+          label: installment.installment_name
+        }));
+        setInstallments(options);
+      }
+    } catch (error) {
+      console.error("Failed to fetch installments", error);
+    }
+  };
+
+  const getFeeHeads = async () => {
+    try {
+      const response = await axios.get(
+        `https://erp-backend-fy3n.onrender.com/api/fee-heads`
+      );
+      if (response?.data?.success) {
+        setFeeHeads(response.data.data);
+        // Initialize amounts and remarks
+        const initialAmounts = {};
+        const initialRemarks = {};
+        response.data.data.forEach(head => {
+          initialAmounts[head._id] = 0;
+          initialRemarks[head._id] = "";
+        });
+        setFeeAmounts(initialAmounts);
+        setRemarks(initialRemarks);
+      }
+    } catch (error) {
+      console.error("Failed to fetch fee heads", error);
+    }
+  };
+
+  const getInstallmentDetails = async (feeGroupId) => {
+    try {
+      const response = await axios.get(
+        `https://erp-backend-fy3n.onrender.com/api/fee-structures/by-group/${feeGroupId}`
+      );
+      if (response?.data?.success) {
+        setInstallmentDetails(response.data.feeStructures);
+      }
+    } catch (error) {
+      console.error("Failed to fetch installment details", error);
+    }
+  };
+
+  const getStudentData = async (selectedOption) => {
+    if (!selectedOption) {
+      setSelectedStudent(null);
+      setFeeGroups([]);
+      setSelectedFeeGroup(null);
+      setSelectedClass("");
+      setSelectedSchool("");
+      return;
+    }
+
+    const student = studentListData.find(
+      (item) => item.registration_id === selectedOption.value
+    );
+
+    if (student) {
+      setSelectedStudent(student);
+      const className = student.class_name?.class_name || "";
+      setSelectedClass(className);
+      const schoolName = student.school_name?.school_name || "";
+      setSelectedSchool(schoolName);
+
+      try {
+        setIsLoading(true);
+        const feeGroupsResponse = await axios.get(
+          `https://erp-backend-fy3n.onrender.com/api/fee-groups/by-class/${encodeURIComponent(className)}`
+        );
+
+        if (feeGroupsResponse?.data?.success) {
+          const feeGroupOptions = feeGroupsResponse.data.data.map((group) => ({
+            value: group._id,
+            label: group.group_name,
+            data: group
+          }));
+          setFeeGroups(feeGroupOptions);
+
+          if (feeGroupOptions.length > 0) {
+            setSelectedFeeGroup(feeGroupOptions[0]);
+            getInstallmentDetails(feeGroupOptions[0].value);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching fee groups:", error);
+        setFeeGroups([]);
+        setSelectedFeeGroup(null);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+  };
 
   useEffect(() => {
-    fetchClasses();
+    getAllStudent();
+    getAllSchools();
+    getPaymentTypes();
+    getInstallments();
+    getFeeHeads();
   }, []);
 
   useEffect(() => {
-    if (selectedClass) {
-      fetchSections(selectedClass);
-      // Reset section and students when class changes
-      setSelectedSection("");
-      setStudents([]);
-      setSelectedStudent(null);
+    if (selectedFeeGroup) {
+      getInstallmentDetails(selectedFeeGroup.value);
     }
-  }, [selectedClass]);
+  }, [selectedFeeGroup]);
 
   useEffect(() => {
-    if (selectedClass && selectedSection) {
-      fetchStudents();
-    } else {
-      // Reset students when section is cleared
-      setStudents([]);
-      setSelectedStudent(null);
-    }
-  }, [selectedClass, selectedSection]);
+    // Calculate total dues whenever fee amounts change
+    const total = Object.values(feeAmounts).reduce((sum, amount) => sum + amount, 0);
+    setTotalDues(total);
+  }, [feeAmounts]);
 
-  const fetchClasses = async () => {
-    try {
-      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/all-classes`);
-      const resp = response.data;
-      setClassList(resp?.data || []);
-    } catch (err) {
-      setError("Failed to fetch classes.");
-    }
+  const handleFeeAmountChange = (headId, value) => {
+    setFeeAmounts(prev => ({
+      ...prev,
+      [headId]: parseFloat(value) || 0
+    }));
   };
 
-  const fetchSections = async (classId) => {
-    try {
-      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/sections/class/${classId}`);
-      if (response?.data?.success) {
-        setSectionList(response?.data?.data);
+  const handleRemarkChange = (headId, value) => {
+    setRemarks(prev => ({
+      ...prev,
+      [headId]: value
+    }));
+  };
+
+  const handleServiceChargeChange = (month, value) => {
+    setServiceCharges(prev => {
+      const updated = [...prev];
+      const index = updated.findIndex(item => item.month === month);
+      if (index >= 0) {
+        updated[index].amount = parseFloat(value) || 0;
       } else {
-        setSectionList([]);
+        updated.push({ month, amount: parseFloat(value) || 0 });
       }
-    } catch (err) {
-      setError("Failed to fetch sections.");
-    }
+      return updated;
+    });
   };
 
-  const fetchStudents = async () => {
-    setLoading(true);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     try {
-      const response = await axios.get(
-        `https://erp-backend-fy3n.onrender.com/api/students/search?class_name=${selectedClass}&section_name=${selectedSection}`
+      const payload = {
+        receiptDate,
+        receiptNo,
+        studentId: selectedStudent?.registration_id,
+        class: selectedClass,
+        school: selectedSchool,
+        feeGroup: selectedFeeGroup?.value,
+        paymentType: selectedPayType?.value,
+        installment: selectedInstallment?.value,
+        accountType: selectedAccountType,
+        feeHeads: feeHeads.map(head => ({
+          headId: head._id,
+          headName: head.head_name,
+          amount: feeAmounts[head._id] || 0,
+          remark: remarks[head._id] || ""
+        })),
+        totalDues,
+        paidAmount,
+        lateFine,
+        serviceCharges,
+        payMode,
+        balance: totalDues - paidAmount
+      };
+
+      const response = await axios.post(
+        `https://erp-backend-fy3n.onrender.com/api/fee-entries`,
+        payload
       );
-      if (response.data.data && response.data.data.length > 0) {
-        // Process students to ensure profile_Pic URLs are correct
-        const processedStudents = response.data.data.map(student => ({
-          ...student,
-          profile_Pic: student.profile_Pic 
-            ? `https://erp-backend-fy3n.onrender.com/uploads/${student.profile_Pic}`
-            : null
-        }));
-        setStudents(processedStudents);
-      } else {
-        setStudents([]);
+
+      if (response.data.success) {
+        alert("Fee entry created successfully!");
+        // Reset form
+        setReceiptNo("");
+        setSelectedStudent(null);
+        setSelectedFeeGroup(null);
+        setSelectedPayType(null);
+        setSelectedInstallment(null);
+        setSelectedAccountType("");
+        setFeeAmounts({});
+        setRemarks({});
+        setPaidAmount(0);
+        setLateFine(0);
+        setServiceCharges([]);
       }
-      setSelectedStudent(null);
     } catch (error) {
-      console.error("Failed to fetch students", error);
-      setStudents([]);
+      console.error("Error submitting fee entry:", error);
+      alert("Failed to create fee entry");
     }
-    setLoading(false);
   };
-
-  const handleStudentSelect = (studentId) => {
-    const student = students.find(s => s._id === studentId);
-    setSelectedStudent(student);
-  };
-
-  const feeColumns = [
-    { name: "#", selector: (row, index) => index + 1, width: "50px" },
-    { name: "RECEIPT NO", selector: (row) => row.receipt_no || "N/A" },
-    { name: "FEE GROUP", selector: (row) => row.fee_group || "N/A" },
-    { name: "FEE CODE", selector: (row) => row.fee_code || "N/A" },
-    { name: "DESCRIPTION", selector: (row) => row.description || "N/A" },
-    { name: "STATUS", selector: (row) => row.status || "N/A" },
-    { name: "DATE", selector: (row) => row.date || "N/A" },
-    { name: "DISCOUNT", selector: (row) => row.discount || "N/A" },
-    { name: "FINE", selector: (row) => row.fine || "N/A" },
-    { name: "PAID AMOUNT", selector: (row) => row.paid_amount || "N/A" },
-    { name: "UNPAID AMOUNT", selector: (row) => row.unpaid || "N/A" },
-    {
-      name: "Actions",
-      cell: (row) => (
-        <div className="d-flex gap-2">
-          <button className="editButton" onClick={() => handleEdit(row._id)}>
-            <FaEdit />
-          </button>
-          <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
-            <FaTrashAlt />
-          </button>
-          <button className="btn btn-success text-nowrap my-2" onClick={() => handlePay(row._id)}>
-            Fee
-          </button>
-        </div>
-      ),
-    },
-  ];
-
-  // Sample fee data - in a real app, this would come from an API
-  const feeData = [
-    {
-      id: 1,
-      receipt_no: '773',
-      fee_group: '1st Class Fees,Development Fees(Nur - 5)',
-      fee_code: 'TUTION FEES,DEVELOPMENT FEES',
-      description: 'April-May',
-      status: 'Paid',
-      date: '14-08-2024',
-      discount: '1050',
-      fine: '0',
-      paid_amount: '3400',
-      unpaid: '-',
-    },
-    // ... more fee records
-  ];
 
   return (
-    <Container>
-      <div className="breadcrumbSheet">
-        <Row className="mt-1 mb-1">
-          <Col>
-            <Breadcrumb>
-              <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-              <Breadcrumb.Item href="/feeEntry">Fee</Breadcrumb.Item>
-              <Breadcrumb.Item active>Fee Entry</Breadcrumb.Item>
-            </Breadcrumb>
-          </Col>
-        </Row>
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
+            </Col>
+          </Row>
+        </Container>
       </div>
 
-      <Row>
-        <Col>
-          <div className="card shadow-none">
-            <div className="card-header text-start">
-              <h5> <FaSearch /> Select Criteria </h5>
+      <section>
+        <Container>
+          <div className="cover-sheet">
+            <div className="studentHeading">
+              <h2>Deposit Entry</h2>
             </div>
-            <div className="card-body">
-              <Row className="text-start">
-                <Col lg={4}>
-                  <FormGroup controlId="validationCustom08">
-                    <FormLabel className="labelForm">Select Class</FormLabel>
-                    <FormSelect
+
+            <Form onSubmit={handleSubmit} className="formSheet">
+              <Row className="mb-3">
+                <Col md={12}>
+                  <FormLabel>Search Student *</FormLabel>
+                  <Select
+                    options={studentListOptions}
+                    onChange={getStudentData}
+                    onInputChange={setSearchTerm}
+                    placeholder="Search student..."
+                    isClearable
+                    isSearchable
+                  />
+                </Col>
+              </Row>
+
+              <Row className="mb-3">
+                <Col md={4}>
+                  <FormGroup>
+                    <FormLabel>Receipt Date</FormLabel>
+                    <DatePicker
+                      selected={receiptDate}
+                      onChange={(date) => setReceiptDate(date)}
+                      className="form-control"
+                      dateFormat="MM/dd/yyyy"
+                    />
+                  </FormGroup>
+                </Col>
+                <Col md={4}>
+                  <FormGroup>
+                    <FormLabel>Class</FormLabel>
+                    <FormControl
+                      type="text"
                       value={selectedClass}
-                      onChange={(e) => setSelectedClass(e.target.value)}
-                    >
-                      <option value="">Select Class</option>
-                      {classList?.map((classItem) => (
-                        <option key={classItem?._id} value={classItem?._id}>
-                          {classItem?.class_name}
-                        </option>
-                      ))}
-                    </FormSelect>
+                      readOnly
+                    />
                   </FormGroup>
                 </Col>
-                <Col lg={4}>
-                  <FormGroup controlId="validationCustom09">
-                    <FormLabel className="labelForm">Select Section</FormLabel>
-                    <FormSelect
-                      value={selectedSection}
-                      onChange={(e) => setSelectedSection(e.target.value)}
-                      disabled={!selectedClass}
-                    >
-                      <option value="">Select Section</option>
-                      {sectionList?.map((sectionItem) => (
-                        <option key={sectionItem?._id} value={sectionItem?._id}>
-                          {sectionItem?.section_name} ({sectionItem?.section_code})
-                        </option>
-                      ))}
-                    </FormSelect>
-                  </FormGroup>
-                </Col>
-                <Col lg={4}>
-                  <FormGroup controlId="validationCustom10">
-                    <FormLabel className="labelForm">Select Student</FormLabel>
-                    <FormSelect
-                      value={selectedStudent?._id || ""}
-                      onChange={(e) => handleStudentSelect(e.target.value)}
-                      disabled={!selectedClass || !selectedSection || students.length === 0}
-                    >
-                      <option value="">Select Student</option>
-                      {students.map((student) => (
-                        <option key={student._id} value={student._id}>
-                          {student.first_name} {student.last_name} (Roll: {student.roll_no || 'N/A'})
-                        </option>
-                      ))}
-                    </FormSelect>
+                <Col md={4}>
+                  <FormGroup>
+                    <FormLabel>Installment *</FormLabel>
+                    <Select
+                      options={installments}
+                      value={selectedInstallment}
+                      onChange={(option) => setSelectedInstallment(option)}
+                      placeholder="Select Installment"
+                      isClearable
+                      required
+                    />
                   </FormGroup>
                 </Col>
               </Row>
-            </div>
+
+              <Row className="mb-3">
+                <Col md={4}>
+                  <FormGroup>
+                    <FormLabel>Fee Group *</FormLabel>
+                    <Select
+                      options={feeGroups}
+                      value={selectedFeeGroup}
+                      onChange={(option) => setSelectedFeeGroup(option)}
+                      placeholder={isLoading ? "Loading fee groups..." : "Select Fee Group"}
+                      isClearable
+                      isDisabled={isLoading || feeGroups.length === 0}
+                      required
+                    />
+                  </FormGroup>
+                </Col>
+                <Col md={4}>
+                  <FormGroup>
+                    <FormLabel>Pay Type *</FormLabel>
+                    <Select
+                      options={paymentTypes}
+                      value={selectedPayType}
+                      onChange={(option) => {
+                        setSelectedPayType(option);
+                        setSelectedInstallment(null);
+                      }}
+                      placeholder="Select Pay Type"
+                      isClearable
+                      required
+                    />
+                  </FormGroup>
+                </Col>
+                <Col md={4}>
+                  <FormGroup>
+                    <FormLabel>Receipt No</FormLabel>
+                    <FormControl
+                      type="text"
+                      value={receiptNo}
+                      onChange={(e) => setReceiptNo(e.target.value)}
+                      required
+                    />
+                  </FormGroup>
+                </Col>
+              </Row>
+
+              <Row className="mb-3">
+                <Col md={4}>
+                  <FormGroup>
+                    <FormLabel>A/C Type *</FormLabel>
+                    <Select
+                      options={accountTypes}
+                      value={accountTypes.find(opt => opt.value === selectedAccountType)}
+                      onChange={(option) => setSelectedAccountType(option?.value || "")}
+                      placeholder="Select A/C Type"
+                      isClearable
+                      required
+                    />
+                  </FormGroup>
+                </Col>
+                <Col md={4}>
+                  <FormGroup>
+                    <FormLabel>Pay Mode</FormLabel>
+                    <Select
+                      options={payModes}
+                      value={payModes.find(opt => opt.value === payMode)}
+                      onChange={(option) => setPayMode(option?.value || "Cash")}
+                      placeholder="Select Pay Mode"
+                      isClearable
+                    />
+                  </FormGroup>
+                </Col>
+              </Row>
+
+              {/* Show fee heads table when A/C Type is School */}
+              {selectedAccountType === "School" && (
+                <>
+                  <Row className="mb-3 mt-4">
+                    <Col md={8}>
+                      <h4>Student Ledger Details</h4>
+                      <Table striped bordered hover>
+                        <thead>
+                          <tr>
+                            <th>Fee Heads</th>
+                            <th>Due</th>
+                            <th>Con</th>
+                            <th>Paid</th>
+                            <th>Balance</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {feeHeads.map((head) => (
+                            <tr key={head._id}>
+                              <td>{head.head_name}</td>
+                              <td>
+                                <FormControl
+                                  type="number"
+                                  value={feeAmounts[head._id] || 0}
+                                  onChange={(e) => handleFeeAmountChange(head._id, e.target.value)}
+                                />
+                              </td>
+                              <td>
+                                <FormControl
+                                  type="number"
+                                  value={feeAmounts[head._id] || 0}
+                                  readOnly
+                                />
+                              </td>
+                              <td>
+                                <FormControl
+                                  type="number"
+                                  value={0}
+                                  readOnly
+                                />
+                              </td>
+                              <td>
+                                <FormControl
+                                  type="number"
+                                  value={feeAmounts[head._id] || 0}
+                                  readOnly
+                                />
+                              </td>
+                              <td>
+                                <FormControl
+                                  as="textarea"
+                                  rows={1}
+                                  value={remarks[head._id] || ""}
+                                  onChange={(e) => handleRemarkChange(head._id, e.target.value)}
+                                  placeholder="Enter remarks"
+                                />
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </Table>
+                      <Row className="mb-3">
+                        <Col md={6}>
+                          <FormGroup>
+                            <FormLabel>Total Dues</FormLabel>
+                            <FormControl
+                              type="number"
+                              value={totalDues}
+                              readOnly
+                            />
+                          </FormGroup>
+                        </Col>
+                        <Col md={6}>
+                          <FormGroup>
+                            <FormLabel>Paid Amount</FormLabel>
+                            <FormControl
+                              type="number"
+                              value={paidAmount}
+                              onChange={(e) => setPaidAmount(parseFloat(e.target.value) || 0)}
+                            />
+                          </FormGroup>
+                        </Col>
+                      </Row>
+
+                      <Row className="mb-3">
+                        <Col md={6}>
+                          <FormGroup>
+                            <FormLabel>Service Charges</FormLabel>
+                            <FormControl
+                              type="number"
+                              value={lateFine}
+                              onChange={(e) => setLateFine(parseFloat(e.target.value) || 0)}
+                            />
+                          </FormGroup>
+                        </Col>
+                        <Col md={6}>
+                          <FormGroup>
+                            <FormLabel>Balance</FormLabel>
+                            <FormControl
+                              type="number"
+                              value={totalDues - paidAmount}
+                              readOnly
+                            />
+                          </FormGroup>
+                        </Col>
+                      </Row>
+
+                      <Row className="mb-3">
+                        <Col md={6}>
+                          <FormGroup>
+                            <FormLabel>Remarks</FormLabel>
+                            <FormControl
+                              type="text"
+                            // placeholder="Enter fee book number"
+                            />
+                          </FormGroup>
+                        </Col>
+                        <Col md={6}>
+                          <FormGroup>
+                            <FormLabel>Fee Book Number</FormLabel>
+                            <FormControl
+                              type="Number"
+                            // placeholder="Enter fee book number"
+                            />
+                          </FormGroup>
+                        </Col>
+                      </Row>
+                    </Col>
+
+                    <Col md={4}>
+                      <h4>Installment Details</h4>
+                      <Table striped bordered hover>
+                        <thead>
+                          <tr>
+                            <th>Installment Name</th>
+                            <th>Due Amount</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {installmentDetails.map((installment, index) => (
+                            <tr key={index}>
+                              <td>{installment.installment_name}</td>
+                              <td>{installment.due_amount}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </Table>
+                    </Col>
+                  </Row>
+
+
+
+                  {/* <Row className="mb-3">
+                    
+                  </Row> */}
+                </>
+              )}
+
+              <Row className="mb-5 mt-4">
+                <Col md={12}>
+                  <Button
+                    type="submit"
+                    variant="primary"
+                    disabled={!selectedFeeGroup || !selectedPayType || !selectedInstallment || !selectedAccountType}
+                  >
+                    Save
+                  </Button>
+                </Col>
+              </Row>
+            </Form>
           </div>
-        </Col>
-      </Row>
-
-      {selectedStudent && (
-        <Row className="mt-3">
-          <Col>
-            <div className="tableSheet">
-              <h2> Fees Statement </h2>
-              <div className="card-body">
-                <Row>
-                  <Col lg={4}>
-                    <div className="idBox">
-                      <div className="profilePhoto">
-                        {selectedStudent.profile_Pic ? (
-                          <img
-                            src={selectedStudent.profile_Pic}
-                            alt="Profile Pic"
-                            width="100"
-                            height="100"
-                            style={{ borderRadius: '50%', objectFit: 'cover' }}
-                          />
-                        ) : (
-                          <img 
-                            src="/t-01.jpg" 
-                            alt="Default Pic" 
-                            width="100" 
-                            height="100" 
-                            style={{ borderRadius: '50%', objectFit: 'cover' }}
-                          />
-                        )}
-                      </div>
-
-                      <h4>{selectedStudent.first_name} {selectedStudent.last_name}</h4>
-                    </div>
-                  </Col>
-                  <Col lg={8}>
-                    <BootstrapTable striped bordered hover>
-                      <tbody>
-                        <tr>
-                          <td>NAME</td>
-                          <td>{selectedStudent.first_name} {selectedStudent.last_name}</td>
-                          <td>CLASS/ SECTION</td>
-                          <td>
-                            {selectedStudent.class_name?.class_name || 'N/A'}
-                            ({selectedStudent.section_name?.section_name || 'N/A'})
-                          </td>
-                        </tr>
-                        <tr>
-                          <td>FATHER NAME</td>
-                          <td>{selectedStudent.father_name || 'N/A'}</td>
-                          <td>ADMISSION NO.</td>
-                          <td>{selectedStudent.registration_id || 'N/A'}</td>
-                        </tr>
-                        <tr>
-                          <td>MOBILE NUMBER</td>
-                          <td>{selectedStudent.phone_no || 'N/A'}</td>
-                          <td>ROLL NUMBER</td>
-                          <td>{selectedStudent.roll_no || 'N/A'}</td>
-                        </tr>
-                      </tbody>
-                    </BootstrapTable>
-                  </Col>
-                </Row>
-              </div>
-
-              <Row className="justify-content-between mt-3 align-items-center">
-                <Col lg={12}>
-                  <div className="text-end">
-                    <Button variant="primary" className="btn-action me-2">
-                      <FaPrint /> Assign Fees
-                    </Button>
-                    <Button variant="primary" className="btn-action me-2">
-                      <FaPrint /> Assign Discount
-                    </Button>
-                    <Button variant="primary" className="btn-action me-2">
-                      <FaPrint /> Paid History
-                    </Button>
-                    <Button variant="success" className="btn-action">
-                      <FaPrint /> Pay Fees
-                    </Button>
-                  </div>
-                </Col>
-              </Row>
-
-              <hr />
-
-              <div className="card-title">
-                <h2>Fees Details List</h2>
-              </div>
-
-              <div className="card-body">
-                <div className="tableSheet">
-                  {error && <p style={{ color: "red" }}>{error}</p>}
-                  <Table columns={feeColumns} data={feeData} />
-                </div>
-              </div>
-            </div>
-          </Col>
-        </Row>
-      )}
-
-      {loading && (
-        <Row className="mt-3">
-          <Col>
-            <div className="text-center">
-              <p>Loading students...</p>
-            </div>
-          </Col>
-        </Row>
-      )}
-
-      {!loading && students.length === 0 && selectedClass && selectedSection && (
-        <Row className="mt-3">
-          <Col>
-            <div className="alert alert-info">
-              No students found for the selected class and section.
-            </div>
-          </Col>
-        </Row>
-      )}
-    </Container>
+        </Container>
+      </section>
+    </>
   );
 };
 

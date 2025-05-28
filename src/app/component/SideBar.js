@@ -132,7 +132,7 @@ export default function Sidebar({ isOpen }) {
         // { title: "Fee Statement", href: "/fees/fee-Statement", icon: <FaAngleDoubleRight /> },
         { title: "Fixed Amount", href: "/fees/fixed-amount", icon: <FaAngleDoubleRight /> },
         { title: "Fee Entry", href: "/fees/fee-entry", icon: <FaAngleDoubleRight /> },
-        { title: "Fee Entryy", href: "/fees/feeEntryy", icon: <FaAngleDoubleRight /> },
+        // { title: "Fee Entryy", href: "/fees/feeEntryy", icon: <FaAngleDoubleRight /> },
         { title: "Concession Entry", href: "/fees/concession-entry", icon: <FaAngleDoubleRight /> },
         { title: "Cheque Bounce Entry", href: "/fees/cheque-bounce", icon: <FaAngleDoubleRight /> },
     ];
