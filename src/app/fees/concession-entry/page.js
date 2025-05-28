@@ -1,489 +1,404 @@
 "use client";
-
-import React, { useState, useEffect } from "react";
-import { Container, Row, Col, Form, Button, FormSelect, Table } from "react-bootstrap";
-import axios from "axios";
-import Select from "react-select";
+import React, { useEffect, useState } from 'react';
+import styles from "@/app/students/add-new-student/page.module.css";
+import Preview from '@/app/component/Preview';
+import { Tab, Tabs, Container, Row, Col } from 'react-bootstrap';
+import "react-datepicker/dist/react-datepicker.css";
+import { Form, FormGroup, FormLabel, FormControl, Button } from 'react-bootstrap';
+import BreadcrumbComp from "@/app/component/Breadcrumb";
+import axios from 'axios';
+import Table from "@/app/component/DataTable";
+import { copyContent, printContent } from "@/app/utils";
+import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
 
 const ConcessionEntry = () => {
+  const [studentData, setStudentData] = useState(null);
+  const [studentId, setStudentId] = useState("");
+  const [showPreview, setShowPreview] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [tcRecords, setTcRecords] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
-  const [studentOptions, setStudentOptions] = useState([]);
-  const [selectedStudent, setSelectedStudent] = useState(null);
-  const [classOptions, setClassOptions] = useState([]);
-  const [selectedClass, setSelectedClass] = useState("");
-  const [concessionType, setConcessionType] = useState("");
-  const [concessionTypeOptions, setConcessionTypeOptions] = useState([]);
-  const [feeGroups, setFeeGroups] = useState([]);
-  const [feeGroup, setFeeGroup] = useState("");
   const [loading, setLoading] = useState(false);
-  const [installments, setInstallments] = useState([]);
-  const [studentDetails, setStudentDetails] = useState(null);
+  const [error, setError] = useState("");
+  const [editingId, setEditingId] = useState(null);
+  const [editedData, setEditedData] = useState({});
 
-  // Fetch student options based on search term
-  // useEffect(() => {
-  //   const fetchStudents = async () => {
-  //     if (searchTerm.length >= 2) {
-  //       setLoading(true);
-  //       try {
-  //         const response = await axios.get(
-  //           `${process.env.NEXT_PUBLIC_SITE_URL}/api/students/search?search_term=${searchTerm}`
-  //         );
-          
-  //         if (response?.data?.success) {
-  //           const options = response.data.data.map(student => ({
-  //             value: student._id,
-  //             label: `${student.first_name} ${student.last_name || ""} - ${student.father_name} (ID: ${student.registration_id})`,
-  //             class: student.class_name?._id || student.class_name,
-  //             className: student.class_name?.class_name || "",
-  //             feeGroup: student.fee_group || ""
-  //           }));
-  //           setStudentOptions(options);
-  //         }
-  //       } catch (error) {
-  //         console.error("Error searching students:", error);
-  //       } finally {
-  //         setLoading(false);
-  //       }
-  //     }
-  //   };
+  const [formData, setFormData] = useState({
+    registration_id: '',
+    tc_no: '',
+    student_name: '',
+    class_section: '',
+    class_section_inWords: '',
+    father_name: '',
+    mother_name: '',
+    dob: '',
+    dob_inWords: '',
+    caste: '',
+    nationality: 'Indian',
+    whether_failed: 'No',
+    school_name: '',
+    subject_studies: ['', '', '', '', '', ''],
+    class_promotion: 'false',
+    class_promotion_inwords: '',
+    whether_ncc_cadet: 'No',
+    fee_concession: 0,
+    general_conduct: 'Good',
+    total_working_days: '',
+    present_working_days: '',
+    reason_for_leaving_school: '',
+    date_of_application: new Date().toISOString().split('T')[0],
+    date_of_issue: new Date().toISOString().split('T')[0],
+    remarks: ''
+  });
 
-  //   const debounceTimer = setTimeout(() => {
-  //     fetchStudents();
-  //   }, 500);
+  const columns = [
+    {
+      name: "#",
+      selector: (row, index) => index + 1,
+      width: "80px",
+      sortable: false,
+    },
+    {
+      name: "TC No.",
+      selector: row => row.tc_no,
+      sortable: true,
+    },
+    {
+      name: "Date",
+      selector: row => new Date(row.date_of_issue).toISOString().split('T')[0],
+      sortable: true,
+    },
+    {
+      name: "Student ID",
+      selector: row => row.registration_id,
+      sortable: true,
+    },
+    {
+      name: "Student",
+      selector: row => row.student_name,
+      sortable: true,
+    },
+    {
+      name: "Class#Section",
+      selector: row => row.class_section,
+      sortable: true,
+    },
+    {
+      name: "Actions",
+      cell: (row) => (
+        <div className="d-flex gap-2">
+          {editingId === row._id ? (
+            <>
+              <button className="editButton" onClick={() => handleUpdate(row._id)}>
+                <FaSave />
+              </button>
+              <button className="editButton btn-danger" onClick={() => handleCancelEdit()}>
+                Cancel
+              </button>
+            </>
+          ) : (
+            <>
+              <button className="editButton" onClick={() => handleEdit(row)}>
+                <FaEdit />
+              </button>
+              <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
+                <FaTrashAlt />
+              </button>
+            </>
+          )}
+        </div>
+      ),
+    },
+  ];
 
-  //   return () => clearTimeout(debounceTimer);
-  // }, [searchTerm]);
+  // Fetch TC records when component mounts
   useEffect(() => {
-    const fetchStudents = async () => {
-      if (searchTerm.length >= 2) {
-        setLoading(true);
-        try {
-          const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/students/search`, {
-            params: {
-              name: searchTerm,
-              father_name: "",  // Add filters dynamically if needed
-              registration_id: "",
-              class_name: selectedClass || "",
-              section_name: "",
-              religion_name: "",
-              caste_name: "",
-            },
-          });
-  
-          if (response?.data?.success) {
-            const options = response.data.data.map(student => ({
-              value: student._id,
-              label: `${student.first_name} ${student.last_name || ""} - ${student.father_name} (ID: ${student.registration_id})`,
-              class: student.class_name?._id || student.class_name,
-              className: student.class_name?.class_name || "",
-              feeGroup: student.fee_group || ""
-            }));
-            setStudentOptions(options);
-          }
-        } catch (error) {
-          console.error("Error searching students:", error);
-        } finally {
-          setLoading(false);
-        }
-      }
-    };
-  
-    const debounceTimer = setTimeout(() => {
-      fetchStudents();
-    }, 500);
-  
-    return () => clearTimeout(debounceTimer);
-  }, [searchTerm, selectedClass]);
-  
-
-  // Fetch class options
-  useEffect(() => {
-    const fetchClasses = async () => {
+    const fetchTcRecords = async () => {
+      setLoading(true);
       try {
-        const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/all-classes`);
-        if (response.data?.data) {
-          setClassOptions(response.data.data);
-          // If there's only one class, select it by default
-          if (response.data.data.length === 1) {
-            setSelectedClass(response.data.data[0]._id);
-          }
+        const response = await axios.get('https://erp-backend-fy3n.onrender.com/api/transfer-certificates');
+        if (response.data.success) {
+          setTcRecords(response.data.data);
         }
       } catch (error) {
-        console.error("Error fetching classes:", error);
+        console.error("Error fetching TC records:", error);
+        setError("Failed to fetch TC records");
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchClasses();
+    fetchTcRecords();
+    fetchLastTcNumber();
   }, []);
 
-  // Fetch fee groups
-  useEffect(() => {
-    const fetchFeeGroups = async () => {
-      try {
-        const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/all-fee-groups`);
-        if (response.data?.data) {
-          setFeeGroups(response.data.data);
-          // If there's only one fee group, select it by default
-          if (response.data.data.length === 1) {
-            setFeeGroup(response.data.data[0]._id);
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching fee groups:", error);
-      }
-    };
-
-    fetchFeeGroups();
-  }, []);
-
-  // Fetch concession types
-  useEffect(() => {
-    const fetchConcessionTypes = async () => {
-      try {
-        const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/all-concessions`);
-        if (response.data?.data) {
-          setConcessionTypeOptions(response.data.data);
-        }
-      } catch (error) {
-        console.error("Error fetching concession types:", error);
-      }
-    };
-
-    fetchConcessionTypes();
-  }, []);
-
-  // Fetch installments when class or fee group changes
-  useEffect(() => {
-    const fetchInstallments = async () => {
-      if (selectedClass && feeGroup) {
-        try {
-          const classId = typeof selectedClass === 'object' ? selectedClass.value : selectedClass;
-          const response = await axios.get(
-            `https://erp-backend-fy3n.onrender.com/api/installments?class_id=${classId}&fee_group=${feeGroup}`
-          );
-          
-          if (response?.data?.success) {
-            const fetchedInstallments = response.data.data.map(installment => ({
-              month: installment.name,
-              actualFee: installment.amount,
-              discountPercent: 0,
-              discountAmount: 0,
-              totalAmount: installment.amount
-            }));
-            setInstallments(fetchedInstallments);
-          }
-        } catch (error) {
-          console.error("Error fetching installments:", error);
-        }
-      }
-    };
-
-    fetchInstallments();
-  }, [selectedClass, feeGroup]);
-
-  const handleStudentSelect = async (selectedOption) => {
-    setSelectedStudent(selectedOption);
-    if (selectedOption) {
-      try {
-        // Fetch complete student details
-        const response = await axios.get(
-          `${process.env.NEXT_PUBLIC_SITE_URL}/api/students/${selectedOption.value}`
-        );
-        
-        if (response?.data?.success) {
-          const student = response.data.data;
-          setStudentDetails(student);
-          
-          // Set class and fee group from student data
-          setSelectedClass(student.class_name?._id || student.class_name);
-          setFeeGroup(student.fee_group || "");
-          
-          // If class is populated, get the class name
-          if (student.class_name?.class_name) {
-            setSelectedClass({
-              value: student.class_name._id,
-              label: student.class_name.class_name
-            });
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching student details:", error);
-      }
-    } else {
-      setSelectedClass("");
-      setFeeGroup("");
-      setStudentDetails(null);
+  const fetchLastTcNumber = async () => {
+    try {
+      const response = await axios.get('https://erp-backend-fy3n.onrender.com/api/transfer-certificates/last-tc-number');
+      const lastNumber = response.data.lastTcNumber || 0;
+      const newTcNumber = `TC${String(lastNumber + 1).padStart(4, '0')}`;
+      setFormData(prev => ({ ...prev, tc_no: newTcNumber }));
+    } catch (error) {
+      console.error("Error fetching last TC number:", error);
+      setFormData(prev => ({ ...prev, tc_no: `TC${Date.now()}` }));
     }
   };
 
-  const handleDiscountChange = (index, value) => {
-    const newInstallments = [...installments];
-    const discountPercent = parseFloat(value) || 0;
-    
-    // Ensure discount is between 0 and 100
-    const validatedDiscount = Math.min(100, Math.max(0, discountPercent));
-    
-    newInstallments[index] = {
-      ...newInstallments[index],
-      discountPercent: validatedDiscount,
-      discountAmount: (newInstallments[index].actualFee * validatedDiscount) / 100,
-      totalAmount: newInstallments[index].actualFee - (newInstallments[index].actualFee * validatedDiscount) / 100
-    };
-    
-    setInstallments(newInstallments);
+  const handleEdit = (record) => {
+    setEditingId(record._id);
+    setEditedData({
+      tc_no: record.tc_no,
+      student_name: record.student_name,
+      class_section: record.class_section,
+      date_of_issue: record.date_of_issue,
+      reason_for_leaving_school: record.reason_for_leaving_school,
+      remarks: record.remarks
+    });
   };
 
-  const handleConcessionTypeChange = (value) => {
-    setConcessionType(value);
-    
-    // Find the selected concession type details
-    const selectedConcession = concessionTypeOptions.find(ct => ct._id === value);
-    
-    if (selectedConcession) {
-      // Apply concession based on type
-      if (selectedConcession.type === "full") {
-        const updatedInstallments = installments.map(installment => ({
-          ...installment,
-          discountPercent: 100,
-          discountAmount: installment.actualFee,
-          totalAmount: 0
-        }));
-        setInstallments(updatedInstallments);
-      } else if (selectedConcession.type === "half") {
-        const updatedInstallments = installments.map(installment => ({
-          ...installment,
-          discountPercent: 50,
-          discountAmount: installment.actualFee * 0.5,
-          totalAmount: installment.actualFee * 0.5
-        }));
-        setInstallments(updatedInstallments);
-      } else if (selectedConcession.type === "custom") {
-        // For custom concession, keep the existing values or set to 0 if first time
-        const updatedInstallments = installments.map(installment => ({
-          ...installment,
-          discountPercent: installment.discountPercent || 0,
-          discountAmount: installment.discountAmount || 0,
-          totalAmount: installment.totalAmount || installment.actualFee
-        }));
-        setInstallments(updatedInstallments);
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setEditedData({});
+  };
+
+  const handleUpdate = async (id) => {
+    try {
+      const response = await axios.put(
+        `https://erp-backend-fy3n.onrender.com/api/update-transfer-certificates/${id}`,
+        editedData
+      );
+
+      if (response.data.success) {
+        // Update the local state with the edited data
+        setTcRecords(prevRecords =>
+          prevRecords.map(record =>
+            record._id === id ? { ...record, ...editedData } : record
+          )
+        );
+        setEditingId(null);
+        setEditedData({});
+        alert("Transfer Certificate updated successfully!");
+      }
+    } catch (error) {
+      console.error("Error updating TC:", error);
+      alert("Failed to update Transfer Certificate");
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (confirm("Are you sure you want to delete this Transfer Certificate?")) {
+      try {
+        const response = await axios.delete(
+          `https://erp-backend-fy3n.onrender.com/api/delete-transfer-certificates/${id}`
+        );
+
+        if (response.data.success) {
+          // Remove the deleted record from local state
+          setTcRecords(prevRecords =>
+            prevRecords.filter(record => record._id !== id)
+          );
+          alert("Transfer Certificate deleted successfully!");
+        }
+      } catch (error) {
+        console.error("Error deleting TC:", error);
+        alert("Failed to delete Transfer Certificate");
+      }
+    }
+  };
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    if (editingId) {
+      // If in edit mode, update the editedData
+      setEditedData(prev => ({ ...prev, [name]: value }));
+    } else if (name.startsWith("subject_studies_")) {
+      const index = parseInt(name.split("_")[2], 10);
+      const newSubjects = [...formData.subject_studies];
+      newSubjects[index] = value;
+      setFormData(prev => ({ ...prev, subject_studies: newSubjects }));
+    } else {
+      setFormData(prev => ({ ...prev, [name]: value }));
+      if (name === "registration_id") {
+        setStudentId(value);
       }
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      const payload = {
-        student_id: selectedStudent.value,
-        class_id: typeof selectedClass === 'object' ? selectedClass.value : selectedClass,
-        concession_type: concessionType,
-        fee_group: feeGroup,
-        installments: installments,
-        academic_year: new Date().getFullYear()
-      };
+    setIsSubmitting(true);
 
-      const response = await axios.post(
-        `${process.env.NEXT_PUBLIC_SITE_URL}/api/concessions`,
-        payload
-      );
+    try {
+      const url = 'https://erp-backend-fy3n.onrender.com/api/transfer-certificates';
+      const response = await axios.post(url, formData);
 
       if (response.data.success) {
-        alert("Concession applied successfully!");
-        // Reset form
-        setSelectedStudent(null);
-        setSelectedClass("");
-        setConcessionType("");
-        setFeeGroup("");
-        setInstallments(installments.map(i => ({
-          ...i,
-          discountPercent: 0,
-          discountAmount: 0,
-          totalAmount: i.actualFee
-        })));
+        alert("Transfer Certificate generated successfully!");
+
+        // Refresh TC records
+        const recordsResponse = await axios.get('https://erp-backend-fy3n.onrender.com/api/transfer-certificates');
+        setTcRecords(recordsResponse.data.data);
+
+        // Reset form with new TC number
+        const newNumber = parseInt(formData.tc_no.replace(/^TC0*/, '')) + 1;
+        const newTcNumber = `TC${String(newNumber).padStart(4, '0')}`;
+
+        setFormData({
+          registration_id: '',
+          tc_no: newTcNumber,
+          student_name: '',
+          class_section: '',
+          class_section_inWords: '',
+          father_name: '',
+          mother_name: '',
+          dob: '',
+          dob_inWords: '',
+          caste: '',
+          nationality: 'Indian',
+          whether_failed: 'No',
+          school_name: '',
+          subject_studies: ['', '', '', '', '', ''],
+          class_promotion: 'false',
+          class_promotion_inwords: '',
+          whether_ncc_cadet: 'No',
+          fee_concession: 0,
+          general_conduct: 'Good',
+          total_working_days: '',
+          present_working_days: '',
+          reason_for_leaving_school: '',
+          date_of_application: new Date().toISOString().split('T')[0],
+          date_of_issue: new Date().toISOString().split('T')[0],
+          remarks: ''
+        });
+
+        setStudentData(null);
+        setStudentId("");
       } else {
-        alert("Failed to apply concession: " + response.data.message);
+        alert(response.data.message || "Failed to generate Transfer Certificate");
       }
     } catch (error) {
-      console.error("Error submitting concession:", error);
-      alert("Error applying concession. Please try again.");
+      console.error("Error submitting form:", error);
+      alert(error.response?.data?.message || "An error occurred while submitting the form");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  // Calculate totals for the table footer
-  const totals = installments.reduce((acc, installment) => {
-    return {
-      actualFee: acc.actualFee + installment.actualFee,
-      discountAmount: acc.discountAmount + installment.discountAmount,
-      totalAmount: acc.totalAmount + installment.totalAmount
+  const togglePreview = () => {
+    setShowPreview((prev) => !prev);
+  };
+
+  useEffect(() => {
+    if (!studentId) return;
+
+    const fetchStudentInfo = async () => {
+      try {
+        const url = `https://erp-backend-fy3n.onrender.com/api/students/search?registration_id=${studentId}`;
+        const response = await axios.get(url);
+
+        if (response?.data.success) {
+          setStudentData(response?.data?.data[0]);
+        }
+      } catch (error) {
+        console.error("Error fetching student info:", error);
+      }
     };
-  }, { actualFee: 0, discountAmount: 0, totalAmount: 0 });
+
+    fetchStudentInfo();
+  }, [studentId]);
+
+  useEffect(() => {
+    if (!studentData) return;
+
+    setFormData(prev => ({
+      ...prev,
+      student_name: studentData.first_name,
+      father_name: studentData?.father_name,
+      mother_name: studentData?.mother_name,
+      dob: studentData.date_of_birth?.split('T')[0] || '',
+      date_of_admission: studentData.date_of_admission?.split('T')[0] || '',
+      nationality: studentData?.nationality || 'Indian',
+      caste: studentData?.caste_name?.caste_name || "",
+      class_section: `${studentData?.class_name?.class_name} - ${studentData.section_name?.section_name || ''}`,
+      class_section_inWords: `${studentData?.class_name?.class_name} ${studentData.section_name?.section_name || ''}`,
+      class_promotion: studentData.promoted
+    }));
+  }, [studentData]);
+
+  const filteredTcRecords = tcRecords.filter(record =>
+    record.student_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    record.registration_id?.toString().includes(searchTerm)
+  );
+
+  const breadcrumbItems = [
+    { label: "fees", link: "/fees/all-module" },
+    { label: "Concession Entry", link: "null" }
+  ];
+
 
   return (
-    <Container className="mt-4">
-      <h2 className="mb-4">Concession Entry</h2>
-      
-      <Form onSubmit={handleSubmit}>
-        {/* Search Student Section */}
-        <Row className="mb-3">
-          <Col md={12}>
-            <Form.Group controlId="searchStudent">
-              <Form.Label>Search Student With StudentName/ FatherName/ FormNo/ StuID/ ParentID/ ScholarNo*</Form.Label>
-              <Select
-                options={studentOptions}
-                onInputChange={(value) => setSearchTerm(value)}
-                onChange={handleStudentSelect}
-                isLoading={loading}
-                placeholder="Type to search students..."
-                isClearable
-                value={selectedStudent}
-              />
-            </Form.Group>
-          </Col>
-        </Row>
-
-        {/* Selected Student Info */}
-        {selectedStudent && (
-          <Row className="mb-3">
-            <Col md={12}>
-              <div className="p-3 bg-light rounded">
-                <h5>{selectedStudent.label.split(" - ")[0]}</h5>
-                {studentDetails && (
-                  <div className="mt-2">
-                    <p><strong>Class:</strong> {studentDetails.class_name?.class_name || "N/A"}</p>
-                    <p><strong>Section:</strong> {studentDetails.section_name?.section_name || "N/A"}</p>
-                    <p><strong>Registration ID:</strong> {studentDetails.registration_id || "N/A"}</p>
-                  </div>
-                )}
-              </div>
+    <>
+      <div className="breadcrumbSheet position-relative">
+        <Container>
+          <Row className="mt-1 mb-1">
+            <Col>
+              <BreadcrumbComp items={breadcrumbItems} />
             </Col>
           </Row>
-        )}
+        </Container>
+      </div>
+      <section>
+        <Container>
+          <Row>
+            <Col>
+              <Tabs defaultActiveKey="Generate Transfer Certificate" id="controlled-tab" className="mb-3 TabButton">
+                <Tab eventKey="Generate Transfer Certificate" title="Concession Entry" className="cover-sheet p-4">
+                  {!showPreview ? (
+                    <Form className={styles.form} onSubmit={handleSubmit}>
+                      <Row className="mb-4">
+                        <FormGroup as={Col} md="4" controlId="registration_id">
+                          <FormLabel>Type Registration ID For Search Student</FormLabel>
+                          <FormControl
+                            name="registration_id"
+                            type="text"
+                            value={formData.registration_id}
+                            onChange={handleChange}
+                            required
+                          />
+                        </FormGroup>
+                      </Row>
 
-        {/* Class and Fee Group */}
-        <Row className="mb-3">
-          <Col md={6}>
-            <Form.Group controlId="class">
-              <Form.Label>Class</Form.Label>
-              <Form.Control
-                as="select"
-                value={typeof selectedClass === 'object' ? selectedClass.value : selectedClass}
-                onChange={(e) => setSelectedClass(e.target.value)}
-                required
-                disabled={!!selectedStudent}
-              >
-                <option value="">Select Class</option>
-                {classOptions.map((classItem) => (
-                  <option key={classItem._id} value={classItem._id}>
-                    {classItem.class_name}
-                  </option>
-                ))}
-              </Form.Control>
-            </Form.Group>
-          </Col>
-          <Col md={6}>
-            <Form.Group controlId="feeGroup">
-              <Form.Label>Fee Group</Form.Label>
-              <Form.Control
-                as="select"
-                value={feeGroup}
-                onChange={(e) => setFeeGroup(e.target.value)}
-                required
-              >
-                <option value="">Select Fee Group</option>
-                {feeGroups.map((group) => (
-                  <option key={group._id} value={group._id}>
-                    {group.name}
-                  </option>
-                ))}
-              </Form.Control>
-            </Form.Group>
-          </Col>
-        </Row>
+                      <Row className="mb-3">
+                        <FormGroup as={Col} md="3" controlId="class_section">
+                          <FormLabel>Class &amp; Section (in figures)</FormLabel>
+                          <FormControl
+                            name="class_section"
+                            value={formData.class_section}
+                            onChange={handleChange}
+                            readOnly
+                            type="text"
+                          />
+                        </FormGroup>
+                      </Row>
 
-        {/* Concession Type */}
-        <Row className="mb-3">
-          <Col md={12}>
-            <Form.Group controlId="concessionType">
-              <Form.Label>Concession Type</Form.Label>
-              <Form.Control
-                as="select"
-                value={concessionType}
-                onChange={(e) => handleConcessionTypeChange(e.target.value)}
-                required
-              >
-                <option value="">Select Concession Type</option>
-                {concessionTypeOptions.map((type) => (
-                  <option key={type._id} value={type._id}>
-                    {type.name} ({type.type})
-                  </option>
-                ))}
-              </Form.Control>
-            </Form.Group>
-          </Col>
-        </Row>
-
-        {/* Installments Table (only shown for custom concession) */}
-        {concessionType && concessionTypeOptions.find(ct => 
-          ct._id === concessionType && ct.type === "custom"
-        ) && installments.length > 0 && (
-          <Row className="mb-4">
-            <Col md={12}>
-              <h5>Installments Amount</h5>
-              <p>Enter Discount % (0-100)</p>
-              <Table bordered striped>
-                <thead>
-                  <tr>
-                    <th>Month</th>
-                    <th>Actual Tuition Fee</th>
-                    <th>Discount %</th>
-                    <th>Discount Amount</th>
-                    <th>Total Amount</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {installments.map((installment, index) => (
-                    <tr key={index}>
-                      <td>{installment.month}</td>
-                      <td>{installment.actualFee.toFixed(2)}</td>
-                      <td>
-                        <Form.Control
-                          type="number"
-                          value={installment.discountPercent}
-                          onChange={(e) => handleDiscountChange(index, e.target.value)}
-                          min="0"
-                          max="100"
-                          step="0.01"
-                        />
-                      </td>
-                      <td>{installment.discountAmount.toFixed(2)}</td>
-                      <td>{installment.totalAmount.toFixed(2)}</td>
-                    </tr>
-                  ))}
-                </tbody>
-                <tfoot>
-                  <tr>
-                    <th>Total</th>
-                    <th>{totals.actualFee.toFixed(2)}</th>
-                    <th></th>
-                    <th>{totals.discountAmount.toFixed(2)}</th>
-                    <th>{totals.totalAmount.toFixed(2)}</th>
-                  </tr>
-                </tfoot>
-              </Table>
+                      <Row>
+                        <Col>
+                          <div className="buttons1">
+                            <Button type="submit" id="submit">Submit</Button>
+                          </div>
+                        </Col>
+                      </Row>
+                    </Form>
+                  ) : (
+                    <Preview formData={formData} togglePreview={togglePreview} />
+                  )}
+                </Tab>
+              </Tabs>
             </Col>
           </Row>
-        )}
-
-        {/* Submit Button */}
-        <Row className="mt-4">
-          <Col>
-            <Button variant="primary" type="submit" disabled={!selectedStudent || !concessionType}>
-              Submit
-            </Button>
-          </Col>
-        </Row>
-      </Form>
-    </Container>
+        </Container>
+      </section>
+    </>
   );
 };
 

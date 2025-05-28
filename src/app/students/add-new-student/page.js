@@ -61,6 +61,13 @@ const StudentMasterPage = () => {
     state_name: "",
     city_Or_District: "",
     pin_No: "",
+    birth_certificate: "",
+    character_certificate: "",
+    caste_certificate: "",
+    migration_certificate: "",
+    marksheet: "",
+    previous_result: "",
+    transfer_certificate: ""
   };
 
   const [student, setStudent] = useState(initialStudentState);
@@ -78,16 +85,6 @@ const StudentMasterPage = () => {
   const [targetText, setTargetText] = useState("");
   const [copyChecked, setCopyChecked] = useState(false);
 
-  const [documentsData, setDocumentsData] = useState({
-    birth_certificate: null,
-    caste_certificate: null,
-    character_certificate: null,
-    migration_certificate: null,
-    marksheet: null,
-    previous_result: null,
-    doc_ttl: null,
-    transfer_certificate: null
-  })
 
   const TOKEN = "6DJdQZJIv6WpChtccQOceQui2qYoKDWWJik2qTX3";
   axios.defaults.headers.common["Authorization"] = `Bearer ${TOKEN}`;
@@ -204,21 +201,7 @@ const StudentMasterPage = () => {
     { id: "transferCertificate", label: "T.C." },
   ];
 
-  // const fetchData = async () => {
-  //   setLoading(true);
-  //   setError("");
-  //   try {
-  //     const response = await axios.get(`https://erp-backend-fy3n.onrender.com/students`);
-  //     setData(response?.data || []);
-  //   } catch (err) {
-  //     console.error("Error fetching data:", err.response || err.message);
-  //     setError("Failed to fetch data. Please check the API endpoint.");
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
 
-  // Fetch functions remain the same...
 
   const validatePhoneNumber = (phone) => {
     return /^[0-9]{10}$/.test(phone);
@@ -316,24 +299,22 @@ const StudentMasterPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!validateForm()) return;
 
     try {
       const formData = new FormData();
 
-      // Append all form fields except the profile_Pic
+      // Append all fields to formData
       Object.entries(student).forEach(([key, value]) => {
-        if (key !== 'profile_Pic' && value !== undefined && value !== null) {
-          formData.append(key, value);
+        if (value instanceof File) {
+          formData.append(key, value); // For file inputs
+        } else {
+          formData.append(key, value); // For text inputs
         }
       });
 
-      // Append profile picture only if it is a File instance
-      if (student.profile_Pic instanceof File) {
-        formData.append('profile_Pic', student.profile_Pic);
-      }
-
-      // Define the endpoint for creating a new student
+      // const url = "http://localhost:8000/api/students";
       const url = "https://erp-backend-fy3n.onrender.com/api/students";
 
       const response = await axios.post(url, formData, {
@@ -481,34 +462,6 @@ const StudentMasterPage = () => {
   };
 
 
-  const handleDocumentChange = (e) => {
-    const { name, type, files } = e.target;
-    if (type === "file" && files?.length > 0) {
-      setDocumentsData(prev => ({ ...prev, [name]: files[0] }));
-    }
-  };
-
-  const handleSubmitDocuments = async (e) => {
-    e.preventDefault();
-    const studentId = "123";
-    const url = `http://localhost:9000/api/student/documents/${studentId}`;
-    const formData = new FormData();
-
-    for (const key in documentsData) {
-      formData.append(key, documentsData[key]);
-    }
-
-    try {
-      const response = await axios.post(url, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-      console.log("Upload successful:", response.data);
-    } catch (error) {
-      console.error("Upload failed:", error.response?.data || error.message);
-    }
-  };
 
 
 
@@ -1085,93 +1038,88 @@ const StudentMasterPage = () => {
                           Important Note: Please fill basic details first, then you can upload
                           documents from this section.
                         </p>
-                        <Form onSubmit={handleSubmitDocuments}>
-                          <div className="p-4">
-                            <Row className="mb-3">
-                              <FormGroup as={Col} md="6" controlId="validationCustom001">
-                                <FormLabel className="labelForm">Birth Certificate</FormLabel>
-                                <FormControl
-                                  onChange={handleDocumentChange}
-                                  type="file"
-                                  name="birth_certificate"
-                                />
-                              </FormGroup>
-                            </Row>
-                            <Row className="mb-3">
-                              <FormGroup as={Col} md="6" controlId="validationCustom002">
-                                <FormLabel className="labelForm">Caste Certificate</FormLabel>
-                                <FormControl
-                                  onChange={handleDocumentChange}
-                                  type="file"
-                                  name="caste_certificate"
-                                />
-                              </FormGroup>
-                            </Row>
-                            <Row className="mb-3">
-                              <FormGroup as={Col} md="6" controlId="validationCustom003">
-                                <FormLabel className="labelForm">Character Certificate</FormLabel>
-                                <FormControl
-                                  onChange={handleDocumentChange}
-                                  type="file"
-                                  name="character_certificate"
-                                />
-                              </FormGroup>
-                            </Row>
-                            <Row className="mb-3">
-                              <FormGroup as={Col} md="6" controlId="validationCustom003">
-                                <FormLabel className="labelForm">Migration Certificate</FormLabel>
-                                <FormControl
-                                  onChange={handleDocumentChange}
-                                  type="file"
-                                  name="migration_certificate"
-                                />
-                              </FormGroup>
-                            </Row>
-                            <Row className="mb-3">
-                              <FormGroup as={Col} md="6" controlId="validationCustom004">
-                                <FormLabel className="labelForm">MarkSheet</FormLabel>
-                                <FormControl
-                                  onChange={handleDocumentChange}
-                                  type="file"
-                                  name="marksheet"
-                                />
-                              </FormGroup>
-                            </Row>
-                            <Row className="mb-3">
-                              <FormGroup as={Col} md="6" controlId="validationCustom005">
-                                <FormLabel className="labelForm">Previous Year Result</FormLabel>
-                                <FormControl
-                                  onChange={handleDocumentChange}
-                                  type="file"
-                                  name="previous_result"
-                                />
-                              </FormGroup>
-                            </Row>
-                            <Row className="mb-3">
-                              <FormGroup as={Col} md="6" controlId="validationCustom006">
-                                <FormLabel className="labelForm">Doc TTL</FormLabel>
-                                <FormControl
-                                  onChange={handleDocumentChange}
-                                  type="file"
-                                  name="doc_ttl"
-                                />
-                              </FormGroup>
-                            </Row>
-                            <Row className="mb-3">
-                              <FormGroup as={Col} md="6" controlId="validationCustom007">
-                                <FormLabel className="labelForm">Transfer Certificate (TC)</FormLabel>
-                                <FormControl
-                                  onChange={handleDocumentChange}
-                                  type="file"
-                                  name="transfer_certificate"
-                                />
-                              </FormGroup>
-                            </Row>
-                          </div>
-                          <Button type="submit" className='btn btn-primary mt-4'>
-                            Submit
-                          </Button>
-                        </Form>
+                        <div className="p-4">
+                          <Row className="mb-3">
+                            <FormGroup as={Col} md="6" controlId="validationCustom001">
+                              <FormLabel className="labelForm">Birth Certificate</FormLabel>
+                              <FormControl
+                                onChange={handleChange}
+                                type="file"
+                                name="birth_certificate"
+                              />
+                            </FormGroup>
+                          </Row>
+                          <Row className="mb-3">
+                            <FormGroup as={Col} md="6" controlId="validationCustom002">
+                              <FormLabel className="labelForm">Caste Certificate</FormLabel>
+                              <FormControl
+                                onChange={handleChange}
+                                type="file"
+                                name="caste_certificate"
+                              />
+                            </FormGroup>
+                          </Row>
+                          <Row className="mb-3">
+                            <FormGroup as={Col} md="6" controlId="validationCustom003">
+                              <FormLabel className="labelForm">Character Certificate</FormLabel>
+                              <FormControl
+                                onChange={handleChange}
+                                type="file"
+                                name="character_certificate"
+                              />
+                            </FormGroup>
+                          </Row>
+                          <Row className="mb-3">
+                            <FormGroup as={Col} md="6" controlId="validationCustom003">
+                              <FormLabel className="labelForm">Migration Certificate</FormLabel>
+                              <FormControl
+                                onChange={handleChange}
+                                type="file"
+                                name="migration_certificate"
+                              />
+                            </FormGroup>
+                          </Row>
+                          <Row className="mb-3">
+                            <FormGroup as={Col} md="6" controlId="validationCustom004">
+                              <FormLabel className="labelForm">MarkSheet</FormLabel>
+                              <FormControl
+                                onChange={handleChange}
+                                type="file"
+                                name="marksheet"
+                              />
+                            </FormGroup>
+                          </Row>
+                          <Row className="mb-3">
+                            <FormGroup as={Col} md="6" controlId="validationCustom005">
+                              <FormLabel className="labelForm">Previous Year Result</FormLabel>
+                              <FormControl
+                                onChange={handleChange}
+                                type="file"
+                                name="previous_result"
+                              />
+                            </FormGroup>
+                          </Row>
+                          <Row className="mb-3">
+                            <FormGroup as={Col} md="6" controlId="validationCustom006">
+                              <FormLabel className="labelForm">Doc TTL</FormLabel>
+                              <FormControl
+                                onChange={handleChange}
+                                type="file"
+                                name="doc_ttl"
+                              />
+                            </FormGroup>
+                          </Row>
+                          <Row className="mb-3">
+                            <FormGroup as={Col} md="6" controlId="validationCustom007">
+                              <FormLabel className="labelForm">Transfer Certificate (TC)</FormLabel>
+                              <FormControl
+                                onChange={handleChange}
+                                type="file"
+                                name="transfer_certificate"
+                              />
+                            </FormGroup>
+                          </Row>
+                        </div>
                       </div>
 
                     </Col>

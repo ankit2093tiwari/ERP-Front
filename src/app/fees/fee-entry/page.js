@@ -297,9 +297,9 @@ const FeeEntry = () => {
                     <Button variant="primary" className="btn-action me-2">
                       <FaPrint /> Assign Fees
                     </Button>
-                    <Button variant="primary" className="btn-action me-2">
+                    {/* <Button variant="primary" className="btn-action me-2">
                       <FaPrint /> Assign Discount
-                    </Button>
+                    </Button> */}
                     <Button variant="primary" className="btn-action me-2">
                       <FaPrint /> Paid History
                     </Button>
