@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import styles from "@/app/students/add-new-student/page.module.css";
 import Preview from '@/app/component/Preview';
-import { Tab, Tabs, Container, Row, Col } from 'react-bootstrap';
+import { Tab, Tabs, Container, Row, Col, Table } from 'react-bootstrap';
 import "react-datepicker/dist/react-datepicker.css";
 import { Form, FormGroup, FormLabel, FormControl, Button } from 'react-bootstrap';
 import BreadcrumbComp from "@/app/component/Breadcrumb";
@@ -13,6 +13,8 @@ const TransferCertificate = () => {
   const [studentId, setStudentId] = useState("");
   const [showPreview, setShowPreview] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [tcRecords, setTcRecords] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const [formData, setFormData] = useState({
     registration_id: '',
@@ -42,23 +44,34 @@ const TransferCertificate = () => {
     remarks: ''
   });
 
-  // Initialize TC number when component mounts
+  // Fetch TC records when component mounts
   useEffect(() => {
-    const fetchLastTcNumber = async () => {
+    const fetchTcRecords = async () => {
       try {
-        const response = await axios.get('https://erp-backend-fy3n.onrender.com/api/transfer-certificates/last-tc-number');
-        const lastNumber = response.data.lastTcNumber || 0;
-        const newTcNumber = `TC${String(lastNumber + 1).padStart(4, '0')}`;
-        setFormData(prev => ({ ...prev, tc_no: newTcNumber }));
+        const response = await axios.get('https://erp-backend-fy3n.onrender.com/api/transfer-certificates');
+        if (response.data.success) {
+          setTcRecords(response.data.data);
+        }
       } catch (error) {
-        console.error("Error fetching last TC number:", error);
-        // Fallback to timestamp if API fails
-        setFormData(prev => ({ ...prev, tc_no: `TC${Date.now()}` }));
+        console.error("Error fetching TC records:", error);
       }
     };
 
+    fetchTcRecords();
     fetchLastTcNumber();
   }, []);
+
+  const fetchLastTcNumber = async () => {
+    try {
+      const response = await axios.get('https://erp-backend-fy3n.onrender.com/api/transfer-certificates/last-tc-number');
+      const lastNumber = response.data.lastTcNumber || 0;
+      const newTcNumber = `TC${String(lastNumber + 1).padStart(4, '0')}`;
+      setFormData(prev => ({ ...prev, tc_no: newTcNumber }));
+    } catch (error) {
+      console.error("Error fetching last TC number:", error);
+      setFormData(prev => ({ ...prev, tc_no: `TC${Date.now()}` }));
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -85,6 +98,10 @@ const TransferCertificate = () => {
 
       if (response.data.success) {
         alert("Transfer Certificate generated successfully!");
+
+        // Refresh TC records
+        const recordsResponse = await axios.get('https://erp-backend-fy3n.onrender.com/api/transfer-certificates');
+        setTcRecords(recordsResponse.data.data);
 
         // Reset form with new TC number
         const newNumber = parseInt(formData.tc_no.replace(/^TC0*/, '')) + 1;
@@ -131,7 +148,6 @@ const TransferCertificate = () => {
     }
   };
 
-  // ... rest of your component code remains the same ...
   const togglePreview = () => {
     setShowPreview((prev) => !prev);
   };
@@ -173,6 +189,11 @@ const TransferCertificate = () => {
     }));
   }, [studentData]);
 
+  const filteredTcRecords = tcRecords.filter(record =>
+    record.student_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    record.registration_id?.toString().includes(searchTerm)
+  );
+
   const breadcrumbItems = [
     { label: "students", link: "/students/all-module" },
     { label: "Transfer Certificate", link: "null" }
@@ -180,7 +201,6 @@ const TransferCertificate = () => {
 
   return (
     <>
-      {/* Your existing JSX remains the same */}
       <div className="breadcrumbSheet position-relative">
         <Container>
           <Row className="mt-1 mb-1">
@@ -506,16 +526,11 @@ const TransferCertificate = () => {
                           />
                         </FormGroup>
                       </Row>
+
                       <Row>
                         <Col>
                           <div className="buttons1">
-                            <Button
-                              type="submit"
-                              id="submit"
-                              disabled={isSubmitting}
-                            >
-                              {isSubmitting ? "Submitting..." : "Submit form"}
-                            </Button>
+                            <Button type="submit" id="submit">Submit form</Button>
                           </div>
                         </Col>
                       </Row>
@@ -523,6 +538,77 @@ const TransferCertificate = () => {
                   ) : (
                     <Preview formData={formData} togglePreview={togglePreview} />
                   )}
+                </Tab>
+
+                <Tab eventKey="TC Records" title="TC Records" className="cover-sheet p-4">
+                  <div className="mb-3 d-flex justify-content-between align-items-center">
+                    <div>
+                      <h4>Transfer Certificate Records</h4>
+                    </div>
+                    <div className="d-flex">
+                      <FormControl
+                        type="text"
+                        placeholder="Search..."
+                        style={{ width: '200px', marginRight: '10px' }}
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                      />
+                      <Button variant="secondary" className="me-2">
+                        <i className="fas fa-copy"></i> Copy
+                      </Button>
+                      <Button variant="secondary">
+                        <i className="fas fa-print"></i> Print
+                      </Button>
+                    </div>
+                  </div>
+
+                  <Table striped bordered hover responsive>
+                    <thead>
+                      <tr>
+                        <th>#</th>
+                        <th>TC No.</th>
+                        <th>Date</th>
+                        <th>Student ID</th>
+                        <th>Student</th>
+                        <th>Class#Section</th>
+                        <th>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {filteredTcRecords.map((record, index) => (
+                        <tr key={record._id}>
+                          <td>{index + 1}</td>
+                          <td>{record.tc_no}</td>
+                          <td>{new Date(record.date_of_issue).toISOString().split('T')[0]}</td>
+                          <td>{record.registration_id}</td>
+                          <td>{record.student_name}</td>
+                          <td>{record.class_section}</td>
+                          <td>
+                            <Button variant="success" size="sm" className="me-1">
+                              <i className="fas fa-check"></i>
+                            </Button>
+                            <Button variant="info" size="sm">
+                              <i className="fas fa-print"></i>
+                            </Button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </Table>
+
+                  <div className="d-flex justify-content-between align-items-center mt-3">
+                    <div>
+                      Showing {filteredTcRecords.length} of {tcRecords.length} entries
+                    </div>
+                    <div>
+                      <Button variant="light" size="sm" disabled>
+                        Previous
+                      </Button>
+                      <Button variant="light" size="sm" className="ms-1">
+                        Next
+                      </Button>
+                    </div>
+                  </div>
                 </Tab>
               </Tabs>
             </Col>
