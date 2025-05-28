@@ -2,11 +2,14 @@
 import React, { useEffect, useState } from 'react';
 import styles from "@/app/students/add-new-student/page.module.css";
 import Preview from '@/app/component/Preview';
-import { Tab, Tabs, Container, Row, Col, Table } from 'react-bootstrap';
+import { Tab, Tabs, Container, Row, Col } from 'react-bootstrap';
 import "react-datepicker/dist/react-datepicker.css";
 import { Form, FormGroup, FormLabel, FormControl, Button } from 'react-bootstrap';
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import axios from 'axios';
+import Table from "@/app/component/DataTable";
+import { copyContent, printContent } from "@/app/utils";
+import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
 
 const TransferCertificate = () => {
   const [studentData, setStudentData] = useState(null);
@@ -15,6 +18,10 @@ const TransferCertificate = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [tcRecords, setTcRecords] = useState([]);
   const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [editingId, setEditingId] = useState(null);
+  const [editedData, setEditedData] = useState({});
 
   const [formData, setFormData] = useState({
     registration_id: '',
@@ -44,9 +51,70 @@ const TransferCertificate = () => {
     remarks: ''
   });
 
+  const columns = [
+    {
+      name: "#",
+      selector: (row, index) => index + 1,
+      width: "80px",
+      sortable: false,
+    },
+    {
+      name: "TC No.",
+      selector: row => row.tc_no,
+      sortable: true,
+    },
+    {
+      name: "Date",
+      selector: row => new Date(row.date_of_issue).toISOString().split('T')[0],
+      sortable: true,
+    },
+    {
+      name: "Student ID",
+      selector: row => row.registration_id,
+      sortable: true,
+    },
+    {
+      name: "Student",
+      selector: row => row.student_name,
+      sortable: true,
+    },
+    {
+      name: "Class#Section",
+      selector: row => row.class_section,
+      sortable: true,
+    },
+    {
+      name: "Actions",
+      cell: (row) => (
+        <div className="d-flex gap-2">
+          {editingId === row._id ? (
+            <>
+              <button className="editButton" onClick={() => handleUpdate(row._id)}>
+                <FaSave />
+              </button>
+              <button className="editButton btn-danger" onClick={() => handleCancelEdit()}>
+                Cancel
+              </button>
+            </>
+          ) : (
+            <>
+              <button className="editButton" onClick={() => handleEdit(row)}>
+                <FaEdit />
+              </button>
+              <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
+                <FaTrashAlt />
+              </button>
+            </>
+          )}
+        </div>
+      ),
+    },
+  ];
+
   // Fetch TC records when component mounts
   useEffect(() => {
     const fetchTcRecords = async () => {
+      setLoading(true);
       try {
         const response = await axios.get('https://erp-backend-fy3n.onrender.com/api/transfer-certificates');
         if (response.data.success) {
@@ -54,6 +122,9 @@ const TransferCertificate = () => {
         }
       } catch (error) {
         console.error("Error fetching TC records:", error);
+        setError("Failed to fetch TC records");
+      } finally {
+        setLoading(false);
       }
     };
 
@@ -73,9 +144,74 @@ const TransferCertificate = () => {
     }
   };
 
+  const handleEdit = (record) => {
+    setEditingId(record._id);
+    setEditedData({
+      tc_no: record.tc_no,
+      student_name: record.student_name,
+      class_section: record.class_section,
+      date_of_issue: record.date_of_issue,
+      reason_for_leaving_school: record.reason_for_leaving_school,
+      remarks: record.remarks
+    });
+  };
+
+  const handleCancelEdit = () => {
+    setEditingId(null);
+    setEditedData({});
+  };
+
+  const handleUpdate = async (id) => {
+    try {
+      const response = await axios.put(
+        `https://erp-backend-fy3n.onrender.com/api/update-transfer-certificates/${id}`,
+        editedData
+      );
+
+      if (response.data.success) {
+        // Update the local state with the edited data
+        setTcRecords(prevRecords =>
+          prevRecords.map(record =>
+            record._id === id ? { ...record, ...editedData } : record
+          )
+        );
+        setEditingId(null);
+        setEditedData({});
+        alert("Transfer Certificate updated successfully!");
+      }
+    } catch (error) {
+      console.error("Error updating TC:", error);
+      alert("Failed to update Transfer Certificate");
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (confirm("Are you sure you want to delete this Transfer Certificate?")) {
+      try {
+        const response = await axios.delete(
+          `https://erp-backend-fy3n.onrender.com/api/delete-transfer-certificates/${id}`
+        );
+
+        if (response.data.success) {
+          // Remove the deleted record from local state
+          setTcRecords(prevRecords =>
+            prevRecords.filter(record => record._id !== id)
+          );
+          alert("Transfer Certificate deleted successfully!");
+        }
+      } catch (error) {
+        console.error("Error deleting TC:", error);
+        alert("Failed to delete Transfer Certificate");
+      }
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
-    if (name.startsWith("subject_studies_")) {
+    if (editingId) {
+      // If in edit mode, update the editedData
+      setEditedData(prev => ({ ...prev, [name]: value }));
+    } else if (name.startsWith("subject_studies_")) {
       const index = parseInt(name.split("_")[2], 10);
       const newSubjects = [...formData.subject_studies];
       newSubjects[index] = value;
@@ -198,6 +334,27 @@ const TransferCertificate = () => {
     { label: "students", link: "/students/all-module" },
     { label: "Transfer Certificate", link: "null" }
   ];
+
+  const handlePrint = () => {
+    const tableHeaders = [["#", "TC No.", "Date", "Student ID", "Student", "Class#Section"]];
+    const tableRows = filteredTcRecords.map((row, index) => [
+      index + 1,
+      row.tc_no,
+      new Date(row.date_of_issue).toISOString().split('T')[0],
+      row.registration_id,
+      row.student_name,
+      row.class_section
+    ]);
+    printContent(tableHeaders, tableRows);
+  };
+
+  const handleCopy = () => {
+    const headers = ["#", "TC No.", "Date", "Student ID", "Student", "Class#Section"];
+    const rows = filteredTcRecords.map((row, index) =>
+      `${index + 1}\t${row.tc_no}\t${new Date(row.date_of_issue).toISOString().split('T')[0]}\t${row.registration_id}\t${row.student_name}\t${row.class_section}`
+    );
+    copyContent(headers, rows);
+  };
 
   return (
     <>
@@ -540,74 +697,24 @@ const TransferCertificate = () => {
                   )}
                 </Tab>
 
-                <Tab eventKey="TC Records" title="TC Records" className="cover-sheet p-4">
-                  <div className="mb-3 d-flex justify-content-between align-items-center">
-                    <div>
-                      <h4>Transfer Certificate Records</h4>
+                <Tab eventKey="TC Records" title="TC Records" >
+                  <div className="tableSheet">
+                    <div className="d-flex justify-content-between align-items-center mb-3">
+                      <h2>Transfer Certificate Records</h2>
                     </div>
-                    <div className="d-flex">
-                      <FormControl
-                        type="text"
-                        placeholder="Search..."
-                        style={{ width: '200px', marginRight: '10px' }}
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
+
+                    {loading ? (
+                      <p>Loading...</p>
+                    ) : error ? (
+                      <p style={{ color: "red" }}>{error}</p>
+                    ) : (
+                      <Table
+                        columns={columns}
+                        data={filteredTcRecords}
+                        handleCopy={handleCopy}
+                        handlePrint={handlePrint}
                       />
-                      <Button variant="secondary" className="me-2">
-                        <i className="fas fa-copy"></i> Copy
-                      </Button>
-                      <Button variant="secondary">
-                        <i className="fas fa-print"></i> Print
-                      </Button>
-                    </div>
-                  </div>
-
-                  <Table striped bordered hover responsive>
-                    <thead>
-                      <tr>
-                        <th>#</th>
-                        <th>TC No.</th>
-                        <th>Date</th>
-                        <th>Student ID</th>
-                        <th>Student</th>
-                        <th>Class#Section</th>
-                        <th>Action</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filteredTcRecords.map((record, index) => (
-                        <tr key={record._id}>
-                          <td>{index + 1}</td>
-                          <td>{record.tc_no}</td>
-                          <td>{new Date(record.date_of_issue).toISOString().split('T')[0]}</td>
-                          <td>{record.registration_id}</td>
-                          <td>{record.student_name}</td>
-                          <td>{record.class_section}</td>
-                          <td>
-                            <Button variant="success" size="sm" className="me-1">
-                              <i className="fas fa-check"></i>
-                            </Button>
-                            <Button variant="info" size="sm">
-                              <i className="fas fa-print"></i>
-                            </Button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </Table>
-
-                  <div className="d-flex justify-content-between align-items-center mt-3">
-                    <div>
-                      Showing {filteredTcRecords.length} of {tcRecords.length} entries
-                    </div>
-                    <div>
-                      <Button variant="light" size="sm" disabled>
-                        Previous
-                      </Button>
-                      <Button variant="light" size="sm" className="ms-1">
-                        Next
-                      </Button>
-                    </div>
+                    )}
                   </div>
                 </Tab>
               </Tabs>

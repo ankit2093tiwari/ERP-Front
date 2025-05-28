@@ -78,6 +78,17 @@ const StudentMasterPage = () => {
   const [targetText, setTargetText] = useState("");
   const [copyChecked, setCopyChecked] = useState(false);
 
+  const [documentsData, setDocumentsData] = useState({
+    birth_certificate: null,
+    caste_certificate: null,
+    character_certificate: null,
+    migration_certificate: null,
+    marksheet: null,
+    previous_result: null,
+    doc_ttl: null,
+    transfer_certificate: null
+  })
+
   const TOKEN = "6DJdQZJIv6WpChtccQOceQui2qYoKDWWJik2qTX3";
   axios.defaults.headers.common["Authorization"] = `Bearer ${TOKEN}`;
 
@@ -193,19 +204,19 @@ const StudentMasterPage = () => {
     { id: "transferCertificate", label: "T.C." },
   ];
 
-  const fetchData = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/students`);
-      setData(response?.data || []);
-    } catch (err) {
-      console.error("Error fetching data:", err.response || err.message);
-      setError("Failed to fetch data. Please check the API endpoint.");
-    } finally {
-      setLoading(false);
-    }
-  };
+  // const fetchData = async () => {
+  //   setLoading(true);
+  //   setError("");
+  //   try {
+  //     const response = await axios.get(`https://erp-backend-fy3n.onrender.com/students`);
+  //     setData(response?.data || []);
+  //   } catch (err) {
+  //     console.error("Error fetching data:", err.response || err.message);
+  //     setError("Failed to fetch data. Please check the API endpoint.");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   // Fetch functions remain the same...
 
@@ -290,52 +301,6 @@ const StudentMasterPage = () => {
     setStudentError(prev => ({ ...prev, [`${name}_error`]: "" }));
   };
 
-  // const handleChange = (e) => {
-  //   const { name, value, type, files } = e.target;
-
-  //   // ✅ Handle file input
-  //   if (type === "file") {
-  //     if (files && files.length > 0) {
-  //       setStudent(prev => ({ ...prev, [name]: files[0] }));
-  //       setStudentError(prev => ({ ...prev, [`${name}_error`]: "" }));
-  //     }
-  //     return;
-  //   }
-
-  //   // ✅ Validate phone numbers and Aadhar
-  //   if (name === 'father_mobile_no' || name === 'phone_no') {
-  //     if (value && !/^[0-9]*$/.test(value)) return; // Only allow numbers
-  //     if (value.length > 10) return; // Max 10 digits
-  //   }
-
-  //   if (name === 'aadhar_card_no') {
-  //     if (value && !/^[0-9]*$/.test(value)) return; // Only allow numbers
-  //     if (value.length > 12) return; // Max 12 digits
-  //   }
-
-  //   setStudent(prev => ({ ...prev, [name]: value }));
-  //   setStudentError(prev => ({ ...prev, [`${name}_error`]: "" }));
-  // };
-
-
-  // const handleChange = (e) => {
-  //   const { name, value } = e.target;
-
-  //   // Validate phone numbers and Aadhar as user types
-  //   if (name === 'father_mobile_no' || name === 'phone_no') {
-  //     if (value && !/^[0-9]*$/.test(value)) return; // Only allow numbers
-  //     if (value.length > 10) return; // Max 10 digits
-  //   }
-
-  //   if (name === 'aadhar_card_no') {
-  //     if (value && !/^[0-9]*$/.test(value)) return; // Only allow numbers
-  //     if (value.length > 12) return; // Max 12 digits
-  //   }
-
-  //   setStudent(prev => ({ ...prev, [name]: value }));
-  //   setStudentError(prev => ({ ...prev, [`${name}_error`]: "" }));
-  // };
-
   const handleClassChange = (e) => {
     const { name, value } = e.target;
     setStudent(prev => ({ ...prev, [name]: value }));
@@ -352,45 +317,37 @@ const StudentMasterPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) return;
-  
+
     try {
       const formData = new FormData();
-  
+
       // Append all form fields except the profile_Pic
       Object.entries(student).forEach(([key, value]) => {
         if (key !== 'profile_Pic' && value !== undefined && value !== null) {
           formData.append(key, value);
         }
       });
-  
+
       // Append profile picture only if it is a File instance
       if (student.profile_Pic instanceof File) {
         formData.append('profile_Pic', student.profile_Pic);
       }
-  
-      // Determine if this is a create or update action
-      const isUpdate = !!student._id;
-      const endpoint = "https://erp-backend-fy3n.onrender.com/api/students";
-      const url = isUpdate ? `${endpoint}/${student._id}` : endpoint;
-      const method = isUpdate ? "put" : "post";
-  
-      const response = await axios({
-        method,
-        url,
-        data: formData,
+
+      // Define the endpoint for creating a new student
+      const url = "https://erp-backend-fy3n.onrender.com/api/students";
+
+      const response = await axios.post(url, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           'Authorization': `Bearer ${TOKEN}`,
         },
-        
       });
-  
+
       if (response.data.success) {
-        toast.success(`Student ${isUpdate ? "Updated" : "Created"} Successfully`);
-        fetchData();
+        toast.success("Student Created Successfully");
         setStudent(initialStudentState);
       } else {
-        throw new Error(response.data.message || "Operation failed");
+        throw new Error(response.data.message || "Creation failed");
       }
     } catch (err) {
       const errorMessage = err.response?.data?.message || err.message || "Failed to submit data";
@@ -399,50 +356,59 @@ const StudentMasterPage = () => {
       toast.error(errorMessage);
     }
   };
-  
+
 
   // const handleSubmit = async (e) => {
   //   e.preventDefault();
   //   if (!validateForm()) return;
 
   //   try {
+  //     const formData = new FormData();
+
+  //     // Append all form fields except the profile_Pic
+  //     Object.entries(student).forEach(([key, value]) => {
+  //       if (key !== 'profile_Pic' && value !== undefined && value !== null) {
+  //         formData.append(key, value);
+  //       }
+  //     });
+
+  //     // Append profile picture only if it is a File instance
+  //     if (student.profile_Pic instanceof File) {
+  //       formData.append('profile_Pic', student.profile_Pic);
+  //     }
+
+  //     // Determine if this is a create or update action
+  //     const isUpdate = !!student._id;
   //     const endpoint = "https://erp-backend-fy3n.onrender.com/api/students";
-  //     const method = student._id ? "put" : "post";
-  //     const url = student._id ? `${endpoint}/${student._id}` : endpoint;
+  //     const url = isUpdate ? `${endpoint}/${student._id}` : endpoint;
+  //     const method = isUpdate ? "put" : "post";
 
-  //     const response = await axios[method](url, student);
+  //     const response = await axios({
+  //       method,
+  //       url,
+  //       data: formData,
+  //       headers: {
+  //         'Content-Type': 'multipart/form-data',
+  //         'Authorization': `Bearer ${TOKEN}`,
+  //       },
 
-  //     if (response?.data?.status === 'success') {
-  //       // toast.success(`Student ${student._id ? "Updated" : "Created"} Successfully`);
-  //       toast.success(`Student ${student._id ? "Updated" : "Created"} Successfully`, {
-  //         toastClassName: 'toast-success',
-  //         icon: '✅',
-  //       });
+  //     });
 
-
-  //       fetchData();
-  //       // Reset form to initial state
+  //     if (response.data.success) {
+  //       toast.success(`Student ${isUpdate ? "Updated" : "Created"} Successfully`);
+  //       // fetchData();
   //       setStudent(initialStudentState);
-  //       setSourceText("");
-  //       setTargetText("");
-  //       setCopyChecked(false);
-  //       setSelectedValue("");
-  //       setStudentError({});
-  //       // Reset other form fields as needed
   //     } else {
-  //       const errorMessage = response?.data?.message || "An error occurred. Please try again.";
-  //       setError(errorMessage);
-  //       toast.error(errorMessage);
+  //       throw new Error(response.data.message || "Operation failed");
   //     }
   //   } catch (err) {
-  //     console.error("Error submitting data:", err.response || err);
-  //     const errorMessage = err?.response?.data?.message || "Failed to submit data. Please check the API endpoint.";
+  //     const errorMessage = err.response?.data?.message || err.message || "Failed to submit data";
+  //     console.error("Upload error:", err);
   //     setError(errorMessage);
   //     toast.error(errorMessage);
   //   }
   // };
 
-  // ... (keep all other functions)
   const handleEdit = async (id) => {
     try {
       const response = await axios.get(`${process.env.NEXT_PUBLIC_SITE_URL}/students/${id}`);
@@ -470,7 +436,6 @@ const StudentMasterPage = () => {
   const handleCopy = () => {
     setTargetText(sourceText);
   };
-
 
   const resetStudentForm = () => {
     setStudent({
@@ -514,6 +479,38 @@ const StudentMasterPage = () => {
       pin_No: "",
     });
   };
+
+
+  const handleDocumentChange = (e) => {
+    const { name, type, files } = e.target;
+    if (type === "file" && files?.length > 0) {
+      setDocumentsData(prev => ({ ...prev, [name]: files[0] }));
+    }
+  };
+
+  const handleSubmitDocuments = async (e) => {
+    e.preventDefault();
+    const studentId = "123";
+    const url = `http://localhost:9000/api/student/documents/${studentId}`;
+    const formData = new FormData();
+
+    for (const key in documentsData) {
+      formData.append(key, documentsData[key]);
+    }
+
+    try {
+      const response = await axios.post(url, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+      console.log("Upload successful:", response.data);
+    } catch (error) {
+      console.error("Upload failed:", error.response?.data || error.message);
+    }
+  };
+
+
 
   const onOpen = () => setIsPopoverOpen(true);
   const onClose = () => setIsPopoverOpen(false);
@@ -1084,15 +1081,94 @@ const StudentMasterPage = () => {
                     <Col>
                       <div className="studentHeading"><h2>Document Upload</h2> </div>
                       <div className="formSheet">
-                        <p style={{ color: "red" }}>
+                        <p className="fw-bold text-danger">
                           Important Note: Please fill basic details first, then you can upload
                           documents from this section.
                         </p>
-                        <Form onSubmit={handleSubmit}>
-                          <Row>
-
-                          </Row>
-                          <Button type="button" className='btn btn-primary mt-4'>
+                        <Form onSubmit={handleSubmitDocuments}>
+                          <div className="p-4">
+                            <Row className="mb-3">
+                              <FormGroup as={Col} md="6" controlId="validationCustom001">
+                                <FormLabel className="labelForm">Birth Certificate</FormLabel>
+                                <FormControl
+                                  onChange={handleDocumentChange}
+                                  type="file"
+                                  name="birth_certificate"
+                                />
+                              </FormGroup>
+                            </Row>
+                            <Row className="mb-3">
+                              <FormGroup as={Col} md="6" controlId="validationCustom002">
+                                <FormLabel className="labelForm">Caste Certificate</FormLabel>
+                                <FormControl
+                                  onChange={handleDocumentChange}
+                                  type="file"
+                                  name="caste_certificate"
+                                />
+                              </FormGroup>
+                            </Row>
+                            <Row className="mb-3">
+                              <FormGroup as={Col} md="6" controlId="validationCustom003">
+                                <FormLabel className="labelForm">Character Certificate</FormLabel>
+                                <FormControl
+                                  onChange={handleDocumentChange}
+                                  type="file"
+                                  name="character_certificate"
+                                />
+                              </FormGroup>
+                            </Row>
+                            <Row className="mb-3">
+                              <FormGroup as={Col} md="6" controlId="validationCustom003">
+                                <FormLabel className="labelForm">Migration Certificate</FormLabel>
+                                <FormControl
+                                  onChange={handleDocumentChange}
+                                  type="file"
+                                  name="migration_certificate"
+                                />
+                              </FormGroup>
+                            </Row>
+                            <Row className="mb-3">
+                              <FormGroup as={Col} md="6" controlId="validationCustom004">
+                                <FormLabel className="labelForm">MarkSheet</FormLabel>
+                                <FormControl
+                                  onChange={handleDocumentChange}
+                                  type="file"
+                                  name="marksheet"
+                                />
+                              </FormGroup>
+                            </Row>
+                            <Row className="mb-3">
+                              <FormGroup as={Col} md="6" controlId="validationCustom005">
+                                <FormLabel className="labelForm">Previous Year Result</FormLabel>
+                                <FormControl
+                                  onChange={handleDocumentChange}
+                                  type="file"
+                                  name="previous_result"
+                                />
+                              </FormGroup>
+                            </Row>
+                            <Row className="mb-3">
+                              <FormGroup as={Col} md="6" controlId="validationCustom006">
+                                <FormLabel className="labelForm">Doc TTL</FormLabel>
+                                <FormControl
+                                  onChange={handleDocumentChange}
+                                  type="file"
+                                  name="doc_ttl"
+                                />
+                              </FormGroup>
+                            </Row>
+                            <Row className="mb-3">
+                              <FormGroup as={Col} md="6" controlId="validationCustom007">
+                                <FormLabel className="labelForm">Transfer Certificate (TC)</FormLabel>
+                                <FormControl
+                                  onChange={handleDocumentChange}
+                                  type="file"
+                                  name="transfer_certificate"
+                                />
+                              </FormGroup>
+                            </Row>
+                          </div>
+                          <Button type="submit" className='btn btn-primary mt-4'>
                             Submit
                           </Button>
                         </Form>
@@ -1100,6 +1176,7 @@ const StudentMasterPage = () => {
 
                     </Col>
                   </Row>
+
                 </Tab>
               </Tabs>
             </Col>
