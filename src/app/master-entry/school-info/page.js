@@ -33,22 +33,23 @@ const SchoolInfo = () => {
     const fetchSchoolData = async () => {
       try {
         const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/schools/all");
-        
+
+
         if (response.data.success && response.data.data?.length > 0) {
           const schoolData = response.data.data[0];
+          const logoUrl = schoolData.logo_image.data;
           setHasExistingSchool(true);
-          
+
           // Convert base64 logo data to URL if exists
-          let logoUrl = "";
-          if (schoolData.logo_image?.data) {
-            logoUrl = `data:${schoolData.logo_image.contentType};base64,${schoolData.logo_image.data}`;
-          }
+          // let logoUrl = "";
+          // if (schoolData.logo_image?.data) {
+          //   logoUrl = `data:${schoolData.logo_image.contentType};base64,${schoolData.logo_image.data}`;
+          // }
 
           setSchool({
             ...schoolData,
             logo_file: null,
             logo_image: logoUrl,
-            contentType: schoolData.logo_image?.contentType || ""
           });
         } else {
           setHasExistingSchool(false);
@@ -75,16 +76,16 @@ const SchoolInfo = () => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       const reader = new FileReader();
-      
+
       reader.onload = (event) => {
-        setSchool(prev => ({ 
-          ...prev, 
+        setSchool(prev => ({
+          ...prev,
           logo_file: file,
           logo_image: event.target.result,
           contentType: file.type
         }));
       };
-      
+
       reader.readAsDataURL(file);
     }
   };
@@ -123,7 +124,7 @@ const SchoolInfo = () => {
 
     try {
       const formData = new FormData();
-      
+
       // Append all school data
       const { logo_file, logo_image, contentType, ...schoolData } = school;
       Object.keys(schoolData).forEach(key => {
@@ -135,6 +136,7 @@ const SchoolInfo = () => {
         formData.append('logo_image', school.logo_file);
       }
 
+      // const url = "http://localhost:8000/api/schools";
       const url = "https://erp-backend-fy3n.onrender.com/api/schools";
       const method = hasExistingSchool ? 'put' : 'post';
 
@@ -145,13 +147,13 @@ const SchoolInfo = () => {
       });
 
       setMessage({
-        text: response.data.message || 
-          (hasExistingSchool 
-            ? "School information updated successfully" 
+        text: response.data.message ||
+          (hasExistingSchool
+            ? "School information updated successfully"
             : "School created successfully"),
         variant: "success"
       });
-      
+
       setHasExistingSchool(true);
       setIsEditMode(false);
       router.refresh();
@@ -182,7 +184,7 @@ const SchoolInfo = () => {
           </Row>
         </Container>
       </div>
-      
+
       <section>
         <Container>
           <Row>
@@ -191,8 +193,8 @@ const SchoolInfo = () => {
                 <div className="studentHeading d-flex justify-content-between align-items-center">
                   <h2>School Information</h2>
                   {!isEditMode && hasExistingSchool && (
-                    <Button 
-                      variant="primary" 
+                    <Button
+                      variant="primary"
                       onClick={() => setIsEditMode(true)}
                     >
                       Edit School Info
@@ -223,7 +225,7 @@ const SchoolInfo = () => {
                         <Form.Text className="text-danger">{errors.school_name}</Form.Text>
                       )}
                     </Form.Group>
-                    
+
                     <Form.Group as={Col} md="6">
                       <FormLabel>Account Number</FormLabel>
                       <FormControl
@@ -256,7 +258,7 @@ const SchoolInfo = () => {
                         <Form.Text className="text-danger">{errors.phone_no}</Form.Text>
                       )}
                     </Form.Group>
-                    
+
                     <Form.Group as={Col} md="6">
                       <FormLabel>Email Address</FormLabel>
                       <FormControl
@@ -289,7 +291,7 @@ const SchoolInfo = () => {
                         <Form.Text className="text-danger">{errors.bank_name}</Form.Text>
                       )}
                     </Form.Group>
-                    
+
                     <Form.Group as={Col} md="6">
                       <FormLabel>Branch Name</FormLabel>
                       <FormControl
@@ -322,7 +324,7 @@ const SchoolInfo = () => {
                         <Form.Text className="text-danger">{errors.ifsc_code}</Form.Text>
                       )}
                     </Form.Group>
-                    
+
                     <Form.Group as={Col} md="6">
                       <FormLabel>Website</FormLabel>
                       <FormControl
@@ -352,14 +354,14 @@ const SchoolInfo = () => {
                         <Form.Text className="text-danger">{errors.address}</Form.Text>
                       )}
                     </Form.Group>
-                    
+
                     <Form.Group as={Col} md="6">
                       <FormLabel>School Logo</FormLabel>
                       {school.logo_image && (
                         <div className="mb-2">
-                          <img 
-                            src={school.logo_image} 
-                            alt="School Logo" 
+                          <img
+                            src={school.logo_image}
+                            alt="School Logo"
                             style={{ maxWidth: '100px', maxHeight: '100px' }}
                           />
                         </div>
@@ -376,15 +378,15 @@ const SchoolInfo = () => {
 
                   {isEditMode && (
                     <div className="d-flex gap-2 mt-4">
-                      <Button 
-                        type="submit" 
-                        variant="primary" 
+                      <Button
+                        type="submit"
+                        variant="primary"
                         disabled={loading}
                       >
                         {loading ? 'Saving...' : hasExistingSchool ? 'Update' : 'Create'}
                       </Button>
-                      <Button 
-                        variant="secondary" 
+                      <Button
+                        variant="secondary"
                         onClick={() => {
                           setIsEditMode(false);
                           setErrors({});
@@ -398,7 +400,7 @@ const SchoolInfo = () => {
 
                   {!hasExistingSchool && !isEditMode && (
                     <div className="mt-4">
-                      <Button 
+                      <Button
                         variant="primary"
                         onClick={() => setIsEditMode(true)}
                       >
