@@ -1121,7 +1121,6 @@ const StudentMasterPage = () => {
                           </Row>
                         </div>
                       </div>
-
                     </Col>
                   </Row>
 
