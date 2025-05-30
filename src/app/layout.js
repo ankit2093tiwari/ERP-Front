@@ -50,48 +50,56 @@ export default function RootLayout({ children }) {
   };
 
   const handleVoiceCommand = (command) => {
-    const routes = {
-      "logout": "/login",
-      "go to dashboard": "/",
-      "login": "/login",
-      "go to student": "/students/all-module",
-      "go to master entry": "/master-entry/all-module",
-      "go to transport": "/Transport/all-module",
-      "go to fees": "/fees/all-module",
-      "go to medical": "/medical/all-module",
-      "go to stock": "/stock/all-module",
-      "go to notice": "/notice/all-module",
-      "go to home": "/home",
-      "go to advertising management": "/advertising-management/all-module",
-      "go to appointment": "/appointment",
-      "go to dailydairy": "/dailyDairy",
-      "go to exam": "/exam/all-module",
-      "go to front office": "/front-office/all-module",
-      "go to gallery": "/gallery/all-module",
-      "go to hrd": "/hrd/allModule",
-      "go to important sms": "/importantSMS",
-      "go to library": "/library/all-module",
-      "go to student attendance": "/studentAttendence/allModule",
-      "go to thought": "/thought",
-      "go to user management": "/userManagement/all-module",
-      "go to accounts": "/accounts/all-module"
-    };
-
-    // Check for exact matches first
-    if (routes[command]) {
-      router.replace(routes[command]);
-      return;
+    if (command.includes("logout")) {
+      handleLogout();
+    } else if (command.includes("go to dashboard")) {
+      router.replace("/");
+    } else if (command.includes("login")) {
+      router.replace("/login");
+    } else if (command.includes("go to student")) {
+      router.replace("/students/all-module");
+    } else if (command.includes("go to master entry")) {
+      router.replace("/master-entry/all-module");
+    } else if (command.includes("go to transport")) {
+      router.replace("/Transport/all-module");
+    } else if (command.includes("go to fees")) {
+      router.replace("/fees/all-module");
+    } else if (command.includes("go to medical")) {
+      router.replace("/medical/all-module");
+    } else if (command.includes("go to stock")) {
+      router.replace("/stock/all-module");
+    } else if (command.includes("go to notice")) {
+      router.replace("/notice/all-module");
+    } else if (command.includes("go to home")) {
+      router.replace("/home");
+    } else if (command.includes("go to advertising management")) {
+      router.replace("/advertising-management/all-module");
+    } else if (command.includes("go to appointment")) {
+      router.replace("/appointment");
+    } else if (command.includes("go to dailydairy")) {
+      router.replace("/dailyDairy");
+    } else if (command.includes("go to exam")) {
+      router.replace("/exam/all-module");
+    } else if (command.includes("go to front office")) {
+      router.replace("/front-office/all-module");
+    } else if (command.includes("go to gallery")) {
+      router.replace("/gallery/all-module");
+    } else if (command.includes("go to hrd")) {
+      router.replace("/hrd/allModule");
+    } else if (command.includes("go to important SMS")) {
+      router.replace("/importantSMS");
+    } else if (command.includes("go to library")) {
+      router.replace("/library/all-module");
+    } else if (command.includes("go to student attendance")) {
+      router.replace("/studentAttendence/allModule");
+    } else if (command.includes("go to thought")) {
+      router.replace("/thought");
+    } else if (command.includes("go to user management")) {
+      router.replace("/userManagement/all-module");
+    } else if (command.includes("go to accounts")) {
+      router.replace("/accounts/all-module");
     }
 
-    // Check for partial matches
-    for (const [key, route] of Object.entries(routes)) {
-      if (command.includes(key)) {
-        router.replace(route);
-        return;
-      }
-    }
-
-    console.log("Command not recognized:", command);
   };
 
   if (isLoading) {
@@ -122,9 +130,6 @@ export default function RootLayout({ children }) {
                 <Header toggleSidebar={toggleSidebar} onLogout={handleLogout} />
                 <main>{children}</main>
                 <Footer />
-                <div className="voice-command-button">
-                  <SpeechRecognitionProvider onCommand={handleVoiceCommand} />
-                </div>
               </div>
             </div>
             <ToastContainer
@@ -138,6 +143,7 @@ export default function RootLayout({ children }) {
               draggable
               pauseOnHover
             />
+            <SpeechRecognitionProvider onCommand={handleVoiceCommand} />
           </>
         ) : (
           <LoginPage onLogin={handleLogin} />
