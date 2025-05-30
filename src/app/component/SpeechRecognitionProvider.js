@@ -1,4 +1,3 @@
-// components/SpeechRecognitionProvider.js
 "use client";
 import { useEffect, useRef, useState } from "react";
 
@@ -10,6 +9,7 @@ const SpeechRecognition =
 export default function SpeechRecognitionProvider({ onCommand }) {
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef(null);
+  const timeoutRef = useRef(null);
 
   useEffect(() => {
     if (!SpeechRecognition) return;
@@ -35,11 +35,21 @@ export default function SpeechRecognitionProvider({ onCommand }) {
 
     if (isListening) {
       recognition.start();
+
+      timeoutRef.current = setTimeout(() => {
+        recognition.stop();
+        setIsListening(false);
+        console.log("Microphone stopped after 5 seconds");
+      }, 5000);
     } else {
       recognition.stop();
+      clearTimeout(timeoutRef.current);
     }
 
-    return () => recognition.stop();
+    return () => {
+      recognition.stop();
+      clearTimeout(timeoutRef.current);
+    };
   }, [isListening, onCommand]);
 
   return (
@@ -47,7 +57,7 @@ export default function SpeechRecognitionProvider({ onCommand }) {
       onClick={() => setIsListening((prev) => !prev)}
       className="mic-button"
     >
-      🎤 {isListening ? "" : ""}
+      🎤 {isListening ? "Listening..." : "Start"}
     </button>
   );
 }
