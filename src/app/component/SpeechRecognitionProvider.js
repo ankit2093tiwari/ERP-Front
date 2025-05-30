@@ -47,7 +47,7 @@ export default function SpeechRecognitionProvider({ onCommand }) {
       onClick={() => setIsListening((prev) => !prev)}
       className="mic-button"
     >
-      🎤 {isListening ? "Stop Listening" : "Voice"}
+      🎤 {isListening ? "Stop Listening" : ""}
     </button>
   );
 }
