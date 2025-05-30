@@ -18,6 +18,7 @@ export default function LoginPage({ onLogin }) {
 
   const router = useRouter();
   const recognitionRef = useRef(null);
+  const timeoutRef = useRef(null); 
 
   // Voice recognition logic
   useEffect(() => {
@@ -43,11 +44,20 @@ export default function LoginPage({ onLogin }) {
 
     if (isListening) {
       recognition.start();
+
+      timeoutRef.current = setTimeout(() => {
+        recognition.stop();
+        setIsListening(false);
+      }, 5000);
     } else {
       recognition.stop();
+      clearTimeout(timeoutRef.current);
     }
 
-    return () => recognition.stop();
+    return () => {
+      recognition.stop();
+      clearTimeout(timeoutRef.current);
+    };
   }, [isListening]);
 
   // Handle login
@@ -141,12 +151,13 @@ export default function LoginPage({ onLogin }) {
           </button>
         </form>
       </div>
+
       <button
         type="button"
         onClick={() => setIsListening((prev) => !prev)}
         className="mic-button"
       >
-        🎤 {isListening ? "Stop Listening" : "Voice"}
+        🎤 {isListening ? "Listening..." : ""}
       </button>
     </div>
   );

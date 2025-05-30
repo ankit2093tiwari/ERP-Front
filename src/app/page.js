@@ -561,7 +561,7 @@ const Dashboard = () => {
                   <div className="card-body position-relative z-1 notice-box-wrap text-start">
                     <div className="thought-of-day">
                       <div className="thought-content">
-                        <p className="thought-text">{thoughtOfTheDay}</p>
+                        <p className="notice-title">{thoughtOfTheDay}</p>
                         <div className="thought-date">
                           {new Date().toLocaleDateString('en-US', {
                             weekday: 'long',
