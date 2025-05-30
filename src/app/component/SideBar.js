@@ -137,13 +137,13 @@ export default function Sidebar({ isOpen }) {
         { title: "Cheque Bounce Entry", href: "/fees/cheque-bounce", icon: <FaAngleDoubleRight /> },
     ];
 
-    const frontItems = [
-        { title: "All Modules", href: "/front-office/all-module", icon: <FaAngleDoubleRight /> },
-        { title: "Mail In", href: "/front-office/mail-in", icon: <FaAngleDoubleRight /> },
-        { title: "Mail Out", href: "/front-office/mail-out", icon: <FaAngleDoubleRight /> },
-        { title: "Address Book", href: "/front-office/address-book", icon: <FaAngleDoubleRight /> },
-        { title: "Gate Pass", href: "/stock/gate-pass", icon: <FaAngleDoubleRight /> },
-    ];
+    // const frontItems = [
+    //     { title: "All Modules", href: "/front-office/all-module", icon: <FaAngleDoubleRight /> },
+    //     { title: "Mail In", href: "/front-office/mail-in", icon: <FaAngleDoubleRight /> },
+    //     { title: "Mail Out", href: "/front-office/mail-out", icon: <FaAngleDoubleRight /> },
+    //     { title: "Address Book", href: "/front-office/address-book", icon: <FaAngleDoubleRight /> },
+    //     { title: "Gate Pass", href: "/stock/gate-pass", icon: <FaAngleDoubleRight /> },
+    // ];
 
     const stockItems = [
         { title: "All Modules", href: "/stock/all-module", icon: <FaAngleDoubleRight /> },
@@ -283,15 +283,15 @@ export default function Sidebar({ isOpen }) {
     const thoughtItems = [
         { title: "Thought", href: "/thought", icon: <FaAngleDoubleRight /> },
     ];
-    const complaintItems = [
-        { title: "Complaint", href: "/complaints", icon: <FaAngleDoubleRight /> },
-    ];
-    const appointmentItems = [
-        { title: "Appointment", href: "/appointment", icon: <FaAngleDoubleRight /> },
-    ];
-    const importantSMSItems = [
-        { title: "importantSMS", href: "/importantSMS", icon: <FaAngleDoubleRight /> },
-    ];
+    // const complaintItems = [
+    //     { title: "Complaint", href: "/complaints", icon: <FaAngleDoubleRight /> },
+    // ];
+    // const appointmentItems = [
+    //     { title: "Appointment", href: "/appointment", icon: <FaAngleDoubleRight /> },
+    // ];
+    // const importantSMSItems = [
+    //     { title: "importantSMS", href: "/importantSMS", icon: <FaAngleDoubleRight /> },
+    // ];
     const studentAttendenceItems = [
         { title: "All Modules", href: "/studentAttendence/allModule", icon: <FaAngleDoubleRight /> },
         { title: "Take Attendence", href: "/studentAttendence/TakeAttendence", icon: <FaAngleDoubleRight /> },
