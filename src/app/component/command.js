@@ -3,7 +3,7 @@ export const handleVoiceCommand = (command, router, handleLogout) => {
     { keyword: "logout", action: handleLogout },
     { keyword: "dashboard", action: () => router.replace("/") },
     { keyword: "login", action: () => router.replace("/login") },
-    { keyword: "go to student", action: () => router.replace("/students/all-module") },
+    { keyword: "Student", action: () => router.replace("/students/all-module") },
     { keyword: "go to master entry", action: () => router.replace("/master-entry/all-module") },
     { keyword: "go to transport", action: () => router.replace("/Transport/all-module") },
     { keyword: "go to fees", action: () => router.replace("/fees/all-module") },

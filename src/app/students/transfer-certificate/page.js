@@ -22,6 +22,7 @@ const TransferCertificate = () => {
   const [error, setError] = useState("");
   const [editingId, setEditingId] = useState(null);
   const [editedData, setEditedData] = useState({});
+  const [alreadyExists, setAlreadyExists] = useState(false);
 
   const [formData, setFormData] = useState({
     registration_id: '',
@@ -98,9 +99,9 @@ const TransferCertificate = () => {
             </>
           ) : (
             <>
-              <button className="editButton" onClick={() => handleEdit(row)}>
+              {/* <button className="editButton" onClick={() => handleEdit(row)}>
                 <FaEdit />
-              </button>
+              </button> */}
               <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
                 <FaTrashAlt />
               </button>
@@ -164,12 +165,11 @@ const TransferCertificate = () => {
   const handleUpdate = async (id) => {
     try {
       const response = await axios.put(
-        `https://erp-backend-fy3n.onrender.com/api/update-transfer-certificates/${id}`,
+        `https://erp-backend-fy3n.onrender.com/api/transfer-certificates/${id}`,
         editedData
       );
 
       if (response.data.success) {
-        // Update the local state with the edited data
         setTcRecords(prevRecords =>
           prevRecords.map(record =>
             record._id === id ? { ...record, ...editedData } : record
@@ -189,11 +189,10 @@ const TransferCertificate = () => {
     if (confirm("Are you sure you want to delete this Transfer Certificate?")) {
       try {
         const response = await axios.delete(
-          `https://erp-backend-fy3n.onrender.com/api/delete-transfer-certificates/${id}`
+          `https://erp-backend-fy3n.onrender.com/api/transfer-certificates/${id}`
         );
 
         if (response.data.success) {
-          // Remove the deleted record from local state
           setTcRecords(prevRecords =>
             prevRecords.filter(record => record._id !== id)
           );
@@ -209,7 +208,6 @@ const TransferCertificate = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     if (editingId) {
-      // If in edit mode, update the editedData
       setEditedData(prev => ({ ...prev, [name]: value }));
     } else if (name.startsWith("subject_studies_")) {
       const index = parseInt(name.split("_")[2], 10);
@@ -227,12 +225,21 @@ const TransferCertificate = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setAlreadyExists(false);
 
     try {
-      const url = 'https://erp-backend-fy3n.onrender.com/api/transfer-certificates';
-      const response = await axios.post(url, formData);
+      const response = await axios.post(
+        'https://erp-backend-fy3n.onrender.com/api/transfer-certificates',
+        formData
+      );
 
       if (response.data.success) {
+        if (response.data.alreadyExists) {
+          setAlreadyExists(true);
+          alert("Transfer Certificate already exists for this student.");
+          return;
+        }
+
         alert("Transfer Certificate generated successfully!");
 
         // Refresh TC records
@@ -273,12 +280,14 @@ const TransferCertificate = () => {
 
         setStudentData(null);
         setStudentId("");
-      } else {
-        alert(response.data.message || "Failed to generate Transfer Certificate");
       }
     } catch (error) {
       console.error("Error submitting form:", error);
-      alert(error.response?.data?.message || "An error occurred while submitting the form");
+      if (error.response?.data?.message) {
+        alert(error.response.data.message);
+      } else {
+        alert("An error occurred while submitting the form");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -375,6 +384,12 @@ const TransferCertificate = () => {
                 <Tab eventKey="Generate Transfer Certificate" title="Generate Transfer Certificate" className="cover-sheet p-4">
                   {!showPreview ? (
                     <Form className={styles.form} onSubmit={handleSubmit}>
+                      {alreadyExists && (
+                        <div className="alert alert-warning">
+                          A Transfer Certificate already exists for this student.
+                        </div>
+                      )}
+
                       <Row className="mb-4">
                         <FormGroup as={Col} md="4" controlId="registration_id">
                           <FormLabel>Type Registration ID For Search Student</FormLabel>
@@ -687,7 +702,9 @@ const TransferCertificate = () => {
                       <Row>
                         <Col>
                           <div className="buttons1">
-                            <Button type="submit" id="submit">Submit form</Button>
+                            <Button type="submit" id="submit" disabled={isSubmitting}>
+                              {isSubmitting ? 'Submitting...' : 'Submit form'}
+                            </Button>
                           </div>
                         </Col>
                       </Row>
