@@ -245,6 +245,7 @@ export default function Sidebar({ isOpen }) {
         { title: "Category Master", href: "/hrd/categoryMaster", icon: <FaAngleDoubleRight /> },
         { title: "Leave Master", href: "/hrd/leaveMaster", icon: <FaAngleDoubleRight /> },
         { title: "Holiday Master", href: "/hrd/holidayMaster", icon: <FaAngleDoubleRight /> },
+        { title: "New Employee", href: "/hrd/newEmployee", icon: <FaAngleDoubleRight /> },
         {
             title: "Faculty Attendance",
             href: "/hrd/facultyAttendence/all-reports",

@@ -1,4 +1,5 @@
 // How do I make the first letter of a string uppercase in JavaScript
+import axios from "axios";
 
 export function capitalizeFirstLetter(val) {
     return String(val).charAt(0).toUpperCase() + String(val).slice(1);
@@ -110,4 +111,21 @@ export const motherTongueOptions = () => {
         { value: 11, label: 'Telugu' },
         { value: 12, label: 'Urdu' }
     ];
+}
+
+
+ 
+const BASE_URL = 'http://localhost:8000'
+export const getCategories = async () => {
+    const response = await axios.get(`${BASE_URL}/api/categories`)
+    return response?.data;
+}
+export const getReligions = async () => {
+    const response = await axios.get(`${BASE_URL}/api/religions`)
+    return response?.data;
+}
+ 
+export const getCastes = async () => {
+    const response = await axios.get(`${BASE_URL}/api/castes`)
+    return response?.data;
 }
