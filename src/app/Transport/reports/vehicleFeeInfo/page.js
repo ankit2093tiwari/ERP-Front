@@ -31,93 +31,49 @@ const StudentVehicle = () => {
     {
       name: '#',
       selector: (row, index) => index + 1,
-      width: '80px',
+      width: '60px',
     },
     {
       name: 'Student Name',
-      selector: row =>
-        editRowId === row._id ? (
-          <FormSelect
-            value={updatedData.student}
-            onChange={(e) => handleUpdateChange(e, 'student')}
-          >
-            <option value="">Select Student</option>
-            {students.map(student => (
-              <option key={student._id} value={student._id}>
-                {student.first_name} {student.last_name}
-              </option>
-            ))}
-          </FormSelect>
-        ) : (
-          row.student
-            ? `${row.student.first_name} ${row.student.last_name}`
-            : 'N/A'
-        ),
+      selector: row => row.student ? `${row.student.first_name} ${row.student.last_name}` : 'N/A',
       sortable: true,
     },
     {
-      name: 'Route',
+      name: 'Father Name',
+      selector: row => row.student?.father_name || 'N/A',
+      sortable: true,
+    },
+    {
+      name: 'Class & Section',
       selector: row =>
-        editRowId === row._id ? (
-          <FormSelect
-            value={updatedData.vehicle_route}
-            onChange={(e) => handleUpdateChange(e, 'vehicle_route')}
-          >
-            <option value="">Select Route</option>
-            {routes.map(route => (
-              <option key={route._id} value={route._id}>
-                {route.Route_name} ({route.Vehicle_No})
-              </option>
-            ))}
-          </FormSelect>
-        ) : (
-          row.vehicle_route ? `${row.vehicle_route.Route_name} (${row.vehicle_route.Vehicle_No})` : 'N/A'
-        ),
+        row.student?.class?.class_name && row.student?.section?.section_name
+          ? `${row.student.class.class_name} - ${row.student.section.section_name}`
+          : 'N/A',
+      sortable: true,
+    },
+    {
+      name: 'Transport No',
+      selector: row => row.vehicle_route?.Vehicle_No || 'N/A',
       sortable: true,
     },
     {
       name: 'Pickup Point',
-      selector: row =>
-        editRowId === row._id ? (
-          <FormSelect
-            value={updatedData.pickUpPoint}
-            onChange={(e) => handleUpdateChange(e, 'pickUpPoint')}
-          >
-            <option value="">Select Pickup Point</option>
-            {pickupPoints.map(point => (
-              <option key={point._id} value={point._id}>
-                {point.PickupPoint}
-              </option>
-            ))}
-          </FormSelect>
-        ) : (
-          row.pickUpPoint ? `${row.pickUpPoint.PickupPoint}` : 'N/A'
-        ),
+      selector: row => row.pickUpPoint?.PickupPoint || 'N/A',
       sortable: true,
     },
     {
-      name: 'Action',
-      cell: row => (
-        <div style={{ display: 'flex' }}>
-          {editRowId === row._id ? (
-            <button className='editButton btn-success'
-              onClick={() => handleUpdate(row._id)}>
-              <FaSave />
-            </button>
-          ) : (
-            <button className='editButton'
-              onClick={() => handleEditClick(row)}>
-              <FaEdit />
-            </button>
-          )}
-          <button className="editButton btn-danger"
-            onClick={() => handleDelete(row._id)}>
-            <FaTrashAlt />
-          </button>
-        </div>
-      ),
-    }
+      name: 'Amount',
+      selector: row => {
+        if (row.Amount) return `₹${row.Amount}`;
+        if (row.pickUpPoint?.Amount) return `₹${row.pickUpPoint.Amount}`;
+        if (row.vehicle_route?.Amount) return `₹${row.vehicle_route.Amount}`;
+        return 'N/A';
+      },
+      sortable: true,
+    },
+
   ];
+
 
   const fetchDropdownData = async () => {
     try {
@@ -126,7 +82,7 @@ const StudentVehicle = () => {
         axios.get(`${API_BASE_URL}/routes`),
         axios.get(`${API_BASE_URL}/pickup-points`)
       ]);
-      
+
       setStudents(studentsRes.data.data);
       setRoutes(routesRes.data.data);
       setPickupPoints(pickupPointsRes.data.data);
@@ -235,7 +191,7 @@ const StudentVehicle = () => {
 
   const breadcrumbItems = [
     { label: "Transport", link: "/Transport/all-module" },
-    { label: "Student Vehicle Relation", link: "null" }
+    { label: "Vehicle Fee Info", link: "null" }
   ];
 
   return (
@@ -254,10 +210,6 @@ const StudentVehicle = () => {
         <Container>
           <Row>
             <Col>
-              <Button onClick={() => setShowAddForm(true)} className="btn-add">
-                <CgAddR /> New Transport Assignment
-              </Button>
-
               {error && (
                 <div className="alert alert-danger mt-3">
                   {error}
@@ -335,7 +287,7 @@ const StudentVehicle = () => {
           <Row>
             <Col>
               <div className="tableSheet">
-                <h2>Student Transport Assignments</h2>
+                <h2>Vehicle Fee Info</h2>
                 {loading ? (
                   <p>Loading...</p>
                 ) : error ? (

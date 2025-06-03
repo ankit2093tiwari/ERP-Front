@@ -96,6 +96,17 @@ const StudentVehicle = () => {
       sortable: true,
     },
     {
+      name: 'Amount',
+      selector: row => {
+        if (row.Amount) return `₹${row.Amount}`;
+        if (row.pickUpPoint?.Amount) return `₹${row.pickUpPoint.Amount}`;
+        if (row.vehicle_route?.Amount) return `₹${row.vehicle_route.Amount}`;
+        return 'N/A';
+      },
+      sortable: true,
+    },
+
+    {
       name: 'Action',
       cell: row => (
         <div style={{ display: 'flex' }}>
@@ -126,7 +137,7 @@ const StudentVehicle = () => {
         axios.get(`${API_BASE_URL}/routes`),
         axios.get(`${API_BASE_URL}/pickup-points`)
       ]);
-      
+
       setStudents(studentsRes.data.data);
       setRoutes(routesRes.data.data);
       setPickupPoints(pickupPointsRes.data.data);
