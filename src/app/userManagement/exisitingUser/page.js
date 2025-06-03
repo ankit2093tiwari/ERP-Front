@@ -87,7 +87,7 @@ const ExisitingUser = () => {
       width: "80px",
     },
     {
-      name: "Username",
+      name: "userfullname",
       cell: (row) =>
         editingId === row._id ? (
           <input
@@ -97,7 +97,7 @@ const ExisitingUser = () => {
             className="form-control"
           />
         ) : (
-          row.username || "N/A"
+          row.userfullname || "N/A"
         ),
       sortable: true,
     },

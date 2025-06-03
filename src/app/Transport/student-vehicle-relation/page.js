@@ -24,8 +24,7 @@ const StudentVehicle = () => {
   const [formData, setFormData] = useState({
     student: '',
     vehicle_route: '',
-    pickUpPoint: '',
-    amount: 0
+    pickUpPoint: ''
   });
 
   const columns = [
@@ -87,23 +86,13 @@ const StudentVehicle = () => {
             <option value="">Select Pickup Point</option>
             {pickupPoints.map(point => (
               <option key={point._id} value={point._id}>
-                {point.name} ({point.amount} Rs.)
+                {point.PickupPoint}
               </option>
             ))}
           </FormSelect>
         ) : (
-          row.pickUpPoint ? `${row.pickUpPoint.name}` : 'N/A'
+          row.pickUpPoint ? `${row.pickUpPoint.PickupPoint}` : 'N/A'
         ),
-      sortable: true,
-    },
-    {
-      name: 'Amount',
-      selector: row => row.amount ? `${row.amount} Rs.` : 'N/A',
-      sortable: true,
-    },
-    {
-      name: 'Status',
-      selector: row => row.isActive ? 'Active' : 'Inactive',
       sortable: true,
     },
     {
@@ -132,23 +121,18 @@ const StudentVehicle = () => {
 
   const fetchDropdownData = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/dropdowns`);
-      setStudents(response.data.students);
-      setRoutes(response.data.routes);
-      setPickupPoints(response.data.pickupPoints);
+      const [studentsRes, routesRes, pickupPointsRes] = await Promise.all([
+        axios.get(`${API_BASE_URL}/students/search`),
+        axios.get(`${API_BASE_URL}/routes`),
+        axios.get(`${API_BASE_URL}/pickup-points`)
+      ]);
+      
+      setStudents(studentsRes.data.data);
+      setRoutes(routesRes.data.data);
+      setPickupPoints(pickupPointsRes.data.data);
     } catch (err) {
       console.error("Error fetching dropdown data:", err);
       setError("Failed to fetch dropdown data");
-    }
-  };
-
-  const fetchPickupPointsByRoute = async (routeId) => {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/pickup-points/${routeId}`);
-      setPickupPoints(response.data);
-    } catch (err) {
-      console.error("Error fetching pickup points:", err);
-      setError("Failed to fetch pickup points");
     }
   };
 
@@ -156,7 +140,7 @@ const StudentVehicle = () => {
     setLoading(true);
     try {
       const response = await axios.get(`${API_BASE_URL}/all-studentVehicle`);
-      setData(response.data);
+      setData(response.data.data);
     } catch (err) {
       console.error("Error fetching student vehicles:", err);
       setError(err.response?.data?.message || "Failed to fetch student vehicles");
@@ -168,20 +152,10 @@ const StudentVehicle = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
-
-    if (name === 'vehicle_route') {
-      setSelectedRoute(value);
-      fetchPickupPointsByRoute(value);
-    }
   };
 
   const handleUpdateChange = (e, field) => {
     setUpdatedData({ ...updatedData, [field]: e.target.value });
-
-    if (field === 'vehicle_route') {
-      setSelectedRoute(e.target.value);
-      fetchPickupPointsByRoute(e.target.value);
-    }
   };
 
   const handleSubmit = async (e) => {
@@ -192,18 +166,17 @@ const StudentVehicle = () => {
       }
 
       const response = await axios.post(`${API_BASE_URL}/assign-studentVehicle`, {
-        student: String(formData.student),
-        vehicle_route: String(formData.vehicle_route),
-        pickUpPoint: String(formData.pickUpPoint)
+        student: formData.student,
+        vehicle_route: formData.vehicle_route,
+        pickUpPoint: formData.pickUpPoint
       });
 
-      setData([...data, response.data]);
+      setData([...data, response.data.data]);
       setShowAddForm(false);
       setFormData({
         student: '',
         vehicle_route: '',
-        pickUpPoint: '',
-        amount: 0
+        pickUpPoint: ''
       });
       setError("");
     } catch (err) {
@@ -215,13 +188,10 @@ const StudentVehicle = () => {
   const handleEditClick = (row) => {
     setEditRowId(row._id);
     setUpdatedData({
-      student: String(row.student?._id),
-      vehicle_route: String(row.vehicle_route?._id),
-      pickUpPoint: String(row.pickUpPoint?._id),
-      amount: row.amount
+      student: row.student?._id,
+      vehicle_route: row.vehicle_route?._id,
+      pickUpPoint: row.pickUpPoint?._id
     });
-    setSelectedRoute(String(row.vehicle_route?._id));
-    fetchPickupPointsByRoute(String(row.vehicle_route?._id));
   };
 
   const handleUpdate = async (id) => {
@@ -231,9 +201,9 @@ const StudentVehicle = () => {
       }
 
       await axios.put(`${API_BASE_URL}/update-studentVehicle/${id}`, {
-        student: String(updatedData.student),
-        vehicle_route: String(updatedData.vehicle_route),
-        pickUpPoint: String(updatedData.pickUpPoint)
+        student: updatedData.student,
+        vehicle_route: updatedData.vehicle_route,
+        pickUpPoint: updatedData.pickUpPoint
       });
 
       fetchStudentVehicles();
@@ -248,7 +218,7 @@ const StudentVehicle = () => {
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this assignment?")) {
       try {
-        await axios.delete(`${API_BASE_URL}/delete-studentVehicle/${id}`);
+        await axios.delete(`${API_BASE_URL}/student-vehicle/${id}`);
         setData(prevData => prevData.filter(item => item._id !== id));
         setError("");
       } catch (err) {
@@ -312,7 +282,7 @@ const StudentVehicle = () => {
                         >
                           <option value="">Select Student</option>
                           {students.map(student => (
-                            <option key={student._id} value={String(student._id)}>
+                            <option key={student._id} value={student._id}>
                               {student.first_name} {student.last_name} ({student.adm_no})
                             </option>
                           ))}
@@ -328,7 +298,7 @@ const StudentVehicle = () => {
                         >
                           <option value="">Select Route</option>
                           {routes.map(route => (
-                            <option key={route._id} value={String(route._id)}>
+                            <option key={route._id} value={route._id}>
                               {route.Route_name} ({route.Vehicle_No})
                             </option>
                           ))}
@@ -336,7 +306,7 @@ const StudentVehicle = () => {
                       </FormGroup>
                     </Row>
                     <Row className="mb-3">
-                      <FormGroup as={Col} lg="6" controlId="pickupPointSelect">
+                      <FormGroup as={Col} lg="12" controlId="pickupPointSelect">
                         <FormLabel className="labelForm">Pickup Point*</FormLabel>
                         <FormSelect
                           name="pickUpPoint"
@@ -346,22 +316,11 @@ const StudentVehicle = () => {
                         >
                           <option value="">Select Pickup Point</option>
                           {pickupPoints.map(point => (
-                            <option key={point._id} value={String(point._id)}>
-                              {point.name} ({point.amount} Rs.)
+                            <option key={point._id} value={point._id}>
+                              {point.PickupPoint}
                             </option>
                           ))}
                         </FormSelect>
-                      </FormGroup>
-                      <FormGroup as={Col} lg="6" controlId="amount">
-                        <FormLabel className="labelForm">Amount</FormLabel>
-                        <FormControl
-                          type="number"
-                          name="amount"
-                          value={formData.pickUpPoint ? 
-                            pickupPoints.find(p => p._id === formData.pickUpPoint)?.amount || 0 
-                            : 0}
-                          readOnly
-                        />
                       </FormGroup>
                     </Row>
                     <Button type="submit" className='btn btn-primary mt-4'>
@@ -391,7 +350,7 @@ const StudentVehicle = () => {
                     >
                       <option value="">Select Student</option>
                       {students.map(student => (
-                        <option key={student._id} value={String(student._id)}>
+                        <option key={student._id} value={student._id}>
                           {student.first_name} {student.last_name} ({student.adm_no})
                         </option>
                       ))}
@@ -406,7 +365,7 @@ const StudentVehicle = () => {
                     >
                       <option value="">Select Route</option>
                       {routes.map(route => (
-                        <option key={route._id} value={String(route._id)}>
+                        <option key={route._id} value={route._id}>
                           {route.Route_name} ({route.Vehicle_No})
                         </option>
                       ))}
@@ -414,7 +373,7 @@ const StudentVehicle = () => {
                   </FormGroup>
                 </Row>
                 <Row className="mb-3">
-                  <FormGroup as={Col} lg="6" controlId="editPickupPoint">
+                  <FormGroup as={Col} lg="12" controlId="editPickupPoint">
                     <FormLabel className="labelForm">Pickup Point*</FormLabel>
                     <FormSelect
                       value={updatedData.pickUpPoint}
@@ -423,21 +382,11 @@ const StudentVehicle = () => {
                     >
                       <option value="">Select Pickup Point</option>
                       {pickupPoints.map(point => (
-                        <option key={point._id} value={String(point._id)}>
-                          {point.name} ({point.amount} Rs.)
+                        <option key={point._id} value={point._id}>
+                          {point.PickupPoint}
                         </option>
                       ))}
                     </FormSelect>
-                  </FormGroup>
-                  <FormGroup as={Col} lg="6" controlId="editAmount">
-                    <FormLabel className="labelForm">Amount</FormLabel>
-                    <FormControl
-                      type="number"
-                      value={updatedData.pickUpPoint ? 
-                        pickupPoints.find(p => p._id === updatedData.pickUpPoint)?.amount || 0 
-                        : 0}
-                      readOnly
-                    />
                   </FormGroup>
                 </Row>
                 <Button
