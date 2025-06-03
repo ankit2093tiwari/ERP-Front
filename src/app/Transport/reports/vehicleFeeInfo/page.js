@@ -44,14 +44,6 @@ const StudentVehicle = () => {
       sortable: true,
     },
     {
-      name: 'Class & Section',
-      selector: row =>
-        row.student?.class?.class_name && row.student?.section?.section_name
-          ? `${row.student.class.class_name} - ${row.student.section.section_name}`
-          : 'N/A',
-      sortable: true,
-    },
-    {
       name: 'Transport No',
       selector: row => row.vehicle_route?.Vehicle_No || 'N/A',
       sortable: true,
