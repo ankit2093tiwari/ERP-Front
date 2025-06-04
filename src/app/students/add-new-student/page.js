@@ -219,7 +219,7 @@ const StudentMasterPage = () => {
     const requiredFields = [
       'first_name', 'father_name', 'father_mobile_no', 'class_name',
       'section_name', 'date_of_birth', 'gender_name', 'aadhar_card_no',
-      'date_of_admission', 'date_of_joining', 'caste_name', 'religion_name'
+      'date_of_admission', 'date_of_joining', 'caste_name', 'religion_name', 'phone_no'
     ];
 
     requiredFields.forEach(field => {
