@@ -1396,37 +1396,22 @@ input::-webkit-inner-spin-button {
 }
 
 .thought-of-day {
-  background-color: #f8f9fa;
-  border-radius: 8px;
-  padding: 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  min-height: 96px;
 }
 
 .thought-content {
-  text-align: center;
+  text-align: center
 }
 
 .thought-text {
   font-size: 1.2rem;
   font-style: italic;
   color: #333;
-  margin-bottom: 10px;
+  margin-bottom: 10px
 }
 
 .thought-date {
-  font-size: 0.9rem;
-  color: #6c757d;
-  font-weight: bold;
-}
-
-.sess {
-  border: 1px solid #ffffff;
-  padding: 3px 15px;
-  border-radius: 15px;
-  color: #fff;
-}
-
-.rightNavbar .dropdown-toggle:after {
-  content: none;
+  font-size: .9rem;
+  color: #ade1b0;
+  font-weight: 400;
 }

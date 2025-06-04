@@ -9,7 +9,7 @@ const SpeechRecognition =
     : null;
 
 export default function LoginPage({ onLogin }) {
-  const [email, setEmail] = useState("");
+  const [username, setUSERNAME] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
@@ -66,8 +66,8 @@ export default function LoginPage({ onLogin }) {
     setError("");
     setIsLoading(true);
 
-    if (!email || !password) {
-      setError("Email and Password are required");
+    if (!username || !password) {
+      setError("username and Password are required");
       setIsLoading(false);
       return;
     }
@@ -76,7 +76,7 @@ export default function LoginPage({ onLogin }) {
       const response = await fetch("https://erp-backend-fy3n.onrender.com/api/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ username, password }),
       });
 
       const data = await response.json();
@@ -106,12 +106,12 @@ export default function LoginPage({ onLogin }) {
 
         <form onSubmit={handleLogin} className="loginForm">
           <div className="formGroup">
-            <label htmlFor="email">EMAIL *</label>
+            <label htmlFor="username">User Name *</label>
             <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              id="username"
+              type="text"
+              value={username}
+              onChange={(e) => setUSERNAME(e.target.value)}
               className="inputField"
               required
             />

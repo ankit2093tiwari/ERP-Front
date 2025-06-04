@@ -347,22 +347,30 @@ const Dashboard = () => {
                 </Row>
               </Col>
               <Col lg={3}>
-                <div className="card overflow-hidden pt-2 mb-3 shadow-none">
-                  <div className="card-body position-relative z-1">
+                <div className="card overflow-hidden pt-2 mb-3 pb-0 shadow-none">
+                  <div className="card-body position-relative z-1 p-2">
                     <div>
                       <div id="chart">
                         {typeof window !== 'undefined' && (
-                          <ReactApexChart options={state.options} series={state.series} type="radialBar" height={450} />
+                          <ReactApexChart options={state.options} series={state.series} type="radialBar" height={260} />
                         )}
                       </div>
                     </div>
                   </div>
                 </div>
-                <button className="card btn-primary w-100 py-4 text-white mx-0">
+                <div className="card bgPurple overflow-hidden mb-3 pb-0 shadow-none">
+                  <div className="card-body p-2 bgPurple thought-of-day">
+                    <div className="thought-content">
+                      <p className="notice-title mb-1 text-white fw-bold">ALWAYS BE HAPPY ALWAYS BE HAPPY</p>
+                      <div className="thought-date">Wednesday, June 4, 2025</div>
+                    </div>
+                  </div>
+                </div>
+                {/* <button className="card btn-primary w-100 py-4 text-white mx-0">
                   <div className="">
                     Dummy Button
                   </div>
-                </button>
+                </button> */}
               </Col>
             </Row>
             <Row>
@@ -548,28 +556,6 @@ const Dashboard = () => {
                         <div className="post-date bg-pink">16 June, 2019</div>
                         <h6 className="notice-title"><a href="#">Great School manag meneesom.</a></h6>
                         <div className="entry-meta"> Jennyfar Lopez / <span>5 min ago</span></div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </Col>
-              <Col lg={4}>
-                <div className="card overflow-hidden pt-2 mb-3 shadow-none">
-                  <div className="card-header">
-                    <h5 className="fw-normal mb-1 fw-bold text-start">Thought of the Day</h5>
-                  </div>
-                  <div className="card-body position-relative z-1 notice-box-wrap text-start">
-                    <div className="thought-of-day">
-                      <div className="thought-content">
-                        <p className="notice-title">{thoughtOfTheDay}</p>
-                        <div className="thought-date">
-                          {new Date().toLocaleDateString('en-US', {
-                            weekday: 'long',
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric'
-                          })}
-                        </div>
                       </div>
                     </div>
                   </div>

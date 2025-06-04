@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
-import { CgAddR } from "react-icons/cg";
 import {
   Form,
   Row,
@@ -25,18 +24,58 @@ const AddUser = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [isPopoverOpen, setIsPopoverOpen] = useState(true);
   const [editingId, setEditingId] = useState(null);
+
+  // Initialize all authority fields from the model
+  const initialAuthorities = {
+    view: false,
+    edit: false,
+    submit: false,
+    mainmenu: false,
+    usermanagement: false,
+    student: false,
+    library: false,
+    hostel: false,
+    fees: false,
+    hrd: false,
+    frontoffice: false,
+    attendance: false,
+    exams: false,
+    timetable: false,
+    transport: false,
+    stock: false,
+    events: false,
+    accounts: false,
+    advertising: false,
+    circular: false,
+    servicecall: false,
+    syllabus: false,
+    mess: false,
+    thought: false,
+    homework: false,
+    medical: false,
+    visitor: false,
+    gallery: false,
+    balbank: false,
+    youtubevideo: false,
+    sendsms: false,
+    chartfilling: false,
+    dailydairy: false,
+    copycorrection: false,
+  };
+
   const [formData, setFormData] = useState({
-    user_type: "",
     username: "",
-    status: "",
     password: "",
-    full_name: "",
-    image: null,
+    usertype: "",
+    status: "",
+    userfullname: "",
+    userimg: null,
+    authorities: initialAuthorities,
   });
 
-  const baseURL = "https://erp-backend-fy3n.onrender.com/api/users";
+  const baseURL = "https://erp-backend-fy3n.onrender.com/api";
 
   const columns = [
     {
@@ -52,17 +91,12 @@ const AddUser = () => {
     },
     {
       name: "Full Name",
-      selector: (row) => row.full_name || "N/A",
+      selector: (row) => row.userfullname || "N/A",
       sortable: true,
     },
     {
-      name: "Email",
-      selector: (row) => row.email || "N/A",
-      sortable: true,
-    },
-    {
-      name: "Phone",
-      selector: (row) => row.phone || "N/A",
+      name: "User Type",
+      selector: (row) => row.usertype || "N/A",
       sortable: true,
     },
     {
@@ -75,24 +109,15 @@ const AddUser = () => {
       cell: (row) => (
         <div className="d-flex gap-2">
           {editingId === row._id ? (
-            <button
-              className="editButton"
-              onClick={() => handleUpdate(row._id)}
-            >
+            <button className="editButton" onClick={() => handleUpdate(row._id)}>
               <FaSave />
             </button>
           ) : (
-            <button
-              className="editButton"
-              onClick={() => handleEdit(row)}
-            >
+            <button className="editButton" onClick={() => handleEdit(row)}>
               <FaEdit />
             </button>
           )}
-          <button
-            className="editButton btn-danger"
-            onClick={() => handleDelete(row._id)}
-          >
+          <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
             <FaTrashAlt />
           </button>
         </div>
@@ -104,7 +129,7 @@ const AddUser = () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get(baseURL);
+      const response = await axios.get(`${baseURL}/all-users`);
       setData(response.data.data || []);
     } catch (err) {
       console.error("Error fetching data:", err);
@@ -117,41 +142,35 @@ const AddUser = () => {
   const handleEdit = (user) => {
     setEditingId(user._id);
     setFormData({
-      user_type: user.user_type || "",
       username: user.username || "",
+      password: "",
+      usertype: user.usertype || "",
       status: user.status || "",
-      password: "", // Don't pre-fill password for security
-      full_name: user.full_name || "",
-      image: null,
+      userfullname: user.userfullname || "",
+      userimg: null,
+      authorities: user.authorities || initialAuthorities,
     });
     setIsPopoverOpen(true);
   };
 
   const handleUpdate = async (id) => {
     try {
-      const formData = new FormData();
-      formData.append("user_type", formData.user_type);
-      formData.append("username", formData.username);
-      formData.append("status", formData.status);
-      if (formData.password) formData.append("password", formData.password);
-      formData.append("full_name", formData.full_name);
-      if (formData.image) formData.append("image", formData.image);
+      const formDataObj = new FormData();
+      formDataObj.append("username", formData.username);
+      formDataObj.append("usertype", formData.usertype);
+      formDataObj.append("status", formData.status);
+      if (formData.password) formDataObj.append("password", formData.password);
+      formDataObj.append("userfullname", formData.userfullname);
+      if (formData.userimg) formDataObj.append("userimg", formData.userimg);
+      formDataObj.append("authorities", JSON.stringify(formData.authorities));
 
-      await axios.put(`${baseURL}/${id}`, formData);
+      await axios.put(`${baseURL}/update-user/${id}`, formDataObj);
       setSuccess("User updated successfully");
       setError("");
       fetchData();
       setEditingId(null);
-      setIsPopoverOpen(false);
-      setFormData({
-        user_type: "",
-        username: "",
-        status: "",
-        password: "",
-        full_name: "",
-        image: null,
-      });
-      setTimeout(() => setSuccess(""), 3000);
+      setIsPopoverOpen(true);
+      resetForm();
     } catch (error) {
       console.error("Error updating data:", error);
       setError(error.response?.data?.message || "Failed to update user. Please try again later.");
@@ -161,7 +180,7 @@ const AddUser = () => {
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this user?")) {
       try {
-        await axios.delete(`${baseURL}/${id}`);
+        await axios.delete(`${baseURL}/delete-user/${id}`);
         setSuccess("User deleted successfully");
         setError("");
         fetchData();
@@ -174,66 +193,81 @@ const AddUser = () => {
   };
 
   const handleAdd = async () => {
-    const { user_type, username, status, password, full_name, image } = formData;
-    if (!username.trim() || !password.trim() || !user_type.trim() || !status.trim() || !full_name.trim()) {
+    const { username, password, usertype, status, userfullname, userimg } = formData;
+    if (!username.trim() || !password.trim() || !usertype.trim() || !status.trim() || !userfullname.trim()) {
       setError("Please fill out all required fields.");
       return;
     }
 
     try {
       const formDataObj = new FormData();
-      formDataObj.append("user_type", user_type);
       formDataObj.append("username", username);
-      formDataObj.append("status", status);
       formDataObj.append("password", password);
-      formDataObj.append("full_name", full_name);
-      if (image) formDataObj.append("image", image);
+      formDataObj.append("usertype", usertype);
+      formDataObj.append("status", status);
+      formDataObj.append("userfullname", userfullname);
+      if (userimg) formDataObj.append("userimg", userimg);
+      formDataObj.append("authorities", JSON.stringify(formData.authorities));
 
-      const response = await axios.post(baseURL, formDataObj);
+      await axios.post(`${baseURL}/create-user`, formDataObj);
       setSuccess("User added successfully");
       setError("");
       fetchData();
-      setFormData({
-        user_type: "",
-        username: "",
-        status: "",
-        password: "",
-        full_name: "",
-        image: null,
-      });
-      setIsPopoverOpen(false);
-      setTimeout(() => setSuccess(""), 3000);
+      resetForm();
     } catch (error) {
       console.error("Error adding data:", error);
       setError(error.response?.data?.message || "Failed to add user. Please try again later.");
     }
   };
 
+  const resetForm = () => {
+    setFormData({
+      username: "",
+      password: "",
+      usertype: "",
+      status: "",
+      userfullname: "",
+      userimg: null,
+      authorities: initialAuthorities,
+    });
+  };
+
   const handleChange = (e) => {
-    const { name, value, files } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: files ? files[0] : value,
-    }));
+    const { name, value, files, type, checked } = e.target;
+    if (name.startsWith("authorities.")) {
+      const field = name.split(".")[1];
+      setFormData((prev) => ({
+        ...prev,
+        authorities: {
+          ...prev.authorities,
+          [field]: checked,
+        },
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: type === "checkbox" ? checked : files ? files[0] : value,
+      }));
+    }
   };
 
   const handlePrint = () => {
-    const tableHeaders = [["#", "Username", "Full Name", "Email", "Phone", "Status"]];
+    const tableHeaders = [["#", "UserName", "Full Name", "User Type", "Status"]];
     const tableRows = data.map((row, index) => [
       index + 1,
       row.username || "N/A",
-      row.full_name || "N/A",
-      row.email || "N/A",
-      row.phone || "N/A",
+      row.userfullname || "N/A",
+      row.usertype || "N/A",
       row.status || "N/A",
     ]);
     printContent(tableHeaders, tableRows);
   };
 
   const handleCopy = () => {
-    const headers = ["#", "Username", "Full Name", "Email", "Phone", "Status"];
-    const rows = data.map((row, index) => 
-      `${index + 1}\t${row.username || "N/A"}\t${row.full_name || "N/A"}\t${row.email || "N/A"}\t${row.phone || "N/A"}\t${row.status || "N/A"}`
+    const headers = ["#", "UserName", "Full Name", "User Type", "Status"];
+    const rows = data.map(
+      (row, index) =>
+        `${index + 1}\t${row.username || "N/A"}\t${row.userfullname || "N/A"}\t${row.usertype || "N/A"}\t${row.status || "N/A"}`
     );
     copyContent(headers, rows);
   };
@@ -246,6 +280,20 @@ const AddUser = () => {
     { label: "User Management", link: "/userManagement/all-module" },
     { label: "Add User", link: "null" },
   ];
+
+  // All authority fields
+  const allAuthorities = Object.keys(initialAuthorities);
+
+  // Function to chunk array into groups of 3
+  const chunkArray = (array, size) => {
+    const result = [];
+    for (let i = 0; i < array.length; i += size) {
+      result.push(array.slice(i, i + size));
+    }
+    return result;
+  };
+
+  const authorityGroups = chunkArray(allAuthorities, 3);
 
   return (
     <>
@@ -271,73 +319,16 @@ const AddUser = () => {
             </Alert>
           )}
 
-          <Button
-            onClick={() => setIsPopoverOpen(true)}
-            className="btn-add"
-          >
-            <CgAddR /> Add User
-          </Button>
-
           {isPopoverOpen && (
             <div className="cover-sheet">
               <div className="studentHeading">
                 <h2>{editingId ? "Edit User" : "Add New User"}</h2>
-                <button
-                  className="closeForm"
-                  onClick={() => {
-                    setIsPopoverOpen(false);
-                    setEditingId(null);
-                    setError("");
-                    setFormData({
-                      user_type: "",
-                      username: "",
-                      status: "",
-                      password: "",
-                      full_name: "",
-                      image: null,
-                    });
-                  }}
-                >
-                  X
-                </button>
               </div>
               <Form className="formSheet">
                 <Row className="mb-3">
                   <Col lg={6}>
-                    <FormLabel className="labelForm">User Type</FormLabel>
-                    <FormSelect 
-                      name="user_type" 
-                      value={formData.user_type} 
-                      onChange={handleChange}
-                    >
-                      <option value="">Select</option>
-                      <option value="1">Fees</option>
-                      <option value="2">Other</option>
-                    </FormSelect>
-                  </Col>
-                  <Col lg={6}>
                     <FormLabel className="labelForm">Username</FormLabel>
-                    <FormControl
-                      type="text"
-                      name="username"
-                      placeholder="User Name"
-                      value={formData.username}
-                      onChange={handleChange}
-                    />
-                  </Col>
-                </Row>
-                <Row className="mb-3">
-                  <Col lg={6}>
-                    <FormLabel className="labelForm">Status</FormLabel>
-                    <FormSelect 
-                      name="status" 
-                      value={formData.status} 
-                      onChange={handleChange}
-                    >
-                      <option value="">Select</option>
-                      <option value="1">Active</option>
-                      <option value="2">Inactive</option>
-                    </FormSelect>
+                    <FormControl type="text" name="username" value={formData.username} onChange={handleChange} />
                   </Col>
                   <Col lg={6}>
                     <FormLabel className="labelForm">Password</FormLabel>
@@ -352,48 +343,74 @@ const AddUser = () => {
                 </Row>
                 <Row className="mb-3">
                   <Col lg={6}>
+                    <FormLabel className="labelForm">User Type</FormLabel>
+                    <FormSelect name="usertype" value={formData.usertype} onChange={handleChange}>
+                      <option value="">Select</option>
+                      <option value="fees">Fees</option>
+                      <option value="other">Other</option>
+                    </FormSelect>
+                  </Col>
+                  <Col lg={6}>
+                    <FormLabel className="labelForm">Status</FormLabel>
+                    <FormSelect name="status" value={formData.status} onChange={handleChange}>
+                      <option value="">Select</option>
+                      <option value="active">Active</option>
+                      <option value="deactive">Deactive</option>
+                    </FormSelect>
+                  </Col>
+                </Row>
+                <Row className="mb-3">
+                  <Col lg={6}>
                     <FormLabel className="labelForm">Full Name</FormLabel>
                     <FormControl
                       type="text"
-                      name="full_name"
-                      value={formData.full_name}
+                      name="userfullname"
+                      value={formData.userfullname}
                       onChange={handleChange}
                     />
                   </Col>
                   <Col lg={6}>
                     <FormLabel className="labelForm">Upload User Image</FormLabel>
-                    <FormControl 
-                      type="file" 
-                      name="image" 
-                      onChange={handleChange} 
-                    />
+                    <FormControl type="file" name="userimg" onChange={handleChange} />
                   </Col>
                 </Row>
-                <Button 
-                  onClick={editingId ? () => handleUpdate(editingId) : handleAdd} 
-                  className="btn btn-primary"
-                >
-                  {editingId ? "Update User" : "Add User"}
-                </Button>
+
+                <Row className="mb-3">
+                  <Col lg={12} className="d-flex">
+                    <Button 
+                      onClick={editingId ? () => handleUpdate(editingId) : handleAdd} 
+                      className="btn btn-primary"
+                    >
+                      {editingId ? "Update User" : "Add User"}
+                    </Button>
+                  </Col>
+                </Row>
+
+                <Row className="mb-3">
+                  <Col lg={12}>
+                    <h5>Authorities</h5>
+                    {authorityGroups.map((group, groupIndex) => (
+                      <Row key={groupIndex} className="mb-2">
+                        {group.map((field) => (
+                          <Col lg={4} key={field} className="mb-2">
+                            <Form.Check
+                              type="checkbox"
+                              label={field.charAt(0).toUpperCase() + field.slice(1).replace(/([A-Z])/g, ' $1')}
+                              name={`authorities.${field}`}
+                              checked={formData.authorities[field] || false}
+                              onChange={handleChange}
+                              className="authority-checkbox"
+                            />
+                          </Col>
+                        ))}
+                      </Row>
+                    ))}
+                  </Col>
+                </Row>
               </Form>
             </div>
           )}
 
-          <div className="tableSheet">
-            <h2>User Records</h2>
-            {loading ? (
-              <p>Loading...</p>
-            ) : error ? (
-              <p style={{ color: "red" }}>{error}</p>
-            ) : (
-              <Table
-                columns={columns}
-                data={data}
-                handleCopy={handleCopy}
-                handlePrint={handlePrint}
-              />
-            )}
-          </div>
         </Container>
       </section>
     </>
