@@ -1395,6 +1395,11 @@ input::-webkit-inner-spin-button {
   padding: 12px 20px;
 }
 
+.bgPurple
+{
+  background: #635972;
+}
+
 .thought-of-day {
   min-height: 96px;
 }
