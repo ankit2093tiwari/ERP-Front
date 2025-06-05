@@ -8,110 +8,204 @@ import * as yup from 'yup';
 import { useEffect, useState } from 'react';
 import { getCastes, getCategories, getReligions } from '@/app/utils';
 import { motherTongueOptions } from '@/app/utils';
+import axios from 'axios';
+import Table from "@/app/component/DataTable";
+import { FaEdit, FaTrashAlt, FaEye } from "react-icons/fa";
+import { CgAddR } from 'react-icons/cg';
 
 // Validation Schema
 const schema = yup.object().shape({
     employee_code: yup.string().required("Employee Code is required"),
     employee_name: yup.string().required("Employee name is required"),
     date_of_birth: yup.string().required("Date of birth is required"),
-    father_name: yup.string().required("Father&apos;s name is required"),
+    father_name: yup.string().required("Father's name is required"),
     employee_email: yup.string().email("Invalid email format").required("Email is required"),
     gender: yup.string().required("Gender is required"),
-    // father_occupation: yup.string().required("Father&apos;s occupation is required"),
     nationality: yup.string().required("Nationality is required"),
     social_category: yup.string().required("Social Category is required"),
     mobile_no: yup.number().required("Mobile No. is required"),
     religion: yup.string().required("Religion is required"),
     caste: yup.string().required("Caste is required"),
-    // mother_tongue: yup.string().required("Mother tongue is required"),
-    // marital_status: yup.string().required("Marital status is required"),
     aadhar_number: yup.string().required("Aadhar number is required").matches(/^\d{12}$/, "Aadhar number must be exactly 12 digits"),
     permanent_address: yup.string().required("Permanent Address is required"),
-    correspondence_address: yup.string().notRequired(),
     profile_image: yup.mixed().test("required", "Profile Image is required", value => value && value.length > 0),
     aadhar_card_image: yup.mixed().test("required", "Aadhar Card Image is required", value => value && value.length > 0),
-    // wife_or_husband_name: yup.string().required("Wife&apos;s / Husband Name is required"),
-    // relation: yup.string().required("Relation is required"),
-    // mother_name: yup.string().required("Mother&apos;s Name is required"),
-    // telephone_no: yup.string().matches(/^[0-9]{10}$/, "Telephone No must be 10 digits").required("Telephone No is required"),
-    // emp_qualification: yup.string().required("Qualification is required"),
-    // subject: yup.string().required("Subject is required"),
-    // trained: yup.string().required("Trained field is required"),
-    // emp_percentage: yup.number().typeError("Percentage must be a number").min(0, "Percentage cannot be less than 0").max(100, "Percentage cannot be more than 100").required("Percentage is required"),
-    // emp_univercity_name: yup.string().required("University Name is required"),
-    // emp_experience: yup.string().required("Experience is required"),
-    // emp_bankname: yup.string().required("Bank Name is required"),
-    // emp_account_no: yup.string().required("Account Number is required"),
-    // emp_ifsc_code: yup.string().required("IFSC Code is required"),
-    // lic_policy_no: yup.string().required("Policy Number is required"),
-    // lic_amount: yup.number().typeError("Amount must be a number").required("Amount is required"),
-    // lic_start_date: yup.date().required("Start Date is required"),
-    // lic_end_date: yup.date().required("End Date is required"),
-    // lic_cancle_date: yup.date().required()
-    // appointment_date: yup.date().required("Appointment Date is required"),
-    // department: yup.string().required("Department is required"),
-    // category: yup.string().required("Category is required"),
-    // designation: yup.string().required("Designation is required"),
-    // nature_of_app: yup.string().required("Nature of Appointment is required"),
-    // pan_number: yup.string().matches(/[A-Z]{5}[0-9]{4}[A-Z]{1}/, "Enter a valid PAN number").required("PAN Number is required"),
-    // gross_pay: yup.number().typeError("Gross Pay must be a number"),
-    // net_pay: yup.number().typeError("Net Pay must be a number"),
-    // basic_pay: yup.number().typeError("Basic Pay must be a number"),
-    // bus_charge: yup.string().optional(),
-    // conv: yup.string().optional(),
-    // da: yup.string().optional(),
-    // da_arrear: yup.string().optional(),
-    // income_tax: yup.string().optional(),
-    // other_allow: yup.string().optional(),
-    // ptax: yup.string().optional(),
-    // pf_joining_date: yup.date().nullable().transform((curr, orig) => (orig === "" ? null : curr)).optional(),
-    // pf_type: yup.string().oneOf(["EPF", "VPF", "NPS", ""], "Invalid PF type").optional(),
-    // employee_pf_limit: yup.string().oneOf(["Yes", "No"]).optional(),
-    // employer_pf_limit: yup.string().oneOf(["Yes", "No"]).optional(),
-    // employee_pension_limit: yup.string().oneOf(["Yes", "No"]).optional(),
-    // mess_facility: yup.string().oneOf(["Yes", "No"]).optional(),
-    // salary_gen_applicable: yup.string().oneOf(["Yes", "No"]).optional(),
-    // esi: yup.string().oneOf(["Yes", "No"]).optional(),
 });
 
 const Employee = () => {
     const breadcrumbItems = [
         { label: "hrd", link: "/hrd/allModule" },
-        { label: "add-new-employee", link: "null" },
+        { label: "Employee Management", link: "null" },
     ];
+
     const {
         register,
         handleSubmit,
+        reset,
         formState: { errors },
     } = useForm({
         resolver: yupResolver(schema),
     });
 
-    const [allCategories, setAllCategories] = useState([])
-    const [allReligions, setAllReligions] = useState([])
-    const [allCastes, setAllcastes] = useState([])
-    const fetchCategories = async () => {
-        const response = await getCategories()
-        setAllCategories(response?.data);
-    }
-    const fetchReligions = async () => {
-        const response = await getReligions()
-        setAllReligions(response?.data);
-    }
-    const fetchCastes = async () => {
-        const response = await getCastes()
-        setAllcastes(response?.data);
-    }
-    const motherTongues = motherTongueOptions()
-    useEffect(() => {
-        fetchCategories()
-        fetchReligions()
-        fetchCastes()
-    }, [])
+    const [allCategories, setAllCategories] = useState([]);
+    const [allReligions, setAllReligions] = useState([]);
+    const [allCastes, setAllcastes] = useState([]);
+    const [employees, setEmployees] = useState([]);
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
+    const [isFormOpen, setIsFormOpen] = useState(false);
+    const [editMode, setEditMode] = useState(false);
+    const [currentEmployeeId, setCurrentEmployeeId] = useState(null);
 
-    const addnewEmployee = (data) => {
-        console.log("Form Submitted:", data);
+    const fetchCategories = async () => {
+        const response = await getCategories();
+        setAllCategories(response?.data);
     };
+
+    const fetchReligions = async () => {
+        const response = await getReligions();
+        setAllReligions(response?.data);
+    };
+
+    const fetchCastes = async () => {
+        const response = await getCastes();
+        setAllcastes(response?.data);
+    };
+
+    const fetchEmployees = async () => {
+        setLoading(true);
+        try {
+            const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-employee");
+            setEmployees(response.data.data || []);
+        } catch (err) {
+            setError("Failed to fetch employees");
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleCreateEmployee = async (data) => {
+        try {
+            const formData = new FormData();
+            Object.keys(data).forEach(key => {
+                if (key === 'profile_image' || key === 'aadhar_card_image') {
+                    formData.append(key, data[key][0]);
+                } else {
+                    formData.append(key, data[key]);
+                }
+            });
+
+            await axios.post("https://erp-backend-fy3n.onrender.com/api/create-employee", formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+            fetchEmployees();
+            reset();
+            setIsFormOpen(false);
+        } catch (error) {
+            setError(error.response?.data?.message || "Failed to create employee");
+        }
+    };
+
+    const handleUpdateEmployee = async (data) => {
+        try {
+            const formData = new FormData();
+            Object.keys(data).forEach(key => {
+                if (key === 'profile_image' || key === 'aadhar_card_image') {
+                    if (data[key][0]) {
+                        formData.append(key, data[key][0]);
+                    }
+                } else {
+                    formData.append(key, data[key]);
+                }
+            });
+
+            await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-employee/${currentEmployeeId}`, formData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
+            fetchEmployees();
+            reset();
+            setIsFormOpen(false);
+            setEditMode(false);
+        } catch (error) {
+            setError(error.response?.data?.message || "Failed to update employee");
+        }
+    };
+
+    const handleDeleteEmployee = async (id) => {
+        if (confirm("Are you sure you want to delete this employee?")) {
+            try {
+                await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-employee/${id}`);
+                fetchEmployees();
+            } catch (error) {
+                setError(error.response?.data?.message || "Failed to delete employee");
+            }
+        }
+    };
+
+    const handleEditEmployee = (employee) => {
+        setEditMode(true);
+        setCurrentEmployeeId(employee._id);
+        reset(employee);
+        setIsFormOpen(true);
+    };
+
+    const handleViewEmployee = (employee) => {
+        // Implement view functionality if needed
+        console.log("View employee:", employee);
+    };
+
+    const columns = [
+        {
+            name: "#",
+            selector: (row, index) => index + 1,
+            sortable: false,
+            width: "80px",
+        },
+        {
+            name: "Employee Code",
+            selector: (row) => row.employee_code || "N/A",
+            sortable: true,
+        },
+        {
+            name: "Employee Name",
+            selector: (row) => row.employee_name || "N/A",
+            sortable: true,
+        },
+        {
+            name: "Email",
+            selector: (row) => row.employee_email || "N/A",
+            sortable: true,
+        },
+        {
+            name: "Mobile",
+            selector: (row) => row.mobile_no || "N/A",
+            sortable: true,
+        },
+        {
+            name: "Actions",
+            cell: (row) => (
+                <div className="d-flex gap-2">
+                    <button className="editButton" onClick={() => handleEditEmployee(row)}>
+                        <FaEdit />
+                    </button>
+                    <button className="editButton btn-danger" onClick={() => handleDeleteEmployee(row._id)}>
+                        <FaTrashAlt />
+                    </button>
+                </div>
+            ),
+        },
+    ];
+
+    useEffect(() => {
+        fetchCategories();
+        fetchReligions();
+        fetchCastes();
+        fetchEmployees();
+    }, []);
 
     return (
         <>
@@ -129,10 +223,35 @@ const Employee = () => {
                 <Container>
                     <Row>
                         <Col>
-                            <Tabs defaultActiveKey="Basic Details" id="controlled-tab" className="mb-3">
-                                <Tab eventKey="Basic Details" title="Basic Details" className="cover-sheet">
-                                    <Form className="p-4" onSubmit={handleSubmit(addnewEmployee)}>
-                                        {/* Row 1 */}
+                            <Button
+                                onClick={() => {
+                                    setIsFormOpen(true);
+                                    setEditMode(false);
+                                    reset();
+                                }}
+                                className="btn-add mb-3"
+                            >
+                                <CgAddR /> Add New Employee
+                            </Button>
+
+                            {isFormOpen && (
+                                <div className="cover-sheet mb-4">
+                                    <div className="studentHeading">
+                                        <h2>{editMode ? "Edit Employee" : "Add New Employee"}</h2>
+                                        <button
+                                            className="closeForm"
+                                            onClick={() => {
+                                                setIsFormOpen(false);
+                                                reset();
+                                            }}
+                                        >
+                                            X
+                                        </button>
+                                    </div>
+                                    <Form
+                                        className="p-4"
+                                        onSubmit={handleSubmit(editMode ? handleUpdateEmployee : handleCreateEmployee)}
+                                    >
                                         <Row>
                                             <FormGroup as={Col} md="3" controlId="employee_name">
                                                 <FormLabel className="labelForm">Employee Code</FormLabel>
@@ -912,22 +1031,40 @@ const Employee = () => {
                                             </Col>
                                         </Row>
 
-                                        {/* Submit Buttons */}
                                         <Row>
                                             <Col>
                                                 <div className="buttons1">
-                                                    <Button type="button" className="btn btn-primary mt-4">
-                                                        Preview
+                                                    <Button
+                                                        type="button"
+                                                        className="btn btn-secondary mt-4"
+                                                        onClick={() => {
+                                                            setIsFormOpen(false);
+                                                            reset();
+                                                        }}
+                                                    >
+                                                        Cancel
                                                     </Button>
                                                     <Button type="submit" className="btn btn-primary mt-4">
-                                                        Submit form
+                                                        {editMode ? "Update Employee" : "Add Employee"}
                                                     </Button>
                                                 </div>
                                             </Col>
                                         </Row>
                                     </Form>
-                                </Tab>
-                            </Tabs>
+                                </div>
+                            )}
+
+                            <div className="tableSheet">
+                                <h2>Employee Records</h2>
+                                {loading && <p>Loading...</p>}
+                                {error && <p className="text-danger">{error}</p>}
+                                {!loading && !error && (
+                                    <Table
+                                        columns={columns}
+                                        data={employees}
+                                    />
+                                )}
+                            </div>
                         </Col>
                     </Row>
                 </Container>
