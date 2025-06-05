@@ -2,86 +2,31 @@
 
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import styles from "@/app/medical/routine-check-up/page.module.css";
 import Table from "@/app/component/DataTable";
-import { FaEdit, FaTrashAlt } from "react-icons/fa";
-import { Form, Row, Col, Container, FormLabel, FormControl, Button, Breadcrumb } from "react-bootstrap";
+import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
+import { Form, Row, Col, Container, FormLabel, FormControl, Button } from "react-bootstrap";
 import axios from "axios";
 import { CgAddR } from 'react-icons/cg';
+import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const RackAndShelfManager = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [newRackName, setNewRackName] = useState("");
-  const [newShelfName, setNewShelfName] = useState("");
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+  
+  // Form state
+  const [formData, setFormData] = useState({
+    rackName: '',
+    shelfName: ''
+  });
 
-  const fetchData = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/rack-shelf");
-      setData(response.data.data || []);
-    } catch (err) {
-      setError("Failed to fetch data.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAdd = async () => {
-    if (newRackName.trim() || newShelfName.trim()) {
-      try {
-        const payload = { rackName: newRackName, shelfName: newShelfName };
-        const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/rack-shelf", payload);
-        setData((prevData) => [...prevData, response.data]);
-        setNewRackName("");
-        setNewShelfName("");
-        setShowAddForm(false);
-      } catch (error) {
-        setError("Failed to add data.");
-      }
-    } else {
-      alert("Please enter valid details for rack or shelf.");
-    }
-  };
-
-  const handleEdit = async (id) => {
-    const item = data.find((row) => row._id === id);
-    const updatedRackName = prompt("Enter new rack name:", item?.rackName || "");
-    const updatedShelfName = prompt("Enter new shelf name:", item?.shelfName || "");
-
-    if (updatedRackName || updatedShelfName) {
-      try {
-        await axios.put(`https://erp-backend-fy3n.onrender.com/api/rack-shelf/${id}`, {
-          rackName: updatedRackName || item.rackName,
-          shelfName: updatedShelfName || item.shelfName,
-        });
-        setData((prevData) =>
-          prevData.map((row) =>
-            row._id === id
-              ? { ...row, rackName: updatedRackName || row.rackName, shelfName: updatedShelfName || row.shelfName }
-              : row
-          )
-        );
-      } catch (error) {
-        setError("Failed to update data.");
-      }
-    }
-  };
-
-  const handleDelete = async (id) => {
-    if (confirm("Are you sure?")) {
-      try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/rack-shelf/${id}`);
-        setData((prevData) => prevData.filter((row) => row._id !== id));
-      } catch (error) {
-        setError("Failed to delete data.");
-      }
-    }
-  };
+  const [editData, setEditData] = useState({
+    rackName: '',
+    shelfName: ''
+  });
 
   const columns = [
     {
@@ -92,21 +37,43 @@ const RackAndShelfManager = () => {
     },
     {
       name: "Rack Name",
-      selector: (row) => row.rackName || "N/A",
+      cell: (row) => editingId === row._id ? (
+        <FormControl
+          type="text"
+          value={editData.rackName}
+          onChange={(e) => setEditData({...editData, rackName: e.target.value})}
+        />
+      ) : (
+        row.rackName || "N/A"
+      ),
       sortable: true,
     },
     {
       name: "Shelf Name",
-      selector: (row) => row.shelfName || "N/A",
+      cell: (row) => editingId === row._id ? (
+        <FormControl
+          type="text"
+          value={editData.shelfName}
+          onChange={(e) => setEditData({...editData, shelfName: e.target.value})}
+        />
+      ) : (
+        row.shelfName || "N/A"
+      ),
       sortable: true,
     },
     {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
-          <button className="editButton" onClick={() => handleEdit(row._id)}>
-            <FaEdit />
-          </button>
+          {editingId === row._id ? (
+            <button className="editButton" onClick={() => handleSave(row._id)}>
+              <FaSave />
+            </button>
+          ) : (
+            <button className="editButton" onClick={() => handleEdit(row)}>
+              <FaEdit />
+            </button>
+          )}
           <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
             <FaTrashAlt />
           </button>
@@ -115,11 +82,127 @@ const RackAndShelfManager = () => {
     },
   ];
 
+  const handlePrint = async () => {
+    const tableHeaders = [["#", "Rack Name", "Shelf Name"]];
+    const tableRows = data.map((row, index) => [
+      index + 1,
+      row.rackName || "N/A",
+      row.shelfName || "N/A",
+    ]);
+
+    printContent(tableHeaders, tableRows);
+  };
+
+  const handleCopy = () => {
+    const headers = ["#", "Rack Name", "Shelf Name"];
+    const rows = data.map((row, index) => 
+      `${index + 1}\t${row.rackName || "N/A"}\t${row.shelfName || "N/A"}`
+    );
+
+    copyContent(headers, rows);
+  };
+
+  // Fetch data from the backend
+  const fetchData = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/rack-shelf");
+      setData(response.data.data || []);
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to fetch rack & shelf data.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle edit action
+  const handleEdit = (row) => {
+    setEditingId(row._id);
+    setEditData({
+      rackName: row.rackName,
+      shelfName: row.shelfName
+    });
+  };
+
+  // Handle save action
+  const handleSave = async (id) => {
+    if (!editData.rackName && !editData.shelfName) {
+      setError("At least one field (Rack Name or Shelf Name) is required");
+      return;
+    }
+
+    try {
+      const response = await axios.put(
+        `https://erp-backend-fy3n.onrender.com/api/rack-shelf/${id}`,
+        editData
+      );
+      
+      setData(prevData => 
+        prevData.map(row => 
+          row._id === id ? response.data.data : row
+        )
+      );
+      setEditingId(null);
+      fetchData();
+    } catch (error) {
+      setError(error.response?.data?.message || "Failed to update rack/shelf. Please try again.");
+    }
+  };
+
+  // Handle delete action
+  const handleDelete = async (id) => {
+    if (confirm("Are you sure you want to delete this rack/shelf?")) {
+      try {
+        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/rack-shelf/${id}`);
+        setData(prevData => prevData.filter(row => row._id !== id));
+        fetchData();
+      } catch (error) {
+        setError(error.response?.data?.message || "Failed to delete rack/shelf. Please try again.");
+      }
+    }
+  };
+
+  // Handle add action
+  const handleAdd = async () => {
+    if (!formData.rackName && !formData.shelfName) {
+      setError("At least one field (Rack Name or Shelf Name) is required");
+      return;
+    }
+
+    try {
+      const response = await axios.post(
+        "https://erp-backend-fy3n.onrender.com/api/rack-shelf",
+        formData
+      );
+      
+      setData(prevData => [...prevData, response.data.data]);
+      setFormData({ rackName: '', shelfName: '' });
+      setIsPopoverOpen(false);
+      fetchData();
+    } catch (error) {
+      setError(error.response?.data?.message || "Failed to add rack/shelf. Please try again.");
+    }
+  };
+
+  // Handle form input changes
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value
+    });
+  };
+
+  // Fetch data on component mount
   useEffect(() => {
     fetchData();
   }, []);
 
-  const breadcrumbItems = [{ label: "Library", link: "/library/all-module" }, { label: "Rack Master", link: "null" }]
+  const breadcrumbItems = [
+    { label: "Library", link: "/library/all-module" }, 
+    { label: "Rack & Shelf Master", link: null }
+  ];
 
   return (
     <>
@@ -134,50 +217,67 @@ const RackAndShelfManager = () => {
       </div>
       <section>
         <Container>
-          <Button onClick={() => setShowAddForm(true)} className="btn-add">
-            <CgAddR /> Add Rack / Shelf
+          <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
+            <CgAddR /> Add Rack/Shelf
           </Button>
-          {showAddForm && (
+
+          {isPopoverOpen && (
             <div className="cover-sheet">
               <div className="studentHeading">
-                <h2>Add Rack / Shelf</h2>
-                <button className="closeForm" onClick={() => setShowAddForm(false)}>
+                <h2>Add New Rack/Shelf</h2>
+                <button
+                  className="closeForm"
+                  onClick={() => {
+                    setIsPopoverOpen(false);
+                    setError("");
+                  }}
+                >
                   X
                 </button>
               </div>
               <Form className="formSheet">
-                <Row>
+                <Row className="mb-3">
                   <Col lg={6}>
                     <FormLabel className="labelForm">Rack Name</FormLabel>
                     <FormControl
                       type="text"
+                      name="rackName"
                       placeholder="Enter Rack Name"
-                      value={newRackName}
-                      onChange={(e) => setNewRackName(e.target.value)}
+                      value={formData.rackName}
+                      onChange={handleInputChange}
                     />
                   </Col>
                   <Col lg={6}>
                     <FormLabel className="labelForm">Shelf Name</FormLabel>
                     <FormControl
                       type="text"
+                      name="shelfName"
                       placeholder="Enter Shelf Name"
-                      value={newShelfName}
-                      onChange={(e) => setNewShelfName(e.target.value)}
+                      value={formData.shelfName}
+                      onChange={handleInputChange}
                     />
                   </Col>
                 </Row>
-                <Button onClick={handleAdd} className="btn btn-primary mt-3">
-                  Add Rack / Shelf
+                {error && <p className="text-danger">{error}</p>}
+                <Button onClick={handleAdd} className="btn btn-primary">
+                  Add Rack/Shelf
                 </Button>
               </Form>
             </div>
           )}
 
-          <div className="tableSheet mt-4">
+          <div className="tableSheet">
             <h2>Rack & Shelf Records</h2>
             {loading && <p>Loading...</p>}
-            {error && <p>{error}</p>}
-            {!loading && !error && <Table columns={columns} data={data} />}
+            {error && <p className="text-danger">{error}</p>}
+            {!loading && !error && (
+              <Table 
+                columns={columns} 
+                data={data} 
+                handleCopy={handleCopy} 
+                handlePrint={handlePrint} 
+              />
+            )}
           </div>
         </Container>
       </section>

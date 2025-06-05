@@ -189,6 +189,7 @@ const StudentVehicle = () => {
         vehicle_route: '',
         pickUpPoint: ''
       });
+      fetchStudentVehicles();
       setError("");
     } catch (err) {
       console.error("Error creating student vehicle relation:", err);
@@ -219,6 +220,7 @@ const StudentVehicle = () => {
 
       fetchStudentVehicles();
       setEditRowId(null);
+      fetchStudentVehicles();
       setError("");
     } catch (err) {
       console.error("Error updating student vehicle relation:", err);
@@ -231,6 +233,7 @@ const StudentVehicle = () => {
       try {
         await axios.delete(`${API_BASE_URL}/student-vehicle/${id}`);
         setData(prevData => prevData.filter(item => item._id !== id));
+        fetchStudentVehicles();
         setError("");
       } catch (err) {
         console.error("Error deleting student vehicle relation:", err);

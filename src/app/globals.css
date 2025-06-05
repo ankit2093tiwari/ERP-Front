@@ -1395,6 +1395,10 @@ input::-webkit-inner-spin-button {
   padding: 12px 20px;
 }
 
+.rightNavbar .dropdown-toggle:after{
+  content:none;
+}
+
 .bgPurple
 {
   background: #635972;
