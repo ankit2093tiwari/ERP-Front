@@ -388,7 +388,7 @@ const AddUser = () => {
 
                 <Row className="mb-3">
                   <Col lg={12}>
-                    <h5>Authorities</h5>
+                    <h5>All Authority For :</h5>
                     {authorityGroups.map((group, groupIndex) => (
                       <Row key={groupIndex} className="mb-2">
                         {group.map((field) => (
