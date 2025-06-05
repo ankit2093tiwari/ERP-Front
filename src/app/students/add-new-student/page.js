@@ -339,57 +339,6 @@ const StudentMasterPage = () => {
   };
 
 
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   if (!validateForm()) return;
-
-  //   try {
-  //     const formData = new FormData();
-
-  //     // Append all form fields except the profile_Pic
-  //     Object.entries(student).forEach(([key, value]) => {
-  //       if (key !== 'profile_Pic' && value !== undefined && value !== null) {
-  //         formData.append(key, value);
-  //       }
-  //     });
-
-  //     // Append profile picture only if it is a File instance
-  //     if (student.profile_Pic instanceof File) {
-  //       formData.append('profile_Pic', student.profile_Pic);
-  //     }
-
-  //     // Determine if this is a create or update action
-  //     const isUpdate = !!student._id;
-  //     const endpoint = "https://erp-backend-fy3n.onrender.com/api/students";
-  //     const url = isUpdate ? `${endpoint}/${student._id}` : endpoint;
-  //     const method = isUpdate ? "put" : "post";
-
-  //     const response = await axios({
-  //       method,
-  //       url,
-  //       data: formData,
-  //       headers: {
-  //         'Content-Type': 'multipart/form-data',
-  //         'Authorization': `Bearer ${TOKEN}`,
-  //       },
-
-  //     });
-
-  //     if (response.data.success) {
-  //       toast.success(`Student ${isUpdate ? "Updated" : "Created"} Successfully`);
-  //       // fetchData();
-  //       setStudent(initialStudentState);
-  //     } else {
-  //       throw new Error(response.data.message || "Operation failed");
-  //     }
-  //   } catch (err) {
-  //     const errorMessage = err.response?.data?.message || err.message || "Failed to submit data";
-  //     console.error("Upload error:", err);
-  //     setError(errorMessage);
-  //     toast.error(errorMessage);
-  //   }
-  // };
-
   const handleEdit = async (id) => {
     try {
       const response = await axios.get(`${process.env.NEXT_PUBLIC_SITE_URL}/students/${id}`);
@@ -594,7 +543,8 @@ const StudentMasterPage = () => {
                           <p className="error"> {studentError.phone_no_error}</p>
                         </FormGroup>
                       </Row>
-                      <Row >
+                      <Row>
+                        {/* Select Class */}
                         <FormGroup as={Col} md="3" controlId="validationCustom08">
                           <FormLabel className="labelForm">Select Class</FormLabel>
                           <FormSelect
@@ -603,7 +553,7 @@ const StudentMasterPage = () => {
                             name="class_name"
                           >
                             <option value="">Select Class</option>
-                            {classList?.length && classList?.map((classItem) => (
+                            {classList?.length > 0 && classList.map((classItem) => (
                               <option key={classItem?._id} value={classItem?._id}>
                                 {classItem?.class_name}
                               </option>
@@ -611,13 +561,24 @@ const StudentMasterPage = () => {
                           </FormSelect>
                           <p className="error">{studentError.class_name_error}</p>
                         </FormGroup>
+
+                        {/* Select Section */}
                         <FormGroup as={Col} md="3" controlId="validationCustom09">
                           <FormLabel className="labelForm">Select Section</FormLabel>
                           <FormSelect
                             value={student.section_name}
-                            onChange={(e) =>
-                              setStudent({ ...student, section_name: e.target.value })
-                            }
+                            onChange={(e) => {
+                              const selectedValue = e.target.value;
+                              setStudent((prev) => ({
+                                ...prev,
+                                section_name: selectedValue,
+                              }));
+                              setStudentError((prev) => ({
+                                ...prev,
+                                section_name_error: "",
+                              }));
+                            }}
+ 
                           >
                             <option value="">Select Section</option>
                             {sectionList?.length > 0 && sectionList?.map((sectionItem) => (
@@ -626,8 +587,11 @@ const StudentMasterPage = () => {
                               </option>
                             ))}
                           </FormSelect>
+ 
                           <p className="error">{studentError.section_name_error}</p>
                         </FormGroup>
+
+                        {/* Date of Birth */}
                         <FormGroup as={Col} md="3" controlId="validationCustom10">
                           <FormLabel className="labelForm">Date Of Birth</FormLabel>
                           <FormControl
@@ -636,32 +600,27 @@ const StudentMasterPage = () => {
                             type="date"
                             name="date_of_birth"
                             placeholder="Date of Birth"
-                            max={new Date().toISOString().split("T")[0]} // This ensures only past dates
+                            max={new Date().toISOString().split("T")[0]} // Ensure only past dates
                           />
-                          <p className="error"> {studentError.date_of_birth_error}</p>
+                          <p className="error">{studentError.date_of_birth_error}</p>
                         </FormGroup>
 
-                        <FormGroup as={Col} md="3" controlId="validationCustom11">
-                          <FormLabel className="labelForm">Gender</FormLabel><br />
-                          <FormCheck
-                            type="radio"
-                            name="gender_name"
-                            value="Male"
-                            label="Male"
-                            checked={student.gender_name == "Male"}
-                            onChange={handleRadioChange}
-                            inline
-                          />
-                          <FormCheck
-                            type="radio"
-                            name="gender_name"
-                            value="Female"
-                            label="Female"
-                            checked={student.gender_name == "Female"}
-                            onChange={handleRadioChange}
-                            inline
-                          />
-                          <p className="error"> {studentError.gender_name_error}</p>
+                        {/* Gender Radio Buttons */}
+                        <FormGroup as={Col} md="3">
+                          <FormLabel className="labelForm d-block">Gender</FormLabel>
+                          <div className="d-flex gap-3">
+                            <FormCheck type="radio" id="male" name="gender_name" value="Male"
+                              label="Male"
+                              checked={student.gender_name === "Male"}
+                              onChange={handleRadioChange}
+                            />
+                            <FormCheck type="radio" id="female" name="gender_name" value="Female"
+                              label="Female"
+                              checked={student.gender_name === "Female"}
+                              onChange={handleRadioChange}
+                            />
+                          </div>
+                          <p className="error">{studentError.gender_name_error}</p>
                         </FormGroup>
                       </Row>
                       <Row >
