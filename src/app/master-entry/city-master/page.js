@@ -41,28 +41,32 @@ const StateCityMasterPage = () => {
     {
       name: "State Name",
       cell: (row) => (
-        <div>
-          {editingState && editingState._id === row._id ? (
-            <FormControl
-              type="text"
-              value={formData.state_name}
-              onChange={(e) => setFormData({...formData, state_name: e.target.value})}
-            />
-          ) : (
-            row.state_name || "N/A"
-          )}
-          {editingState && editingState._id === row._id ? (
-            <button className="editButton ms-2" onClick={() => handleUpdateState(row._id)}>
-              <FaSave />
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
+          <div>
+            {editingState && editingState._id === row._id ? (
+              <FormControl
+                type="text"
+                value={formData.state_name}
+                onChange={(e) => setFormData({ ...formData, state_name: e.target.value })}
+              />
+            ) : (
+              row.state_name || "N/A"
+            )}
+          </div>
+          <div>
+            {editingState && editingState._id === row._id ? (
+              <button className="editButton ms-2" onClick={() => handleUpdateState(row._id)}>
+                <FaSave />
+              </button>
+            ) : (
+              <button className="editButton ms-2" onClick={() => handleEditState(row)}>
+                <FaEdit />
+              </button>
+            )}
+            <button className="editButton btn-danger ms-2" onClick={() => handleDeleteState(row._id)}>
+              <FaTrashAlt />
             </button>
-          ) : (
-            <button className="editButton ms-2" onClick={() => handleEditState(row)}>
-              <FaEdit />
-            </button>
-          )}
-          <button className="editButton btn-danger ms-2" onClick={() => handleDeleteState(row._id)}>
-            <FaTrashAlt />
-          </button>
+          </div>
         </div>
       ),
       sortable: true,
@@ -70,50 +74,61 @@ const StateCityMasterPage = () => {
     {
       name: "Cities",
       cell: (row) => (
-        <div>
+        <div className="classSpace">
           {row.cities && row.cities.length > 0 ? (
             row.cities.map((city, index) => (
-              <div key={index} className="mb-2">
-                {editingCity && editingCity._id === city?._id ? (
-                  <div className="d-flex align-items-center gap-2">
-                    <FormControl
-                      as="select"
-                      value={formData.state_id}
-                      onChange={(e) => setFormData({...formData, state_id: e.target.value})}
-                      className="flex-grow-1"
-                    >
-                      <option value="">Select State</option>
-                      {data.map((state) => (
-                        <option key={state._id} value={state._id}>
-                          {state.state_name}
-                        </option>
-                      ))}
-                    </FormControl>
-                    <FormControl
-                      type="text"
-                      value={formData.city_name}
-                      onChange={(e) => setFormData({...formData, city_name: e.target.value})}
-                      className="flex-grow-1"
-                      placeholder="City Name"
-                    />
-                    <button className="editButton" onClick={() => handleUpdateCity(city._id)}>
-                      <FaSave />
-                    </button>
-                    <button className="editButton btn-danger" onClick={() => setEditingCity(null)}>
-                      Cancel
-                    </button>
-                  </div>
-                ) : (
-                  <div className="d-flex align-items-center gap-2">
+              <div
+                key={index}
+                className="mb-2"
+                style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}
+              >
+                <div className="flex-grow-1">
+                  {editingCity && editingCity._id === city?._id ? (
+                    <div className="d-flex align-items-center gap-2">
+                      <FormControl
+                        as="select"
+                        value={formData.state_id}
+                        onChange={(e) => setFormData({ ...formData, state_id: e.target.value })}
+                      >
+                        <option value="">Select State</option>
+                        {data.map((state) => (
+                          <option key={state._id} value={state._id}>
+                            {state.state_name}
+                          </option>
+                        ))}
+                      </FormControl>
+                      <FormControl
+                        type="text"
+                        value={formData.city_name}
+                        onChange={(e) => setFormData({ ...formData, city_name: e.target.value })}
+                        placeholder="City Name"
+                      />
+                    </div>
+                  ) : (
                     <span>{city?.city_name || "N/A"}</span>
-                    <button className="editButton" onClick={() => handleEditCity(city)}>
-                      <FaEdit />
-                    </button>
-                    <button className="editButton btn-danger" onClick={() => handleDeleteCity(city?._id)}>
-                      <FaTrashAlt />
-                    </button>
-                  </div>
-                )}
+                  )}
+                </div>
+                <div className="d-flex gap-2">
+                  {editingCity && editingCity._id === city?._id ? (
+                    <>
+                      <button className="editButton" onClick={() => handleUpdateCity(city._id)}>
+                        <FaSave />
+                      </button>
+                      <button className="editButton btn-danger" onClick={() => setEditingCity(null)}>
+                        Cancel
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <button className="editButton" onClick={() => handleEditCity(city)}>
+                        <FaEdit />
+                      </button>
+                      <button className="editButton btn-danger" onClick={() => handleDeleteCity(city?._id)}>
+                        <FaTrashAlt />
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
             ))
           ) : (
@@ -123,6 +138,7 @@ const StateCityMasterPage = () => {
       ),
     },
   ];
+
 
   const fetchData = async () => {
     setLoading(true);
@@ -166,7 +182,7 @@ const StateCityMasterPage = () => {
         state_name: formData.state_name,
       });
       fetchData();
-      setFormData({...formData, state_name: ""});
+      setFormData({ ...formData, state_name: "" });
       setIsStateFormOpen(false);
     } catch (err) {
       console.error("Error adding state:", err);
@@ -186,7 +202,7 @@ const StateCityMasterPage = () => {
         city_name: formData.city_name,
       });
       fetchData();
-      setFormData({...formData, city_name: "", state_id: ""});
+      setFormData({ ...formData, city_name: "", state_id: "" });
       setIsCityFormOpen(false);
     } catch (err) {
       console.error("Error adding city:", err);
@@ -226,7 +242,7 @@ const StateCityMasterPage = () => {
       });
       fetchData();
       setEditingState(null);
-      setFormData({...formData, state_name: ""});
+      setFormData({ ...formData, state_name: "" });
     } catch (err) {
       console.error("Error updating state:", err);
       setError(err.response?.data?.message || "Failed to update state. Please try again later.");
@@ -247,7 +263,7 @@ const StateCityMasterPage = () => {
       });
       fetchData();
       setEditingCity(null);
-      setFormData({...formData, city_name: "", state_id: ""});
+      setFormData({ ...formData, city_name: "", state_id: "" });
     } catch (err) {
       console.error("Error updating city:", err);
       setError(err.response?.data?.message || "Failed to update city. Please try again later.");
@@ -292,7 +308,7 @@ const StateCityMasterPage = () => {
 
   const handleCopy = () => {
     const headers = ["#", "State Name", "Cities"];
-    const rows = data.map((state, index) => 
+    const rows = data.map((state, index) =>
       `${index + 1}\t${state?.state_name || "N/A"}\t${state?.cities?.map(c => c?.city_name).join(", ") || "N/A"}`
     );
     copyContent(headers, rows);
@@ -344,7 +360,7 @@ const StateCityMasterPage = () => {
                   onClick={() => {
                     setIsStateFormOpen(false);
                     setError("");
-                    setFormData({...formData, state_name: ""});
+                    setFormData({ ...formData, state_name: "" });
                     setEditingState(null);
                   }}
                 >
@@ -360,14 +376,14 @@ const StateCityMasterPage = () => {
                       placeholder="Enter State Name"
                       value={formData.state_name}
                       onChange={(e) =>
-                        setFormData({...formData, state_name: e.target.value})
+                        setFormData({ ...formData, state_name: e.target.value })
                       }
                     />
                   </Col>
                 </Row>
                 {error && <div className="text-danger mb-3">{error}</div>}
-                <Button 
-                  onClick={editingState ? () => handleUpdateState(editingState?._id) : handleAddState} 
+                <Button
+                  onClick={editingState ? () => handleUpdateState(editingState?._id) : handleAddState}
                   className="btn btn-primary"
                 >
                   {editingState ? "Update State" : "Add State"}
@@ -385,7 +401,7 @@ const StateCityMasterPage = () => {
                   onClick={() => {
                     setIsCityFormOpen(false);
                     setError("");
-                    setFormData({...formData, city_name: "", state_id: ""});
+                    setFormData({ ...formData, city_name: "", state_id: "" });
                     setEditingCity(null);
                   }}
                 >
@@ -400,7 +416,7 @@ const StateCityMasterPage = () => {
                       as="select"
                       value={formData.state_id}
                       onChange={(e) =>
-                        setFormData({...formData, state_id: e.target.value})
+                        setFormData({ ...formData, state_id: e.target.value })
                       }
                     >
                       <option value="">Select State</option>
@@ -420,14 +436,14 @@ const StateCityMasterPage = () => {
                       placeholder="Enter City Name"
                       value={formData.city_name}
                       onChange={(e) =>
-                        setFormData({...formData, city_name: e.target.value})
+                        setFormData({ ...formData, city_name: e.target.value })
                       }
                     />
                   </Col>
                 </Row>
                 {error && <div className="text-danger mb-3">{error}</div>}
-                <Button 
-                  onClick={editingCity ? () => handleUpdateCity(editingCity?._id) : handleAddCity} 
+                <Button
+                  onClick={editingCity ? () => handleUpdateCity(editingCity?._id) : handleAddCity}
                   className="btn btn-primary"
                 >
                   {editingCity ? "Update City" : "Add City"}

@@ -2,12 +2,22 @@
 
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { Form, Row, Col, Container, FormLabel, FormControl, Button, Alert } from "react-bootstrap";
+import {
+  Form,
+  Row,
+  Col,
+  Container,
+  FormLabel,
+  FormControl,
+  Button,
+  Alert,
+} from "react-bootstrap";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { useRouter } from "next/navigation";
 
 const SchoolInfo = () => {
   const router = useRouter();
+
   const [school, setSchool] = useState({
     school_name: "",
     phone_no: "",
@@ -20,7 +30,7 @@ const SchoolInfo = () => {
     branch_name: "",
     logo_image: null,
     logo_file: null,
-    contentType: ""
+    contentType: "",
   });
 
   const [errors, setErrors] = useState({});
@@ -33,19 +43,10 @@ const SchoolInfo = () => {
     const fetchSchoolData = async () => {
       try {
         const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/schools/all");
-
-
         if (response.data.success && response.data.data?.length > 0) {
           const schoolData = response.data.data[0];
-          const logoUrl = schoolData.logo_image.data;
+          const logoUrl = schoolData.logo_image?.data;
           setHasExistingSchool(true);
-
-          // Convert base64 logo data to URL if exists
-          // let logoUrl = "";
-          // if (schoolData.logo_image?.data) {
-          //   logoUrl = `data:${schoolData.logo_image.contentType};base64,${schoolData.logo_image.data}`;
-          // }
-
           setSchool({
             ...schoolData,
             logo_file: null,
@@ -58,7 +59,7 @@ const SchoolInfo = () => {
         console.error("Error fetching school data:", error);
         setMessage({
           text: error.response?.data?.message || "Failed to load school information",
-          variant: "danger"
+          variant: "danger",
         });
       }
     };
@@ -68,24 +69,22 @@ const SchoolInfo = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setSchool(prev => ({ ...prev, [name]: value }));
-    setErrors(prev => ({ ...prev, [name]: "" }));
+    setSchool((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
   const handleFileChange = (e) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
       const reader = new FileReader();
-
       reader.onload = (event) => {
-        setSchool(prev => ({
+        setSchool((prev) => ({
           ...prev,
           logo_file: file,
           logo_image: event.target.result,
-          contentType: file.type
+          contentType: file.type,
         }));
       };
-
       reader.readAsDataURL(file);
     }
   };
@@ -93,22 +92,32 @@ const SchoolInfo = () => {
   const validateForm = () => {
     const newErrors = {};
     const requiredFields = [
-      'school_name', 'phone_no', 'email_name', 'account_no',
-      'ifsc_code', 'bank_name', 'branch_name', 'address'
+      "school_name",
+      "phone_no",
+      "email_name",
+      "account_no",
+      "ifsc_code",
+      "bank_name",
+      "branch_name",
+      "address",
     ];
 
-    requiredFields.forEach(field => {
+    requiredFields.forEach((field) => {
       if (!school[field]) {
-        newErrors[field] = `${field.replace('_', ' ')} is required`;
+        newErrors[field] = `${field.replace("_", " ")} is required`;
       }
     });
 
     if (school.phone_no && !/^\d{10}$/.test(school.phone_no)) {
-      newErrors.phone_no = "Invalid phone number (10 digits required)";
+      newErrors.phone_no = "Phone number must be exactly 10 digits";
     }
 
     if (school.email_name && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(school.email_name)) {
-      newErrors.email_name = "Invalid email address";
+      newErrors.email_name = "Invalid email address format";
+    }
+
+    if (school.account_no && !/^\d{9,18}$/.test(school.account_no)) {
+      newErrors.account_no = "Account number must be 9 to 18 digits only";
     }
 
     setErrors(newErrors);
@@ -124,34 +133,26 @@ const SchoolInfo = () => {
 
     try {
       const formData = new FormData();
-
-      // Append all school data
       const { logo_file, logo_image, contentType, ...schoolData } = school;
-      Object.keys(schoolData).forEach(key => {
+
+      Object.keys(schoolData).forEach((key) => {
         formData.append(key, schoolData[key]);
       });
 
-      // Append logo file if selected
       if (school.logo_file) {
-        formData.append('logo_image', school.logo_file);
+        formData.append("logo_image", school.logo_file);
       }
 
-      // const url = "http://localhost:8000/api/schools";
       const url = "https://erp-backend-fy3n.onrender.com/api/schools";
-      const method = hasExistingSchool ? 'put' : 'post';
+      const method = hasExistingSchool ? "put" : "post";
 
       const response = await axios[method](url, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
+        headers: { "Content-Type": "multipart/form-data" },
       });
 
       setMessage({
-        text: response.data.message ||
-          (hasExistingSchool
-            ? "School information updated successfully"
-            : "School created successfully"),
-        variant: "success"
+        text: response.data.message || (hasExistingSchool ? "School info updated" : "School info created"),
+        variant: "success",
       });
 
       setHasExistingSchool(true);
@@ -161,7 +162,7 @@ const SchoolInfo = () => {
       console.error("Error saving school:", error);
       setMessage({
         text: error.response?.data?.message || "Failed to save school information",
-        variant: "danger"
+        variant: "danger",
       });
     } finally {
       setLoading(false);
@@ -170,7 +171,7 @@ const SchoolInfo = () => {
 
   const breadcrumbItems = [
     { label: "Master Entry", link: "/master-entry/all-module" },
-    { label: "School Info", link: null }
+    { label: "School Info", link: null },
   ];
 
   return (
@@ -193,10 +194,7 @@ const SchoolInfo = () => {
                 <div className="studentHeading d-flex justify-content-between align-items-center">
                   <h2>School Information</h2>
                   {!isEditMode && hasExistingSchool && (
-                    <Button
-                      variant="primary"
-                      onClick={() => setIsEditMode(true)}
-                    >
+                    <Button variant="primary" onClick={() => setIsEditMode(true)}>
                       Edit School Info
                     </Button>
                   )}
@@ -209,21 +207,18 @@ const SchoolInfo = () => {
                 )}
 
                 <Form onSubmit={handleSubmit}>
-                  {/* School Name */}
                   <Row className="mb-3">
                     <Form.Group as={Col} md="6">
                       <FormLabel>School Name</FormLabel>
                       <FormControl
                         type="text"
                         name="school_name"
+                        maxLength={100}
                         value={school.school_name}
                         onChange={handleChange}
                         readOnly={!isEditMode}
-                        required
                       />
-                      {errors.school_name && (
-                        <Form.Text className="text-danger">{errors.school_name}</Form.Text>
-                      )}
+                      {errors.school_name && <Form.Text className="text-danger">{errors.school_name}</Form.Text>}
                     </Form.Group>
 
                     <Form.Group as={Col} md="6">
@@ -231,32 +226,37 @@ const SchoolInfo = () => {
                       <FormControl
                         type="text"
                         name="account_no"
+                        maxLength={18}
                         value={school.account_no}
-                        onChange={handleChange}
+                        onChange={(e) => {
+                          if (/^\d{0,18}$/.test(e.target.value)) handleChange(e);
+                        }}
                         readOnly={!isEditMode}
-                        required
+                        onKeyPress={(e) => {
+                          if (!/[0-9]/.test(e.key)) e.preventDefault();
+                        }}
                       />
-                      {errors.account_no && (
-                        <Form.Text className="text-danger">{errors.account_no}</Form.Text>
-                      )}
+                      {errors.account_no && <Form.Text className="text-danger">{errors.account_no}</Form.Text>}
                     </Form.Group>
                   </Row>
 
-                  {/* Contact Information */}
                   <Row className="mb-3">
                     <Form.Group as={Col} md="6">
                       <FormLabel>Phone Number</FormLabel>
                       <FormControl
-                        type="tel"
+                        type="text"
                         name="phone_no"
+                        maxLength={10}
                         value={school.phone_no}
-                        onChange={handleChange}
+                        onChange={(e) => {
+                          if (/^\d{0,10}$/.test(e.target.value)) handleChange(e);
+                        }}
                         readOnly={!isEditMode}
-                        required
+                        onKeyPress={(e) => {
+                          if (!/[0-9]/.test(e.key)) e.preventDefault();
+                        }}
                       />
-                      {errors.phone_no && (
-                        <Form.Text className="text-danger">{errors.phone_no}</Form.Text>
-                      )}
+                      {errors.phone_no && <Form.Text className="text-danger">{errors.phone_no}</Form.Text>}
                     </Form.Group>
 
                     <Form.Group as={Col} md="6">
@@ -264,32 +264,27 @@ const SchoolInfo = () => {
                       <FormControl
                         type="email"
                         name="email_name"
+                        maxLength={100}
                         value={school.email_name}
                         onChange={handleChange}
                         readOnly={!isEditMode}
-                        required
                       />
-                      {errors.email_name && (
-                        <Form.Text className="text-danger">{errors.email_name}</Form.Text>
-                      )}
+                      {errors.email_name && <Form.Text className="text-danger">{errors.email_name}</Form.Text>}
                     </Form.Group>
                   </Row>
 
-                  {/* Bank Information */}
                   <Row className="mb-3">
                     <Form.Group as={Col} md="6">
                       <FormLabel>Bank Name</FormLabel>
                       <FormControl
                         type="text"
                         name="bank_name"
+                        maxLength={100}
                         value={school.bank_name}
                         onChange={handleChange}
                         readOnly={!isEditMode}
-                        required
                       />
-                      {errors.bank_name && (
-                        <Form.Text className="text-danger">{errors.bank_name}</Form.Text>
-                      )}
+                      {errors.bank_name && <Form.Text className="text-danger">{errors.bank_name}</Form.Text>}
                     </Form.Group>
 
                     <Form.Group as={Col} md="6">
@@ -297,32 +292,27 @@ const SchoolInfo = () => {
                       <FormControl
                         type="text"
                         name="branch_name"
+                        maxLength={100}
                         value={school.branch_name}
                         onChange={handleChange}
                         readOnly={!isEditMode}
-                        required
                       />
-                      {errors.branch_name && (
-                        <Form.Text className="text-danger">{errors.branch_name}</Form.Text>
-                      )}
+                      {errors.branch_name && <Form.Text className="text-danger">{errors.branch_name}</Form.Text>}
                     </Form.Group>
                   </Row>
 
-                  {/* IFSC and Web Address */}
                   <Row className="mb-3">
                     <Form.Group as={Col} md="6">
                       <FormLabel>IFSC Code</FormLabel>
                       <FormControl
                         type="text"
                         name="ifsc_code"
+                        maxLength={11}
                         value={school.ifsc_code}
                         onChange={handleChange}
                         readOnly={!isEditMode}
-                        required
                       />
-                      {errors.ifsc_code && (
-                        <Form.Text className="text-danger">{errors.ifsc_code}</Form.Text>
-                      )}
+                      {errors.ifsc_code && <Form.Text className="text-danger">{errors.ifsc_code}</Form.Text>}
                     </Form.Group>
 
                     <Form.Group as={Col} md="6">
@@ -330,6 +320,7 @@ const SchoolInfo = () => {
                       <FormControl
                         type="text"
                         name="web_address"
+                        maxLength={100}
                         value={school.web_address}
                         onChange={handleChange}
                         readOnly={!isEditMode}
@@ -337,7 +328,6 @@ const SchoolInfo = () => {
                     </Form.Group>
                   </Row>
 
-                  {/* Address and Logo */}
                   <Row className="mb-3">
                     <Form.Group as={Col} md="6">
                       <FormLabel>Address</FormLabel>
@@ -345,45 +335,31 @@ const SchoolInfo = () => {
                         as="textarea"
                         rows={3}
                         name="address"
+                        maxLength={300}
                         value={school.address}
                         onChange={handleChange}
                         readOnly={!isEditMode}
-                        required
                       />
-                      {errors.address && (
-                        <Form.Text className="text-danger">{errors.address}</Form.Text>
-                      )}
+                      {errors.address && <Form.Text className="text-danger">{errors.address}</Form.Text>}
                     </Form.Group>
 
                     <Form.Group as={Col} md="6">
                       <FormLabel>School Logo</FormLabel>
                       {school.logo_image && (
                         <div className="mb-2">
-                          <img
-                            src={school.logo_image}
-                            alt="School Logo"
-                            style={{ maxWidth: '100px', maxHeight: '100px' }}
-                          />
+                          <img src={school.logo_image} alt="School Logo" style={{ maxWidth: "100px", maxHeight: "100px" }} />
                         </div>
                       )}
                       {isEditMode && (
-                        <FormControl
-                          type="file"
-                          accept="image/*"
-                          onChange={handleFileChange}
-                        />
+                        <FormControl type="file" accept="image/*" onChange={handleFileChange} />
                       )}
                     </Form.Group>
                   </Row>
 
-                  {isEditMode && (
+                  {isEditMode ? (
                     <div className="d-flex gap-2 mt-4">
-                      <Button
-                        type="submit"
-                        variant="primary"
-                        disabled={loading}
-                      >
-                        {loading ? 'Saving...' : hasExistingSchool ? 'Update' : 'Create'}
+                      <Button type="submit" variant="primary" disabled={loading}>
+                        {loading ? "Saving..." : hasExistingSchool ? "Update" : "Create"}
                       </Button>
                       <Button
                         variant="secondary"
@@ -396,18 +372,13 @@ const SchoolInfo = () => {
                         Cancel
                       </Button>
                     </div>
-                  )}
-
-                  {!hasExistingSchool && !isEditMode && (
+                  ) : !hasExistingSchool ? (
                     <div className="mt-4">
-                      <Button
-                        variant="primary"
-                        onClick={() => setIsEditMode(true)}
-                      >
+                      <Button variant="primary" onClick={() => setIsEditMode(true)}>
                         Create School Information
                       </Button>
                     </div>
-                  )}
+                  ) : null}
                 </Form>
               </div>
             </Col>

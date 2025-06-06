@@ -35,28 +35,32 @@ const ClassMasterPage = () => {
     {
       name: "Class Name",
       cell: (row) => (
-        <div>
-          {editingClass && editingClass._id === row._id ? (
-            <FormControl
-              type="text"
-              value={formData.class_name}
-              onChange={(e) => setFormData({...formData, class_name: e.target.value})}
-            />
-          ) : (
-            row.class_name || "N/A"
-          )}
-          {editingClass && editingClass._id === row._id ? (
-            <button className="editButton ms-2" onClick={() => handleUpdateClass(row._id)}>
-              <FaSave />
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
+          <div>
+            {editingClass && editingClass._id === row._id ? (
+              <FormControl
+                type="text"
+                value={formData.class_name}
+                onChange={(e) => setFormData({ ...formData, class_name: e.target.value })}
+              />
+            ) : (
+              row.class_name || "N/A"
+            )}
+          </div>
+          <div>
+            {editingClass && editingClass._id === row._id ? (
+              <button className="editButton ms-2" onClick={() => handleUpdateClass(row._id)}>
+                <FaSave />
+              </button>
+            ) : (
+              <button className="editButton ms-2" onClick={() => handleEditClass(row)}>
+                <FaEdit />
+              </button>
+            )}
+            <button className="editButton btn-danger ms-2" onClick={() => handleDeleteClass(row._id)}>
+              <FaTrashAlt />
             </button>
-          ) : (
-            <button className="editButton ms-2" onClick={() => handleEditClass(row)}>
-              <FaEdit />
-            </button>
-          )}
-          <button className="editButton btn-danger ms-2" onClick={() => handleDeleteClass(row._id)}>
-            <FaTrashAlt />
-          </button>
+          </div>
         </div>
       ),
       sortable: true,
@@ -69,7 +73,7 @@ const ClassMasterPage = () => {
             <FormControl
               type="text"
               value={formData.class_code}
-              onChange={(e) => setFormData({...formData, class_code: e.target.value})}
+              onChange={(e) => setFormData({ ...formData, class_code: e.target.value })}
             />
           ) : (
             row.class_code || "N/A"
@@ -81,38 +85,42 @@ const ClassMasterPage = () => {
     {
       name: "Sections",
       cell: (row) => (
-        <div>
+        <div className="classSpace">
           {row.sections.length > 0 ? (
             row.sections.map((section, index) => (
-              <div key={index}>
-                {editingSection && editingSection._id === section._id ? (
-                  <>
-                    <FormControl
-                      type="text"
-                      value={formData.section_code}
-                      onChange={(e) => setFormData({...formData, section_code: e.target.value})}
-                    />
-                    <FormControl
-                      type="text"
-                      value={formData.section_name}
-                      onChange={(e) => setFormData({...formData, section_name: e.target.value})}
-                    />
-                  </>
-                ) : (
-                  `${section.section_code} - ${section.section_name}`
-                )}
-                {editingSection && editingSection._id === section._id ? (
-                  <button className="editButton ms-2" onClick={() => handleUpdateSection(section._id)}>
-                    <FaSave />
+              <div key={index} style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                <div>
+                  {editingSection && editingSection._id === section._id ? (
+                    <>
+                      <FormControl
+                        type="text"
+                        value={formData.section_code}
+                        onChange={(e) => setFormData({ ...formData, section_code: e.target.value })}
+                      />
+                      <FormControl
+                        type="text"
+                        value={formData.section_name}
+                        onChange={(e) => setFormData({ ...formData, section_name: e.target.value })}
+                      />
+                    </>
+                  ) : (
+                    `${section.section_code} - ${section.section_name}`
+                  )}
+                </div>
+                <div>
+                  {editingSection && editingSection._id === section._id ? (
+                    <button className="editButton ms-2" onClick={() => handleUpdateSection(section._id)}>
+                      <FaSave />
+                    </button>
+                  ) : (
+                    <button className="editButton ms-2" onClick={() => handleEditSection(section)}>
+                      <FaEdit />
+                    </button>
+                  )}
+                  <button className="editButton btn-danger ms-2" onClick={() => handleDeleteSection(section._id)}>
+                    <FaTrashAlt />
                   </button>
-                ) : (
-                  <button className="editButton ms-2" onClick={() => handleEditSection(section)}>
-                    <FaEdit />
-                  </button>
-                )}
-                <button className="editButton btn-danger ms-2" onClick={() => handleDeleteSection(section._id)}>
-                  <FaTrashAlt />
-                </button>
+                </div>
               </div>
             ))
           ) : (
@@ -136,7 +144,7 @@ const ClassMasterPage = () => {
 
       const updatedData = classes.map((classItem) => {
         const classSections = sections
-          .filter((section) => section.class._id === classItem._id)
+          .filter((section) => section.class && section.class._id === classItem._id)
           .map((section) => ({
             section_name: section.section_name,
             section_code: section.section_code,
@@ -155,6 +163,7 @@ const ClassMasterPage = () => {
     }
   };
 
+
   const handleAddClass = async () => {
     if (!formData.class_name.trim() || !formData.class_code.trim()) {
       setError("Both class name and code are required");
@@ -167,7 +176,7 @@ const ClassMasterPage = () => {
         class_code: formData.class_code,
       });
       fetchData();
-      setFormData({...formData, class_name: "", class_code: ""});
+      setFormData({ ...formData, class_name: "", class_code: "" });
       setIsClassFormOpen(false);
     } catch (err) {
       console.error("Error adding class:", err);
@@ -188,7 +197,7 @@ const ClassMasterPage = () => {
         section_code: formData.section_code,
       });
       fetchData();
-      setFormData({...formData, section_name: "", section_code: "", class_id: ""});
+      setFormData({ ...formData, section_name: "", section_code: "", class_id: "" });
       setIsSectionFormOpen(false);
     } catch (err) {
       console.error("Error adding section:", err);
@@ -227,7 +236,7 @@ const ClassMasterPage = () => {
       });
       fetchData();
       setEditingClass(null);
-      setFormData({...formData, class_name: "", class_code: ""});
+      setFormData({ ...formData, class_name: "", class_code: "" });
     } catch (err) {
       console.error("Error updating class:", err);
       setError("Failed to update class. Please try again later.");
@@ -247,7 +256,7 @@ const ClassMasterPage = () => {
       });
       fetchData();
       setEditingSection(null);
-      setFormData({...formData, section_name: "", section_code: ""});
+      setFormData({ ...formData, section_name: "", section_code: "" });
     } catch (err) {
       console.error("Error updating section:", err);
       setError("Failed to update section. Please try again later.");
@@ -345,7 +354,7 @@ const ClassMasterPage = () => {
                   onClick={() => {
                     setIsClassFormOpen(false);
                     setError("");
-                    setFormData({...formData, class_name: "", class_code: ""});
+                    setFormData({ ...formData, class_name: "", class_code: "" });
                     setEditingClass(null);
                   }}
                 >
@@ -361,7 +370,7 @@ const ClassMasterPage = () => {
                       placeholder="Enter Class Name"
                       value={formData.class_name}
                       onChange={(e) =>
-                        setFormData({...formData, class_name: e.target.value})
+                        setFormData({ ...formData, class_name: e.target.value })
                       }
                     />
                   </Col>
@@ -372,14 +381,14 @@ const ClassMasterPage = () => {
                       placeholder="Enter Class Code"
                       value={formData.class_code}
                       onChange={(e) =>
-                        setFormData({...formData, class_code: e.target.value})
+                        setFormData({ ...formData, class_code: e.target.value })
                       }
                     />
                   </Col>
                 </Row>
                 {error && <div className="text-danger mb-3">{error}</div>}
-                <Button 
-                  onClick={editingClass ? () => handleUpdateClass(editingClass._id) : handleAddClass} 
+                <Button
+                  onClick={editingClass ? () => handleUpdateClass(editingClass._id) : handleAddClass}
                   className="btn btn-primary"
                 >
                   {editingClass ? "Update Class" : "Add Class"}
@@ -397,7 +406,7 @@ const ClassMasterPage = () => {
                   onClick={() => {
                     setIsSectionFormOpen(false);
                     setError("");
-                    setFormData({...formData, section_name: "", section_code: "", class_id: ""});
+                    setFormData({ ...formData, section_name: "", section_code: "", class_id: "" });
                     setEditingSection(null);
                   }}
                 >
@@ -412,7 +421,7 @@ const ClassMasterPage = () => {
                       as="select"
                       value={formData.class_id}
                       onChange={(e) =>
-                        setFormData({...formData, class_id: e.target.value})
+                        setFormData({ ...formData, class_id: e.target.value })
                       }
                     >
                       <option value="">Select Class</option>
@@ -432,7 +441,7 @@ const ClassMasterPage = () => {
                       placeholder="Section Code"
                       value={formData.section_code}
                       onChange={(e) =>
-                        setFormData({...formData, section_code: e.target.value})
+                        setFormData({ ...formData, section_code: e.target.value })
                       }
                     />
                   </Col>
@@ -443,14 +452,14 @@ const ClassMasterPage = () => {
                       placeholder="Section Name"
                       value={formData.section_name}
                       onChange={(e) =>
-                        setFormData({...formData, section_name: e.target.value})
+                        setFormData({ ...formData, section_name: e.target.value })
                       }
                     />
                   </Col>
                 </Row>
                 {error && <div className="text-danger mb-3">{error}</div>}
-                <Button 
-                  onClick={editingSection ? () => handleUpdateSection(editingSection._id) : handleAddSection} 
+                <Button
+                  onClick={editingSection ? () => handleUpdateSection(editingSection._id) : handleAddSection}
                   className="btn btn-primary"
                 >
                   {editingSection ? "Update Section" : "Add Section"}

@@ -22,10 +22,10 @@ const schema = yup.object().shape({
     employee_email: yup.string().email("Invalid email format").required("Email is required"),
     gender: yup.string().required("Gender is required"),
     nationality: yup.string().required("Nationality is required"),
-    social_category: yup.string().required("Social Category is required"),
+    // social_category: yup.string().required("Social Category is required"),
     mobile_no: yup.number().required("Mobile No. is required"),
-    religion: yup.string().required("Religion is required"),
-    caste: yup.string().required("Caste is required"),
+    // religion: yup.string().required("Religion is required"),
+    // caste: yup.string().required("Caste is required"),
     aadhar_number: yup.string().required("Aadhar number is required").matches(/^\d{12}$/, "Aadhar number must be exactly 12 digits"),
     permanent_address: yup.string().required("Permanent Address is required"),
     profile_image: yup.mixed().test("required", "Profile Image is required", value => value && value.length > 0),
@@ -42,6 +42,8 @@ const Employee = () => {
         register,
         handleSubmit,
         reset,
+        setValue,
+        watch,
         formState: { errors },
     } = useForm({
         resolver: yupResolver(schema),
@@ -56,6 +58,24 @@ const Employee = () => {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editMode, setEditMode] = useState(false);
     const [currentEmployeeId, setCurrentEmployeeId] = useState(null);
+
+    // Function to generate employee code
+    const generateEmployeeCode = async () => {
+        try {
+            // Get the count of existing employees
+            const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-employee");
+            const count = response.data.data?.length || 0;
+            
+            // Generate code with prefix and sequential number
+            const newCode = `EMP${String(count + 1).padStart(4, '0')}`;
+            setValue("employee_code", newCode);
+        } catch (err) {
+            console.error("Error generating employee code:", err);
+            // Fallback code if API fails
+            const fallbackCode = `EMP${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}`;
+            setValue("employee_code", fallbackCode);
+        }
+    };
 
     const fetchCategories = async () => {
         const response = await getCategories();
@@ -207,6 +227,13 @@ const Employee = () => {
         fetchEmployees();
     }, []);
 
+    // Generate employee code when form opens in create mode
+    useEffect(() => {
+        if (isFormOpen && !editMode) {
+            generateEmployeeCode();
+        }
+    }, [isFormOpen, editMode]);
+
     return (
         <>
             <div className="breadcrumbSheet position-relative">
@@ -228,6 +255,7 @@ const Employee = () => {
                                     setIsFormOpen(true);
                                     setEditMode(false);
                                     reset();
+                                    generateEmployeeCode();
                                 }}
                                 className="btn-add mb-3"
                             >
@@ -253,12 +281,11 @@ const Employee = () => {
                                         onSubmit={handleSubmit(editMode ? handleUpdateEmployee : handleCreateEmployee)}
                                     >
                                         <Row>
-                                            <FormGroup as={Col} md="3" controlId="employee_name">
+                                            <FormGroup as={Col} md="3" controlId="employee_code">
                                                 <FormLabel className="labelForm">Employee Code</FormLabel>
                                                 <FormControl
                                                     type="text"
                                                     disabled
-                                                    readOnly
                                                     placeholder="Employee Code"
                                                     {...register("employee_code")}
                                                     isInvalid={!!errors.employee_code}
@@ -267,7 +294,7 @@ const Employee = () => {
                                                     {errors.employee_code?.message}
                                                 </FormControl.Feedback>
                                             </FormGroup>
-                                            <FormGroup as={Col} md="3" controlId="employee_name">
+                                              <FormGroup as={Col} md="3" controlId="employee_name">
                                                 <FormLabel className="labelForm">Employee Name</FormLabel>
                                                 <FormControl
                                                     type="text"

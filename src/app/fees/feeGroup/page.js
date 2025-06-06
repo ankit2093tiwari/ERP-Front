@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { FaEdit, FaTrashAlt, FaSave, FaPrint, FaCopy } from "react-icons/fa";
+import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
 import { CgAddR } from "react-icons/cg";
 import {
   Form,
@@ -28,16 +28,19 @@ const FeeGroup = () => {
   const [error, setError] = useState("");
   const [newFeeGroup, setNewFeeGroup] = useState({
     group_name: "",
-    class_name: "",
-    section_name: "",
+    class_section: "", // Will hold classSection _id
     late_fine_per_day: "",
   });
-  const [classList, setClassList] = useState([]);
-  const [sectionList, setSectionList] = useState([]);
+  const [classSectionList, setClassSectionList] = useState([]);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [editId, setEditId] = useState(null);
-  const [editData, setEditData] = useState({});
+  const [editData, setEditData] = useState({
+    group_name: "",
+    class_section: "", 
+    late_fine_per_day: "",
+  });
 
+  // Columns for the DataTable
   const columns = [
     {
       name: "#",
@@ -101,34 +104,14 @@ const FeeGroup = () => {
     },
   ];
 
-
-
-  const handlePrint = () => {
-    const tableHeaders = [["#", "Group Name", "Late Fine Per Day"]];
-    const tableRows = data.map((row, index) => [
-      index + 1,
-      row.group_name || "N/A",
-      row.late_fine_per_day || "N/A",
-    ]);
-
-    printContent(tableHeaders, tableRows);
-
-  };
-
-  const handleCopy = () => {
-    const headers = ["#", "Group Name", "Late Fine Per Day"];
-    const rows = data.map((row, index) => `${index + 1}\t${row.group_name || "N/A"}\t${row.late_fine_per_day || "N/A"}`);
-
-    copyContent(headers, rows);
-  };
-
-
-
+  // Fetch all Fee Groups with populated class_section
   const fetchData = async () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-fee-groups");
+      const response = await axios.get(
+        "https://erp-backend-fy3n.onrender.com/api/all-feeGroup"
+      );
       if (response.data && response.data.success) {
         setData(response.data.data);
       } else {
@@ -143,29 +126,26 @@ const FeeGroup = () => {
     }
   };
 
-  const fetchClasses = async () => {
+  // Fetch all ClassSection combos for dropdowns
+  const fetchClassSections = async () => {
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-classes");
-      setClassList(response.data.data || []);
+      const response = await axios.get(
+        "https://erp-backend-fy3n.onrender.com/api/all-classSection"
+      );
+      if (response.data && response.data.success) {
+        setClassSectionList(response.data.data);
+      } else {
+        setClassSectionList([]);
+      }
     } catch (err) {
-      setError("Failed to fetch classes.");
-    }
-  };
-
-  const fetchSections = async (classId) => {
-    try {
-      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/sections/class/${classId}`);
-      setSectionList(response.data.data || []);
-    } catch (err) {
-      setError("Failed to fetch sections.");
+      setError("Failed to fetch class sections.");
     }
   };
 
   const handleAdd = async () => {
     if (
       newFeeGroup.group_name.trim() &&
-      newFeeGroup.class_name &&
-      newFeeGroup.section_name &&
+      newFeeGroup.class_section &&
       newFeeGroup.late_fine_per_day.trim()
     ) {
       try {
@@ -177,13 +157,15 @@ const FeeGroup = () => {
           return;
         }
 
-        const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/add-fee-groups", newFeeGroup);
+        const response = await axios.post(
+          "https://erp-backend-fy3n.onrender.com/api/create-feeGroup",
+          newFeeGroup
+        );
         if (response.data && response.data.success) {
           setData((prevData) => [...prevData, response.data.data]);
           setNewFeeGroup({
             group_name: "",
-            class_name: "",
-            section_name: "",
+            class_section: "",
             late_fine_per_day: "",
           });
           setIsPopoverOpen(false);
@@ -203,6 +185,7 @@ const FeeGroup = () => {
     setEditId(row._id);
     setEditData({
       group_name: row.group_name,
+      class_section: row.class_section?._id || "",
       late_fine_per_day: row.late_fine_per_day,
     });
   };
@@ -210,13 +193,13 @@ const FeeGroup = () => {
   const handleSave = async (id) => {
     try {
       const response = await axios.put(
-        `https://erp-backend-fy3n.onrender.com/api/update-fee-groups/${id}`,
+        `https://erp-backend-fy3n.onrender.com/api/update-feeGroup/${id}`,
         editData
       );
       if (response.data && response.data.success) {
         setData((prevData) =>
           prevData.map((row) =>
-            row._id === id ? { ...row, ...editData } : row
+            row._id === id ? { ...row, ...editData, class_section: classSectionList.find(cs => cs._id === editData.class_section) } : row
           )
         );
         fetchData();
@@ -232,7 +215,9 @@ const FeeGroup = () => {
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this fee group?")) {
       try {
-        const response = await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-fee-groups/${id}`);
+        const response = await axios.delete(
+          `https://erp-backend-fy3n.onrender.com/api/delete-feeGroup/${id}`
+        );
         if (response.data && response.data.success) {
           setData((prevData) => prevData.filter((row) => row._id !== id));
           fetchData();
@@ -245,12 +230,36 @@ const FeeGroup = () => {
     }
   };
 
+  // Print and Copy handlers (unchanged)
+  const handlePrint = () => {
+    const tableHeaders = [["#", "Group Name", "Class - Section", "Late Fine Per Day"]];
+    const tableRows = data.map((row, index) => [
+      index + 1,
+      row.group_name || "N/A",
+      `${row.class_section?.class_name?.class_name || "N/A"} - ${row.class_section?.section_name?.section_name || "N/A"}`,
+      row.late_fine_per_day || "N/A",
+    ]);
+    printContent(tableHeaders, tableRows);
+  };
+
+  const handleCopy = () => {
+    const headers = ["#", "Group Name", "Class - Section", "Late Fine Per Day"];
+    const rows = data.map(
+      (row, index) =>
+        `${index + 1}\t${row.group_name || "N/A"}\t${row.class_section?.class_name?.class_name || "N/A"} - ${row.class_section?.section_name?.section_name || "N/A"}\t${row.late_fine_per_day || "N/A"}`
+    );
+    copyContent(headers, rows);
+  };
+
   useEffect(() => {
     fetchData();
-    fetchClasses();
+    fetchClassSections();
   }, []);
 
-  const breadcrumbItems = [{ label: "Fee", link: "/fees/all-module" }, { label: "fee-Group", link: "null" }]
+  const breadcrumbItems = [
+    { label: "Fee", link: "/fees/all-module" },
+    { label: "Fee Group", link: "null" },
+  ];
 
   return (
     <>
@@ -265,7 +274,6 @@ const FeeGroup = () => {
       </div>
       <section>
         <Container>
-
           <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
             <CgAddR /> Add Fee Group
           </Button>
@@ -291,34 +299,17 @@ const FeeGroup = () => {
                     />
                   </Col>
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Class Name</FormLabel>
+                    <FormLabel className="labelForm">Class - Section</FormLabel>
                     <FormSelect
-                      value={newFeeGroup.class_name}
-                      onChange={(e) => {
-                        setNewFeeGroup({ ...newFeeGroup, class_name: e.target.value });
-                        fetchSections(e.target.value);
-                      }}
-                    >
-                      <option value="">Select Class</option>
-                      {classList.map((classItem) => (
-                        <option key={classItem._id} value={classItem._id}>
-                          {classItem.class_name}
-                        </option>
-                      ))}
-                    </FormSelect>
-                  </Col>
-                  <Col lg={6}>
-                    <FormLabel className="labelForm">Section Name</FormLabel>
-                    <FormSelect
-                      value={newFeeGroup.section_name}
+                      value={newFeeGroup.class_section}
                       onChange={(e) =>
-                        setNewFeeGroup({ ...newFeeGroup, section_name: e.target.value })
+                        setNewFeeGroup({ ...newFeeGroup, class_section: e.target.value })
                       }
                     >
-                      <option value="">Select Section</option>
-                      {sectionList.map((sectionItem) => (
-                        <option key={sectionItem._id} value={sectionItem._id}>
-                          {sectionItem.section_name}
+                      <option value="">Select Class - Section</option>
+                      {classSectionList.map((cs) => (
+                        <option key={cs._id} value={cs._id}>
+                          {cs.class_name?.class_name || "N/A"} - {cs.section_name?.section_name || "N/A"}
                         </option>
                       ))}
                     </FormSelect>
@@ -334,7 +325,7 @@ const FeeGroup = () => {
                     />
                   </Col>
                 </Row>
-                <Button onClick={handleAdd} className="btn btn-primary">
+                <Button onClick={handleAdd} className="btn btn-primary mt-3">
                   Add Fee Group
                 </Button>
               </Form>
@@ -344,7 +335,7 @@ const FeeGroup = () => {
           <div className="tableSheet">
             <h2>Fee Group Records</h2>
             {loading && <p>Loading...</p>}
-            {error && <p>{error}</p>}
+            {error && <p className="text-danger">{error}</p>}
             {!loading && !error && (
               <Table
                 columns={columns}

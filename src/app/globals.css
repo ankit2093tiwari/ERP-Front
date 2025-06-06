@@ -1399,9 +1399,20 @@ input::-webkit-inner-spin-button {
   content:none;
 }
 
+.sess {
+  border: 1px solid #ffffff;
+  padding: 3px 15px;
+  border-radius: 15px;
+  color: #fff;
+}
+
 .bgPurple
 {
   background: #635972;
+}
+
+.classSpace{
+  width: 100%;
 }
 
 .thought-of-day {

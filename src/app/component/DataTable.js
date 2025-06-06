@@ -1,23 +1,45 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import DataTable, { defaultThemes } from 'react-data-table-component';
 
 const Table = ({ columns, data, handlePrint, handleCopy }) => {
   const [records, setRecords] = useState(data);
+  const [searchText, setSearchText] = useState("");
 
-  // Filter data based on search input
+  useEffect(() => {
+    filterRecords(searchText);
+  }, [data]);
 
-  function handleFilter(event) {
-    const searchText = event.target.value.toLowerCase();
+  const flattenObject = (obj, prefix = "") => {
+    let result = {};
+    for (const key in obj) {
+      const value = obj[key];
+      const newKey = prefix ? `${prefix}.${key}` : key;
+      if (typeof value === "object" && value !== null) {
+        Object.assign(result, flattenObject(value, newKey));
+      } else {
+        result[newKey] = value;
+      }
+    }
+    return result;
+  };
 
-    const newData = data.filter(row =>
-      Object.values(row).some(
-        value => value && value.toString().toLowerCase().includes(searchText)
-      )
-    );
+  const filterRecords = (text) => {
+    const lowerText = text.toLowerCase();
+    const filteredData = data.filter((row) => {
+      const flatRow = flattenObject(row);
+      return Object.values(flatRow).some((val) =>
+        val?.toString().toLowerCase().includes(lowerText)
+      );
+    });
+    setRecords(filteredData);
+  };
 
-    setRecords(newData);
-  }
+  const handleFilter = (event) => {
+    const text = event.target.value;
+    setSearchText(text);
+    filterRecords(text);
+  };
 
   const customStyles = {
     headRow: {
@@ -39,7 +61,7 @@ const Table = ({ columns, data, handlePrint, handleCopy }) => {
     },
     cells: {
       style: {
-        minHeight: '50px', // 👈 added min-height here
+        minHeight: '50px',
         '&:not(:last-of-type)': {
           borderRightStyle: 'solid',
           borderRightWidth: '1px',
@@ -57,6 +79,7 @@ const Table = ({ columns, data, handlePrint, handleCopy }) => {
           type="text"
           placeholder="Search..."
           onChange={handleFilter}
+          value={searchText}
           style={{
             marginBottom: '10px',
             padding: '8px',
@@ -67,11 +90,9 @@ const Table = ({ columns, data, handlePrint, handleCopy }) => {
             marginRight: "5px"
           }}
         />
-        {/* Copy Button */}
         <button className="editButton" onClick={handleCopy}>
           Copy
         </button>
-        {/* Print Button */}
         <button className="printButton" onClick={handlePrint}>
           Print
         </button>
@@ -82,7 +103,6 @@ const Table = ({ columns, data, handlePrint, handleCopy }) => {
           data={records}
           pagination
           highlightOnHover
-          // selectableRows
           dense
           customStyles={customStyles}
         />
