@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
@@ -16,24 +17,23 @@ import axios from "axios";
 import Table from "@/app/component/DataTable";
 import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const DocumentMasterPage = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [newDocumentName, setNewDocumentName] = useState("");
   const [editingId, setEditingId] = useState(null);
   const [editedName, setEditedName] = useState("");
-  const [formData, setFormData] = useState({
-    document_name: ""
-  });
 
   const columns = [
     {
       name: "#",
       selector: (row, index) => index + 1,
-      width: "80px",
       sortable: false,
+      width: "80px",
     },
     {
       name: "Document Name",
@@ -54,36 +54,23 @@ const DocumentMasterPage = () => {
       cell: (row) => (
         <div className="d-flex gap-2">
           {editingId === row._id ? (
-            <>
-              <button
-                className="editButton"
-                onClick={() => handleUpdate(row._id)}
-              >
-                <FaSave />
-              </button>
-              <button
-                className="editButton btn-danger"
-                onClick={() => handleDelete(row._id)}
-              >
-                <FaTrashAlt />
-              </button>
-            </>
+            <button className="editButton" onClick={() => handleSave(row._id)}>
+              <FaSave />
+            </button>
           ) : (
-            <>
-              <button
-                className="editButton"
-                onClick={() => handleEdit(row)}
-              >
-                <FaEdit />
-              </button>
-              <button
-                className="editButton btn-danger"
-                onClick={() => handleDelete(row._id)}
-              >
-                <FaTrashAlt />
-              </button>
-            </>
+            <button
+              className="editButton"
+              onClick={() => handleEdit(row._id, row.document_name)}
+            >
+              <FaEdit />
+            </button>
           )}
+          <button
+            className="editButton btn-danger"
+            onClick={() => handleDelete(row._id)}
+          >
+            <FaTrashAlt />
+          </button>
         </div>
       ),
     },
@@ -91,93 +78,130 @@ const DocumentMasterPage = () => {
 
   const fetchData = async () => {
     setLoading(true);
-    setError("");
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/document-uploads");
-      const fetchedData = Array.isArray(response.data)
-        ? response.data
-        : Array.isArray(response.data?.data)
-          ? response.data.data
+      const res = await axios.get(
+        "https://erp-backend-fy3n.onrender.com/api/document-uploads"
+      );
+      const fetchedData = Array.isArray(res.data)
+        ? res.data
+        : Array.isArray(res.data?.data)
+          ? res.data.data
           : [];
       setData(fetchedData);
-    } catch (err) {
-      console.error("Error fetching data:", err);
-      setError("Failed to fetch data. Please try again later.");
+    } catch {
+      toast.error("Failed to fetch documents.", { position: "top-right" });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleEdit = (document) => {
-    setEditingId(document._id);
-    setEditedName(document.document_name);
+  const handleEdit = (id, name) => {
+    setEditingId(id);
+    setEditedName(name);
   };
 
-  const handleUpdate = async (id) => {
+  const handleSave = async (id) => {
+    if (!editedName.trim()) {
+      toast.warning("Document name cannot be empty.", { position: "top-right" });
+      return;
+    }
+
+    const exists = data.find(
+      (doc) =>
+        doc.document_name.trim().toLowerCase() === editedName.trim().toLowerCase() &&
+        doc._id !== id
+    );
+
+    if (exists) {
+      toast.warning("Document name already exists.", { position: "top-right" });
+      return;
+    }
+
     try {
-      await axios.put(`https://erp-backend-fy3n.onrender.com/api/document-uploads/${id}`, {
-        document_name: editedName,
-      });
-      fetchData();
+      const res = await axios.put(
+        `https://erp-backend-fy3n.onrender.com/api/document-uploads/${id}`,
+        { document_name: editedName }
+      );
+
+      const updated = res.data?.data;
+      if (updated) {
+        setData((prev) => [updated, ...prev.filter((doc) => doc._id !== id)]);
+      } else {
+        fetchData();
+      }
+
+      toast.success("Document updated successfully.", { position: "top-right" });
       setEditingId(null);
-    } catch (error) {
-      console.error("Error updating data:", error);
-      setError("Failed to update document. Please try again later.");
+    } catch {
+      toast.error("Failed to update document.", { position: "top-right" });
     }
   };
 
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this document?")) {
       try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/document-uploads/${id}`);
+        await axios.delete(
+          `https://erp-backend-fy3n.onrender.com/api/document-uploads/${id}`
+        );
+        toast.success("Document deleted successfully.", { position: "top-right" });
         fetchData();
-      } catch (error) {
-        console.error("Error deleting document:", error);
-        setError("Failed to delete document. Please try again later.");
+      } catch {
+        toast.error("Failed to delete document.", { position: "top-right" });
       }
     }
   };
 
   const handleAdd = async () => {
-    if (formData.document_name.trim()) {
-      try {
-        const existingDocument = data.find(
-          (doc) => doc.document_name === formData.document_name
-        );
-        if (existingDocument) {
-          setError("Document name already exists.");
-          return;
-        }
+    if (!newDocumentName.trim()) {
+      toast.warning("Please enter a valid document name.", { position: "top-right" });
+      setIsPopoverOpen(false); // Close the form even if input is invalid
+      return;
+    }
 
-        await axios.post("https://erp-backend-fy3n.onrender.com/api/document-uploads", {
-          document_name: formData.document_name,
-        });
+    const exists = data.find(
+      (doc) =>
+        doc.document_name.trim().toLowerCase() === newDocumentName.trim().toLowerCase()
+    );
+
+    if (exists) {
+      toast.warning("Document already exists.", { position: "top-right" });
+      setIsPopoverOpen(false); // Close the form when duplicate is found
+      setNewDocumentName(""); // Clear input
+      return;
+    }
+
+    try {
+      const res = await axios.post(
+        "https://erp-backend-fy3n.onrender.com/api/document-uploads",
+        { document_name: newDocumentName }
+      );
+
+      const added = res?.data?.data;
+      if (added) {
+        setData((prev) => [added, ...prev]);
+      } else {
         fetchData();
-        setFormData({ document_name: "" });
-        setIsPopoverOpen(false);
-      } catch (error) {
-        console.error("Error adding document:", error);
-        setError("Failed to add document. Please try again later.");
       }
-    } else {
-      alert("Please enter a valid document name.");
+
+      toast.success("Document added successfully.", { position: "top-right" });
+    } catch {
+      toast.error("Failed to add document.", { position: "top-right" });
+    } finally {
+      setNewDocumentName("");
+      setIsPopoverOpen(false); 
     }
   };
 
+
   const handlePrint = () => {
     const tableHeaders = [["#", "Document Name"]];
-    const tableRows = data.map((row, index) => [
-      index + 1,
-      row.document_name || "N/A",
-    ]);
+    const tableRows = data.map((row, index) => [index + 1, row.document_name || "N/A"]);
     printContent(tableHeaders, tableRows);
   };
 
   const handleCopy = () => {
     const headers = ["#", "Document Name"];
-    const rows = data.map((row, index) => 
-      `${index + 1}\t${row.document_name || "N/A"}`
-    );
+    const rows = data.map((row, index) => `${index + 1}\t${row.document_name || "N/A"}`);
     copyContent(headers, rows);
   };
 
@@ -187,7 +211,7 @@ const DocumentMasterPage = () => {
 
   const breadcrumbItems = [
     { label: "Master Entry", link: "/master-entry/all-module" },
-    { label: "document-upload", link: "null" },
+    { label: "Document Upload", link: null },
   ];
 
   return (
@@ -201,12 +225,10 @@ const DocumentMasterPage = () => {
           </Row>
         </Container>
       </div>
+
       <section>
         <Container>
-          <Button
-            onClick={() => setIsPopoverOpen(true)}
-            className="btn-add"
-          >
+          <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
             <CgAddR /> Add Document
           </Button>
 
@@ -218,7 +240,7 @@ const DocumentMasterPage = () => {
                   className="closeForm"
                   onClick={() => {
                     setIsPopoverOpen(false);
-                    setError("");
+                    setNewDocumentName("");
                   }}
                 >
                   X
@@ -231,10 +253,8 @@ const DocumentMasterPage = () => {
                     <FormControl
                       type="text"
                       placeholder="Enter Document Name"
-                      value={formData.document_name}
-                      onChange={(e) =>
-                        setFormData({ document_name: e.target.value })
-                      }
+                      value={newDocumentName}
+                      onChange={(e) => setNewDocumentName(e.target.value)}
                     />
                   </Col>
                 </Row>
@@ -247,11 +267,8 @@ const DocumentMasterPage = () => {
 
           <div className="tableSheet">
             <h2>Document Records</h2>
-            {loading ? (
-              <p>Loading...</p>
-            ) : error ? (
-              <p style={{ color: "red" }}>{error}</p>
-            ) : (
+            {loading && <p>Loading...</p>}
+            {!loading && (
               <Table
                 columns={columns}
                 data={data}
@@ -262,6 +279,8 @@ const DocumentMasterPage = () => {
           </div>
         </Container>
       </section>
+
+      <ToastContainer />
     </>
   );
 };

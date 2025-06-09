@@ -14,16 +14,16 @@ import {
 } from "react-bootstrap";
 import axios from "axios";
 import { CgAddR } from "react-icons/cg";
+import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
-import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const RouteMaster = () => {
   const [data, setData] = useState([]);
   const [editRowId, setEditRowId] = useState(null);
   const [updatedRoute, setUpdatedRoute] = useState({});
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
   const [vehicles, setVehicles] = useState([]);
 
@@ -140,19 +140,17 @@ const RouteMaster = () => {
       const response = await axios.get(`${API_BASE_URL}/routes/vehicles/dropdown`);
       setVehicles(response.data.data);
     } catch (err) {
-      console.error("Error fetching vehicles:", err);
+      toast.error("Error fetching vehicles", { position: "top-right" });
     }
   };
 
   const fetchRoutes = async () => {
     setLoading(true);
-    setError("");
     try {
       const response = await axios.get(`${API_BASE_URL}/all-routes`);
-      setData(response.data.data);
+      setData(response.data.data.reverse()); // Display newest entries at the top
     } catch (err) {
-      console.error("Error fetching routes:", err);
-      setError(err.response?.data?.message || "Failed to fetch routes");
+      toast.error(err.response?.data?.message || "Failed to fetch routes", { position: "top-right" });
     } finally {
       setLoading(false);
     }
@@ -165,13 +163,14 @@ const RouteMaster = () => {
     );
 
     if (missingFields.length > 0) {
-      alert(`Please fill all required fields: ${missingFields.join(", ")}`);
+      toast.warning(`Please fill all required fields: ${missingFields.join(", ")}`, { position: "top-right" });
       return;
     }
 
     try {
       const res = await axios.post(`${API_BASE_URL}/create-routes`, newRoute);
-      setData((prevData) => [...prevData, res.data.data]);
+      toast.success("Route added successfully!", { position: "top-right" });
+      setData((prevData) => [res.data.data, ...prevData]); // Insert new at top
       setNewRoute({
         Vehicle_No: "",
         Route_name: "",
@@ -179,10 +178,8 @@ const RouteMaster = () => {
         Amount: ""
       });
       setShowAddForm(false);
-      fetchRoutes();
     } catch (err) {
-      console.error("Error adding route:", err);
-      setError(err.response?.data?.message || "Failed to add route");
+      toast.error(err.response?.data?.message || "Failed to add route", { position: "top-right" });
     }
   };
 
@@ -197,11 +194,14 @@ const RouteMaster = () => {
   const handleUpdate = async (id) => {
     try {
       await axios.put(`${API_BASE_URL}/update-routes/${id}`, updatedRoute);
-      fetchRoutes();
+      toast.success("Route updated successfully!", { position: "top-right" });
+      const updatedData = data.map(item => 
+        item._id === id ? { ...item, ...updatedRoute } : item
+      );
+      setData(updatedData);
       setEditRowId(null);
     } catch (err) {
-      console.error("Failed to update route", err);
-      setError(err.response?.data?.message || "Failed to update route");
+      toast.error(err.response?.data?.message || "Failed to update route", { position: "top-right" });
     }
   };
 
@@ -209,12 +209,32 @@ const RouteMaster = () => {
     if (confirm("Are you sure you want to delete this route?")) {
       try {
         await axios.delete(`${API_BASE_URL}/delete-routes/${id}`);
+        toast.success("Route deleted successfully!", { position: "top-right" });
         setData((prevData) => prevData.filter((row) => row._id !== id));
       } catch (err) {
-        console.error("Delete error:", err);
-        setError(err.response?.data?.message || "Failed to delete route");
+        toast.error(err.response?.data?.message || "Failed to delete route", { position: "top-right" });
       }
     }
+  };
+
+  const handlePrint = () => {
+    const headers = [["#", "Vehicle No", "Route Name", "Pickup Point", "Amount"]];
+    const rows = data.map((row, index) => [
+      index + 1,
+      row.Vehicle_No || "N/A",
+      row.Route_name || "N/A",
+      row.PickupPoint || "N/A",
+      row.Amount || "N/A"
+    ]);
+    printContent(headers, rows);
+  };
+
+  const handleCopy = () => {
+    const headers = ["#", "Vehicle No", "Route Name", "Pickup Point", "Amount"];
+    const rows = data.map((row, index) => 
+      `${index + 1}\t${row.Vehicle_No || "N/A"}\t${row.Route_name || "N/A"}\t${row.PickupPoint || "N/A"}\t${row.Amount || "N/A"}`
+    );
+    copyContent(headers, rows);
   };
 
   useEffect(() => {
@@ -320,81 +340,6 @@ const RouteMaster = () => {
             </div>
           )}
 
-          {/* Expanded Edit Form */}
-          {editRowId && (
-            <div className="cover-sheet mt-3">
-              <div className="studentHeading">
-                <h2>Edit Route Details</h2>
-                <button
-                  className="closeForm"
-                  onClick={() => setEditRowId(null)}
-                >
-                  X
-                </button>
-              </div>
-              <Form className="formSheet">
-                <Row className="mb-3">
-                  <Col lg={6}>
-                    <FormLabel className="labelForm">Vehicle No*</FormLabel>
-                    <Form.Select
-                      value={updatedRoute.Vehicle_No}
-                      onChange={(e) => handleChange(e, "Vehicle_No")}
-                      required
-                    >
-                      <option value="">Select Vehicle</option>
-                      {vehicles.map(vehicle => (
-                        <option key={vehicle._id} value={vehicle.Vehicle_No}>
-                          {vehicle.Vehicle_No} - {vehicle.Driver_Name}
-                        </option>
-                      ))}
-                    </Form.Select>
-                  </Col>
-                  <Col lg={6}>
-                    <FormLabel className="labelForm">Route Name*</FormLabel>
-                    <FormControl
-                      type="text"
-                      value={updatedRoute.Route_name}
-                      onChange={(e) => handleChange(e, "Route_name")}
-                      required
-                    />
-                  </Col>
-                </Row>
-
-                <Row className="mb-3">
-                  <Col lg={6}>
-                    <FormLabel className="labelForm">Pickup Point*</FormLabel>
-                    <FormControl
-                      type="text"
-                      value={updatedRoute.PickupPoint}
-                      onChange={(e) => handleChange(e, "PickupPoint")}
-                      required
-                    />
-                  </Col>
-                  <Col lg={6}>
-                    <FormLabel className="labelForm">Amount*</FormLabel>
-                    <FormControl
-                      type="number"
-                      value={updatedRoute.Amount}
-                      onChange={(e) => handleChange(e, "Amount")}
-                      min="0"
-                      required
-                    />
-                  </Col>
-                </Row>
-
-                <Row>
-                  <Col>
-                    <Button
-                      onClick={() => handleUpdate(editRowId)}
-                      className="btn btn-primary mt-4"
-                    >
-                      Update Route
-                    </Button>
-                  </Col>
-                </Row>
-              </Form>
-            </div>
-          )}
 
           {/* Table Section */}
           <Row>
@@ -403,10 +348,13 @@ const RouteMaster = () => {
                 <h2>Route Records</h2>
                 {loading ? (
                   <p>Loading...</p>
-                ) : error ? (
-                  <p style={{ color: "red" }}>{error}</p>
                 ) : data.length > 0 ? (
-                  <Table columns={columns} data={data} />
+                  <Table 
+                    columns={columns} 
+                    data={data} 
+                    handleCopy={handleCopy} 
+                    handlePrint={handlePrint} 
+                  />
                 ) : (
                   <p>No data available.</p>
                 )}
@@ -415,6 +363,8 @@ const RouteMaster = () => {
           </Row>
         </Container>
       </section>
+
+      <ToastContainer />
     </>
   );
 };

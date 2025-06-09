@@ -121,14 +121,21 @@ const AssignRollNo = () => {
     setTableKey(Date.now()); // Force table to re-render
   };
 
-  // ... (keep all other handler functions the same)
   const handleRollNoChange = (index, newRollNo) => {
-    if (newRollNo === "" || /^\d+$/.test(newRollNo)) {
+    let formattedRollNo = newRollNo;
+
+    // Only digits allowed after prefix
+    if (prefixKey && /^\d+$/.test(newRollNo)) {
+      formattedRollNo = `${prefixKey}-${newRollNo}`;
+    }
+
+    if (!prefixKey || newRollNo === "" || /^\d+$/.test(newRollNo.replace(`${prefixKey}-`, ""))) {
       const updatedStudents = [...students];
-      updatedStudents[index] = { ...updatedStudents[index], roll_no: newRollNo };
+      updatedStudents[index] = { ...updatedStudents[index], roll_no: formattedRollNo };
       setStudents(updatedStudents);
     }
   };
+
 
   const handleSaveRollNo = async () => {
     if (!selectedClass || !selectedSection) {
@@ -206,13 +213,15 @@ const AssignRollNo = () => {
     {
       name: "Roll No",
       cell: (row, index) => (
-        <div key={`rollno-${index}-${row.roll_no}`}> {/* Add key here */}
+        <div key={`rollno-${index}-${row._id}`}>
           {isEditing ? (
             <input
               type="text"
-              value={row.roll_no || ""}
+              value={
+                row.roll_no?.replace(`${prefixKey}-`, "") || "" // show only the numeric part in input
+              }
               onChange={(e) => handleRollNoChange(index, e.target.value)}
-              style={{ width: "60px" }}
+              style={{ width: "80px" }}
               className="form-control"
             />
           ) : (
@@ -220,12 +229,12 @@ const AssignRollNo = () => {
           )}
         </div>
       ),
-    },
+    }
+
   ];
 
   return (
     <>
-      {/* ... (keep all your existing JSX the same until the DataTable) */}
       <div className="breadcrumbSheet position-relative">
         <Container>
           <Row className="mt-1 mb-1">

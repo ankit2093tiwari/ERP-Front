@@ -14,19 +14,20 @@ import {
 } from "react-bootstrap";
 import axios from "axios";
 import { CgAddR } from "react-icons/cg";
+import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
 const VehicleRecords = () => {
   const [data, setData] = useState([]);
-  const [editRowId, setEditRowId] = useState(null);
-  const [updatedVehicle, setUpdatedVehicle] = useState({});
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [editRowId, setEditRowId] = useState(null);
+  const [editValues, setEditValues] = useState({});
   const [showAddForm, setShowAddForm] = useState(false);
   const [vehicleTypes, setVehicleTypes] = useState([]);
-
   const [newVehicle, setNewVehicle] = useState({
     Vehicle_Type: "",
     Vehicle_No: "",
@@ -47,12 +48,12 @@ const VehicleRecords = () => {
     Remark: "",
   });
 
-  const handleChange = (e, field) => {
-    setUpdatedVehicle({ ...updatedVehicle, [field]: e.target.value });
+  const handleInputChange = (e, field) => {
+    setEditValues({ ...editValues, [field]: e.target.value });
   };
 
   const handleDateChange = (date, field) => {
-    setUpdatedVehicle({ ...updatedVehicle, [field]: date });
+    setEditValues({ ...editValues, [field]: date });
   };
 
   const handleNewVehicleChange = (e, field) => {
@@ -70,7 +71,7 @@ const VehicleRecords = () => {
       );
       setVehicleTypes(res.data.data);
     } catch (err) {
-      console.error("Failed to fetch vehicle types:", err);
+      toast.error("Failed to fetch vehicle types", { position: "top-right" });
     }
   };
 
@@ -81,8 +82,8 @@ const VehicleRecords = () => {
       selector: (row) =>
         row._id === editRowId ? (
           <Form.Select
-            value={updatedVehicle.Vehicle_Type}
-            onChange={(e) => handleChange(e, "Vehicle_Type")}
+            value={editValues.Vehicle_Type}
+            onChange={(e) => handleInputChange(e, "Vehicle_Type")}
           >
             <option value="">Select Vehicle Type</option>
             {vehicleTypes.map((type) => (
@@ -101,8 +102,8 @@ const VehicleRecords = () => {
         row._id === editRowId ? (
           <FormControl
             type="text"
-            value={updatedVehicle.Vehicle_No}
-            onChange={(e) => handleChange(e, "Vehicle_No")}
+            value={editValues.Vehicle_No}
+            onChange={(e) => handleInputChange(e, "Vehicle_No")}
           />
         ) : (
           row.Vehicle_No
@@ -114,8 +115,8 @@ const VehicleRecords = () => {
         row._id === editRowId ? (
           <FormControl
             type="text"
-            value={updatedVehicle.Chassis_No}
-            onChange={(e) => handleChange(e, "Chassis_No")}
+            value={editValues.Chassis_No}
+            onChange={(e) => handleInputChange(e, "Chassis_No")}
           />
         ) : (
           row.Chassis_No
@@ -127,8 +128,8 @@ const VehicleRecords = () => {
         row._id === editRowId ? (
           <FormControl
             type="text"
-            value={updatedVehicle.Driver_Name}
-            onChange={(e) => handleChange(e, "Driver_Name")}
+            value={editValues.Driver_Name}
+            onChange={(e) => handleInputChange(e, "Driver_Name")}
           />
         ) : (
           row.Driver_Name
@@ -141,14 +142,14 @@ const VehicleRecords = () => {
           {editRowId === row._id ? (
             <button
               className="editButton btn-success"
-              onClick={() => handleUpdate(row._id)}
+              onClick={() => handleSave(row._id)}
             >
               <FaSave />
             </button>
           ) : (
             <button
               className="editButton"
-              onClick={() => handleEditClick(row._id, row)}
+              onClick={() => handleEdit(row._id, row)}
             >
               <FaEdit />
             </button>
@@ -170,10 +171,9 @@ const VehicleRecords = () => {
       const res = await axios.get(
         "https://erp-backend-fy3n.onrender.com/api/all-vehicles"
       );
-      setData(res.data.data);
+      setData(res.data.data.reverse());
     } catch (err) {
-      console.error("Error fetching data:", err);
-      setError("Failed to fetch data. Please try again later.");
+      toast.error("Failed to fetch data", { position: "top-right" });
     } finally {
       setLoading(false);
     }
@@ -202,7 +202,9 @@ const VehicleRecords = () => {
     );
 
     if (missingFields.length > 0) {
-      alert(`Please fill all required fields: ${missingFields.join(", ")}`);
+      toast.warning(`Please fill all required fields: ${missingFields.join(", ")}`, {
+        position: "top-right",
+      });
       return;
     }
 
@@ -211,7 +213,8 @@ const VehicleRecords = () => {
         "https://erp-backend-fy3n.onrender.com/api/create-vehicles",
         newVehicle
       );
-      setData((prevData) => [...prevData, res.data.data]);
+      toast.success("Vehicle added successfully", { position: "top-right" });
+      setData((prevData) => [res.data.data, ...prevData]);
       setNewVehicle({
         Vehicle_Type: "",
         Vehicle_No: "",
@@ -233,14 +236,13 @@ const VehicleRecords = () => {
       });
       setShowAddForm(false);
     } catch (err) {
-      console.error("Error adding vehicle:", err);
-      setError("Failed to add vehicle. Please try again.");
+      toast.error("Failed to add vehicle", { position: "top-right" });
     }
   };
 
-  const handleEditClick = (id, row) => {
+  const handleEdit = (id, row) => {
     setEditRowId(id);
-    setUpdatedVehicle({
+    setEditValues({
       ...row,
       Vehicle_Type: row.Vehicle_Type?._id || "",
       Licence_Valid_Till: new Date(row.Licence_Valid_Till),
@@ -248,17 +250,17 @@ const VehicleRecords = () => {
     });
   };
 
-  const handleUpdate = async (id) => {
+  const handleSave = async (id) => {
     try {
       await axios.put(
         `https://erp-backend-fy3n.onrender.com/api/update-vehicles/${id}`,
-        updatedVehicle
+        editValues
       );
-      fetchData(); // refresh list
+      toast.success("Vehicle updated successfully", { position: "top-right" });
+      fetchData();
       setEditRowId(null);
     } catch (err) {
-      console.error("Failed to update vehicle", err);
-      setError("Failed to update vehicle.");
+      toast.error("Failed to update vehicle", { position: "top-right" });
     }
   };
 
@@ -268,12 +270,34 @@ const VehicleRecords = () => {
         await axios.delete(
           `https://erp-backend-fy3n.onrender.com/api/delete-vehicles/${id}`
         );
+        toast.success("Vehicle deleted successfully", { position: "top-right" });
         setData((prevData) => prevData.filter((row) => row._id !== id));
       } catch (err) {
-        console.error("Delete error:", err);
-        setError("Failed to delete vehicle.");
+        toast.error("Failed to delete vehicle", { position: "top-right" });
       }
     }
+  };
+
+  const handlePrint = () => {
+    const headers = [
+      ["#", "Vehicle Type", "Vehicle No", "Chassis No", "Driver Name"]
+    ];
+    const rows = data.map((row, index) => [
+      index + 1,
+      row.Vehicle_Type?.type_name || "N/A",
+      row.Vehicle_No,
+      row.Chassis_No,
+      row.Driver_Name
+    ]);
+    printContent(headers, rows);
+  };
+
+  const handleCopy = () => {
+    const headers = ["#", "Vehicle Type", "Vehicle No", "Chassis No", "Driver Name"];
+    const rows = data.map((row, index) => 
+      `${index + 1}\t${row.Vehicle_Type?.type_name || "N/A"}\t${row.Vehicle_No}\t${row.Chassis_No}\t${row.Driver_Name}`
+    );
+    copyContent(headers, rows);
   };
 
   useEffect(() => {
@@ -540,228 +564,19 @@ const VehicleRecords = () => {
             </div>
           )}
 
-          {/* Expanded Edit Form */}
-          {editRowId && (
-            <div className="cover-sheet mt-3">
-              <div className="studentHeading">
-                <h2>Edit Vehicle Details</h2>
-                <button
-                  className="closeForm"
-                  onClick={() => setEditRowId(null)}
-                >
-                  X
-                </button>
-              </div>
-              <Form className="formSheet">
-                <Row className="mb-3">
-                  <Col lg={4}>
-                    <FormLabel className="labelForm">Vehicle Type*</FormLabel>
-                    <Form.Select
-                      value={updatedVehicle.Vehicle_Type}
-                      onChange={(e) => handleChange(e, "Vehicle_Type")}
-                      required
-                    >
-                      <option value="">Select Vehicle Type</option>
-                      {vehicleTypes.map((type) => (
-                        <option key={type._id} value={type._id}>
-                          {type.type_name}
-                        </option>
-                      ))}
-                    </Form.Select>
-                  </Col>
-                  <Col lg={4}>
-                    <FormLabel className="labelForm">Vehicle No*</FormLabel>
-                    <FormControl
-                      type="text"
-                      value={updatedVehicle.Vehicle_No}
-                      onChange={(e) => handleChange(e, "Vehicle_No")}
-                      required
-                    />
-                  </Col>
-                  <Col lg={4}>
-                    <FormLabel className="labelForm">Chassis No*</FormLabel>
-                    <FormControl
-                      type="text"
-                      value={updatedVehicle.Chassis_No}
-                      onChange={(e) => handleChange(e, "Chassis_No")}
-                      required
-                    />
-                  </Col>
-                </Row>
-
-                <Row className="mb-3">
-                  <Col lg={4}>
-                    <FormLabel className="labelForm">Engine No*</FormLabel>
-                    <FormControl
-                      type="text"
-                      value={updatedVehicle.Engine_No}
-                      onChange={(e) => handleChange(e, "Engine_No")}
-                      required
-                    />
-                  </Col>
-                  <Col lg={4}>
-                    <FormLabel className="labelForm">Driver Name*</FormLabel>
-                    <FormControl
-                      type="text"
-                      value={updatedVehicle.Driver_Name}
-                      onChange={(e) => handleChange(e, "Driver_Name")}
-                      required
-                    />
-                  </Col>
-                  <Col lg={4}>
-                    <FormLabel className="labelForm">Driver Mobile No*</FormLabel>
-                    <FormControl
-                      type="text"
-                      value={updatedVehicle.Driver_Mobile_No}
-                      onChange={(e) => handleChange(e, "Driver_Mobile_No")}
-                      required
-                    />
-                  </Col>
-                </Row>
-
-                <Row className="mb-3">
-                  <Col lg={4}>
-                    <FormLabel className="labelForm">Driver Licence No*</FormLabel>
-                    <FormControl
-                      type="text"
-                      value={updatedVehicle.Driver_Licence_No}
-                      onChange={(e) => handleChange(e, "Driver_Licence_No")}
-                      required
-                    />
-                  </Col>
-                  <Col lg={4}>
-                    <FormLabel className="labelForm">Licence Valid Till*</FormLabel>
-                    <DatePicker
-                      selected={updatedVehicle.Licence_Valid_Till}
-                      onChange={(date) =>
-                        handleDateChange(date, "Licence_Valid_Till")
-                      }
-                      className="form-control"
-                      dateFormat="dd/MM/yyyy"
-                      minDate={new Date()}
-                      required
-                    />
-                  </Col>
-                  <Col lg={4}>
-                    <FormLabel className="labelForm">Insurance Company*</FormLabel>
-                    <FormControl
-                      type="text"
-                      value={updatedVehicle.Insurance_Company}
-                      onChange={(e) => handleChange(e, "Insurance_Company")}
-                      required
-                    />
-                  </Col>
-                </Row>
-
-                <Row className="mb-3">
-                  <Col lg={4}>
-                    <FormLabel className="labelForm">Insurance Policy No*</FormLabel>
-                    <FormControl
-                      type="text"
-                      value={updatedVehicle.Insurance_Policy_No}
-                      onChange={(e) => handleChange(e, "Insurance_Policy_No")}
-                      required
-                    />
-                  </Col>
-                  <Col lg={4}>
-                    <FormLabel className="labelForm">Insurance Valid Till*</FormLabel>
-                    <DatePicker
-                      selected={updatedVehicle.Insurance_Valid_Till}
-                      onChange={(date) =>
-                        handleDateChange(date, "Insurance_Valid_Till")
-                      }
-                      className="form-control"
-                      dateFormat="dd/MM/yyyy"
-                      minDate={new Date()}
-                      required
-                    />
-                  </Col>
-                  <Col lg={4}>
-                    <FormLabel className="labelForm">Insurance Amount*</FormLabel>
-                    <FormControl
-                      type="number"
-                      value={updatedVehicle.Insurance_Amount}
-                      onChange={(e) => handleChange(e, "Insurance_Amount")}
-                      required
-                    />
-                  </Col>
-                </Row>
-
-                <Row className="mb-3">
-                  <Col lg={4}>
-                    <FormLabel className="labelForm">Seating Capacity*</FormLabel>
-                    <FormControl
-                      type="number"
-                      value={updatedVehicle.Seating_Capacity}
-                      onChange={(e) => handleChange(e, "Seating_Capacity")}
-                      required
-                    />
-                  </Col>
-                  <Col lg={4}>
-                    <FormLabel className="labelForm">Type of Ownership*</FormLabel>
-                    <Form.Select
-                      value={updatedVehicle.Type_of_Ownership}
-                      onChange={(e) => handleChange(e, "Type_of_Ownership")}
-                      required
-                    >
-                      <option value="Owned">Owned</option>
-                      <option value="Rental">Rental</option>
-                    </Form.Select>
-                  </Col>
-                  <Col lg={4}>
-                    <FormLabel className="labelForm">Helper Name</FormLabel>
-                    <FormControl
-                      type="text"
-                      value={updatedVehicle.Helper_Name || ""}
-                      onChange={(e) => handleChange(e, "Helper_Name")}
-                    />
-                  </Col>
-                </Row>
-
-                <Row className="mb-3">
-                  <Col lg={4}>
-                    <FormLabel className="labelForm">Helper Mobile No</FormLabel>
-                    <FormControl
-                      type="text"
-                      value={updatedVehicle.Helper_Mobile_No || ""}
-                      onChange={(e) => handleChange(e, "Helper_Mobile_No")}
-                    />
-                  </Col>
-                  <Col lg={8}>
-                    <FormLabel className="labelForm">Remark</FormLabel>
-                    <FormControl
-                      as="textarea"
-                      value={updatedVehicle.Remark || ""}
-                      onChange={(e) => handleChange(e, "Remark")}
-                    />
-                  </Col>
-                </Row>
-
-                <Row>
-                  <Col>
-                    <Button
-                      onClick={() => handleUpdate(editRowId)}
-                      className="btn btn-primary mt-4"
-                    >
-                      Update Vehicle
-                    </Button>
-                  </Col>
-                </Row>
-              </Form>
-            </div>
-          )}
-
-          {/* Table Section */}
           <Row>
             <Col>
               <div className="tableSheet">
                 <h2>Vehicle Records</h2>
                 {loading ? (
                   <p>Loading...</p>
-                ) : error ? (
-                  <p style={{ color: "red" }}>{error}</p>
                 ) : data.length > 0 ? (
-                  <Table columns={columns} data={data} />
+                  <Table 
+                    columns={columns} 
+                    data={data} 
+                    handleCopy={handleCopy} 
+                    handlePrint={handlePrint} 
+                  />
                 ) : (
                   <p>No data available.</p>
                 )}
@@ -770,6 +585,8 @@ const VehicleRecords = () => {
           </Row>
         </Container>
       </section>
+
+      <ToastContainer />
     </>
   );
 };

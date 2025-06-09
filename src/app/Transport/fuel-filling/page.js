@@ -9,6 +9,9 @@ import BreadcrumbComp from "@/app/component/Breadcrumb";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import axios from 'axios';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { copyContent, printContent } from '@/app/utils';
 
 const FuelFilling = () => {
   const API_BASE_URL = "https://erp-backend-fy3n.onrender.com/api";
@@ -17,8 +20,8 @@ const FuelFilling = () => {
   const [editRowId, setEditRowId] = useState(null);
   const [updatedData, setUpdatedData] = useState({});
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
+  const [errors, setErrors] = useState({});
 
   const [formData, setFormData] = useState({
     Vehicle_No: '',
@@ -48,6 +51,7 @@ const FuelFilling = () => {
           <FormSelect
             value={updatedData.Vehicle_No}
             onChange={(e) => handleUpdateChange(e, 'Vehicle_No')}
+            isInvalid={!!errors.Vehicle_No}
           >
             <option value="">Select Vehicle</option>
             {vehicles.map(vehicle => (
@@ -71,6 +75,7 @@ const FuelFilling = () => {
             onChange={(e) => handleUpdateChange(e, 'Amount_per_Liter')}
             min="0.1"
             step="0.01"
+            isInvalid={!!errors.Amount_per_Liter}
           />
         ) : (
           `${row.Amount_per_Liter} Rs.`
@@ -87,6 +92,7 @@ const FuelFilling = () => {
             onChange={(e) => handleUpdateChange(e, 'Quantity_of_diesel')}
             min="0.1"
             step="0.01"
+            isInvalid={!!errors.Quantity_of_diesel}
           />
         ) : (
           row.Quantity_of_diesel
@@ -102,6 +108,7 @@ const FuelFilling = () => {
             value={updatedData.PreviousReading}
             onChange={(e) => handleUpdateChange(e, 'PreviousReading')}
             min="0"
+            isInvalid={!!errors.PreviousReading}
           />
         ) : (
           row.PreviousReading
@@ -117,6 +124,7 @@ const FuelFilling = () => {
             value={updatedData.NewReading}
             onChange={(e) => handleUpdateChange(e, 'NewReading')}
             min={updatedData.PreviousReading ? parseInt(updatedData.PreviousReading) + 1 : 0}
+            isInvalid={!!errors.NewReading}
           />
         ) : (
           row.NewReading
@@ -155,13 +163,30 @@ const FuelFilling = () => {
     }
   ];
 
+  const validateForm = (formValues, isEdit = false) => {
+    const newErrors = {};
+    
+    if (!formValues.Vehicle_No) newErrors.Vehicle_No = "Vehicle No is required";
+    if (!formValues.Filled_Station) newErrors.Filled_Station = "Filled Station is required";
+    if (!formValues.Quantity_of_diesel || formValues.Quantity_of_diesel <= 0) 
+      newErrors.Quantity_of_diesel = "Valid quantity is required";
+    if (!formValues.PreviousReading || formValues.PreviousReading < 0) 
+      newErrors.PreviousReading = "Valid reading is required";
+    if (!formValues.Amount_per_Liter || formValues.Amount_per_Liter <= 0) 
+      newErrors.Amount_per_Liter = "Valid amount is required";
+    if (!formValues.NewReading || formValues.NewReading <= formValues.PreviousReading) 
+      newErrors.NewReading = "New reading must be greater than previous";
+    if (!formValues.date) newErrors.date = "Date is required";
+    
+    return newErrors;
+  };
+
   const fetchVehicles = async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/routes/vehicles/dropdown`);
       setVehicles(response.data.data);
     } catch (err) {
-      console.error("Error fetching vehicles:", err);
-      setError("Failed to fetch vehicles");
+      toast.error("Failed to fetch vehicles", { position: "top-right" });
     }
   };
 
@@ -169,10 +194,9 @@ const FuelFilling = () => {
     setLoading(true);
     try {
       const response = await axios.get(`${API_BASE_URL}/all-fuel-fillings`);
-      setData(response.data.data);
+      setData(response.data.data.reverse()); // Newest first
     } catch (err) {
-      console.error("Error fetching fuel fillings:", err);
-      setError(err.response?.data?.message || "Failed to fetch fuel fillings");
+      toast.error("Failed to fetch fuel fillings", { position: "top-right" });
     } finally {
       setLoading(false);
     }
@@ -181,23 +205,42 @@ const FuelFilling = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
+    // Clear error when user types
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
   };
 
   const handleDateChange = (date) => {
     setFormData({ ...formData, date });
+    if (errors.date) {
+      setErrors(prev => ({ ...prev, date: '' }));
+    }
   };
 
   const handleUpdateChange = (e, field) => {
     setUpdatedData({ ...updatedData, [field]: e.target.value });
+    // Clear error when user types
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    const formErrors = validateForm(formData);
+    
+    if (Object.keys(formErrors).length > 0) {
+      setErrors(formErrors);
+      toast.error("Please fix the errors in the form", { position: "top-right" });
+      return;
+    }
+
     try {
       const response = await axios.post(`${API_BASE_URL}/create-fuel-fillings`, formData);
-      setData([...data, response.data.data]);
+      toast.success("Fuel filling added successfully", { position: "top-right" });
+      setData(prev => [response.data.data, ...prev]); // Add new record at top
       setShowAddForm(false);
-      fetchFuelFillings();
       setFormData({
         Vehicle_No: '',
         Filled_Station: '',
@@ -207,9 +250,9 @@ const FuelFilling = () => {
         NewReading: '',
         date: new Date()
       });
+      setErrors({});
     } catch (err) {
-      console.error("Error creating fuel filling:", err);
-      setError(err.response?.data?.message || "Failed to create fuel filling");
+      toast.error(err.response?.data?.message || "Failed to create fuel filling", { position: "top-right" });
     }
   };
 
@@ -224,16 +267,25 @@ const FuelFilling = () => {
       NewReading: row.NewReading,
       date: new Date(row.date)
     });
+    setErrors({});
   };
 
   const handleUpdate = async (id) => {
+    const formErrors = validateForm(updatedData, true);
+    
+    if (Object.keys(formErrors).length > 0) {
+      setErrors(formErrors);
+      toast.error("Please fix the errors in the form", { position: "top-right" });
+      return;
+    }
+
     try {
       await axios.put(`${API_BASE_URL}/update-fuel-fillings/${id}`, updatedData);
-      fetchFuelFillings();
+      toast.success("Fuel filling updated successfully", { position: "top-right" });
+      fetchFuelFillings(); // Refresh data
       setEditRowId(null);
     } catch (err) {
-      console.error("Error updating fuel filling:", err);
-      setError(err.response?.data?.message || "Failed to update fuel filling");
+      toast.error(err.response?.data?.message || "Failed to update fuel filling", { position: "top-right" });
     }
   };
 
@@ -241,12 +293,37 @@ const FuelFilling = () => {
     if (confirm("Are you sure you want to delete this fuel filling record?")) {
       try {
         await axios.delete(`${API_BASE_URL}/delete-fuel-fillings/${id}`);
-        setData(data.filter(item => item._id !== id));
+        toast.success("Fuel filling deleted successfully", { position: "top-right" });
+        setData(prev => prev.filter(item => item._id !== id)); // Remove from local state
       } catch (err) {
-        console.error("Error deleting fuel filling:", err);
-        setError(err.response?.data?.message || "Failed to delete fuel filling");
+        toast.error(err.response?.data?.message || "Failed to delete fuel filling", { position: "top-right" });
       }
     }
+  };
+
+  const handlePrint = () => {
+    const headers = [
+      ["#", "Date", "Vehicle No", "Amount/Litre", "Quantity", "Prev Reading", "New Reading", "Total Amount"]
+    ];
+    const rows = data.map((row, index) => [
+      index + 1,
+      new Date(row.date).toLocaleDateString(),
+      row.Vehicle_No,
+      `${row.Amount_per_Liter} Rs.`,
+      row.Quantity_of_diesel,
+      row.PreviousReading,
+      row.NewReading,
+      `${row.Quantity_of_diesel * row.Amount_per_Liter} Rs.`
+    ]);
+    printContent(headers, rows);
+  };
+
+  const handleCopy = () => {
+    const headers = ["#", "Date", "Vehicle No", "Amount/Litre", "Quantity", "Prev Reading", "New Reading", "Total Amount"];
+    const rows = data.map((row, index) => 
+      `${index + 1}\t${new Date(row.date).toLocaleDateString()}\t${row.Vehicle_No}\t${row.Amount_per_Liter} Rs.\t${row.Quantity_of_diesel}\t${row.PreviousReading}\t${row.NewReading}\t${row.Quantity_of_diesel * row.Amount_per_Liter} Rs.`
+    );
+    copyContent(headers, rows);
   };
 
   useEffect(() => {
@@ -293,6 +370,7 @@ const FuelFilling = () => {
                           name="Vehicle_No" 
                           value={formData.Vehicle_No} 
                           onChange={handleChange} 
+                          isInvalid={!!errors.Vehicle_No}
                           required
                         >
                           <option value="">Select Vehicle</option>
@@ -302,6 +380,9 @@ const FuelFilling = () => {
                             </option>
                           ))}
                         </FormSelect>
+                        <FormControl.Feedback type="invalid">
+                          {errors.Vehicle_No}
+                        </FormControl.Feedback>
                       </FormGroup>
                       <FormGroup as={Col} lg="4" controlId="validationCustom02">
                         <FormLabel className="labelForm">Filled Station*</FormLabel>
@@ -311,7 +392,11 @@ const FuelFilling = () => {
                           name="Filled_Station"
                           value={formData.Filled_Station}
                           onChange={handleChange}
+                          isInvalid={!!errors.Filled_Station}
                         />
+                        <FormControl.Feedback type="invalid">
+                          {errors.Filled_Station}
+                        </FormControl.Feedback>
                       </FormGroup>
                       <FormGroup as={Col} lg="4" controlId="validationCustom03">
                         <FormLabel className="labelForm">Quantity*</FormLabel>
@@ -323,7 +408,11 @@ const FuelFilling = () => {
                           onChange={handleChange}
                           min="0.1"
                           step="0.01"
+                          isInvalid={!!errors.Quantity_of_diesel}
                         />
+                        <FormControl.Feedback type="invalid">
+                          {errors.Quantity_of_diesel}
+                        </FormControl.Feedback>
                       </FormGroup>
                     </Row>
                     <Row className='mb-3'>
@@ -336,7 +425,11 @@ const FuelFilling = () => {
                           value={formData.PreviousReading}
                           onChange={handleChange}
                           min="0"
+                          isInvalid={!!errors.PreviousReading}
                         />
+                        <FormControl.Feedback type="invalid">
+                          {errors.PreviousReading}
+                        </FormControl.Feedback>
                       </FormGroup>
                       <FormGroup as={Col} lg="4" controlId="validationCustom05">
                         <FormLabel className="labelForm">Amount Per Litre*</FormLabel>
@@ -348,7 +441,11 @@ const FuelFilling = () => {
                           onChange={handleChange}
                           min="0.1"
                           step="0.01"
+                          isInvalid={!!errors.Amount_per_Liter}
                         />
+                        <FormControl.Feedback type="invalid">
+                          {errors.Amount_per_Liter}
+                        </FormControl.Feedback>
                       </FormGroup>
                       <FormGroup as={Col} lg="4" controlId="validationCustom06">
                         <FormLabel className="labelForm">New Reading*</FormLabel>
@@ -359,7 +456,11 @@ const FuelFilling = () => {
                           value={formData.NewReading}
                           onChange={handleChange}
                           min={formData.PreviousReading ? parseInt(formData.PreviousReading) + 1 : 0}
+                          isInvalid={!!errors.NewReading}
                         />
+                        <FormControl.Feedback type="invalid">
+                          {errors.NewReading}
+                        </FormControl.Feedback>
                       </FormGroup>
                     </Row>
                     <Row className='mb-3'>
@@ -372,6 +473,11 @@ const FuelFilling = () => {
                           dateFormat="dd/MM/yyyy"
                           required
                         />
+                        {errors.date && (
+                          <div className="invalid-feedback d-block">
+                            {errors.date}
+                          </div>
+                        )}
                       </FormGroup>
                     </Row>
                     <Button type="submit" className='btn btn-primary mt-4'>
@@ -383,116 +489,19 @@ const FuelFilling = () => {
             </Col>
           </Row>
 
-          {/* Edit Form */}
-          {editRowId && (
-            <div className="cover-sheet mt-3">
-              <div className="studentHeading">
-                <h2>Edit Fuel Filling</h2>
-                <button className='closeForm' onClick={() => setEditRowId(null)}> X </button>
-              </div>
-              <Form className='formSheet'>
-                <Row className="mb-3">
-                  <FormGroup as={Col} lg="4" controlId="editVehicleNo">
-                    <FormLabel className="labelForm">Vehicle No*</FormLabel>
-                    <FormSelect
-                      value={updatedData.Vehicle_No}
-                      onChange={(e) => handleUpdateChange(e, 'Vehicle_No')}
-                      required
-                    >
-                      <option value="">Select Vehicle</option>
-                      {vehicles.map(vehicle => (
-                        <option key={vehicle._id} value={vehicle.Vehicle_No}>
-                          {vehicle.Vehicle_No}
-                        </option>
-                      ))}
-                    </FormSelect>
-                  </FormGroup>
-                  <FormGroup as={Col} lg="4" controlId="editFilledStation">
-                    <FormLabel className="labelForm">Filled Station*</FormLabel>
-                    <FormControl
-                      required
-                      type="text"
-                      value={updatedData.Filled_Station}
-                      onChange={(e) => handleUpdateChange(e, 'Filled_Station')}
-                    />
-                  </FormGroup>
-                  <FormGroup as={Col} lg="4" controlId="editQuantity">
-                    <FormLabel className="labelForm">Quantity*</FormLabel>
-                    <FormControl
-                      required
-                      type="number"
-                      value={updatedData.Quantity_of_diesel}
-                      onChange={(e) => handleUpdateChange(e, 'Quantity_of_diesel')}
-                      min="0.1"
-                      step="0.01"
-                    />
-                  </FormGroup>
-                </Row>
-                <Row className='mb-3'>
-                  <FormGroup as={Col} lg="4" controlId="editPreviousReading">
-                    <FormLabel className="labelForm">Previous Reading*</FormLabel>
-                    <FormControl
-                      required
-                      type="number"
-                      value={updatedData.PreviousReading}
-                      onChange={(e) => handleUpdateChange(e, 'PreviousReading')}
-                      min="0"
-                    />
-                  </FormGroup>
-                  <FormGroup as={Col} lg="4" controlId="editAmountPerLitre">
-                    <FormLabel className="labelForm">Amount Per Litre*</FormLabel>
-                    <FormControl
-                      required
-                      type="number"
-                      value={updatedData.Amount_per_Liter}
-                      onChange={(e) => handleUpdateChange(e, 'Amount_per_Liter')}
-                      min="0.1"
-                      step="0.01"
-                    />
-                  </FormGroup>
-                  <FormGroup as={Col} lg="4" controlId="editNewReading">
-                    <FormLabel className="labelForm">New Reading*</FormLabel>
-                    <FormControl
-                      required
-                      type="number"
-                      value={updatedData.NewReading}
-                      onChange={(e) => handleUpdateChange(e, 'NewReading')}
-                      min={updatedData.PreviousReading ? parseInt(updatedData.PreviousReading) + 1 : 0}
-                    />
-                  </FormGroup>
-                </Row>
-                <Row className='mb-3'>
-                  <FormGroup as={Col} lg="4" controlId="editDate">
-                    <FormLabel className="labelForm">Date*</FormLabel>
-                    <DatePicker
-                      selected={updatedData.date}
-                      onChange={(date) => setUpdatedData({...updatedData, date})}
-                      className="form-control"
-                      dateFormat="dd/MM/yyyy"
-                      required
-                    />
-                  </FormGroup>
-                </Row>
-                <Button 
-                  onClick={() => handleUpdate(editRowId)} 
-                  className='btn btn-primary mt-4'
-                >
-                  Update Fuel Filling
-                </Button>
-              </Form>
-            </div>
-          )}
-
           <Row>
             <Col>
               <div className="tableSheet">
                 <h2>Fuel Filling Records</h2>
                 {loading ? (
                   <p>Loading...</p>
-                ) : error ? (
-                  <p style={{ color: "red" }}>{error}</p>
                 ) : data.length > 0 ? (
-                  <Table columns={columns} data={data} />
+                  <Table 
+                    columns={columns} 
+                    data={data} 
+                    handleCopy={handleCopy} 
+                    handlePrint={handlePrint} 
+                  />
                 ) : (
                   <p>No fuel filling records available</p>
                 )}
@@ -501,6 +510,8 @@ const FuelFilling = () => {
           </Row>
         </Container>
       </section>
+
+      <ToastContainer position="top-right" autoClose={3000} />
     </>
   );
 };

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
 import { CgAddR } from 'react-icons/cg';
-import { Form, Row, Col, Container, FormLabel, FormControl, Button, Breadcrumb, Modal } from "react-bootstrap";
+import { Form, Row, Col, Container, FormLabel, FormControl, Button } from "react-bootstrap";
 import axios from "axios";
 import Table from "@/app/component/DataTable";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
@@ -14,97 +14,90 @@ const SchoolAccount = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const [newSchoolName, setNewSchoolName] = useState("");
+  const [newAccount, setNewAccount] = useState("");
   const [editingId, setEditingId] = useState(null);
-  const [editedName, setEditedName] = useState("");
+  const [editedAccount, setEditedAccount] = useState("");
+
+  const API_BASE = "https://erp-backend-fy3n.onrender.com/api";
 
   const fetchData = async () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/schools/all");
-      const schoolData = response.data.data || [];
-      setData(schoolData);
+      const response = await axios.get(`${API_BASE}/all-schoolAccount`);
+      setData(response.data.data || []);
     } catch (err) {
       console.error("Error fetching data:", err);
-      setError("Failed to fetch school data. Please try again later.");
+      setError("Failed to fetch school accounts. Please try again later.");
     } finally {
       setLoading(false);
     }
   };
 
   const handleAdd = async () => {
-    if (!newSchoolName.trim()) {
-      setError("School name cannot be empty");
+    if (!newAccount.trim()) {
+      setError("School account name cannot be empty");
       return;
     }
 
     try {
-      const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/schools", {
-        school_name: newSchoolName
+      const response = await axios.post(`${API_BASE}/create-schoolAccount`, {
+        school_account: newAccount,
       });
-      setData([...data, response.data.data]);
-      setNewSchoolName("");
+      setNewAccount("");
       setIsPopoverOpen(false);
       fetchData();
     } catch (error) {
-      console.error("Error adding school:", error);
-      setError(error.response?.data?.message || "Failed to add school");
+      console.error("Error adding account:", error);
+      setError(error.response?.data?.message || "Failed to add school account");
     }
   };
 
-  const handleEdit = (school) => {
-    setEditingId(school._id);
-    setEditedName(school.school_name);
+  const handleEdit = (row) => {
+    setEditingId(row._id);
+    setEditedAccount(row.school_account);
   };
 
   const handleUpdate = async (id) => {
-    if (!editedName.trim()) {
-      setError("School name cannot be empty");
+    if (!editedAccount.trim()) {
+      setError("School account name cannot be empty");
       return;
     }
 
     try {
-      const response = await axios.put("https://erp-backend-fy3n.onrender.com/api/schools", {
-        school_name: editedName
+      await axios.put(`${API_BASE}/update-schoolAccount/${id}`, {
+        school_account: editedAccount,
       });
-      setData(data.map(row => 
-        row._id === id ? { ...row, school_name: editedName } : row
-      ));
       setEditingId(null);
       fetchData();
     } catch (error) {
-      console.error("Error updating school:", error);
-      setError(error.response?.data?.message || "Failed to update school");
+      console.error("Error updating account:", error);
+      setError(error.response?.data?.message || "Failed to update school account");
     }
   };
 
   const handleDelete = async (id) => {
-    if (confirm("Are you sure you want to delete this school?")) {
+    if (confirm("Are you sure you want to delete this account?")) {
       try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/schools/${id}`);
-        setData(data.filter(row => row._id !== id));
+        await axios.delete(`${API_BASE}/delete-schoolAccount/${id}`);
         fetchData();
       } catch (error) {
-        console.error("Error deleting school:", error);
-        setError("Failed to delete school");
+        console.error("Error deleting account:", error);
+        setError("Failed to delete school account");
       }
     }
   };
 
   const handleCopy = () => {
-    const headers = ["#", "School Name"];
-    const rows = data.map((row, index) => `${index + 1}\t${row.school_name || "N/A"}`);
+    const headers = ["#", "School Account"];
+    const rows = data.map((row, index) => `${index + 1}\t${row.school_account || "N/A"}`);
     copyContent(headers, rows);
   };
 
-  const handlePrint = async () => {
-    const tableHeaders = [["#", "School Name"]];
-    const tableRows = data.map((row, index) => [
-      index + 1,
-      row.school_name || "N/A",
-    ]);
-    printContent(tableHeaders, tableRows);
+  const handlePrint = () => {
+    const headers = [["#", "School Account"]];
+    const rows = data.map((row, index) => [index + 1, row.school_account || "N/A"]);
+    printContent(headers, rows);
   };
 
   useEffect(() => {
@@ -114,22 +107,21 @@ const SchoolAccount = () => {
   const columns = [
     {
       name: "#",
-      selector: (row, index) => index + 1,
-      sortable: false,
+      selector: (_, index) => index + 1,
       width: "80px",
     },
     {
-      name: "School Name",
+      name: "School Account",
       cell: (row) =>
         editingId === row._id ? (
           <FormControl
             type="text"
-            value={editedName}
-            onChange={(e) => setEditedName(e.target.value)}
+            value={editedAccount}
+            onChange={(e) => setEditedAccount(e.target.value)}
             className="inline-edit-input"
           />
         ) : (
-          row.school_name || "N/A"
+          row.school_account || "N/A"
         ),
       sortable: true,
     },
@@ -138,17 +130,13 @@ const SchoolAccount = () => {
       cell: (row) => (
         <div className="d-flex gap-2">
           {editingId === row._id ? (
-            <>
-              <Button variant="success" size="sm" onClick={() => handleUpdate(row._id)}>
-                <FaSave />
-              </Button>
-            </>
+            <Button variant="success" size="sm" onClick={() => handleUpdate(row._id)}>
+              <FaSave />
+            </Button>
           ) : (
-            <>
-              <Button variant="primary" size="sm" onClick={() => handleEdit(row)}>
-                <FaEdit />
-              </Button>
-            </>
+            <Button variant="primary" size="sm" onClick={() => handleEdit(row)}>
+              <FaEdit />
+            </Button>
           )}
         </div>
       ),
@@ -156,8 +144,8 @@ const SchoolAccount = () => {
   ];
 
   const breadcrumbItems = [
-    { label: "Fee", link: "/fees/all-module" }, 
-    { label: "school-account", link: "null" }
+    { label: "Fee", link: "/fees/all-module" },
+    { label: "School Account", link: null },
   ];
 
   return (
@@ -171,32 +159,29 @@ const SchoolAccount = () => {
           </Row>
         </Container>
       </div>
+
       <section>
         <Container>
-          {/* <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
-            <CgAddR /> Add School
-          </Button> */}
-
           {isPopoverOpen && (
             <div className="cover-sheet">
               <div className="studentHeading">
-                <h2>Add New School</h2>
+                <h2>Add New School Account</h2>
                 <button className="closeForm" onClick={() => setIsPopoverOpen(false)}>X</button>
               </div>
               <Form className="formSheet">
                 <Row>
                   <Col lg={12}>
-                    <FormLabel className="labelForm">School Name</FormLabel>
+                    <FormLabel>School Account</FormLabel>
                     <FormControl
                       type="text"
-                      placeholder="Enter School Name"
-                      value={newSchoolName}
-                      onChange={(e) => setNewSchoolName(e.target.value)}
+                      placeholder="Enter School Account"
+                      value={newAccount}
+                      onChange={(e) => setNewAccount(e.target.value)}
                     />
                   </Col>
                 </Row>
                 <Button onClick={handleAdd} className="btn btn-primary mt-3">
-                  Add School
+                  Add
                 </Button>
                 {error && <p className="text-danger mt-2">{error}</p>}
               </Form>
@@ -204,14 +189,14 @@ const SchoolAccount = () => {
           )}
 
           <div className="tableSheet mt-4">
-            <h2>School Records</h2>
+            <h2>School Account Records</h2>
             {loading && <p>Loading...</p>}
             {error && <p className="text-danger">{error}</p>}
             {!loading && !error && (
-              <Table 
-                columns={columns} 
-                data={data} 
-                handleCopy={handleCopy} 
+              <Table
+                columns={columns}
+                data={data}
+                handleCopy={handleCopy}
                 handlePrint={handlePrint}
               />
             )}

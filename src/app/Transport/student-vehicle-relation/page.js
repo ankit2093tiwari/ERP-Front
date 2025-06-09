@@ -7,6 +7,9 @@ import { Container, Row, Col, Breadcrumb, Form, FormLabel, FormGroup, FormContro
 import { CgAddR } from 'react-icons/cg';
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import axios from 'axios';
+import { copyContent, printContent } from '@/app/utils';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const StudentVehicle = () => {
   const API_BASE_URL = "https://erp-backend-fy3n.onrender.com/api";
@@ -14,13 +17,10 @@ const StudentVehicle = () => {
   const [students, setStudents] = useState([]);
   const [routes, setRoutes] = useState([]);
   const [pickupPoints, setPickupPoints] = useState([]);
-  const [selectedRoute, setSelectedRoute] = useState('');
   const [editRowId, setEditRowId] = useState(null);
   const [updatedData, setUpdatedData] = useState({});
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
-
   const [formData, setFormData] = useState({
     student: '',
     vehicle_route: '',
@@ -105,11 +105,10 @@ const StudentVehicle = () => {
       },
       sortable: true,
     },
-
     {
       name: 'Action',
       cell: row => (
-        <div style={{ display: 'flex' }}>
+        <div className="d-flex gap-2">
           {editRowId === row._id ? (
             <button className='editButton btn-success'
               onClick={() => handleUpdate(row._id)}>
@@ -143,7 +142,7 @@ const StudentVehicle = () => {
       setPickupPoints(pickupPointsRes.data.data);
     } catch (err) {
       console.error("Error fetching dropdown data:", err);
-      setError("Failed to fetch dropdown data");
+      toast.error("Failed to fetch dropdown data", { position: "top-right" });
     }
   };
 
@@ -151,10 +150,10 @@ const StudentVehicle = () => {
     setLoading(true);
     try {
       const response = await axios.get(`${API_BASE_URL}/all-studentVehicle`);
-      setData(response.data.data);
+      setData(response.data.data.reverse()); // Newest entries first
     } catch (err) {
       console.error("Error fetching student vehicles:", err);
-      setError(err.response?.data?.message || "Failed to fetch student vehicles");
+      toast.error(err.response?.data?.message || "Failed to fetch student vehicles", { position: "top-right" });
     } finally {
       setLoading(false);
     }
@@ -182,18 +181,17 @@ const StudentVehicle = () => {
         pickUpPoint: formData.pickUpPoint
       });
 
-      setData([...data, response.data.data]);
+      toast.success("Transport assignment created successfully!", { position: "top-right" });
+      setData([response.data.data, ...data]); // Add new record at the beginning
       setShowAddForm(false);
       setFormData({
         student: '',
         vehicle_route: '',
         pickUpPoint: ''
       });
-      fetchStudentVehicles();
-      setError("");
     } catch (err) {
       console.error("Error creating student vehicle relation:", err);
-      setError(err.response?.data?.message || err.message || "Failed to create relation");
+      toast.error(err.response?.data?.message || err.message || "Failed to create relation", { position: "top-right" });
     }
   };
 
@@ -218,13 +216,20 @@ const StudentVehicle = () => {
         pickUpPoint: updatedData.pickUpPoint
       });
 
-      fetchStudentVehicles();
+      toast.success("Transport assignment updated successfully!", { position: "top-right" });
+      const updated = data.map(item => 
+        item._id === id ? { 
+          ...item, 
+          student: students.find(s => s._id === updatedData.student),
+          vehicle_route: routes.find(r => r._id === updatedData.vehicle_route),
+          pickUpPoint: pickupPoints.find(p => p._id === updatedData.pickUpPoint)
+        } : item
+      );
+      setData(updated);
       setEditRowId(null);
-      fetchStudentVehicles();
-      setError("");
     } catch (err) {
       console.error("Error updating student vehicle relation:", err);
-      setError(err.response?.data?.message || err.message || "Failed to update relation");
+      toast.error(err.response?.data?.message || err.message || "Failed to update relation", { position: "top-right" });
     }
   };
 
@@ -232,14 +237,40 @@ const StudentVehicle = () => {
     if (confirm("Are you sure you want to delete this assignment?")) {
       try {
         await axios.delete(`${API_BASE_URL}/student-vehicle/${id}`);
+        toast.success("Transport assignment deleted successfully!", { position: "top-right" });
         setData(prevData => prevData.filter(item => item._id !== id));
-        fetchStudentVehicles();
-        setError("");
       } catch (err) {
         console.error("Error deleting student vehicle relation:", err);
-        setError(err.response?.data?.message || "Failed to delete relation");
+        toast.error(err.response?.data?.message || "Failed to delete relation", { position: "top-right" });
       }
     }
+  };
+
+  const handlePrint = () => {
+    const headers = [["#", "Student Name", "Route", "Pickup Point", "Amount"]];
+    const rows = data.map((row, index) => [
+      index + 1,
+      row.student ? `${row.student.first_name} ${row.student.last_name}` : 'N/A',
+      row.vehicle_route ? `${row.vehicle_route.Route_name} (${row.vehicle_route.Vehicle_No})` : 'N/A',
+      row.pickUpPoint ? row.pickUpPoint.PickupPoint : 'N/A',
+      row.Amount ? `₹${row.Amount}` : 
+        row.pickUpPoint?.Amount ? `₹${row.pickUpPoint.Amount}` : 
+        row.vehicle_route?.Amount ? `₹${row.vehicle_route.Amount}` : 'N/A'
+    ]);
+    printContent(headers, rows);
+  };
+
+  const handleCopy = () => {
+    const headers = ["#", "Student Name", "Route", "Pickup Point", "Amount"];
+    const rows = data.map((row, index) => 
+      `${index + 1}\t${row.student ? `${row.student.first_name} ${row.student.last_name}` : 'N/A'}\t` +
+      `${row.vehicle_route ? `${row.vehicle_route.Route_name} (${row.vehicle_route.Vehicle_No})` : 'N/A'}\t` +
+      `${row.pickUpPoint ? row.pickUpPoint.PickupPoint : 'N/A'}\t` +
+      `${row.Amount ? `₹${row.Amount}` : 
+        row.pickUpPoint?.Amount ? `₹${row.pickUpPoint.Amount}` : 
+        row.vehicle_route?.Amount ? `₹${row.vehicle_route.Amount}` : 'N/A'}`
+    );
+    copyContent(headers, rows);
   };
 
   useEffect(() => {
@@ -266,85 +297,75 @@ const StudentVehicle = () => {
 
       <section>
         <Container>
-          <Row>
-            <Col>
-              <Button onClick={() => setShowAddForm(true)} className="btn-add">
-                <CgAddR /> New Transport Assignment
-              </Button>
+          <Button onClick={() => setShowAddForm(true)} className="btn-add">
+            <CgAddR /> New Transport Assignment
+          </Button>
 
-              {error && (
-                <div className="alert alert-danger mt-3">
-                  {error}
-                </div>
-              )}
-
-              {showAddForm && (
-                <div className="cover-sheet">
-                  <div className="studentHeading">
-                    <h2>Add Student Transport Assignment</h2>
-                    <button className='closeForm' onClick={() => setShowAddForm(false)}> X </button>
-                  </div>
-                  <Form onSubmit={handleSubmit} className='formSheet'>
-                    <Row className="mb-3">
-                      <FormGroup as={Col} lg="6" controlId="studentSelect">
-                        <FormLabel className="labelForm">Student*</FormLabel>
-                        <FormSelect
-                          name="student"
-                          value={formData.student}
-                          onChange={handleChange}
-                          required
-                        >
-                          <option value="">Select Student</option>
-                          {students.map(student => (
-                            <option key={student._id} value={student._id}>
-                              {student.first_name} {student.last_name} ({student.adm_no})
-                            </option>
-                          ))}
-                        </FormSelect>
-                      </FormGroup>
-                      <FormGroup as={Col} lg="6" controlId="routeSelect">
-                        <FormLabel className="labelForm">Route*</FormLabel>
-                        <FormSelect
-                          name="vehicle_route"
-                          value={formData.vehicle_route}
-                          onChange={handleChange}
-                          required
-                        >
-                          <option value="">Select Route</option>
-                          {routes.map(route => (
-                            <option key={route._id} value={route._id}>
-                              {route.Route_name} ({route.Vehicle_No})
-                            </option>
-                          ))}
-                        </FormSelect>
-                      </FormGroup>
-                    </Row>
-                    <Row className="mb-3">
-                      <FormGroup as={Col} lg="12" controlId="pickupPointSelect">
-                        <FormLabel className="labelForm">Pickup Point*</FormLabel>
-                        <FormSelect
-                          name="pickUpPoint"
-                          value={formData.pickUpPoint}
-                          onChange={handleChange}
-                          required
-                        >
-                          <option value="">Select Pickup Point</option>
-                          {pickupPoints.map(point => (
-                            <option key={point._id} value={point._id}>
-                              {point.PickupPoint}
-                            </option>
-                          ))}
-                        </FormSelect>
-                      </FormGroup>
-                    </Row>
-                    <Button type="submit" className='btn btn-primary mt-4'>
-                      Submit
-                    </Button>
-                  </Form>
-                </div>
-              )}
-            </Col>
-          </Row>
+          {showAddForm && (
+            <div className="cover-sheet">
+              <div className="studentHeading">
+                <h2>Add Student Transport Assignment</h2>
+                <button className='closeForm' onClick={() => setShowAddForm(false)}> X </button>
+              </div>
+              <Form onSubmit={handleSubmit} className='formSheet'>
+                <Row className="mb-3">
+                  <FormGroup as={Col} lg="6" controlId="studentSelect">
+                    <FormLabel className="labelForm">Student*</FormLabel>
+                    <FormSelect
+                      name="student"
+                      value={formData.student}
+                      onChange={handleChange}
+                      required
+                    >
+                      <option value="">Select Student</option>
+                      {students.map(student => (
+                        <option key={student._id} value={student._id}>
+                          {student.first_name} {student.last_name} ({student.adm_no})
+                        </option>
+                      ))}
+                    </FormSelect>
+                  </FormGroup>
+                  <FormGroup as={Col} lg="6" controlId="routeSelect">
+                    <FormLabel className="labelForm">Route*</FormLabel>
+                    <FormSelect
+                      name="vehicle_route"
+                      value={formData.vehicle_route}
+                      onChange={handleChange}
+                      required
+                    >
+                      <option value="">Select Route</option>
+                      {routes.map(route => (
+                        <option key={route._id} value={route._id}>
+                          {route.Route_name} ({route.Vehicle_No})
+                        </option>
+                      ))}
+                    </FormSelect>
+                  </FormGroup>
+                </Row>
+                <Row className="mb-3">
+                  <FormGroup as={Col} lg="12" controlId="pickupPointSelect">
+                    <FormLabel className="labelForm">Pickup Point*</FormLabel>
+                    <FormSelect
+                      name="pickUpPoint"
+                      value={formData.pickUpPoint}
+                      onChange={handleChange}
+                      required
+                    >
+                      <option value="">Select Pickup Point</option>
+                      {pickupPoints.map(point => (
+                        <option key={point._id} value={point._id}>
+                          {point.PickupPoint}
+                        </option>
+                      ))}
+                    </FormSelect>
+                  </FormGroup>
+                </Row>
+                <Button type="submit" className='btn btn-primary mt-4'>
+                  Submit
+                </Button>
+              </Form>
+            </div>
+          )}
 
           <Row>
             <Col>
@@ -352,10 +373,13 @@ const StudentVehicle = () => {
                 <h2>Student Transport Assignments</h2>
                 {loading ? (
                   <p>Loading...</p>
-                ) : error ? (
-                  <p style={{ color: "red" }}>{error}</p>
                 ) : data.length > 0 ? (
-                  <Table columns={columns} data={data} />
+                  <Table 
+                    columns={columns} 
+                    data={data} 
+                    handleCopy={handleCopy} 
+                    handlePrint={handlePrint} 
+                  />
                 ) : (
                   <p>No student transport assignments available</p>
                 )}
@@ -364,6 +388,8 @@ const StudentVehicle = () => {
           </Row>
         </Container>
       </section>
+
+      <ToastContainer />
     </>
   );
 };

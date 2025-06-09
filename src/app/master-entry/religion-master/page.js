@@ -1,4 +1,5 @@
 "use client";
+
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
@@ -16,27 +17,26 @@ import axios from "axios";
 import Table from "@/app/component/DataTable";
 import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const ReligionMasterPage = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [newReligionName, setNewReligionName] = useState("");
   const [editingId, setEditingId] = useState(null);
   const [editedName, setEditedName] = useState("");
-  const [formData, setFormData] = useState({
-    religion_name: ""
-  });
 
   const columns = [
     {
       name: "#",
       selector: (row, index) => index + 1,
-      width: "80px",
       sortable: false,
+      width: "80px",
     },
     {
-      name: "Name",
+      name: "Religion Name",
       cell: (row) =>
         editingId === row._id ? (
           <FormControl
@@ -54,36 +54,23 @@ const ReligionMasterPage = () => {
       cell: (row) => (
         <div className="d-flex gap-2">
           {editingId === row._id ? (
-            <>
-              <button
-                className="editButton"
-                onClick={() => handleUpdate(row._id)}
-              >
-                <FaSave />
-              </button>
-              <button
-                className="editButton btn-danger"
-                onClick={() => handleDelete(row._id)}
-              >
-                <FaTrashAlt />
-              </button>
-            </>
+            <button className="editButton" onClick={() => handleSave(row._id)}>
+              <FaSave />
+            </button>
           ) : (
-            <>
-              <button
-                className="editButton"
-                onClick={() => handleEdit(row)}
-              >
-                <FaEdit />
-              </button>
-              <button
-                className="editButton btn-danger"
-                onClick={() => handleDelete(row._id)}
-              >
-                <FaTrashAlt />
-              </button>
-            </>
+            <button
+              className="editButton"
+              onClick={() => handleEdit(row._id, row.religion_name)}
+            >
+              <FaEdit />
+            </button>
           )}
+          <button
+            className="editButton btn-danger"
+            onClick={() => handleDelete(row._id)}
+          >
+            <FaTrashAlt />
+          </button>
         </div>
       ),
     },
@@ -91,88 +78,129 @@ const ReligionMasterPage = () => {
 
   const fetchData = async () => {
     setLoading(true);
-    setError("");
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/religions");
-      setData(response.data.data || []);
+      const res = await axios.get("https://erp-backend-fy3n.onrender.com/api/religions");
+      const fetchedData = res.data.data || [];
+
+      const normalized = fetchedData.map((item) => ({
+        ...item,
+        religion_name: item.religion_name || "N/A",
+      }));
+
+      const sorted = [...normalized].sort(
+        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+      );
+
+      setData(sorted);
     } catch (err) {
-      console.error("Error fetching data:", err);
-      setError("Failed to fetch data. Please try again later.");
+      toast.error("Failed to fetch data.", { position: "top-right" });
     } finally {
       setLoading(false);
     }
   };
 
-  const handleEdit = (religion) => {
-    setEditingId(religion._id);
-    setEditedName(religion.religion_name);
+  const handleEdit = (id, name) => {
+    setEditingId(id);
+    setEditedName(name);
   };
 
-  const handleUpdate = async (id) => {
+  const handleSave = async (id) => {
+    if (!editedName.trim()) {
+      toast.warning("Religion name cannot be empty.", { position: "top-right" });
+      return;
+    }
+
+    const exists = data.find(
+      (item) =>
+        item.religion_name.trim().toLowerCase() === editedName.trim().toLowerCase() &&
+        item._id !== id
+    );
+
+    if (exists) {
+      toast.warning("Religion name already exists!", { position: "top-right" });
+      setEditingId(null);
+      return;
+    }
+
     try {
-      await axios.put(`https://erp-backend-fy3n.onrender.com/api/religions/${id}`, {
+      const res = await axios.put(`https://erp-backend-fy3n.onrender.com/api/religions/${id}`, {
         religion_name: editedName,
       });
-      fetchData();
+
+      toast.success("Religion updated successfully!", { position: "top-right" });
+
+      const updated = res.data?.data;
+      if (updated) {
+        setData((prev) => [updated, ...prev.filter((item) => item._id !== id)]);
+      } else {
+        fetchData();
+      }
+
       setEditingId(null);
-    } catch (error) {
-      console.error("Error updating data:", error);
-      setError("Failed to update data. Please try again later.");
+    } catch (err) {
+      toast.error("Failed to update religion.", { position: "top-right" });
     }
   };
 
   const handleDelete = async (id) => {
-    if (confirm("Are you sure you want to delete this entry?")) {
+    if (confirm("Are you sure you want to delete this religion?")) {
       try {
         await axios.delete(`https://erp-backend-fy3n.onrender.com/api/religions/${id}`);
+        toast.success("Religion deleted successfully!", { position: "top-right" });
         fetchData();
-      } catch (error) {
-        console.error("Error deleting data:", error);
-        setError("Failed to delete data. Please try again later.");
+      } catch (err) {
+        toast.error("Failed to delete religion.", { position: "top-right" });
       }
     }
   };
 
   const handleAdd = async () => {
-    if (formData.religion_name.trim()) {
-      try {
-        const existingReligion = data.find(
-          (religion) => religion.religion_name === formData.religion_name
-        );
-        if (existingReligion) {
-          setError("Religion name already exists.");
-          return;
-        }
+    if (!newReligionName.trim()) {
+      toast.warning("Please enter a valid religion name.", { position: "top-right" });
+      return;
+    }
 
-        await axios.post("https://erp-backend-fy3n.onrender.com/api/religions", {
-          religion_name: formData.religion_name,
-        });
+    const exists = data.find(
+      (item) =>
+        item.religion_name.trim().toLowerCase() === newReligionName.trim().toLowerCase()
+    );
+
+    if (exists) {
+      toast.warning("Religion already exists!", { position: "top-right" });
+      setNewReligionName("");
+      setIsPopoverOpen(false);
+      return;
+    }
+
+    try {
+      const res = await axios.post("https://erp-backend-fy3n.onrender.com/api/religions", {
+        religion_name: newReligionName,
+      });
+
+      const added = res?.data?.data;
+      if (added) {
+        setData((prev) => [added, ...prev]);
+      } else {
         fetchData();
-        setFormData({ religion_name: "" });
-        setIsPopoverOpen(false);
-      } catch (error) {
-        console.error("Error adding data:", error);
-        setError("Failed to add data. Please try again later.");
       }
-    } else {
-      alert("Please enter a valid religion name.");
+
+      toast.success("Religion added successfully!", { position: "top-right" });
+      setNewReligionName("");
+      setIsPopoverOpen(false);
+    } catch (err) {
+      toast.error("Failed to add religion.", { position: "top-right" });
     }
   };
 
   const handlePrint = () => {
     const tableHeaders = [["#", "Religion Name"]];
-    const tableRows = data.map((row, index) => [
-      index + 1,
-      row.religion_name || "N/A",
-    ]);
+    const tableRows = data.map((row, index) => [index + 1, row.religion_name || "N/A"]);
     printContent(tableHeaders, tableRows);
   };
 
   const handleCopy = () => {
     const headers = ["#", "Religion Name"];
-    const rows = data.map((row, index) => 
-      `${index + 1}\t${row.religion_name || "N/A"}`
-    );
+    const rows = data.map((row, index) => `${index + 1}\t${row.religion_name || "N/A"}`);
     copyContent(headers, rows);
   };
 
@@ -182,7 +210,7 @@ const ReligionMasterPage = () => {
 
   const breadcrumbItems = [
     { label: "Master Entry", link: "/master-entry/all-module" },
-    { label: "religion-master", link: "null" },
+    { label: "Religion Master", link: null },
   ];
 
   return (
@@ -196,12 +224,10 @@ const ReligionMasterPage = () => {
           </Row>
         </Container>
       </div>
+
       <section>
         <Container>
-          <Button
-            onClick={() => setIsPopoverOpen(true)}
-            className="btn-add"
-          >
+          <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
             <CgAddR /> Add Religion
           </Button>
 
@@ -213,7 +239,7 @@ const ReligionMasterPage = () => {
                   className="closeForm"
                   onClick={() => {
                     setIsPopoverOpen(false);
-                    setError("");
+                    setNewReligionName("");
                   }}
                 >
                   X
@@ -226,10 +252,8 @@ const ReligionMasterPage = () => {
                     <FormControl
                       type="text"
                       placeholder="Enter Religion Name"
-                      value={formData.religion_name}
-                      onChange={(e) =>
-                        setFormData({ religion_name: e.target.value })
-                      }
+                      value={newReligionName}
+                      onChange={(e) => setNewReligionName(e.target.value)}
                     />
                   </Col>
                 </Row>
@@ -241,12 +265,9 @@ const ReligionMasterPage = () => {
           )}
 
           <div className="tableSheet">
-            <h2>Religion Master</h2>
-            {loading ? (
-              <p>Loading...</p>
-            ) : error ? (
-              <p style={{ color: "red" }}>{error}</p>
-            ) : (
+            <h2>Religion Records</h2>
+            {loading && <p>Loading...</p>}
+            {!loading && (
               <Table
                 columns={columns}
                 data={data}
@@ -257,6 +278,8 @@ const ReligionMasterPage = () => {
           </div>
         </Container>
       </section>
+
+      <ToastContainer />
     </>
   );
 };

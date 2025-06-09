@@ -25,7 +25,9 @@ const Studentlist = () => {
     setError("");
     try {
       const response = await axios.get(`${BASE_URL}students`);
-      setData(response.data.data || []);
+      const students = response.data.data || [];
+      // Reverse to show newest first
+      setData(students.reverse());
     } catch (err) {
       console.error("Error fetching data:", err);
       setError("Failed to fetch data. Please try again later.");
@@ -33,6 +35,7 @@ const Studentlist = () => {
       setLoading(false);
     }
   };
+
 
   // Handle Edit (Redirect to update page)
   const handleEdit = (id) => {

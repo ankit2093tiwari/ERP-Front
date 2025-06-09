@@ -1,24 +1,32 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import Table from "@/app/component/DataTable"; // Ensure this path is correct
+import Table from "@/app/component/DataTable";
 import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
-import { Form, Row, Col, Container, FormLabel, FormControl, Button, Breadcrumb, Modal } from "react-bootstrap";
+import {
+  Form,
+  Row,
+  Col,
+  Container,
+  FormLabel,
+  FormControl,
+  Button,
+  Breadcrumb,
+} from "react-bootstrap";
 import axios from "axios";
 import { CgAddR } from "react-icons/cg";
 import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 
 const VehicleRecords = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const [editRowId, setEditRowId] = useState(null);
   const [editValues, setEditValues] = useState({});
   const [showAddForm, setShowAddForm] = useState(false);
   const [newVehicle, setNewVehicle] = useState({ type_name: "" });
-  const [showErrorModal, setShowErrorModal] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
 
   const handleInputChange = (e, field) => {
     setEditValues({ ...editValues, [field]: e.target.value });
@@ -62,37 +70,40 @@ const VehicleRecords = () => {
 
   const fetchData = async () => {
     setLoading(true);
-    setError("");
     try {
       const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/vehicleTypes");
-      setData(response.data.data);
+      const result = response.data.data || [];
+      setData(result.reverse()); // Display newest entries at the top
     } catch (err) {
-      console.error("Error fetching data:", err);
-      setError("Failed to fetch data. Please try again later.");
+      toast.error("Failed to fetch vehicle types.", { position: "top-right" });
     } finally {
       setLoading(false);
     }
   };
 
   const handleAdd = async () => {
-    if (newVehicle.type_name.trim()) {
-      if (data.some((vehicle) => vehicle.type_name.toLowerCase() === newVehicle.type_name.toLowerCase())) {
-        setErrorMessage("This vehicle type already exists!");
-        setShowErrorModal(true); // Show the error modal
-        return;
-      }
-      try {
-        await axios.post("https://erp-backend-fy3n.onrender.com/api/vehicleType", newVehicle);
-        setNewVehicle({ type_name: "" });
-        setShowAddForm(false);
-        fetchData();
-      } catch (error) {
-        console.error("Error adding vehicle:", error);
-        setError("Failed to add vehicle. Please try again later.");
-      }
-    } else {
-      setErrorMessage("Please enter a vehicle type.");
-      setShowErrorModal(true); // Show the error modal
+    const trimmed = newVehicle.type_name.trim();
+    if (!trimmed) {
+      toast.warning("Please enter a vehicle type.", { position: "top-right" });
+      return;
+    }
+
+    if (data.some((vehicle) => vehicle.type_name.toLowerCase() === trimmed.toLowerCase())) {
+      toast.warning("This vehicle type already exists!", { position: "top-right" });
+      setShowAddForm(false); // Auto-close form on duplicate
+      return;
+    }
+
+    try {
+      const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/vehicleType", {
+        type_name: trimmed,
+      });
+      toast.success("Vehicle type added successfully!", { position: "top-right" });
+      setNewVehicle({ type_name: "" });
+      setShowAddForm(false);
+      setData((prev) => [response.data.data, ...prev]); // Insert new at top
+    } catch (error) {
+      toast.error("Failed to add vehicle type.", { position: "top-right" });
     }
   };
 
@@ -103,12 +114,34 @@ const VehicleRecords = () => {
   };
 
   const handleSave = async (id) => {
+    const trimmed = editValues?.type_name?.trim();
+    if (!trimmed) {
+      toast.warning("Vehicle type cannot be empty.", { position: "top-right" });
+      return;
+    }
+
+    const exists = data.find(
+      (v) =>
+        v.type_name.trim().toLowerCase() === trimmed.toLowerCase() && v._id !== id
+    );
+    if (exists) {
+      toast.warning("Vehicle type already exists.", { position: "top-right" });
+      setEditRowId(null); // Auto-close edit on duplicate
+      return;
+    }
+
     try {
-      await axios.put(`https://erp-backend-fy3n.onrender.com/api/vehicleType/${id}`, editValues);
-      fetchData();
+      await axios.put(`https://erp-backend-fy3n.onrender.com/api/vehicleType/${id}`, {
+        type_name: trimmed,
+      });
+      toast.success("Vehicle type updated successfully!", { position: "top-right" });
+      const updatedData = data.map((item) =>
+        item._id === id ? { ...item, type_name: trimmed } : item
+      );
+      setData(updatedData); // Updated without full re-fetch
       setEditRowId(null);
     } catch (error) {
-      setError("Failed to update vehicle. Please try again later.");
+      toast.error("Failed to update vehicle type.", { position: "top-right" });
     }
   };
 
@@ -116,28 +149,23 @@ const VehicleRecords = () => {
     if (confirm("Are you sure you want to delete this vehicle?")) {
       try {
         await axios.delete(`https://erp-backend-fy3n.onrender.com/api/vehicleType/${id}`);
-        fetchData();
+        toast.success("Vehicle type deleted successfully!", { position: "top-right" });
+        setData((prev) => prev.filter((item) => item._id !== id));
       } catch (error) {
-        console.error("Error deleting vehicle:", error);
-        setError("Failed to delete vehicle. Please try again later.");
+        toast.error("Failed to delete vehicle type.", { position: "top-right" });
       }
     }
   };
 
-  const handlePrint = async () => {
-    const tableHeaders = [["#", "Vehicle Type Name"]];
-    const tableRows = data.map((row, index) => [
-      index + 1,
-      row.type_name || "N/A",
-    ]);
-
-    printContent(tableHeaders, tableRows);
+  const handlePrint = () => {
+    const headers = [["#", "Vehicle Type Name"]];
+    const rows = data.map((row, index) => [index + 1, row.type_name || "N/A"]);
+    printContent(headers, rows);
   };
 
   const handleCopy = () => {
     const headers = ["#", "Vehicle Type Name"];
     const rows = data.map((row, index) => `${index + 1}\t${row.type_name || "N/A"}`);
-
     copyContent(headers, rows);
   };
 
@@ -145,7 +173,10 @@ const VehicleRecords = () => {
     fetchData();
   }, []);
 
-  const breadcrumbItems = [{ label: "Transport", link: "/Transport/all-module" }, { label: "Vehicle Type Master", link: "null" }]
+  const breadcrumbItems = [
+    { label: "Transport", link: "/Transport/all-module" },
+    { label: "Vehicle Type Master", link: null },
+  ];
 
   return (
     <>
@@ -158,11 +189,13 @@ const VehicleRecords = () => {
           </Row>
         </Container>
       </div>
+
       <section>
         <Container>
           <Button onClick={() => setShowAddForm(true)} className="btn-add">
             <CgAddR /> Add Vehicle
           </Button>
+
           {showAddForm && (
             <div className="cover-sheet">
               <div className="studentHeading">
@@ -183,7 +216,9 @@ const VehicleRecords = () => {
                 </Row>
                 <Row>
                   <Col>
-                    <Button onClick={handleAdd} className="btn btn-primary mt-4">Add Vehicle</Button>
+                    <Button onClick={handleAdd} className="btn btn-primary mt-4">
+                      Add Vehicle
+                    </Button>
                   </Col>
                 </Row>
               </Form>
@@ -194,25 +229,20 @@ const VehicleRecords = () => {
             <Col>
               <div className="tableSheet">
                 <h2>Vehicle Records</h2>
-                {loading ? <p>Loading...</p> : error ? <p style={{ color: "red" }}>{error}</p> : data.length > 0 ? <Table columns={columns} data={data} handleCopy={handleCopy} handlePrint={handlePrint} /> : <p>No data available.</p>}
+                {loading ? (
+                  <p>Loading...</p>
+                ) : data.length > 0 ? (
+                  <Table columns={columns} data={data} handleCopy={handleCopy} handlePrint={handlePrint} />
+                ) : (
+                  <p>No data available.</p>
+                )}
               </div>
             </Col>
           </Row>
-
-          {/* Error Modal */}
-          <Modal show={showErrorModal} onHide={() => setShowErrorModal(false)} centered>
-            <Modal.Header closeButton>
-              <Modal.Title>Error</Modal.Title>
-            </Modal.Header>
-            <Modal.Body>
-              <p style={{ color: "red" }}>{errorMessage}</p>
-            </Modal.Body>
-            <Modal.Footer>
-              <Button variant="secondary" onClick={() => setShowErrorModal(false)}>Close</Button>
-            </Modal.Footer>
-          </Modal>
         </Container>
       </section>
+
+      <ToastContainer />
     </>
   );
 };
