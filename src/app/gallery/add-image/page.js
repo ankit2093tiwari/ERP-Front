@@ -9,12 +9,13 @@ import {
   FormLabel,
   FormControl,
   Button,
-  Alert,
 } from "react-bootstrap";
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const AddImage = () => {
-  const today = new Date().toISOString().split("T")[0]; // get today's date in yyyy-mm-dd format
+  const today = new Date().toISOString().split("T")[0];
 
   const [imageData, setImageData] = useState({
     date: today,
@@ -23,12 +24,9 @@ const AddImage = () => {
     shortText: "",
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [galleryGroups, setGalleryGroups] = useState([]);
   const [preview, setPreview] = useState("");
 
-  // Fetch gallery groups
   useEffect(() => {
     const fetchGalleryGroups = async () => {
       try {
@@ -37,8 +35,7 @@ const AddImage = () => {
         );
         setGalleryGroups(response.data.data || []);
       } catch (err) {
-        console.error("Error fetching gallery groups:", err);
-        setError("Failed to fetch gallery groups.");
+        toast.error("Failed to fetch gallery groups.");
       }
     };
 
@@ -71,17 +68,15 @@ const AddImage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setError("");
-    setSuccess("");
     setLoading(true);
 
     if (!imageData.image) {
-      setError("Please select an image.");
+      toast.warning("Please select an image.");
       setLoading(false);
       return;
     }
     if (!imageData.groupName) {
-      setError("Please select a gallery group.");
+      toast.warning("Please select a gallery group.");
       setLoading(false);
       return;
     }
@@ -97,13 +92,11 @@ const AddImage = () => {
         "https://erp-backend-fy3n.onrender.com/api/images",
         formData,
         {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
+          headers: { "Content-Type": "multipart/form-data" },
         }
       );
 
-      // setSuccess("Image added successfully.");
+      toast.success("Image added successfully!");
       setImageData({
         date: today,
         image: null,
@@ -112,10 +105,7 @@ const AddImage = () => {
       });
       setPreview("");
     } catch (err) {
-      console.error("Error uploading image:", err);
-      setError(
-        err.response?.data?.message || "Failed to upload image. Please try again."
-      );
+      toast.error(err.response?.data?.message || "Failed to upload image.");
     } finally {
       setLoading(false);
     }
@@ -207,9 +197,6 @@ const AddImage = () => {
                 </Col>
               </Row>
 
-              {error && <Alert variant="danger">{error}</Alert>}
-              {success && <Alert variant="success">{success}</Alert>}
-
               <Button type="submit" disabled={loading} className="btn btn-primary mt-4">
                 {loading ? "Uploading..." : "Add Image"}
               </Button>
@@ -217,6 +204,8 @@ const AddImage = () => {
           </div>
         </Container>
       </section>
+
+      <ToastContainer />
     </>
   );
 };
