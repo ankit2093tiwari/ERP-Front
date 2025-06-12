@@ -44,21 +44,47 @@ export const getFeeGroups = async () => {
     const response = await axios.get(`${BASE_URL}/api/all-fee-groups`)
     return response?.data;
 }
+export const getAllStudents = async () => {
+    const response = await axios.get(`${BASE_URL}/api/students/search`)
+    return response?.data;
+}
 
 export const addNewFeeGroup = async (payload) => {
     const response = await axios.post(`${BASE_URL}/api/add-fee-groups`, payload)
     return response?.data;
 }
+
 export const deleteFeeGroupById = async (id) => {
     const response = await axios.delete(`${BASE_URL}/api/delete-fee-groups/${id}`)
     return response?.data;
 }
+
 export const updateFeeGroupById = async (id, payload) => {
     const response = await axios.put(`${BASE_URL}/api/update-fee-groups/${id}`, payload)
     return response?.data;
 }
+
+export const getAllInstallments = async () => {
+    const response = await axios.get(`${BASE_URL}/api/all-installments`)
+    return response?.data;
+}
 export const getAllPaymentMode = async () => {
     const response = await axios.get(`${BASE_URL}/api/all-payment-mode`)
+    return response?.data;
+}
+
+export const getFeeStructures = async () => {
+    const response = await axios.get(`${BASE_URL}/api/all-fee-structure`)
+    return response?.data;
+}
+
+export const getFeeStructureByFeeGroupId = async (feeGroupId) => {
+    const response = await axios.get(`${BASE_URL}/api/get-fee-structure/${feeGroupId}`)
+    return response?.data;
+}
+
+export const getFeeGroupDataBySectionId = async (sectionId) => {
+    const response = await axios.get(`${BASE_URL}/api/fee-group/section/${sectionId}`)
     return response?.data;
 }
 
@@ -67,6 +93,10 @@ export const getFeeHistoryByStudentId = async (studentId) => {
     return response?.data;
 }
 
+export const addNewFeeEntry = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/fee-entries`, payload)
+    return response?.data;
+}
 export const deleteFeeEntryById = async (id) => {
     const response = await axios.delete(`${BASE_URL}/api/fee-entries/${id}`)
     return response?.data;

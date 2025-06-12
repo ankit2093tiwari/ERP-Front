@@ -10,19 +10,15 @@ import dynamic from 'next/dynamic';
 import { Form, FormGroup, FormLabel, FormControl, Button, Breadcrumb } from 'react-bootstrap';
 import { FormCheck } from 'react-bootstrap';
 import { capitalizeFirstLetter, motherTongueOptions } from "@/app/utils";
-import { FaEdit, FaTrashAlt } from "react-icons/fa"
-import axios from "axios";
 import { useRouter } from "next/navigation";
 import Select from 'react-select';
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { toast } from 'react-toastify';
-import { getCastes, getCategories, getClasses, getReligions, getSections, getStates, updateStudent } from "@/Services";
+import { getAllStudents, getCastes, getCategories, getClasses, getReligions, getSections, getStates, updateStudent } from "@/Services";
 
 const UpdatePage = () => {
   const router = useRouter();
-  const { isReady } = router;
   const [data, setData] = useState([]); // Table data
-  const [loading, setLoading] = useState(false); // Loading state
   const [error, setError] = useState(""); // Error state
   const [showAddForm, setShowAddForm] = useState(false); // Toggle Add Form visibility
   const [studentListData, setStudentListData] = useState([]);
@@ -77,13 +73,6 @@ const UpdatePage = () => {
   const [categoryList, setCategoryList] = useState([]);
   const [casteList, setCasteList] = useState([]);
   const [stateList, setStateList] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedReligion, setSelectedReligion] = useState("");
-  const [selectedCaste, setSelectedCaste] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("");
-
-  //   const TOKEN = "6DJdQZJIv6WpChtccQOceQui2qYoKDWWJik2qTX3";
-  // axios.defaults.headers.common["Authorization"] = `Bearer ${TOKEN}`;
 
   useEffect(() => {
 
@@ -156,54 +145,6 @@ const UpdatePage = () => {
   };
 
 
-  const columns = [
-    { name: "#", selector: (row, index) => index + 1, sortable: false, width: "50px" },
-    { name: "First Name", selector: (row) => row.first_name || "N/A", sortable: true },
-    { name: "Last Name", selector: (row) => row.last_name || "N/A", sortable: true },
-    {
-      name: "Actions",
-      cell: (row) => (
-        <div className="d-flex gap-2">
-          <button className="editButton" onClick={() => handleEdit(row._id)}>
-            <FaEdit />
-          </button>
-          <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
-            <FaTrashAlt />
-          </button>
-        </div>
-      ),
-    },
-  ];
-
-
-  const inputFields = [
-    { id: "birthCertificate", label: "Birth Certificate" },
-    { id: "casteCertificate", label: "Caste Certificate" },
-    { id: "characterCertificate", label: "Character Certificate" },
-    { id: "docTtl", label: "Doc TTL" },
-    { id: "marksheet", label: "Marksheet" },
-    { id: "migrationCertificate", label: "Migration Certificate" },
-    { id: "previousYearResult", label: "Previous Year Result" },
-    { id: "transfer-certificate", label: "T.C." },
-  ];
-
-  const fetchData = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const response = await axios.get(`http://localhost:8000/students`);
-      // const response = await axios.get(`https://erp-backend-fy3n.onrender.com/students`);
-      setData(response?.data || []);
-    } catch (err) {
-      console.error("Error fetching data:", err.response || err.message);
-      setError("Failed to fetch data. Please check the API endpoint.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-
-
   const handleClassChange = (e) => {
     const selectedClassId = e.target.value;
     const selectedClass = classList.find(
@@ -219,32 +160,6 @@ const UpdatePage = () => {
     if (selectedClassId) {
       fetchSections(selectedClassId); // fetch sections for selected class
     }
-  };
-
-  const handleReligionChange = (e) => {
-    const { name, value } = e.target;
-    setSelectedReligion(value);
-    handleChange(e);
-  };
-
-  const handleCategoryChange = (e) => {
-    const { name, value } = e.target;
-    setSelectedCategory(value);
-    handleChange(e);
-  };
-
-  const handleCasteChange = (e) => {
-    const { name, value } = e.target;
-    setSelectedCaste(value);
-    handleChange(e);
-  };
-
-  const handleFileChange = (e, fieldName) => {
-    const file = e.target.files[0];
-    setFiles((prevFiles) => ({
-      ...prevFiles,
-      [fieldName]: file,
-    }));
   };
 
   const validateForm = () => {
@@ -264,22 +179,11 @@ const UpdatePage = () => {
     return Object.keys(errors).length === 0;
   };
 
-  const [selectedValue, setSelectedValue] = useState("");
-
   const handleRadioChange = (e) => {
     const { name, value } = e.target;
     setStudent((prev) => ({ ...prev, [name]: value }));
     setStudentError((prev) => ({ ...prev, [`${name}_error`]: "" }));
   };
-
-  const [sourceText, setSourceText] = useState("");
-  const [targetText, setTargetText] = useState("");
-
-  const handleCopy = () => {
-    setTargetText(sourceText);
-  };
-
-  // console.log("Section List:", sectionList);
 
   const handleChange = (e) => {
     const { name, value, type, files } = e.target;
@@ -352,55 +256,6 @@ const UpdatePage = () => {
     }
   };
 
-  const fetchStudent = async (e) => {
-
-    const value = e.target.value;
-    setSearchTerm(value);
-
-    if (value.length >= 2) {
-      try {
-        const response = await axios.get(
-          // `http://localhost:8000/api/students/search?search_term=${value}`
-          `https://erp-backend-fy3n.onrender.com/api/students/search?search_term=${value}`
-        );
-
-        if (response?.data?.success) {
-          // Filter students based on the search term across multiple fields
-          const filteredStudent = response?.data?.data?.filter(student =>
-            student.first_name.toLowerCase().includes(value.toLowerCase()) ||
-            student.father_name.toLowerCase().includes(value.toLowerCase()) ||
-            student.registration_id.toLowerCase().includes(value.toLowerCase())
-          ).map(student => ({
-            id: student.id || `${student.first_name}-${student.registration_id}`,
-            first_name: student.first_name,
-            father_name: student.father_name,
-            registration_id: student.registration_id
-          }));
-
-          const searchStudentData = response?.data?.data?.map((item, ind) => {
-
-            return { value: item?.registration_id, label: `${item?.first_name} - Father: ${item?.father_name} ID: ${item?.registration_id}` }
-          })
-
-          // console.log('filteredStudent', searchStudentData);
-          const options = [
-            { value: 'chocolate', label: 'Chocolate' },
-            { value: 'strawberry', label: 'Strawberry' },
-            { value: 'vanilla', label: 'Vanilla' },
-          ];
-
-          setStudent(filteredStudent);
-        } else {
-          setStudent({});
-        }
-
-      } catch (error) {
-        console.error("Failed to search students", error);
-      }
-    } else {
-      setStudent([]); // Clear results if search term is less than 2 characters
-    }
-  };
   const getStudentData = async (e) => {
     const selectedStudent = studentListData.find(item => item.registration_id === e.value);
     setSelectedOption(e);
@@ -419,15 +274,12 @@ const UpdatePage = () => {
 
   const getAllStudent = async () => {
     try {
-      const response = await axios.get(
-        // `https://erp-backend-fy3n.onrender.com/api/students/search`
-        `http://localhost:8000/api/students/search`
-      );
-      if (response?.data?.success) {
-        const searchStudentOptions = response?.data?.data?.map((item, ind) => {
+      const response = await getAllStudents()
+      if (response?.success) {
+        const searchStudentOptions = response?.data?.map((item, ind) => {
           return { value: item?.registration_id, label: `${item?.first_name} - Father: ${item?.father_name} - ID: ${item?.registration_id}` }
         })
-        setStudentListData(response?.data?.data)
+        setStudentListData(response?.data)
         setStudentListOptions(searchStudentOptions);
       } else {
         setStudentListData([])
@@ -438,31 +290,6 @@ const UpdatePage = () => {
     }
 
   };
-
-  const handleEdit = async (id) => {
-    try {
-      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/students/${id}`);
-      setStudent(response?.data || {});
-      setShowAddForm(true);
-      onOpen();
-    } catch (err) {
-      console.error("Error fetching student by ID:", err.response || err.message);
-      setError("Failed to fetch student details. Please check the API endpoint.");
-    }
-  };
-
-  const handleDelete = async (id) => {
-    if (confirm("Are you sure you want to delete this entry?")) {
-      try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/students/${id}`);
-        setData((prev) => prev.filter((row) => row._id !== id));
-      } catch (err) {
-        console.error("Error deleting data:", err.response || err.message);
-        setError("Failed to delete data. Please check the API endpoint.");
-      }
-    }
-  };
-
   const resetStudentForm = () => {
     setStudent({
       first_name: "",
@@ -505,16 +332,9 @@ const UpdatePage = () => {
       pin_no: "",
     });
   };
-
   const onOpen = () => setIsPopoverOpen(true);
   const onClose = () => setIsPopoverOpen(false);
   const [selectedMotherTongue, setSelectedMotherTongue] = useState("");
-
-  const handleMotherTongueChange = (e) => {
-    setSelectedMotherTongue(e.target.value);
-    // If you're using a generic handler
-    handleChange(e);
-  };
 
   const motherOptions = motherTongueOptions();
   const breadcrumbItems = [{ label: "students", link: "/students/all-module" }, { label: "update-student", link: "null" }]

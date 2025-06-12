@@ -6,17 +6,19 @@ import Table from "@/app/component/DataTable";
 import styles from "@/app/medical/routine-check-up/page.module.css";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import { Container, Row, Col, Breadcrumb, Button, Table as BootstrapTable, FormGroup, FormLabel, FormControl, FormSelect } from "react-bootstrap";
-import axios from "axios";
+import { toast } from "react-toastify";
 import { CgAddR } from "react-icons/cg";
 import Image from "next/image";
 import { FaSearch } from "react-icons/fa";
 import { FaPrint } from "react-icons/fa";
+import { addNewFeeEntry, deleteFeeEntryById, getAllPaymentMode, getClasses, getFeeGroupDataBySectionId, getFeeHistoryByStudentId, getFeeStructureByFeeGroupId, getFeeStructures, getSections, getStudentsByClassAndSection } from "@/Services";
 
 const FeeEntry = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
-
+  const [feeGroupId, setFeeGroupId] = useState("")
+  const [data, setData] = useState([]);
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedSection, setSelectedSection] = useState("");
   const [classList, setClassList] = useState([]);
@@ -24,11 +26,21 @@ const FeeEntry = () => {
   const [students, setStudents] = useState([]);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [searchKeyword, setSearchKeyword] = useState("");
+  const [payFeeData, setPayFeeData] = useState([]);
+  const [paymentMode, setPaymentMode] = useState('')
+  const [feeData, setFeeData] = useState([])
 
   useEffect(() => {
     fetchClasses();
-  }, []);
-
+    // fetchFeeStructureData()
+    if (feeGroupId) {
+      getStructureDataByGroupId()
+      fetchPaymentModes()
+    }
+    else {
+      setPayFeeData([])
+    }
+  }, [feeGroupId]);
   useEffect(() => {
     if (selectedClass) {
       fetchSections(selectedClass);
@@ -38,55 +50,52 @@ const FeeEntry = () => {
       setSelectedStudent(null);
     }
   }, [selectedClass]);
-
   useEffect(() => {
     if (selectedClass && selectedSection) {
       fetchStudents();
+      fetchFeeGroupData()
     } else {
       // Reset students when section is cleared
       setStudents([]);
       setSelectedStudent(null);
     }
   }, [selectedClass, selectedSection]);
-
+  useEffect(() => {
+    if (selectedStudent) getUserHistoryDetail()
+  }, [selectedStudent])
   const fetchClasses = async () => {
     try {
-      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/all-classes`);
-      const resp = response.data;
-      setClassList(resp?.data || []);
+      const response = await getClasses();
+      setClassList(response?.data || []);
     } catch (err) {
-      setError("Failed to fetch classes.");
+      setError("Failed to fetch classes.", err);
     }
   };
 
   const fetchSections = async (classId) => {
     try {
-      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/sections/class/${classId}`);
-      if (response?.data?.success) {
-        setSectionList(response?.data?.data);
+      const response = await getSections(classId);
+      if (response?.success) {
+        setSectionList(response?.data);
       } else {
         setSectionList([]);
       }
     } catch (err) {
-      setError("Failed to fetch sections.");
+      setError("Failed to fetch sections.", err);
     }
   };
+  const fetchPaymentModes = async () => {
+    const response = await getAllPaymentMode()
+    setPaymentMode(response.data[0]._id); //for cash mode id
+
+  }
 
   const fetchStudents = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(
-        `https://erp-backend-fy3n.onrender.com/api/students/search?class_name=${selectedClass}&section_name=${selectedSection}`
-      );
-      if (response.data.data && response.data.data.length > 0) {
-        // Process students to ensure profile_Pic URLs are correct
-        const processedStudents = response.data.data.map(student => ({
-          ...student,
-          profile_Pic: student.profile_Pic 
-            ? `https://erp-backend-fy3n.onrender.com/uploads/${student.profile_Pic}`
-            : null
-        }));
-        setStudents(processedStudents);
+      const response = await getStudentsByClassAndSection(selectedClass, selectedSection);
+      if (response.data && response.data.length > 0) {
+        setStudents(response?.data);
       } else {
         setStudents([]);
       }
@@ -103,53 +112,250 @@ const FeeEntry = () => {
     setSelectedStudent(student);
   };
 
+  const fetchFeeStructureData = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const response = await getFeeStructures();
+      if (response?.success) {
+        setData(response.feeSettings);
+      } else {
+        setData([]);
+        setError("No records found.");
+      }
+    } catch (err) {
+      console.error("Fetch error:", err);
+      setData([]);
+      setError("Failed to fetch fee settings.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDeleteFeeRecord = async (id) => {
+    const confirmation = confirm("Are you sure to want to delete this record?")
+    if (confirmation) {
+      const response = await deleteFeeEntryById(id);
+      // console.log(response);
+      if (response.success) {
+        toast.success(response?.message);
+        getUserHistoryDetail()
+      }
+      else {
+        toast.error(response?.message)
+      }
+    }
+
+  }
   const feeColumns = [
     { name: "#", selector: (row, index) => index + 1, width: "50px" },
     { name: "RECEIPT NO", selector: (row) => row.receipt_no || "N/A" },
-    { name: "FEE GROUP", selector: (row) => row.fee_group || "N/A" },
-    { name: "FEE CODE", selector: (row) => row.fee_code || "N/A" },
-    { name: "DESCRIPTION", selector: (row) => row.description || "N/A" },
+    { name: "INSTALLMENT NAME", selector: (row) => row.installment_name || "N/A" },
+    { name: "REMARKS", selector: (row) => row.description || "N/A" },
     { name: "STATUS", selector: (row) => row.status || "N/A" },
     { name: "DATE", selector: (row) => row.date || "N/A" },
-    { name: "DISCOUNT", selector: (row) => row.discount || "N/A" },
-    { name: "FINE", selector: (row) => row.fine || "N/A" },
+    // { name: "DISCOUNT", selector: (row) => row.discount || "N/A" },
+    // { name: "FINE", selector: (row) => row.fine || "N/A" },
     { name: "PAID AMOUNT", selector: (row) => row.paid_amount || "N/A" },
-    { name: "UNPAID AMOUNT", selector: (row) => row.unpaid || "N/A" },
     {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
-          <button className="editButton" onClick={() => handleEdit(row._id)}>
+          {/* <button className="editButton" onClick={() => handleEdit(row._id)}>
             <FaEdit />
-          </button>
-          <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
+          </button> */}
+          <button className="editButton btn-danger" onClick={() => handleDeleteFeeRecord(row._id)}>
             <FaTrashAlt />
-          </button>
-          <button className="btn btn-success text-nowrap my-2" onClick={() => handlePay(row._id)}>
-            Fee
           </button>
         </div>
       ),
     },
   ];
 
-  // Sample fee data - in a real app, this would come from an API
-  const feeData = [
+  const payFeeColumns = [
     {
-      id: 1,
-      receipt_no: '773',
-      fee_group: '1st Class Fees,Development Fees(Nur - 5)',
-      fee_code: 'TUTION FEES,DEVELOPMENT FEES',
-      description: 'April-May',
-      status: 'Paid',
-      date: '14-08-2024',
-      discount: '1050',
-      fine: '0',
-      paid_amount: '3400',
-      unpaid: '-',
+      name: "",
+      cell: (row, index) => (
+        <input
+          type="checkbox"
+          checked={row.selected || false}
+          onChange={() => handleCheckboxChange(index)}
+          key={`cb-${index}-${row.selected}`}
+        />
+      ),
+      width: "50px"
     },
-    // ... more fee records
+    {
+      name: "Installment",
+      selector: (row) => row.month,
+    },
+    {
+      name: "Admission Fee",
+      cell: (row, index) => (
+        <input
+          type="number"
+          className="form-control"
+          value={row.admissionFee}
+          onChange={(e) => handleInputChange(index, 'admissionFee', e.target.value)}
+          readOnly
+        />
+      ),
+    },
+    {
+      name: "Annual Fee",
+      cell: (row, index) => (
+        <input
+          type="number"
+          className="form-control"
+          value={row.annualFee}
+          onChange={(e) => handleInputChange(index, 'annualFee', e.target.value)}
+          readOnly
+        />
+      ),
+    },
+    {
+      name: "Tuition Fee",
+      cell: (row, index) => (
+        <input
+          type="number"
+          className="form-control"
+          value={row.tuitionFee}
+          onChange={(e) => handleInputChange(index, 'tuitionFee', e.target.value)}
+          readOnly
+        />
+      ),
+    },
   ];
+
+  const fetchFeeGroupData = async () => {
+    try {
+      const response = await getFeeGroupDataBySectionId(selectedSection);
+      setFeeGroupId(response?.data?._id || "")
+    }
+    catch (err) {
+      console.log("Failed to fetch data", err);
+
+    }
+  }
+  // console.log(selectedStudent);
+
+  const getStructureDataByGroupId = async () => {
+    try {
+      const response = await getFeeStructureByFeeGroupId(feeGroupId);
+      if (response?.success && response.data?.length > 0) {
+        // Transform the monthly_fees data into the format needed for payFeeData
+        const monthlyFees = response.data[0].monthly_fees;
+        const formattedData = monthlyFees.map(fee => ({
+          month: fee.month_name.installment_name,
+          selected: false,
+          admissionFee: fee.admission_fee,
+          annualFee: fee.annual_fee,
+          tuitionFee: fee.tuition_fee,
+          feeId: fee._id,
+          feeMonthId: fee.month_name._id,
+          lastDate: fee.fee_submission_last_date
+        }));
+        setPayFeeData(formattedData);
+      }
+    } catch (err) {
+      console.log("Failed to fetch data", err);
+    }
+  };
+
+
+  const handleCheckboxChange = (index) => {
+    setPayFeeData(prevData => {
+      return prevData.map((item, i) =>
+        i === index ? { ...item, selected: !item.selected } : item
+      );
+    });
+  };
+  const handleInputChange = (index, field, value) => {
+    const updated = [...payFeeData];
+    updated[index][field] = value;
+    setPayFeeData(updated);
+  };
+  const getUserHistoryDetail = async () => {
+    try {
+      const response = await getFeeHistoryByStudentId(selectedStudent._id);
+
+      const transformedData = response.data.map(item => ({
+        _id: item._id,
+        receipt_no: item.receipt_no || "N/A",
+        installment_name: item.installment_name?.installment_name,
+        description: item.remarks || "N/A",
+        status: "Paid",
+        date: new Date(item.date).toLocaleDateString() || "N/A",
+        discount: item.other_discount || "0",
+        fine: item.late_fee || "0",
+        paid_amount: (item?.admission_fee + item?.tution_fee + item?.annual_fee) || "0",
+      }));
+
+      setFeeData(transformedData);
+    } catch (error) {
+      console.error("Failed to fetch fee history:", error);
+      toast.error("Failed to load fee history");
+      setFeeData([]);
+    }
+  };
+
+  const assignStudentFee = async () => {
+    if (!selectedStudent) {
+      toast.error("No student selected");
+      return;
+    }
+
+    const selectedFees = payFeeData.filter(fee => fee.selected);
+    if (selectedFees.length === 0) {
+      toast.error("Please select at least one fee");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const errors = [];
+
+      for (const fee of selectedFees) {
+        const entry = {
+          student: selectedStudent._id,
+          fee_group: feeGroupId,
+          paymentMode: paymentMode,
+          installment_name: fee.feeMonthId,
+          remarks: `Fee paid for ${fee.month}`,
+          admission_fee: fee.admissionFee || 0,
+          tution_fee: fee.tuitionFee || 0,
+          annual_fee: fee.annualFee || 0,
+          other_discount: 0,
+          late_fee: 0,
+          special_pay_no: 1,
+        };
+
+        try {
+          await addNewFeeEntry(entry);
+        } catch (err) {
+          const errorMsg = err?.response?.data?.message || `Failed for ${fee.month}`;
+          errors.push(errorMsg);
+        }
+      }
+
+      // Refresh data after all requests
+      await getUserHistoryDetail();
+      setPayFeeData(prev => prev.map(item => ({ ...item, selected: false })));
+
+      if (errors.length > 0) {
+        errors.forEach(msg => toast.error(msg)); // Show each error
+      } else {
+        toast.success("Fees assigned successfully!");
+      }
+
+    } catch (err) {
+      console.error("Fee assignment failed:", err);
+      toast.error("Fee assignment failed");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Container>
@@ -158,7 +364,7 @@ const FeeEntry = () => {
           <Col>
             <Breadcrumb>
               <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-              <Breadcrumb.Item href="/feeEntry">Fee</Breadcrumb.Item>
+              <Breadcrumb.Item href="/fees/all-module">Fee</Breadcrumb.Item>
               <Breadcrumb.Item active>Fee Entry</Breadcrumb.Item>
             </Breadcrumb>
           </Col>
@@ -248,11 +454,11 @@ const FeeEntry = () => {
                             style={{ borderRadius: '50%', objectFit: 'cover' }}
                           />
                         ) : (
-                          <img 
-                            src="/t-01.jpg" 
-                            alt="Default Pic" 
-                            width="100" 
-                            height="100" 
+                          <img
+                            src="/user.png"
+                            alt="Default Pic"
+                            width="100"
+                            height="100"
                             style={{ borderRadius: '50%', objectFit: 'cover' }}
                           />
                         )}
@@ -262,44 +468,50 @@ const FeeEntry = () => {
                     </div>
                   </Col>
                   <Col lg={8}>
-                    <BootstrapTable striped bordered hover>
+                    <BootstrapTable striped bordered hover className="shadow-sm rounded" >
+                      <thead className="bg-primary text-white">
+                        <tr>
+                          <th colSpan={4} className="text-center fs-5">Student Details</th>
+                        </tr>
+                      </thead>
                       <tbody>
                         <tr>
-                          <td>NAME</td>
+                          <td className="fw-bold text-uppercase bg-light">Name</td>
                           <td>{selectedStudent.first_name} {selectedStudent.last_name}</td>
-                          <td>CLASS/ SECTION</td>
+                          <td className="fw-bold text-uppercase bg-light">Class / Section</td>
                           <td>
                             {selectedStudent.class_name?.class_name || 'N/A'}
                             ({selectedStudent.section_name?.section_name || 'N/A'})
                           </td>
                         </tr>
                         <tr>
-                          <td>FATHER NAME</td>
+                          <td className="fw-bold text-uppercase bg-light">Father Name</td>
                           <td>{selectedStudent.father_name || 'N/A'}</td>
-                          <td>ADMISSION NO.</td>
+                          <td className="fw-bold text-uppercase bg-light">Admission No.</td>
                           <td>{selectedStudent.registration_id || 'N/A'}</td>
                         </tr>
                         <tr>
-                          <td>MOBILE NUMBER</td>
+                          <td className="fw-bold text-uppercase bg-light">Mobile Number</td>
                           <td>{selectedStudent.phone_no || 'N/A'}</td>
-                          <td>ROLL NUMBER</td>
+                          <td className="fw-bold text-uppercase bg-light">Roll Number</td>
                           <td>{selectedStudent.roll_no || 'N/A'}</td>
                         </tr>
                       </tbody>
                     </BootstrapTable>
+
                   </Col>
                 </Row>
               </div>
 
-              <Row className="justify-content-between mt-3 align-items-center">
+              {/* <Row className="justify-content-between mt-3 align-items-center">
                 <Col lg={12}>
                   <div className="text-end">
                     <Button variant="primary" className="btn-action me-2">
                       <FaPrint /> Assign Fees
                     </Button>
-                    {/* <Button variant="primary" className="btn-action me-2">
+                    <Button variant="primary" className="btn-action me-2">
                       <FaPrint /> Assign Discount
-                    </Button> */}
+                    </Button>
                     <Button variant="primary" className="btn-action me-2">
                       <FaPrint /> Paid History
                     </Button>
@@ -308,20 +520,36 @@ const FeeEntry = () => {
                     </Button>
                   </div>
                 </Col>
-              </Row>
+              </Row> */}
 
               <hr />
 
               <div className="card-title">
-                <h2>Fees Details List</h2>
+                <h2>Fees History</h2>
               </div>
-
               <div className="card-body">
                 <div className="tableSheet">
-                  {error && <p style={{ color: "red" }}>{error}</p>}
-                  <Table columns={feeColumns} data={feeData} />
+                  {feeData.length > 0 ? (
+                    <Table
+                      columns={feeColumns}
+                      data={feeData}
+                      key={feeData.length} // Force re-render when data changes
+                    />
+                  ) : (
+                    <p>No fee records found</p>
+                  )}
                 </div>
               </div>
+
+
+              <hr />
+              <div className="card-title">
+                <h2>Pay Fee</h2>
+              </div>
+              <div className="card-body">
+                <Table columns={payFeeColumns} data={payFeeData} key={payFeeData.filter(item => item.selected).length} />
+              </div>
+              <div><button className="btn btn-secondary mt-2" onClick={assignStudentFee}>Pay Fee</button></div>
             </div>
           </Col>
         </Row>
@@ -351,4 +579,3 @@ const FeeEntry = () => {
 };
 
 export default FeeEntry;
-

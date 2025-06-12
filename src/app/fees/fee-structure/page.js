@@ -3,18 +3,10 @@ import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { FaTrashAlt, FaEdit } from "react-icons/fa";
 import { CgAddR } from "react-icons/cg";
-import {
-  Form,
-  Row,
-  Col,
-  Container,
-  FormLabel,
-  FormControl,
-  Button,
-  Breadcrumb, FormGroup, FormSelect, Table as BootstrapTable
-} from "react-bootstrap";
+import { Form, Row, Col, Container, FormLabel, FormControl, Button, Breadcrumb, FormGroup, FormSelect, Table as BootstrapTable } from "react-bootstrap";
 import axios from "axios";
 import Table from "@/app/component/DataTable";
+import { getAllInstallments, getFeeGroups, getFeeStructures } from "@/Services";
 
 const FeeStatement = () => {
   const [data, setData] = useState([]);
@@ -36,9 +28,9 @@ const FeeStatement = () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-fee-structure");
-      if (response.data?.success) {
-        setData(response.data.feeSettings);
+      const response = await getFeeStructures()
+      if (response?.success) {
+        setData(response?.feeSettings);
       } else {
         setData([]);
         setError("No records found.");
@@ -54,9 +46,9 @@ const FeeStatement = () => {
 
   const fetchFeeGroups = async () => {
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-fee-groups");
-      if (response.data?.success) {
-        setFeeGroups(response.data.data);
+      const response = await getFeeGroups()
+      if (response?.success) {
+        setFeeGroups(response.data);
       } else {
         setFeeGroups([]);
       }
@@ -68,11 +60,11 @@ const FeeStatement = () => {
 
   const fetchInstallments = async () => {
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-installments");
-      if (response.data?.success) {
-        const monthOrder = ["April", "May", "June", "July", "August", "September", 
-                          "October", "November", "December", "January", "February", "March"];
-        const sortedInstallments = response.data.data.sort((a, b) => {
+      const response = await getAllInstallments()
+      if (response?.success) {
+        const monthOrder = ["April", "May", "June", "July", "August", "September",
+          "October", "November", "December", "January", "February", "March"];
+        const sortedInstallments = response.data.sort((a, b) => {
           return monthOrder.indexOf(a.name) - monthOrder.indexOf(b.name);
         });
         setInstallments(sortedInstallments);
@@ -94,7 +86,7 @@ const FeeStatement = () => {
     setNewFeeSetting(prev => {
       const newMonthlyFees = [...prev.monthly_fees];
       const monthIndex = newMonthlyFees.findIndex(m => m.month_name === monthId);
-      
+
       if (monthIndex === -1) {
         newMonthlyFees.push({
           month_name: monthId,
@@ -107,9 +99,9 @@ const FeeStatement = () => {
       } else {
         const monthEntry = { ...newMonthlyFees[monthIndex] };
         monthEntry[feeType] = parseFloat(value) || 0;
-        monthEntry.total_fee = (monthEntry.admission_fee || 0) + 
-                              (monthEntry.annual_fee || 0) + 
-                              (monthEntry.tuition_fee || 0);
+        monthEntry.total_fee = (monthEntry.admission_fee || 0) +
+          (monthEntry.annual_fee || 0) +
+          (monthEntry.tuition_fee || 0);
         newMonthlyFees[monthIndex] = monthEntry;
       }
 
@@ -127,7 +119,7 @@ const FeeStatement = () => {
     setNewFeeSetting(prev => {
       const newMonthlyFees = [...prev.monthly_fees];
       const monthIndex = newMonthlyFees.findIndex(m => m.month_name === monthId);
-      
+
       if (monthIndex === -1) {
         newMonthlyFees.push({
           month_name: monthId,
@@ -176,7 +168,7 @@ const FeeStatement = () => {
       alert("Please select a group and enter fee amounts.");
       return;
     }
-    
+
     try {
       const payload = {
         group_name: newFeeSetting.group_name,
@@ -189,9 +181,9 @@ const FeeStatement = () => {
         })),
         total_amount: newFeeSetting.monthly_fees.reduce((sum, month) => sum + (month.total_fee || 0), 0)
       };
-      
+
       const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/create-fee-structure", payload);
-      
+
       if (response.data?.success) {
         fetchData();
         resetForm();
@@ -210,10 +202,10 @@ const FeeStatement = () => {
       alert("Please select a group and enter fee amounts.");
       return;
     }
-    
+
     try {
       const total_amount = newFeeSetting.monthly_fees.reduce((sum, month) => sum + (month.total_fee || 0), 0);
-      
+
       const payload = {
         group_name: newFeeSetting.group_name,
         monthly_fees: newFeeSetting.monthly_fees.map(fee => ({
@@ -225,31 +217,31 @@ const FeeStatement = () => {
         })),
         total_amount
       };
-      
+
       const response = await axios.put(
-        `https://erp-backend-fy3n.onrender.com/api/update-fee-structure/${currentId}`, 
+        `https://erp-backend-fy3n.onrender.com/api/update-fee-structure/${currentId}`,
         payload
       );
-      
+
       if (response.data?.success) {
-        setData(prevData => 
-          prevData.map(item => 
-            item._id === currentId 
-              ? { 
-                  ...item, 
-                  ...payload,
-                  group_name: feeGroups.find(g => g._id === payload.group_name),
-                  monthly_fees: payload.monthly_fees.map(fee => ({
-                    ...fee,
-                    month_name: installments.find(i => i._id === fee.month_name)
-                  })),
-                  total_amount
-                }
+        setData(prevData =>
+          prevData.map(item =>
+            item._id === currentId
+              ? {
+                ...item,
+                ...payload,
+                group_name: feeGroups.find(g => g._id === payload.group_name),
+                monthly_fees: payload.monthly_fees.map(fee => ({
+                  ...fee,
+                  month_name: installments.find(i => i._id === fee.month_name)
+                })),
+                total_amount
+              }
               : item
           )
         );
         fetchData();
-        
+
         resetForm();
         setIsPopoverOpen(false);
       } else {
@@ -265,11 +257,11 @@ const FeeStatement = () => {
   const handleEdit = (id) => {
     const recordToEdit = data.find(item => item._id === id);
     if (!recordToEdit) return;
-    
+
     setCurrentId(id);
     setIsEditing(true);
     setIsPopoverOpen(true);
-    
+
     setNewFeeSetting({
       group_name: recordToEdit.group_name?._id || recordToEdit.group_name || "",
       monthly_fees: recordToEdit.monthly_fees.map(fee => ({
@@ -287,7 +279,7 @@ const FeeStatement = () => {
   const handleDelete = async (id) => {
     if (!id) return;
     if (!window.confirm("Are you sure you want to delete this fee structure?")) return;
-    
+
     try {
       await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-fee-structure/${id}`);
       fetchData();
@@ -328,15 +320,15 @@ const FeeStatement = () => {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
-          <button 
-            className="editButton btn-primary" 
+          <button
+            className="editButton btn-primary"
             onClick={() => handleEdit(row._id)}
             title="Edit"
           >
             <FaEdit />
           </button>
-          <button 
-            className="editButton btn-danger" 
+          <button
+            className="editButton btn-danger"
             onClick={() => handleDelete(row._id)}
             title="Delete"
           >
@@ -365,11 +357,11 @@ const FeeStatement = () => {
       <section>
         <Container>
           <div className="position-relative">
-            <Button 
+            <Button
               onClick={() => {
                 resetForm();
                 setIsPopoverOpen(true);
-              }} 
+              }}
               className="btn-add mb-4"
             >
               <CgAddR /> New Fee
@@ -379,8 +371,8 @@ const FeeStatement = () => {
             <div className="cover-sheet">
               <div className="studentHeading">
                 <h2>{isEditing ? 'Edit Fee Structure' : 'Add New Fee'}</h2>
-                <button 
-                  className="closeForm" 
+                <button
+                  className="closeForm"
                   onClick={() => {
                     setIsPopoverOpen(false);
                     resetForm();
@@ -393,9 +385,9 @@ const FeeStatement = () => {
                 <Row>
                   <Col lg={6}>
                     <FormLabel className="labelForm">Group Name</FormLabel>
-                    <FormControl 
-                      as="select" 
-                      value={newFeeSetting.group_name} 
+                    <FormControl
+                      as="select"
+                      value={newFeeSetting.group_name}
                       onChange={handleGroupChange}
                     >
                       <option value="">Select Group</option>
@@ -408,10 +400,10 @@ const FeeStatement = () => {
                   </Col>
                   <Col lg={6}>
                     <FormLabel className="labelForm">Total Amount</FormLabel>
-                    <FormControl 
-                      type="text" 
-                      value={newFeeSetting.monthly_fees.reduce((sum, month) => sum + (month.total_fee || 0), 0)} 
-                      readOnly 
+                    <FormControl
+                      type="text"
+                      value={newFeeSetting.monthly_fees.reduce((sum, month) => sum + (month.total_fee || 0), 0)}
+                      readOnly
                     />
                   </Col>
                 </Row>
@@ -442,8 +434,8 @@ const FeeStatement = () => {
                           </td>
                           {installments.map((installment) => (
                             <td key={`admission-${installment._id}`}>
-                              <FormControl 
-                                type="number" 
+                              <FormControl
+                                type="number"
                                 value={getFeeValue(installment._id, 'admission_fee')}
                                 onChange={(e) => handleFeeAmountChange(installment._id, 'admission_fee', e.target.value)}
                               />
@@ -459,8 +451,8 @@ const FeeStatement = () => {
                           </td>
                           {installments.map((installment) => (
                             <td key={`annual-${installment._id}`}>
-                              <FormControl 
-                                type="number" 
+                              <FormControl
+                                type="number"
                                 value={getFeeValue(installment._id, 'annual_fee')}
                                 onChange={(e) => handleFeeAmountChange(installment._id, 'annual_fee', e.target.value)}
                               />
@@ -476,8 +468,8 @@ const FeeStatement = () => {
                           </td>
                           {installments.map((installment) => (
                             <td key={`tuition-${installment._id}`}>
-                              <FormControl 
-                                type="number" 
+                              <FormControl
+                                type="number"
                                 value={getFeeValue(installment._id, 'tuition_fee')}
                                 onChange={(e) => handleFeeAmountChange(installment._id, 'tuition_fee', e.target.value)}
                               />
@@ -502,8 +494,8 @@ const FeeStatement = () => {
                           <td></td>
                           {installments.map((installment) => (
                             <td key={`date-${installment._id}`}>
-                              <FormControl 
-                                type="date" 
+                              <FormControl
+                                type="date"
                                 value={getDateValue(installment._id)}
                                 onChange={(e) => handleDateChange(installment._id, e.target.value)}
                               />
@@ -532,9 +524,9 @@ const FeeStatement = () => {
             {loading && <p>Loading...</p>}
             {error && <p style={{ color: "red" }}>{error}</p>}
             {!loading && !error && data.length > 0 ? (
-              <Table 
-                columns={columns} 
-                data={data} 
+              <Table
+                columns={columns}
+                data={data}
                 pagination
                 highlightOnHover
                 responsive
