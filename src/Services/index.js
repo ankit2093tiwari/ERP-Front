@@ -2,8 +2,8 @@ import axios from "axios";
 const TOKEN = "6DJdQZJIv6WpChtccQOceQui2qYoKDWWJik2qTX3";
 axios.defaults.headers.common["Authorization"] = `Bearer ${TOKEN}`;
 
-export const BASE_URL = 'http://localhost:8000'
-// const BASE_URL = 'https://erp-backend-fy3n.onrender.com'
+// export const BASE_URL = 'http://localhost:8000'
+const BASE_URL = 'https://erp-backend-fy3n.onrender.com'
 
 export const getClasses = async () => {
     const response = await axios.get(`${BASE_URL}/api/all-classes`);
