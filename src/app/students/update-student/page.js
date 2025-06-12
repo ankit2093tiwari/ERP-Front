@@ -15,7 +15,8 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import Select from 'react-select';
 import BreadcrumbComp from "@/app/component/Breadcrumb";
-
+import { toast } from 'react-toastify';
+import { getCastes, getCategories, getClasses, getReligions, getSections, getStates, updateStudent } from "@/Services";
 
 const UpdatePage = () => {
   const router = useRouter();
@@ -55,17 +56,17 @@ const UpdatePage = () => {
     last_School_Name: "",
     sr_No: "",
     board_Registration_Number: "",
-    tc_Submitted: "",
+    tc_submitted: "",
     bank_Account_No: "",
     account_Name: "",
     bank_Name: "",
     ifsc_Code: "",
-    residence_name: "",
-    permanent_Add: "",
+    residence_address: "",
+    copy_address: "",
     country_name: "",
     state_name: "",
-    city_Or_District: "",
-    pin_No: "",
+    city_district: "",
+    pin_no: "",
   });
 
   const [studentError, setStudentError] = useState({});
@@ -80,8 +81,6 @@ const UpdatePage = () => {
   const [selectedReligion, setSelectedReligion] = useState("");
   const [selectedCaste, setSelectedCaste] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
-
-
 
   //   const TOKEN = "6DJdQZJIv6WpChtccQOceQui2qYoKDWWJik2qTX3";
   // axios.defaults.headers.common["Authorization"] = `Bearer ${TOKEN}`;
@@ -99,11 +98,8 @@ const UpdatePage = () => {
 
   const fetchClasses = async () => {
     try {
-      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/all-classes`);
-      const resp = response.data;
-
-      setClassList(resp?.data || []);
-
+      const response = await getClasses()
+      setClassList(response?.data || []);
     } catch (err) {
       setError("Failed to fetch classes.");
     }
@@ -111,11 +107,9 @@ const UpdatePage = () => {
 
   const fetchReligion = async () => {
     try {
-      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/religions`);
-      const resp = response.data;
+      const response = await getReligions()
 
-      setReligionList(resp.data || []);
-
+      setReligionList(response?.data || []);
     } catch (err) {
       setError("Failed to fetch religions.");
     }
@@ -123,10 +117,8 @@ const UpdatePage = () => {
 
   const fetchCategory = async () => {
     try {
-      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/categories`);
-      const resp = response.data;
-      setCategoryList(resp.data || []);
-
+      const response = await getCategories()
+      setCategoryList(response?.data || []);
     } catch (err) {
       setError("Failed to fetch Categories.");
     }
@@ -134,36 +126,32 @@ const UpdatePage = () => {
 
   const fetchCaste = async () => {
     try {
-      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/castes`);
-      const resp = response.data;
-      setCasteList(resp.data || []);
-
+      const response = await getCastes()
+      setCasteList(response?.data || []);
     } catch (err) {
-      setError("Failed to fetch Caste.");
+      setError("Failed to fetch Caste.", err);
     }
-  }
+  };
 
   const fetchState = async () => {
     try {
-      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/all-states`);
-      const resp = response.data;
-      setStateList(resp.data || []);
-
+      const response = await getStates()
+      setStateList(response?.data || []);
     } catch (err) {
-      setError("Failed to fetch States.");
+      setError("Failed to fetch States.", err);
     }
   };
 
   const fetchSections = async (classId) => {
     try {
-      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/sections/class/${classId}`);
-      if (response?.data?.success) {
-        setSectionList(response?.data?.data); // directly set the array
+      const response = await getSections(classId)
+      if (response?.success) {
+        setSectionList(response?.data);
       } else {
         setSectionList([]);
       }
     } catch (err) {
-      setError("Failed to fetch sections.");
+      setError("Failed to fetch sections.", err);
     }
   };
 
@@ -203,7 +191,8 @@ const UpdatePage = () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/students`);
+      const response = await axios.get(`http://localhost:8000/students`);
+      // const response = await axios.get(`https://erp-backend-fy3n.onrender.com/students`);
       setData(response?.data || []);
     } catch (err) {
       console.error("Error fetching data:", err.response || err.message);
@@ -271,6 +260,7 @@ const UpdatePage = () => {
       }
     });
     setStudentError(errors);
+
     return Object.keys(errors).length === 0;
   };
 
@@ -314,11 +304,9 @@ const UpdatePage = () => {
   };
 
   const handleSubmit = async (e) => {
+
     e.preventDefault();
     if (!validateForm()) return;
-
-    const endpoint = `http://localhost:8000/api/students/${student._id}`;
-
     const formData = new FormData();
 
     // Append all simple fields
@@ -335,15 +323,13 @@ const UpdatePage = () => {
         formData.append(key, value);
       }
     });
+    // console.log(formData, "formdata");
 
     try {
-      const response = await axios.put(endpoint, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-
-      if (response?.data?.success) {
+      const response = await updateStudent(student._id, formData)
+      if (response?.success) {
+        // alert("Data Updated Successfully")
+        toast.success("Data Updated Successfully");
         setData((prev) =>
           student._id
             ? prev.map((row) =>
@@ -355,6 +341,7 @@ const UpdatePage = () => {
         setShowAddForm(false);
         resetStudentForm();
       } else {
+        alert("Failed to Update Data")
         setError(response?.data?.message || response?.data?.error);
       }
 
@@ -365,8 +352,6 @@ const UpdatePage = () => {
     }
   };
 
-
-
   const fetchStudent = async (e) => {
 
     const value = e.target.value;
@@ -375,9 +360,10 @@ const UpdatePage = () => {
     if (value.length >= 2) {
       try {
         const response = await axios.get(
+          // `http://localhost:8000/api/students/search?search_term=${value}`
           `https://erp-backend-fy3n.onrender.com/api/students/search?search_term=${value}`
         );
-        console.log('response', response?.data);
+
         if (response?.data?.success) {
           // Filter students based on the search term across multiple fields
           const filteredStudent = response?.data?.data?.filter(student =>
@@ -396,7 +382,7 @@ const UpdatePage = () => {
             return { value: item?.registration_id, label: `${item?.first_name} - Father: ${item?.father_name} ID: ${item?.registration_id}` }
           })
 
-          console.log('filteredStudent', searchStudentData);
+          // console.log('filteredStudent', searchStudentData);
           const options = [
             { value: 'chocolate', label: 'Chocolate' },
             { value: 'strawberry', label: 'Strawberry' },
@@ -415,14 +401,13 @@ const UpdatePage = () => {
       setStudent([]); // Clear results if search term is less than 2 characters
     }
   };
-
   const getStudentData = async (e) => {
     const selectedStudent = studentListData.find(item => item.registration_id === e.value);
     setSelectedOption(e);
 
     if (selectedStudent) {
       // Fetch sections for student's class first
-      await fetchSections(selectedStudent.class_name._id);
+      await fetchSections(selectedStudent?.class_name?._id);
 
       // Then set student but transform section_name to section _id
       setStudent({
@@ -433,19 +418,15 @@ const UpdatePage = () => {
   };
 
   const getAllStudent = async () => {
-    console.log('getAllStudent called');
-
     try {
       const response = await axios.get(
-        `https://erp-backend-fy3n.onrender.com/api/students/search`
+        // `https://erp-backend-fy3n.onrender.com/api/students/search`
+        `http://localhost:8000/api/students/search`
       );
-      console.log('response', response);
       if (response?.data?.success) {
         const searchStudentOptions = response?.data?.data?.map((item, ind) => {
           return { value: item?.registration_id, label: `${item?.first_name} - Father: ${item?.father_name} - ID: ${item?.registration_id}` }
         })
-        console.log('searchStudentOptions', searchStudentOptions);
-
         setStudentListData(response?.data?.data)
         setStudentListOptions(searchStudentOptions);
       } else {
@@ -457,7 +438,6 @@ const UpdatePage = () => {
     }
 
   };
-  console.log('setStudentListData', studentListData, studentListOptions);
 
   const handleEdit = async (id) => {
     try {
@@ -482,8 +462,6 @@ const UpdatePage = () => {
       }
     }
   };
-
-  console.log('student.section_name:', student.section_name);
 
   const resetStudentForm = () => {
     setStudent({
@@ -519,12 +497,12 @@ const UpdatePage = () => {
       account_Name: "",
       bank_Name: "",
       ifsc_Code: "",
-      residence_name: "",
-      permanent_Add: "",
+      residence_address: "",
+      copy_address: "",
       country_name: "",
       state_name: "",
-      city_Or_District: "",
-      pin_No: "",
+      city_district: "",
+      pin_no: "",
     });
   };
 
@@ -539,8 +517,6 @@ const UpdatePage = () => {
   };
 
   const motherOptions = motherTongueOptions();
-  console.log('staudent', student);
-
   const breadcrumbItems = [{ label: "students", link: "/students/all-module" }, { label: "update-student", link: "null" }]
 
   return (
@@ -564,8 +540,6 @@ const UpdatePage = () => {
                   <Form className="formSheet" >
                     <Row className="mb-3">
                       <Col lg={12}>
-
-                        {console.log('studentListOptions', studentListOptions)}
                         <FormGroup as={Col} lg="12" md="12">
 
                           <Select
@@ -781,7 +755,11 @@ const UpdatePage = () => {
 
                       <FormGroup as={Col} md="3" controlId="validationCustom14">
                         <FormLabel className="labelForm">Mother Tongue</FormLabel>
-                        <FormSelect>
+                        <FormSelect
+                          onChange={handleChange}
+                          value={student?.mother_tongue || ""}
+                          name="mother_tongue"
+                        >
                           <option>Select</option>
 
                           {motherOptions?.map(item =>
@@ -868,17 +846,6 @@ const UpdatePage = () => {
                           <option value="5">Mansion</option>
                         </FormSelect>
                       </FormGroup>
-                      {/* <FormGroup as={Col} md="3" controlId="validationCustom10">
-                        <FormLabel className="labelForm">Date Of Admission</FormLabel>
-                        <FormControl
-                          value={student?.date_of_admission ? new Date(student?.date_of_admission).toISOString().split('T')[0] : ""}
-                          onChange={(e) => setStudent({ ...student, date_of_admission: e.target.value })}
-                          type="date"
-                          name="date_of_admission"
-                          placeholder="Date of Admission"
-                        />
-                        <p className="error">{studentError.date_of_admission_error}</p>
-                      </FormGroup> */}
                       <FormGroup as={Col} md="3" controlId="validationCustom10">
                         <FormLabel className="labelForm">Date Of Admission</FormLabel>
                         <FormControl
@@ -947,11 +914,26 @@ const UpdatePage = () => {
                       </FormGroup>
                       <FormGroup as={Col} md="3" controlId="validationCustom27">
                         <FormLabel className="labelForm">TC Submitted</FormLabel><br />
-                        <FormCheck type="radio" value="Yes" label="Yes"
-                          checked={selectedValue === "Yes"} onChange={handleRadioChange} inline />
-                        <FormCheck type="radio" value="No" label="No"
-                          checked={selectedValue === "No"} onChange={handleRadioChange} inline />
+                        <FormCheck
+                          type="radio"
+                          name="tc_submitted"
+                          value="Yes"
+                          label="Yes"
+                          checked={student.tc_submitted === "Yes"}
+                          onChange={handleRadioChange}
+                          inline
+                        />
+                        <FormCheck
+                          type="radio"
+                          name="tc_submitted"
+                          value="No"
+                          label="No"
+                          checked={student.tc_submitted === "No"}
+                          onChange={handleRadioChange}
+                          inline
+                        />
                       </FormGroup>
+
                     </Row>
                     <Row className='mb-3'>
                       <FormGroup as={Col} md="3" controlId="validationCustom28">
@@ -998,27 +980,52 @@ const UpdatePage = () => {
                     <Row className='mb-3'>
                       <FormGroup as={Col} md="5">
                         <FormLabel className="labelForm" >Residance Address</FormLabel>
-                        <FormControl as="textarea" rows={6} style={{ height: '150px' }} id='sourceTextarea'
-                          value={sourceText} onChange={(e) => setSourceText(e.target.value)} />
+                        <FormControl
+                          as="textarea"
+                          rows={6}
+                          style={{ height: '150px' }}
+                          name="residence_address"
+                          value={student?.residence_address || ""}
+                          onChange={handleChange}
+                        />
                       </FormGroup>
                       <FormGroup as={Col} md="2">
-                        <FormCheck type='checkbox' label='Copy Adress' onClick={handleCopy} />
+                        <FormCheck
+                          type='checkbox'
+                          label='Copy Address'
+                          onChange={() => {
+                            setStudent(prev => ({
+                              ...prev,
+                              copy_address: prev.residence_address
+                            }))
+                          }}
+                        />
                       </FormGroup>
                       <FormGroup as={Col} md="5">
                         <FormLabel className="labelForm">Permanent Address</FormLabel>
-                        <FormControl as="textarea" rows={6} style={{ height: '150px' }} id='targetTextarea'
-                          value={targetText} onChange={(e) => setTargetText(e.target.value)} />
+                        <FormControl
+                          as="textarea"
+                          rows={6}
+                          style={{ height: '150px' }}
+                          name="copy_address"
+                          value={student?.copy_address || ""}
+                          onChange={handleChange}
+                        />
                       </FormGroup>
                     </Row>
                     <Row className='mb-3'>
                       <FormGroup as={Col} md="6" controlId="validationCustom34">
                         <FormLabel className="labelForm">Country</FormLabel>
-                        <FormSelect>
-                          <option>Country</option>
-                          <option value="1">India</option>
-                          <option value="2">Australia</option>
-                          <option value="3">Mexico</option>
-                          <option value="4">Brazil</option>
+                        <FormSelect
+                          name="country_name"
+                          value={student.country_name}
+                          onChange={handleChange}
+                        >
+                          <option value="">Select Country</option>
+                          <option value="India">India</option>
+                          <option value="Australia">Australia</option>
+                          <option value="Mexico">Mexico</option>
+                          <option value="Brazil">Brazil</option>
                         </FormSelect>
                       </FormGroup>
                       <FormGroup as={Col} md="6" controlId="validationCustom08">
@@ -1039,79 +1046,27 @@ const UpdatePage = () => {
                       </FormGroup>
                     </Row>
                     <Row className='mb-3'>
-                      <FormGroup as={Col} md="6" controlId="validationCustom38">
+                      {/* <FormGroup as={Col} md="6" controlId="validationCustom38">
                         <FormLabel className="labelForm">City/District</FormLabel>
                         <FormControl
-                          value={student?.city_Or_Districte}
+                          value={student?.city_district}
                           onChange={handleChange}
                           type="text"
-                          name="city_Or_Districte"
+                          name="city_district"
                           placeholder="City/District"
                         />
-                      </FormGroup>
+                      </FormGroup> */}
                       <FormGroup as={Col} md="6" controlId="validationCustom40">
                         <FormLabel className="labelForm">Pin No</FormLabel>
                         <FormControl
-                          value={student?.pin_No}
+                          value={student?.pin_no}
                           onChange={handleChange}
                           type="text"
-                          name="pin_No"
+                          name="pin_no"
+                          maxLength={6}
                           placeholder="Pin No."
                         />
                       </FormGroup>
-                    </Row>
-                    {/* <div className="studentHeading"><h2>Sibilings Details</h2></div>
-                    <Row className='mb-3'>
-                      <FormGroup as={Col} md="4" controlId="validationCustom06">
-                        <FormLabel className="labelForm" >Add Sibiling</FormLabel>
-                        <FormControl
-                          value={student?.father_mobile_no}
-                          onChange={handleChange}
-                          type="text"
-                          name="father_mobile_no"
-                          placeholder="Type Name of Student"
-                        />
-                        <p className="error"> {studentError.father_mobile_no_error}</p>
-                      </FormGroup>
-                      <FormGroup as={Col} md="4" controlId="validationCustom08">
-                        <FormLabel className="labelForm">Select Category</FormLabel>
-                        <FormSelect
-                          value={student?.category_name}
-                          onChange={handleChange}
-                          name="category_name"
-                        >
-                          <option value="">Select Category</option>
-                          {categoryList?.length > 0 && categoryList?.map((categoryItem) => (
-                            <option key={categoryItem?._id} value={categoryItem?._id}>
-                              {categoryItem?.category_name}
-                            </option>
-                          ))}
-                        </FormSelect>
-                        <p className="error">{studentError.category_name_error}</p>
-                      </FormGroup>
-                      <FormGroup as={Col} md="3" controlId="validationCustom14">
-                        <FormLabel className="labelForm">Mother Tongue</FormLabel>
-                        <FormSelect
-                          name="mother_tongue"
-                          value={selectedMotherTongue}
-                          onChange={handleMotherTongueChange}
-                        >
-                          <option value="">Select</option>
-                          {motherTongueOptions()?.map(item => (
-                            <option key={item?.label} value={item?.value}>
-                              {item?.label}
-                            </option>
-                          ))}
-                        </FormSelect>
-                      </FormGroup>
-
-                    </Row> */}
-                    <Row>
-                      <Col>
-                        <div className='buttons1'>
-                          <Button type="button" className='btn btn-primary mt-4'>Add Sibiling</Button>
-                        </div>
-                      </Col>
                     </Row>
                     <Row>
                       <Col>
@@ -1122,7 +1077,6 @@ const UpdatePage = () => {
                       </Col>
                     </Row>
                   </Form>
-
                 </Tab>
                 <Tab eventKey="document-upload" title="Document Uploads" className='cover-sheet'>
                   <Row>
@@ -1230,4 +1184,5 @@ const UpdatePage = () => {
 
 };
 
+// export default UpdatePage;
 export default dynamic(() => Promise.resolve(UpdatePage), { ssr: false });

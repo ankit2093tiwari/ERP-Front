@@ -46,7 +46,7 @@ const FuelFilling = () => {
     },
     {
       name: 'Vehicle No',
-      selector: row => 
+      selector: row =>
         editRowId === row._id ? (
           <FormSelect
             value={updatedData.Vehicle_No}
@@ -67,7 +67,7 @@ const FuelFilling = () => {
     },
     {
       name: 'Amount Per Litre',
-      selector: row => 
+      selector: row =>
         editRowId === row._id ? (
           <FormControl
             type="number"
@@ -84,7 +84,7 @@ const FuelFilling = () => {
     },
     {
       name: 'Quantity',
-      selector: row => 
+      selector: row =>
         editRowId === row._id ? (
           <FormControl
             type="number"
@@ -101,7 +101,7 @@ const FuelFilling = () => {
     },
     {
       name: 'Previous Reading',
-      selector: row => 
+      selector: row =>
         editRowId === row._id ? (
           <FormControl
             type="number"
@@ -117,7 +117,7 @@ const FuelFilling = () => {
     },
     {
       name: 'New Reading',
-      selector: row => 
+      selector: row =>
         editRowId === row._id ? (
           <FormControl
             type="number"
@@ -162,22 +162,21 @@ const FuelFilling = () => {
       ),
     }
   ];
-
   const validateForm = (formValues, isEdit = false) => {
     const newErrors = {};
-    
+
     if (!formValues.Vehicle_No) newErrors.Vehicle_No = "Vehicle No is required";
     if (!formValues.Filled_Station) newErrors.Filled_Station = "Filled Station is required";
-    if (!formValues.Quantity_of_diesel || formValues.Quantity_of_diesel <= 0) 
+    if (!formValues.Quantity_of_diesel || formValues.Quantity_of_diesel <= 0)
       newErrors.Quantity_of_diesel = "Valid quantity is required";
-    if (!formValues.PreviousReading || formValues.PreviousReading < 0) 
+    if (!formValues.PreviousReading || formValues.PreviousReading < 0)
       newErrors.PreviousReading = "Valid reading is required";
-    if (!formValues.Amount_per_Liter || formValues.Amount_per_Liter <= 0) 
+    if (!formValues.Amount_per_Liter || formValues.Amount_per_Liter <= 0)
       newErrors.Amount_per_Liter = "Valid amount is required";
-    if (!formValues.NewReading || formValues.NewReading <= formValues.PreviousReading) 
+    if (!formValues.NewReading || formValues.NewReading <= formValues.PreviousReading)
       newErrors.NewReading = "New reading must be greater than previous";
     if (!formValues.date) newErrors.date = "Date is required";
-    
+
     return newErrors;
   };
 
@@ -229,7 +228,7 @@ const FuelFilling = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const formErrors = validateForm(formData);
-    
+
     if (Object.keys(formErrors).length > 0) {
       setErrors(formErrors);
       toast.error("Please fix the errors in the form", { position: "top-right" });
@@ -272,7 +271,7 @@ const FuelFilling = () => {
 
   const handleUpdate = async (id) => {
     const formErrors = validateForm(updatedData, true);
-    
+
     if (Object.keys(formErrors).length > 0) {
       setErrors(formErrors);
       toast.error("Please fix the errors in the form", { position: "top-right" });
@@ -320,7 +319,7 @@ const FuelFilling = () => {
 
   const handleCopy = () => {
     const headers = ["#", "Date", "Vehicle No", "Amount/Litre", "Quantity", "Prev Reading", "New Reading", "Total Amount"];
-    const rows = data.map((row, index) => 
+    const rows = data.map((row, index) =>
       `${index + 1}\t${new Date(row.date).toLocaleDateString()}\t${row.Vehicle_No}\t${row.Amount_per_Liter} Rs.\t${row.Quantity_of_diesel}\t${row.PreviousReading}\t${row.NewReading}\t${row.Quantity_of_diesel * row.Amount_per_Liter} Rs.`
     );
     copyContent(headers, rows);
@@ -332,7 +331,7 @@ const FuelFilling = () => {
   }, []);
 
   const breadcrumbItems = [
-    { label: "Transport", link: "/Transport/all-module" }, 
+    { label: "Transport", link: "/Transport/all-module" },
     { label: "Fuel Filling", link: "null" }
   ];
 
@@ -347,7 +346,7 @@ const FuelFilling = () => {
           </Row>
         </Container>
       </div>
-      
+
       <section>
         <Container>
           <Row>
@@ -366,12 +365,12 @@ const FuelFilling = () => {
                     <Row className="mb-3">
                       <FormGroup as={Col} lg="4" controlId="validationCustom01">
                         <FormLabel className="labelForm">Vehicle No*</FormLabel>
-                        <FormSelect 
-                          name="Vehicle_No" 
-                          value={formData.Vehicle_No} 
-                          onChange={handleChange} 
+                        <FormSelect
+                          name="Vehicle_No"
+                          value={formData.Vehicle_No}
+                          onChange={handleChange}
                           isInvalid={!!errors.Vehicle_No}
-                          required
+
                         >
                           <option value="">Select Vehicle</option>
                           {vehicles.map(vehicle => (
@@ -387,7 +386,7 @@ const FuelFilling = () => {
                       <FormGroup as={Col} lg="4" controlId="validationCustom02">
                         <FormLabel className="labelForm">Filled Station*</FormLabel>
                         <FormControl
-                          required
+
                           type="text"
                           name="Filled_Station"
                           value={formData.Filled_Station}
@@ -401,7 +400,7 @@ const FuelFilling = () => {
                       <FormGroup as={Col} lg="4" controlId="validationCustom03">
                         <FormLabel className="labelForm">Quantity*</FormLabel>
                         <FormControl
-                          required
+
                           type="number"
                           name="Quantity_of_diesel"
                           value={formData.Quantity_of_diesel}
@@ -419,7 +418,7 @@ const FuelFilling = () => {
                       <FormGroup as={Col} lg="4" controlId="validationCustom04">
                         <FormLabel className="labelForm">Previous Reading*</FormLabel>
                         <FormControl
-                          required
+
                           type="number"
                           name="PreviousReading"
                           value={formData.PreviousReading}
@@ -434,7 +433,7 @@ const FuelFilling = () => {
                       <FormGroup as={Col} lg="4" controlId="validationCustom05">
                         <FormLabel className="labelForm">Amount Per Litre*</FormLabel>
                         <FormControl
-                          required
+
                           type="number"
                           name="Amount_per_Liter"
                           value={formData.Amount_per_Liter}
@@ -450,7 +449,7 @@ const FuelFilling = () => {
                       <FormGroup as={Col} lg="4" controlId="validationCustom06">
                         <FormLabel className="labelForm">New Reading*</FormLabel>
                         <FormControl
-                          required
+
                           type="number"
                           name="NewReading"
                           value={formData.NewReading}
@@ -471,7 +470,7 @@ const FuelFilling = () => {
                           onChange={handleDateChange}
                           className="form-control"
                           dateFormat="dd/MM/yyyy"
-                          required
+
                         />
                         {errors.date && (
                           <div className="invalid-feedback d-block">
@@ -496,11 +495,11 @@ const FuelFilling = () => {
                 {loading ? (
                   <p>Loading...</p>
                 ) : data.length > 0 ? (
-                  <Table 
-                    columns={columns} 
-                    data={data} 
-                    handleCopy={handleCopy} 
-                    handlePrint={handlePrint} 
+                  <Table
+                    columns={columns}
+                    data={data}
+                    handleCopy={handleCopy}
+                    handlePrint={handlePrint}
                   />
                 ) : (
                   <p>No fuel filling records available</p>

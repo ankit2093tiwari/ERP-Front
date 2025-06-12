@@ -11,12 +11,11 @@ import { Form, FormGroup, FormLabel, FormControl, Button, Breadcrumb } from 'rea
 import { FormCheck } from 'react-bootstrap';
 import { capitalizeFirstLetter, motherTongueOptions } from "@/app/utils";
 import { FaEdit, FaTrashAlt } from "react-icons/fa"
-import axios from "axios";
 import { toast } from 'react-toastify';
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import { getCastes, getSections, getCategories, getClasses, getReligions, getStates, addNewStudent } from "@/Services";
 
 const StudentMasterPage = () => {
-  // ... (keep all existing state declarations)
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -50,14 +49,14 @@ const StudentMasterPage = () => {
     last_School_Name: "",
     sr_No: "",
     board_Registration_Number: "",
-    tc_Submitted: "",
+    tc_submitted: "No",
     bank_Account_No: "",
     account_Name: "",
     bank_Name: "",
     ifsc_Code: "",
-    residence_name: "",
-    permanent_Add: "",
-    country_name: "India",
+    residence_address: "",
+    copy_address: "",
+    country_name: "",
     state_name: "",
     city_Or_District: "",
     pin_No: "",
@@ -85,10 +84,6 @@ const StudentMasterPage = () => {
   const [targetText, setTargetText] = useState("");
   const [copyChecked, setCopyChecked] = useState(false);
 
-
-  const TOKEN = "6DJdQZJIv6WpChtccQOceQui2qYoKDWWJik2qTX3";
-  axios.defaults.headers.common["Authorization"] = `Bearer ${TOKEN}`;
-
   useEffect(() => {
     fetchClasses();
     fetchReligion();
@@ -99,11 +94,8 @@ const StudentMasterPage = () => {
 
   const fetchClasses = async () => {
     try {
-      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/all-classes`);
-      const resp = response.data;
-
-      setClassList(resp?.data || []);
-
+      const response = await getClasses()
+      setClassList(response?.data || []);
     } catch (err) {
       setError("Failed to fetch classes.");
     }
@@ -111,11 +103,9 @@ const StudentMasterPage = () => {
 
   const fetchReligion = async () => {
     try {
-      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/religions`);
-      const resp = response.data;
+      const response = await getReligions()
 
-      setReligionList(resp.data || []);
-
+      setReligionList(response?.data || []);
     } catch (err) {
       setError("Failed to fetch religions.");
     }
@@ -123,10 +113,8 @@ const StudentMasterPage = () => {
 
   const fetchCategory = async () => {
     try {
-      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/categories`);
-      const resp = response.data;
-      setCategoryList(resp.data || []);
-
+      const response = await getCategories()
+      setCategoryList(response?.data || []);
     } catch (err) {
       setError("Failed to fetch Categories.");
     }
@@ -134,74 +122,34 @@ const StudentMasterPage = () => {
 
   const fetchCaste = async () => {
     try {
-      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/castes`);
-      const resp = response.data;
-      setCasteList(resp.data || []);
-
+      const response = await getCastes()
+      setCasteList(response?.data || []);
     } catch (err) {
-      setError("Failed to fetch Caste.");
+      setError("Failed to fetch Caste.", err);
     }
   };
 
   const fetchState = async () => {
     try {
-      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/all-states`);
-      const resp = response.data;
-      setStateList(resp.data || []);
-
+      const response = await getStates()
+      setStateList(response?.data || []);
     } catch (err) {
-      setError("Failed to fetch States.");
+      setError("Failed to fetch States.", err);
     }
   };
 
   const fetchSections = async (classId) => {
     try {
-      console.log('testinggg', classId)
-      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/sections/class/${classId} `);
-      console.log('response', response);
-      if (response?.data?.success) {
-        setSectionList(response?.data?.data);
+      const response = await getSections(classId)
+      if (response?.success) {
+        setSectionList(response?.data);
       } else {
         setSectionList([]);
       }
-      console.log('testingg', response.data);
     } catch (err) {
-      setError("Failed to fetch sections.");
+      setError("Failed to fetch sections.", err);
     }
   };
-
-  const columns = [
-    { name: "#", selector: (row, index) => index + 1, sortable: false, width: "50px" },
-    { name: "First Name", selector: (row) => row.first_name || "N/A", sortable: true },
-    { name: "Last Name", selector: (row) => row.last_name || "N/A", sortable: true },
-    {
-      name: "Actions",
-      cell: (row) => (
-        <div className="d-flex gap-2">
-          <button className="editButton" onClick={() => handleEdit(row._id)}>
-            <FaEdit />
-          </button>
-          <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
-            <FaTrashAlt />
-          </button>
-        </div>
-      ),
-    },
-  ];
-
-
-  const inputFields = [
-    { id: "birthCertificate", label: "Birth Certificate" },
-    { id: "casteCertificate", label: "Caste Certificate" },
-    { id: "characterCertificate", label: "Character Certificate" },
-    { id: "docTtl", label: "Doc TTL" },
-    { id: "marksheet", label: "Marksheet" },
-    { id: "migrationCertificate", label: "Migration Certificate" },
-    { id: "previousYearResult", label: "Previous Year Result" },
-    { id: "transferCertificate", label: "T.C." },
-  ];
-
-
 
   const validatePhoneNumber = (phone) => {
     return /^[0-9]{10}$/.test(phone);
@@ -217,9 +165,9 @@ const StudentMasterPage = () => {
 
     // Required fields validation
     const requiredFields = [
-      'first_name', 'father_name', 'father_mobile_no', 'class_name',
+      'first_name', 'father_name', 'father_mobile_no', 'class_name', 'phone_no',
       'section_name', 'date_of_birth', 'gender_name', 'aadhar_card_no',
-      'date_of_admission', 'date_of_joining', 'caste_name', 'religion_name', 'phone_no'
+      'date_of_admission', 'date_of_joining', 'caste_name', 'religion_name'
     ];
 
     requiredFields.forEach(field => {
@@ -257,6 +205,18 @@ const StudentMasterPage = () => {
     return isValid;
   };
 
+  const handleClassChange = (e) => {
+    const { name, value } = e.target;
+    setStudent(prev => ({ ...prev, [name]: value }));
+    setStudentError(prev => ({ ...prev, [`${name}_error`]: "" }));
+    fetchSections(value);
+  };
+
+  const handleRadioChange = (e) => {
+    const { name, value } = e.target;
+    setStudent(prev => ({ ...prev, [name]: value }));
+    setStudentError(prev => ({ ...prev, [`${name}_error`]: "" }));
+  };
   const handleChange = (e) => {
     const { name, value, type, files } = e.target;
 
@@ -284,19 +244,6 @@ const StudentMasterPage = () => {
     setStudentError(prev => ({ ...prev, [`${name}_error`]: "" }));
   };
 
-  const handleClassChange = (e) => {
-    const { name, value } = e.target;
-    setStudent(prev => ({ ...prev, [name]: value }));
-    setStudentError(prev => ({ ...prev, [`${name}_error`]: "" }));
-    fetchSections(value);
-  };
-
-  const handleRadioChange = (e) => {
-    const { name, value } = e.target;
-    setStudent(prev => ({ ...prev, [name]: value }));
-    setStudentError(prev => ({ ...prev, [`${name}_error`]: "" }));
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
 
@@ -305,61 +252,29 @@ const StudentMasterPage = () => {
     try {
       const formData = new FormData();
 
-      // Append all fields to formData
+      const objectIdFields = ["state_name", "class_name", "section_name", "religion_name", "category"];
+
       Object.entries(student).forEach(([key, value]) => {
         if (value instanceof File) {
-          formData.append(key, value); // For file inputs
+          formData.append(key, value);
         } else {
-          formData.append(key, value); // For text inputs
+          formData.append(key, value ?? "");
         }
       });
 
-      // const url = "http://localhost:8000/api/students";
-      const url = "https://erp-backend-fy3n.onrender.com/api/students";
+      const response = await addNewStudent(formData);
 
-      const response = await axios.post(url, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          'Authorization': `Bearer ${TOKEN}`,
-        },
-      });
-
-      if (response.data.success) {
-        toast.success("Student Created Successfully");
+      if (response?.success) {
+        toast.success(response?.message || "Student Created Successfully");
         setStudent(initialStudentState);
       } else {
-        throw new Error(response.data.message || "Creation failed");
+        throw new Error(response.message || "Creation failed");
       }
     } catch (err) {
       const errorMessage = err.response?.data?.message || err.message || "Failed to submit data";
-      console.error("Upload error:", err);
+      console.error("Error submitting student data:", err);
       setError(errorMessage);
       toast.error(errorMessage);
-    }
-  };
-
-
-  const handleEdit = async (id) => {
-    try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_SITE_URL}/students/${id}`);
-      setStudent(response?.data || {});
-      setShowAddForm(true);
-      onOpen();
-    } catch (err) {
-      console.error("Error fetching student by ID:", err.response || err.message);
-      setError("Failed to fetch student details. Please check the API endpoint.");
-    }
-  };
-
-  const handleDelete = async (id) => {
-    if (confirm("Are you sure you want to delete this entry?")) {
-      try {
-        await axios.delete(`${process.env.NEXT_PUBLIC_SITE_URL}/students/${id}`);
-        setData((prev) => prev.filter((row) => row._id !== id));
-      } catch (err) {
-        console.error("Error deleting data:", err.response || err.message);
-        setError("Failed to delete data. Please check the API endpoint.");
-      }
     }
   };
 
@@ -367,58 +282,10 @@ const StudentMasterPage = () => {
     setTargetText(sourceText);
   };
 
-  const resetStudentForm = () => {
-    setStudent({
-      first_name: "",
-      middle_name: "",
-      last_name: "",
-      profile_Pic: "",
-      father_name: "",
-      mother_name: "",
-      father_mobile_no: "",
-      phone_no: "",
-      date_of_birth: "",
-      gender_name: "",
-      class_name: "",
-      section_name: "",
-      religion_name: "",
-      category_name: "",
-      mother_tongue: "",
-      nationality_name: "",
-      enrollment_no: "",
-      aadhar_card_no: "",
-      fee_book_no: "",
-      caste_name: "",
-      house: "",
-      date_of_admission: "",
-      date_of_joining: "",
-      scholar_No: "",
-      last_School_Name: "",
-      sr_No: "",
-      board_Registration_Number: "",
-      tc_Submitted: "",
-      bank_Account_No: "",
-      account_Name: "",
-      bank_Name: "",
-      ifsc_Code: "",
-      residence_name: "",
-      permanent_Add: "",
-      country_name: "",
-      state_name: "",
-      city_Or_District: "",
-      pin_No: "",
-    });
-  };
-
-
-
-
-
   const onOpen = () => setIsPopoverOpen(true);
   const onClose = () => setIsPopoverOpen(false);
 
   const breadcrumbItems = [{ label: "students", link: "/students/all-module" }, { label: "add-new-student", link: "null" }]
-
 
   return (
     <>
@@ -543,8 +410,7 @@ const StudentMasterPage = () => {
                           <p className="error"> {studentError.phone_no_error}</p>
                         </FormGroup>
                       </Row>
-                      <Row>
-                        {/* Select Class */}
+                      <Row >
                         <FormGroup as={Col} md="3" controlId="validationCustom08">
                           <FormLabel className="labelForm">Select Class</FormLabel>
                           <FormSelect
@@ -553,7 +419,7 @@ const StudentMasterPage = () => {
                             name="class_name"
                           >
                             <option value="">Select Class</option>
-                            {classList?.length > 0 && classList.map((classItem) => (
+                            {classList?.length && classList?.map((classItem) => (
                               <option key={classItem?._id} value={classItem?._id}>
                                 {classItem?.class_name}
                               </option>
@@ -561,8 +427,6 @@ const StudentMasterPage = () => {
                           </FormSelect>
                           <p className="error">{studentError.class_name_error}</p>
                         </FormGroup>
-
-                        {/* Select Section */}
                         <FormGroup as={Col} md="3" controlId="validationCustom09">
                           <FormLabel className="labelForm">Select Section</FormLabel>
                           <FormSelect
@@ -578,7 +442,7 @@ const StudentMasterPage = () => {
                                 section_name_error: "",
                               }));
                             }}
- 
+
                           >
                             <option value="">Select Section</option>
                             {sectionList?.length > 0 && sectionList?.map((sectionItem) => (
@@ -587,11 +451,8 @@ const StudentMasterPage = () => {
                               </option>
                             ))}
                           </FormSelect>
- 
-                          <p className="error">{studentError.section_name_error}</p>
+                          <p className="error">{studentError?.section_name_error}</p>
                         </FormGroup>
-
-                        {/* Date of Birth */}
                         <FormGroup as={Col} md="3" controlId="validationCustom10">
                           <FormLabel className="labelForm">Date Of Birth</FormLabel>
                           <FormControl
@@ -600,27 +461,37 @@ const StudentMasterPage = () => {
                             type="date"
                             name="date_of_birth"
                             placeholder="Date of Birth"
-                            max={new Date().toISOString().split("T")[0]} // Ensure only past dates
+                            max={new Date().toISOString().split("T")[0]} // This ensures only past dates
                           />
-                          <p className="error">{studentError.date_of_birth_error}</p>
+                          <p className="error"> {studentError.date_of_birth_error}</p>
                         </FormGroup>
 
-                        {/* Gender Radio Buttons */}
-                        <FormGroup as={Col} md="3">
-                          <FormLabel className="labelForm d-block">Gender</FormLabel>
-                          <div className="d-flex gap-3">
-                            <FormCheck type="radio" id="male" name="gender_name" value="Male"
-                              label="Male"
+                        <FormGroup as={Col} md="3" controlId="validationCustom11">
+                          <FormLabel className="labelForm">Gender</FormLabel><br />
+                          <FormCheck inline>
+                            <FormCheck.Input
+                              type="radio"
+                              name="gender_name"
+                              value="Male"
                               checked={student.gender_name === "Male"}
                               onChange={handleRadioChange}
+                              id="male"
                             />
-                            <FormCheck type="radio" id="female" name="gender_name" value="Female"
-                              label="Female"
+                            <FormCheck.Label htmlFor="male">Male</FormCheck.Label>
+                          </FormCheck>
+                          <FormCheck inline>
+                            <FormCheck.Input
+                              type="radio"
+                              name="gender_name"
+                              value="Female"
                               checked={student.gender_name === "Female"}
                               onChange={handleRadioChange}
+                              id="female"
                             />
-                          </div>
-                          <p className="error">{studentError.gender_name_error}</p>
+                            <FormCheck.Label htmlFor="female">Female</FormCheck.Label>
+                          </FormCheck>
+
+                          <p className="error"> {studentError.gender_name_error}</p>
                         </FormGroup>
                       </Row>
                       <Row >
@@ -811,21 +682,36 @@ const StudentMasterPage = () => {
                         </FormGroup>
                         <FormGroup as={Col} md="3" controlId="validationCustom27">
                           <FormLabel className="labelForm">TC Submitted</FormLabel><br />
-                          <FormCheck type="radio" value="Yes" label="Yes"
-                            checked={selectedValue === "Yes"} onChange={handleRadioChange} inline />
-                          <FormCheck type="radio" value="No" label="No"
-                            checked={selectedValue === "No"} onChange={handleRadioChange} inline />
+                          <FormCheck
+                            type="radio"
+                            name="tc_submitted"
+                            value="Yes"
+                            label="Yes"
+                            checked={student.tc_submitted === "Yes"}
+                            onChange={handleRadioChange}
+                            inline
+                          />
+                          <FormCheck
+                            type="radio"
+                            name="tc_submitted"
+                            value="No"
+                            label="No"
+                            checked={student.tc_submitted === "No"}
+                            onChange={handleRadioChange}
+                            inline
+                          />
                         </FormGroup>
                       </Row>
                       <Row className='mb-3'>
                         <FormGroup as={Col} md="3" controlId="validationCustom28">
                           <FormLabel className="labelForm">Bank Account No</FormLabel>
                           <FormControl
-                            value={student?.bank_Account_No}
+                            value={student?.bank_Account_No || ""}
                             onChange={handleChange}
                             type="text"
                             name="bank_Account_No"
                             placeholder="Bank Account No"
+                            maxLength={18}
                           />
                         </FormGroup>
                         <FormGroup as={Col} md="3" controlId="validationCustom29">
@@ -856,10 +742,11 @@ const StudentMasterPage = () => {
                             type="text"
                             name="ifsc_Code"
                             placeholder="IFSC Code"
+                            maxLength={11}
                           />
                         </FormGroup>
                       </Row>
-                      <Row className="mb-3">
+                      {/* <Row className="mb-3">
                         <FormGroup as={Col} md="5">
                           <FormLabel className="labelForm">Residance Address</FormLabel>
                           <FormControl
@@ -900,6 +787,53 @@ const StudentMasterPage = () => {
                             id="targetTextarea"
                             value={targetText}
                             onChange={(e) => setTargetText(e.target.value)}
+                          />
+                        </FormGroup>
+                      </Row> */}
+                      <Row className="mb-3">
+                        <FormGroup as={Col} md="5">
+                          <FormLabel className="labelForm">Residence Address</FormLabel>
+                          <FormControl
+                            as="textarea"
+                            rows={6}
+                            style={{ height: '150px' }}
+                            name="residence_address"
+                            value={student.residence_address}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              setStudent(prev => ({ ...prev, residence_address: value }));
+                              if (copyChecked) {
+                                setStudent(prev => ({ ...prev, copy_address: value }));
+                              }
+                            }}
+                          />
+                        </FormGroup>
+
+                        <FormGroup as={Col} md="2" className="d-flex align-items-center">
+                          <FormCheck
+                            type="checkbox"
+                            label="Copy Address"
+                            checked={copyChecked}
+                            onChange={(e) => {
+                              const checked = e.target.checked;
+                              setCopyChecked(checked);
+                              if (checked) {
+                                setStudent(prev => ({ ...prev, copy_address: prev.residence_address }));
+                              }
+                            }}
+                          />
+                        </FormGroup>
+
+                        <FormGroup as={Col} md="5">
+                          <FormLabel className="labelForm">Permanent Address</FormLabel>
+                          <FormControl
+                            as="textarea"
+                            rows={6}
+                            style={{ height: '150px' }}
+                            name="copy_address"
+                            value={student.copy_address}
+                            onChange={(e) => setStudent(prev => ({ ...prev, copy_address: e.target.value }))}
+                            disabled={copyChecked} // Disable when copy is checked
                           />
                         </FormGroup>
                       </Row>

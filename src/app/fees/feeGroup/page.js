@@ -1,9 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import dynamic from "next/dynamic";
-import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
+import React, { useEffect, useState } from "react";
 import { CgAddR } from "react-icons/cg";
+import Select from "react-select";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
+import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
+import Table from "@/app/component/DataTable";
+import { copyContent, printContent } from "@/app/utils";
 import {
   Form,
   Row,
@@ -12,35 +15,157 @@ import {
   FormLabel,
   FormControl,
   Button,
-  Breadcrumb,
-  FormSelect,
 } from "react-bootstrap";
-import axios from "axios";
-import Table from "@/app/component/DataTable";
-
-import "jspdf-autotable";
-import { copyContent, printContent } from "@/app/utils";
-import BreadcrumbComp from "@/app/component/Breadcrumb";
-
+import { toast } from "react-toastify";
+import { addNewFeeGroup, deleteFeeGroupById, getAllSections, getClasses, getFeeGroups, updateFeeGroupById } from "@/Services";
+const breadcrumbItems = [
+  { label: "Fee", link: "/fees/all-module" },
+  { label: "fee-Group", link: "null" },
+];
 const FeeGroup = () => {
-  const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [classList, setClassList] = useState([]);
+  const [sectionList, setSectionList] = useState([]);
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [newFeeGroup, setNewFeeGroup] = useState({
     group_name: "",
-    class_section: "", // Will hold classSection _id
+    section_name: [],
     late_fine_per_day: "",
   });
-  const [classSectionList, setClassSectionList] = useState([]);
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [editId, setEditId] = useState(null);
-  const [editData, setEditData] = useState({
-    group_name: "",
-    class_section: "", 
-    late_fine_per_day: "",
-  });
+  const [editData, setEditData] = useState({});
+  const [data, setData] = useState([]);
 
-  // Columns for the DataTable
+  const fetchClasses = async () => {
+    try {
+      const response = await getClasses()
+      setClassList(response.data || []);
+    } catch {
+      console.log("Failed to fetch classes.");
+    }
+  };
+
+  const fetchAllSections = async () => {
+    try {
+      const response = await getAllSections()
+      setSectionList(response.data || []);
+    } catch {
+      console.log("Failed to fetch all sections.");
+    }
+  };
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const response = await getFeeGroups();
+
+      if (response?.success) {
+        const transformedData = response.data.map((item) => ({
+          _id: item._id,
+          group_name: item.group_name || "N/A",
+          late_fine_per_day: item.late_fine_per_day || "N/A",
+          section_name: Array.isArray(item.section_name)
+            ? item.section_name
+              .map(
+                (sec) =>
+                  `${sec.class?.class_name || "N/A"}#${sec.section_name || "N/A"}`
+              )
+              .join(", ")
+            : "N/A",
+          raw_section_ids: item.section_name?.map((sec) => sec._id) || [],
+        }));
+        setData(transformedData);
+      } else {
+        setData([]);
+      }
+    } catch (err) {
+      console.error("Failed to fetch fee groups:", err);
+      setData([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchClasses();
+    fetchAllSections();
+    fetchData();
+  }, []);
+
+
+  const handleAdd = async () => {
+    if (!newFeeGroup.group_name || !newFeeGroup.section_name || !newFeeGroup.late_fine_per_day) {
+      return toast.warn("All fields are required");
+    }
+    try {
+      const response = await addNewFeeGroup(newFeeGroup);
+      if (response?.success) {
+        toast.success(response?.message || "Fee group added successfully.");
+        fetchData();
+        setIsPopoverOpen(false);
+        setNewFeeGroup({
+          group_name: "",
+          section_name: [],
+          late_fine_per_day: "",
+        });
+      } else {
+        toast.error(response.message || "Failed to add fee group.");
+      }
+    } catch (error) {
+      const errorMessage = error.response?.data?.message || "Failed to add fee group. Please try again.";
+      toast.error(errorMessage);
+      console.error("Error adding fee group:", error);
+    }
+  };
+
+  const handleEdit = async (row) => {
+    await fetchAllSections(); // Ensure fresh data
+    setEditId(row._id);
+    setEditData({
+      group_name: row.group_name,
+      section_name: row.raw_section_ids || [],
+      late_fine_per_day: row.late_fine_per_day,
+    });
+    console.log("Fetched Sections:", sectionList);
+    console.log("Editing Row:", row);
+
+  };
+
+  const handleSave = async (id) => {
+    try {
+      const response = await updateFeeGroupById(id, editData)
+      if (response?.success) {
+        toast.success(response.message || "Fee group updated successfully.");
+        setEditId(null);
+        fetchData();
+      } else {
+        console.log("Failed to update fee group.");
+        toast.error(response.message || "Failed to update fee group.");
+      }
+    } catch (err) {
+      toast.error("Failed to update fee group. Please try again.");
+      console.log("Failed to update fee group.", err);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (confirm("Are you sure you want to delete this fee group?")) {
+      try {
+        const response = await deleteFeeGroupById(id);
+        if (response?.success) {
+          toast.success(response.message || "Fee group deleted successfully.");
+          fetchData();
+        } else {
+          toast.error(response.message || "Failed to delete fee group.");
+          console.log("Failed to delete fee group.");
+        }
+      } catch (err) {
+        toast.error("Failed to delete fee group. Please try again.");
+        console.log("Failed to delete fee group.", err);
+      }
+    }
+  };
+
   const columns = [
     {
       name: "#",
@@ -60,10 +185,47 @@ const FeeGroup = () => {
             }
           />
         ) : (
-          row.group_name || "N/A"
+          row.group_name
         ),
-      sortable: true,
     },
+    {
+      name: "Section",
+      selector: (row) => {
+        const isEditing = editId === row._id;
+
+        const options = sectionList.map((s) => ({
+          value: s._id,
+          label: `${s.class?.class_name || "N/A"}#${s.section_name || "N/A"}`
+        }));
+
+        const selectedOptions = options.filter((opt) =>
+          (editData.section_name || []).includes(opt.value)
+        );
+
+        return isEditing ? (
+          <Select
+            isMulti
+            options={options}
+            value={selectedOptions}
+            onChange={(selected) =>
+              setEditData({
+                ...editData,
+                section_name: selected.map((opt) => opt.value),
+              })
+            }
+            menuPortalTarget={typeof window !== "undefined" ? document.body : null}
+            menuPosition="fixed"
+            styles={{
+              menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+            }}
+          />
+
+        ) : (
+          row.section_name
+        );
+      },
+    }
+    ,
     {
       name: "Late Fine Per Day",
       selector: (row) =>
@@ -76,9 +238,8 @@ const FeeGroup = () => {
             }
           />
         ) : (
-          row.late_fine_per_day || "N/A"
+          row.late_fine_per_day
         ),
-      sortable: true,
     },
     {
       name: "Actions",
@@ -93,10 +254,7 @@ const FeeGroup = () => {
               <FaEdit />
             </button>
           )}
-          <button
-            className="editButton btn-danger"
-            onClick={() => handleDelete(row._id)}
-          >
+          <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
             <FaTrashAlt />
           </button>
         </div>
@@ -104,162 +262,24 @@ const FeeGroup = () => {
     },
   ];
 
-  // Fetch all Fee Groups with populated class_section
-  const fetchData = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const response = await axios.get(
-        "https://erp-backend-fy3n.onrender.com/api/all-feeGroup"
-      );
-      if (response.data && response.data.success) {
-        setData(response.data.data);
-      } else {
-        setData([]);
-        setError("No fee groups found.");
-      }
-    } catch (err) {
-      setData([]);
-      setError("Failed to fetch fee groups.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Fetch all ClassSection combos for dropdowns
-  const fetchClassSections = async () => {
-    try {
-      const response = await axios.get(
-        "https://erp-backend-fy3n.onrender.com/api/all-classSection"
-      );
-      if (response.data && response.data.success) {
-        setClassSectionList(response.data.data);
-      } else {
-        setClassSectionList([]);
-      }
-    } catch (err) {
-      setError("Failed to fetch class sections.");
-    }
-  };
-
-  const handleAdd = async () => {
-    if (
-      newFeeGroup.group_name.trim() &&
-      newFeeGroup.class_section &&
-      newFeeGroup.late_fine_per_day.trim()
-    ) {
-      try {
-        const existingFeeGroup = data.find(
-          (row) => row.group_name === newFeeGroup.group_name
-        );
-        if (existingFeeGroup) {
-          alert("Fee group name already exists.");
-          return;
-        }
-
-        const response = await axios.post(
-          "https://erp-backend-fy3n.onrender.com/api/create-feeGroup",
-          newFeeGroup
-        );
-        if (response.data && response.data.success) {
-          setData((prevData) => [...prevData, response.data.data]);
-          setNewFeeGroup({
-            group_name: "",
-            class_section: "",
-            late_fine_per_day: "",
-          });
-          setIsPopoverOpen(false);
-          fetchData();
-        } else {
-          setError("Failed to add fee group.");
-        }
-      } catch (err) {
-        setError("Failed to add fee group.");
-      }
-    } else {
-      alert("All fields are required.");
-    }
-  };
-
-  const handleEdit = (row) => {
-    setEditId(row._id);
-    setEditData({
-      group_name: row.group_name,
-      class_section: row.class_section?._id || "",
-      late_fine_per_day: row.late_fine_per_day,
-    });
-  };
-
-  const handleSave = async (id) => {
-    try {
-      const response = await axios.put(
-        `https://erp-backend-fy3n.onrender.com/api/update-feeGroup/${id}`,
-        editData
-      );
-      if (response.data && response.data.success) {
-        setData((prevData) =>
-          prevData.map((row) =>
-            row._id === id ? { ...row, ...editData, class_section: classSectionList.find(cs => cs._id === editData.class_section) } : row
-          )
-        );
-        fetchData();
-        setEditId(null);
-      } else {
-        setError("Failed to update fee group.");
-      }
-    } catch (err) {
-      setError("Failed to update fee group.");
-    }
-  };
-
-  const handleDelete = async (id) => {
-    if (confirm("Are you sure you want to delete this fee group?")) {
-      try {
-        const response = await axios.delete(
-          `https://erp-backend-fy3n.onrender.com/api/delete-feeGroup/${id}`
-        );
-        if (response.data && response.data.success) {
-          setData((prevData) => prevData.filter((row) => row._id !== id));
-          fetchData();
-        } else {
-          setError("Failed to delete fee group.");
-        }
-      } catch (err) {
-        setError("Failed to delete fee group.");
-      }
-    }
-  };
-
-  // Print and Copy handlers (unchanged)
   const handlePrint = () => {
-    const tableHeaders = [["#", "Group Name", "Class - Section", "Late Fine Per Day"]];
+    const tableHeaders = [["#", "Group Name", "Late Fine Per Day"]];
     const tableRows = data.map((row, index) => [
       index + 1,
-      row.group_name || "N/A",
-      `${row.class_section?.class_name?.class_name || "N/A"} - ${row.class_section?.section_name?.section_name || "N/A"}`,
-      row.late_fine_per_day || "N/A",
+      row.group_name,
+      row.late_fine_per_day,
     ]);
     printContent(tableHeaders, tableRows);
   };
 
   const handleCopy = () => {
-    const headers = ["#", "Group Name", "Class - Section", "Late Fine Per Day"];
+    const headers = ["#", "Group Name", "Late Fine Per Day"];
     const rows = data.map(
       (row, index) =>
-        `${index + 1}\t${row.group_name || "N/A"}\t${row.class_section?.class_name?.class_name || "N/A"} - ${row.class_section?.section_name?.section_name || "N/A"}\t${row.late_fine_per_day || "N/A"}`
+        `${index + 1}\t${row.group_name}\t${row.late_fine_per_day}`
     );
     copyContent(headers, rows);
   };
-
-  useEffect(() => {
-    fetchData();
-    fetchClassSections();
-  }, []);
-
-  const breadcrumbItems = [
-    { label: "Fee", link: "/fees/all-module" },
-    { label: "Fee Group", link: "null" },
-  ];
 
   return (
     <>
@@ -272,6 +292,7 @@ const FeeGroup = () => {
           </Row>
         </Container>
       </div>
+
       <section>
         <Container>
           <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
@@ -279,12 +300,10 @@ const FeeGroup = () => {
           </Button>
 
           {isPopoverOpen && (
-            <div className="cover-sheet">
+            <div className="cover-sheet bg-light">
               <div className="studentHeading">
                 <h2>Add New Fee Group</h2>
-                <button className="closeForm" onClick={() => setIsPopoverOpen(false)}>
-                  X
-                </button>
+                <button className="closeForm" onClick={() => setIsPopoverOpen(false)}>X</button>
               </div>
               <Form className="formSheet">
                 <Row>
@@ -294,25 +313,59 @@ const FeeGroup = () => {
                       type="text"
                       value={newFeeGroup.group_name}
                       onChange={(e) =>
-                        setNewFeeGroup({ ...newFeeGroup, group_name: e.target.value })
+                        setNewFeeGroup({
+                          ...newFeeGroup,
+                          group_name: e.target.value,
+                        })
                       }
                     />
                   </Col>
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Class - Section</FormLabel>
-                    <FormSelect
-                      value={newFeeGroup.class_section}
-                      onChange={(e) =>
-                        setNewFeeGroup({ ...newFeeGroup, class_section: e.target.value })
+                    <FormLabel className="labelForm">Class & Section</FormLabel>
+                    {/* <Select
+                      isMulti
+                      options={sectionList.map((sectionItem) => ({
+                        value: sectionItem._id,
+                        label: `${sectionItem.class?.class_name}#${sectionItem.section_name}`,
+                      }))}
+                      value={sectionList
+                        .filter((s) => newFeeGroup.section_name.includes(s._id))
+                        .map((s) => ({
+                          value: s._id,
+                          label: `${s.class?.class_name}#${s.section_name}`,
+                        }))}
+                      onChange={(selectedOptions) =>
+                        setNewFeeGroup({
+                          ...newFeeGroup,
+                          section_name: selectedOptions.map((opt) => opt.value),
+                        })
                       }
-                    >
-                      <option value="">Select Class - Section</option>
-                      {classSectionList.map((cs) => (
-                        <option key={cs._id} value={cs._id}>
-                          {cs.class_name?.class_name || "N/A"} - {cs.section_name?.section_name || "N/A"}
-                        </option>
-                      ))}
-                    </FormSelect>
+                    /> */}
+                    <Select
+                      isMulti
+                      options={sectionList.map((sectionItem) => ({
+                        value: sectionItem._id,
+                        label: `${sectionItem.class?.class_name}#${sectionItem.section_name}`,
+                      }))}
+                      value={sectionList
+                        .filter((s) => newFeeGroup.section_name.includes(s._id))
+                        .map((s) => ({
+                          value: s._id,
+                          label: `${s.class?.class_name}#${s.section_name}`,
+                        }))}
+                      onChange={(selectedOptions) =>
+                        setNewFeeGroup({
+                          ...newFeeGroup,
+                          section_name: selectedOptions.map((opt) => opt.value),
+                        })
+                      }
+                      menuPortalTarget={document.body}
+                      menuPosition="fixed"
+                      styles={{
+                        menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                      }}
+                    />
+
                   </Col>
                   <Col lg={6}>
                     <FormLabel className="labelForm">Late Fine Per Day</FormLabel>
@@ -320,7 +373,10 @@ const FeeGroup = () => {
                       type="text"
                       value={newFeeGroup.late_fine_per_day}
                       onChange={(e) =>
-                        setNewFeeGroup({ ...newFeeGroup, late_fine_per_day: e.target.value })
+                        setNewFeeGroup({
+                          ...newFeeGroup,
+                          late_fine_per_day: e.target.value,
+                        })
                       }
                     />
                   </Col>
@@ -332,11 +388,11 @@ const FeeGroup = () => {
             </div>
           )}
 
-          <div className="tableSheet">
+          <div className="tableSheet mt-4">
             <h2>Fee Group Records</h2>
-            {loading && <p>Loading...</p>}
-            {error && <p className="text-danger">{error}</p>}
-            {!loading && !error && (
+            {loading ? (
+              <div>Loading...</div>
+            ) : (
               <Table
                 columns={columns}
                 data={data}
@@ -351,4 +407,5 @@ const FeeGroup = () => {
   );
 };
 
-export default dynamic(() => Promise.resolve(FeeGroup), { ssr: false });
+export default FeeGroup;
+// export default dynamic(() => Promise.resolve(FeeGroup), { ssr: false });

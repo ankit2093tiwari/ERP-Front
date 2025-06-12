@@ -1,17 +1,16 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import axios from "axios";
 import { Form, Row, Col, Container, FormLabel, Button, Breadcrumb, FormSelect, Alert } from "react-bootstrap";
 import Table from "@/app/component/DataTable";
 import styles from "@/app/students/assign-roll-no/page.module.css";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
-
+import { getClasses, getSections, getStudentsByClassAndSection, updateBulkStudents } from "@/Services";
+import { toast } from 'react-toastify'
 const SpeechRecognition =
   typeof window !== "undefined"
     ? window.SpeechRecognition || window.webkitSpeechRecognition
     : null;
-
 const StudentBulkUpdate = () => {
   const [classList, setClassList] = useState([]);
   const [sectionList, setSectionList] = useState([]);
@@ -66,7 +65,7 @@ const StudentBulkUpdate = () => {
     recognition.onresult = (event) => {
       const transcript = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
       console.log("Heard:", transcript);
-      
+
       if (transcript.includes("update students") && showUpdateButton) {
         handleUpdateStudents();
       }
@@ -87,8 +86,8 @@ const StudentBulkUpdate = () => {
 
   const fetchClasses = async () => {
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-classes");
-      setClassList(response.data.data || []);
+      const response = await getClasses();
+      setClassList(response.data || []);
     } catch (error) {
       console.error("Failed to fetch classes", error);
     }
@@ -96,8 +95,8 @@ const StudentBulkUpdate = () => {
 
   const fetchSections = async (classId) => {
     try {
-      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/sections/class/${classId}`);
-      setSectionList(Array.isArray(response.data.data) ? response.data.data : []);
+      const response = await getSections(classId)
+      setSectionList(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error("Failed to fetch sections", error);
     }
@@ -107,13 +106,10 @@ const StudentBulkUpdate = () => {
     setLoading(true);
     setNoRecordsFound(false);
     try {
-      const response = await axios.get(
-        `https://erp-backend-fy3n.onrender.com/api/students/search?class_name=${selectedClass}&section_name=${selectedSection}`
-      );
-
-      if (response.data.data && response.data.data.length > 0) {
-        setStudents(response.data.data);
-        setUpdatedStudents(response.data.data);
+      const response = await getStudentsByClassAndSection(selectedClass, selectedSection)
+      if (response.data && response.data.length > 0) {
+        setStudents(response.data);
+        setUpdatedStudents(response.data);
         setShowUpdateButton(true);
       } else {
         setStudents([]);
@@ -148,13 +144,16 @@ const StudentBulkUpdate = () => {
 
   const handleUpdateStudents = async () => {
     try {
-      const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/students/bulkUpdate", { students: updatedStudents });
-      if (response.data.success) {
-        alert("Students updated successfully!");
+      const response = await updateBulkStudents({ students: updatedStudents });
+      if (response?.success) {
+        toast.success(response?.message)
+      }
+      else {
+        toast.error(response?.message)
       }
     } catch (error) {
       console.error("Failed to update students", error);
-      alert("Error updating students.");
+      toast.error("Error updating students.");
     }
   };
 
@@ -283,8 +282,8 @@ const StudentBulkUpdate = () => {
                 </Col>
                 <Col>
                   <FormLabel className="labelForm">Select Section</FormLabel>
-                  <FormSelect 
-                    value={selectedSection} 
+                  <FormSelect
+                    value={selectedSection}
                     onChange={handleSectionChange}
                     disabled={!selectedClass}
                   >
