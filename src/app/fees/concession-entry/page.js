@@ -1,401 +1,414 @@
 "use client";
 import React, { useEffect, useState } from 'react';
-import styles from "@/app/students/add-new-student/page.module.css";
-import Preview from '@/app/component/Preview';
-import { Tab, Tabs, Container, Row, Col } from 'react-bootstrap';
-import "react-datepicker/dist/react-datepicker.css";
-import { Form, FormGroup, FormLabel, FormControl, Button } from 'react-bootstrap';
+import { Container, Row, Col, FormLabel, FormSelect, Button, Form, Card } from "react-bootstrap";
+import { toast } from "react-toastify";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import styles from "@/app/medical/routine-check-up/page.module.css";
+import { getClasses, getFeeGroupDataBySectionId, getFeeStructureByFeeGroupId, getSections, getStudentsByClassAndSection } from "@/Services";
 import axios from 'axios';
-import Table from "@/app/component/DataTable";
-import { copyContent, printContent } from "@/app/utils";
-import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
 
 const ConcessionEntry = () => {
-  const [studentData, setStudentData] = useState(null);
-  const [studentId, setStudentId] = useState("");
-  const [showPreview, setShowPreview] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [tcRecords, setTcRecords] = useState([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [editingId, setEditingId] = useState(null);
-  const [editedData, setEditedData] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [classList, setClassList] = useState([]);
+  const [sectionList, setSectionList] = useState([]);
+  const [students, setStudents] = useState([]);
+  const [selectedClass, setSelectedClass] = useState("");
+  const [selectedSection, setSelectedSection] = useState("");
+  const [selectedStudent, setSelectedStudent] = useState("");
+  const [feeGroupId, setFeeGroupId] = useState("");
+  const [feeStructure, setFeeStructure] = useState([]);
+  const [installments, setInstallments] = useState([]);
+  const [concessionType, setConcessionType] = useState("");
+  const [discountPercent, setDiscountPercent] = useState("");
 
-  const [formData, setFormData] = useState({
-    registration_id: '',
-    tc_no: '',
-    student_name: '',
-    class_section: '',
-    class_section_inWords: '',
-    father_name: '',
-    mother_name: '',
-    dob: '',
-    dob_inWords: '',
-    caste: '',
-    nationality: 'Indian',
-    whether_failed: 'No',
-    school_name: '',
-    subject_studies: ['', '', '', '', '', ''],
-    class_promotion: 'false',
-    class_promotion_inwords: '',
-    whether_ncc_cadet: 'No',
-    fee_concession: 0,
-    general_conduct: 'Good',
-    total_working_days: '',
-    present_working_days: '',
-    reason_for_leaving_school: '',
-    date_of_application: new Date().toISOString().split('T')[0],
-    date_of_issue: new Date().toISOString().split('T')[0],
-    remarks: ''
-  });
-
-  const columns = [
-    {
-      name: "#",
-      selector: (row, index) => index + 1,
-      width: "80px",
-      sortable: false,
-    },
-    {
-      name: "TC No.",
-      selector: row => row.tc_no,
-      sortable: true,
-    },
-    {
-      name: "Date",
-      selector: row => new Date(row.date_of_issue).toISOString().split('T')[0],
-      sortable: true,
-    },
-    {
-      name: "Student ID",
-      selector: row => row.registration_id,
-      sortable: true,
-    },
-    {
-      name: "Student",
-      selector: row => row.student_name,
-      sortable: true,
-    },
-    {
-      name: "Class#Section",
-      selector: row => row.class_section,
-      sortable: true,
-    },
-    {
-      name: "Actions",
-      cell: (row) => (
-        <div className="d-flex gap-2">
-          {editingId === row._id ? (
-            <>
-              <button className="editButton" onClick={() => handleUpdate(row._id)}>
-                <FaSave />
-              </button>
-              <button className="editButton btn-danger" onClick={() => handleCancelEdit()}>
-                Cancel
-              </button>
-            </>
-          ) : (
-            <>
-              <button className="editButton" onClick={() => handleEdit(row)}>
-                <FaEdit />
-              </button>
-              <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
-                <FaTrashAlt />
-              </button>
-            </>
-          )}
-        </div>
-      ),
-    },
-  ];
-
-  // Fetch TC records when component mounts
   useEffect(() => {
-    const fetchTcRecords = async () => {
-      setLoading(true);
+    const fetchFeeData = async () => {
+      if (!selectedSection) return;
+
       try {
-        const response = await axios.get('https://erp-backend-fy3n.onrender.com/api/transfer-certificates');
-        if (response.data.success) {
-          setTcRecords(response.data.data);
+        setIsLoading(true);
+        const response = await getFeeGroupDataBySectionId(selectedSection);
+        if (response?.success) {
+          setFeeGroupId(response.data._id);
+          const feeStructureResponse = await getFeeStructureByFeeGroupId(response.data._id);
+          if (feeStructureResponse?.success) {
+            setFeeStructure(feeStructureResponse.data[0]?.monthly_fees || []);
+
+            const transformedInstallments = feeStructureResponse.data[0]?.monthly_fees.map(item => ({
+              month: item.month_name.installment_name,
+              monthId: item.month_name._id, // Store the installment ID
+              actualFee: item.tuition_fee.toString(),
+              discountAmount: "0",
+              totalAmount: item.tuition_fee.toString()
+            })) || [];
+
+            setInstallments(transformedInstallments);
+          }
         }
       } catch (error) {
-        console.error("Error fetching TC records:", error);
-        setError("Failed to fetch TC records");
+        console.error("Error fetching fee data:", error);
+        toast.error("Failed to load fee structure");
       } finally {
-        setLoading(false);
+        setIsLoading(false);
       }
     };
+    fetchFeeData();
+  }, [selectedSection]);
 
-    fetchTcRecords();
-    fetchLastTcNumber();
+  const fetchData = async () => {
+    try {
+      setIsLoading(true);
+      const classRes = await getClasses();
+      setClassList(classRes.data || []);
+    } catch (error) {
+      console.error("Error fetching classes:", error);
+      toast.error("Failed to load classes");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const fetchSections = async (classId) => {
+    try {
+      setIsLoading(true);
+      const response = await getSections(classId);
+      setSectionList(response.data || []);
+    } catch (error) {
+      console.error("Failed to fetch sections:", error);
+      toast.error("Failed to load sections");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleClassChange = (event) => {
+    const classId = event.target.value;
+    setSelectedClass(classId);
+    setSelectedSection("");
+    setStudents([]);
+    if (classId) {
+      fetchSections(classId);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
   }, []);
 
-  const fetchLastTcNumber = async () => {
-    try {
-      const response = await axios.get('https://erp-backend-fy3n.onrender.com/api/transfer-certificates/last-tc-number');
-      const lastNumber = response.data.lastTcNumber || 0;
-      const newTcNumber = `TC${String(lastNumber + 1).padStart(4, '0')}`;
-      setFormData(prev => ({ ...prev, tc_no: newTcNumber }));
-    } catch (error) {
-      console.error("Error fetching last TC number:", error);
-      setFormData(prev => ({ ...prev, tc_no: `TC${Date.now()}` }));
-    }
-  };
-
-  const handleEdit = (record) => {
-    setEditingId(record._id);
-    setEditedData({
-      tc_no: record.tc_no,
-      student_name: record.student_name,
-      class_section: record.class_section,
-      date_of_issue: record.date_of_issue,
-      reason_for_leaving_school: record.reason_for_leaving_school,
-      remarks: record.remarks
-    });
-  };
-
-  const handleCancelEdit = () => {
-    setEditingId(null);
-    setEditedData({});
-  };
-
-  const handleUpdate = async (id) => {
-    try {
-      const response = await axios.put(
-        `https://erp-backend-fy3n.onrender.com/api/update-transfer-certificates/${id}`,
-        editedData
-      );
-
-      if (response.data.success) {
-        // Update the local state with the edited data
-        setTcRecords(prevRecords =>
-          prevRecords.map(record =>
-            record._id === id ? { ...record, ...editedData } : record
-          )
-        );
-        setEditingId(null);
-        setEditedData({});
-        alert("Transfer Certificate updated successfully!");
-      }
-    } catch (error) {
-      console.error("Error updating TC:", error);
-      alert("Failed to update Transfer Certificate");
-    }
-  };
-
-  const handleDelete = async (id) => {
-    if (confirm("Are you sure you want to delete this Transfer Certificate?")) {
-      try {
-        const response = await axios.delete(
-          `https://erp-backend-fy3n.onrender.com/api/delete-transfer-certificates/${id}`
-        );
-
-        if (response.data.success) {
-          // Remove the deleted record from local state
-          setTcRecords(prevRecords =>
-            prevRecords.filter(record => record._id !== id)
-          );
-          alert("Transfer Certificate deleted successfully!");
-        }
-      } catch (error) {
-        console.error("Error deleting TC:", error);
-        alert("Failed to delete Transfer Certificate");
-      }
-    }
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    if (editingId) {
-      // If in edit mode, update the editedData
-      setEditedData(prev => ({ ...prev, [name]: value }));
-    } else if (name.startsWith("subject_studies_")) {
-      const index = parseInt(name.split("_")[2], 10);
-      const newSubjects = [...formData.subject_studies];
-      newSubjects[index] = value;
-      setFormData(prev => ({ ...prev, subject_studies: newSubjects }));
-    } else {
-      setFormData(prev => ({ ...prev, [name]: value }));
-      if (name === "registration_id") {
-        setStudentId(value);
-      }
-    }
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    try {
-      const url = 'https://erp-backend-fy3n.onrender.com/api/transfer-certificates';
-      const response = await axios.post(url, formData);
-
-      if (response.data.success) {
-        alert("Transfer Certificate generated successfully!");
-
-        // Refresh TC records
-        const recordsResponse = await axios.get('https://erp-backend-fy3n.onrender.com/api/transfer-certificates');
-        setTcRecords(recordsResponse.data.data);
-
-        // Reset form with new TC number
-        const newNumber = parseInt(formData.tc_no.replace(/^TC0*/, '')) + 1;
-        const newTcNumber = `TC${String(newNumber).padStart(4, '0')}`;
-
-        setFormData({
-          registration_id: '',
-          tc_no: newTcNumber,
-          student_name: '',
-          class_section: '',
-          class_section_inWords: '',
-          father_name: '',
-          mother_name: '',
-          dob: '',
-          dob_inWords: '',
-          caste: '',
-          nationality: 'Indian',
-          whether_failed: 'No',
-          school_name: '',
-          subject_studies: ['', '', '', '', '', ''],
-          class_promotion: 'false',
-          class_promotion_inwords: '',
-          whether_ncc_cadet: 'No',
-          fee_concession: 0,
-          general_conduct: 'Good',
-          total_working_days: '',
-          present_working_days: '',
-          reason_for_leaving_school: '',
-          date_of_application: new Date().toISOString().split('T')[0],
-          date_of_issue: new Date().toISOString().split('T')[0],
-          remarks: ''
-        });
-
-        setStudentData(null);
-        setStudentId("");
-      } else {
-        alert(response.data.message || "Failed to generate Transfer Certificate");
-      }
-    } catch (error) {
-      console.error("Error submitting form:", error);
-      alert(error.response?.data?.message || "An error occurred while submitting the form");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const togglePreview = () => {
-    setShowPreview((prev) => !prev);
-  };
-
   useEffect(() => {
-    if (!studentId) return;
-
-    const fetchStudentInfo = async () => {
-      try {
-        const url = `https://erp-backend-fy3n.onrender.com/api/students/search?registration_id=${studentId}`;
-        const response = await axios.get(url);
-
-        if (response?.data.success) {
-          setStudentData(response?.data?.data[0]);
+    const fetchStudents = async () => {
+      if (selectedClass && selectedSection) {
+        try {
+          setIsLoading(true);
+          const response = await getStudentsByClassAndSection(selectedClass, selectedSection);
+          setStudents(response.data || []);
+        } catch (error) {
+          console.error("Failed to fetch students:", error);
+          toast.error("Failed to load students");
+        } finally {
+          setIsLoading(false);
         }
-      } catch (error) {
-        console.error("Error fetching student info:", error);
       }
     };
+    fetchStudents();
+  }, [selectedClass, selectedSection]);
 
-    fetchStudentInfo();
-  }, [studentId]);
+  const handleDiscountPercentChange = (e) => {
+    const value = e.target.value;
+    setDiscountPercent(value);
 
-  useEffect(() => {
-    if (!studentData) return;
+    // Only calculate if we have a valid number
+    const numValue = parseFloat(value);
+    if (!isNaN(numValue)) {
+      const updated = installments.map((item) => {
+        const fee = parseFloat(item.actualFee);
+        if (!isNaN(fee)) {
+          const discount = (fee * numValue) / 100;
+          const total = fee - discount;
+          return {
+            ...item,
+            discountAmount: discount.toFixed(2),
+            totalAmount: total.toFixed(2)
+          };
+        }
+        return item;
+      });
+      setInstallments(updated);
+    }
+  };
 
-    setFormData(prev => ({
-      ...prev,
-      student_name: studentData.first_name,
-      father_name: studentData?.father_name,
-      mother_name: studentData?.mother_name,
-      dob: studentData.date_of_birth?.split('T')[0] || '',
-      date_of_admission: studentData.date_of_admission?.split('T')[0] || '',
-      nationality: studentData?.nationality || 'Indian',
-      caste: studentData?.caste_name?.caste_name || "",
-      class_section: `${studentData?.class_name?.class_name} - ${studentData.section_name?.section_name || ''}`,
-      class_section_inWords: `${studentData?.class_name?.class_name} ${studentData.section_name?.section_name || ''}`,
-      class_promotion: studentData.promoted
-    }));
-  }, [studentData]);
+  const handleConcessionTypeChange = (e) => {
+    const type = e.target.value;
+    setConcessionType(type);
 
-  const filteredTcRecords = tcRecords.filter(record =>
-    record.student_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    record.registration_id?.toString().includes(searchTerm)
-  );
+    let discountValue;
+    if (type === "FULL") {
+      discountValue = 100;
+    } else if (type === "HALF") {
+      discountValue = 50;
+    } else {
+      discountValue = discountPercent || 0;
+    }
+
+    setDiscountPercent(discountValue.toString());
+
+    const updated = installments.map((item) => {
+      const fee = parseFloat(item.actualFee);
+      if (!isNaN(fee)) {
+        const discount = (fee * discountValue) / 100;
+        const total = fee - discount;
+        return {
+          ...item,
+          discountAmount: discount.toFixed(2),
+          totalAmount: total.toFixed(2)
+        };
+      }
+      return item;
+    });
+    setInstallments(updated);
+  };
+
+  const handleSubmit = async () => {
+    if (!selectedClass || !selectedSection || !selectedStudent) {
+      toast.warn("Please select all fields.");
+      return;
+    }
+    if (!concessionType) {
+      toast.warn("Please select a concession type first");
+      return;
+    }
+
+    if (concessionType === "CUSTOM" && (!discountPercent || isNaN(parseFloat(discountPercent)))) {
+      toast.warn("Please enter a valid discount percentage");
+      return;
+    }
+
+    const payload = {
+      student: selectedStudent,
+      type: concessionType,
+      ...(concessionType === "CUSTOM" && {
+        percentage: parseFloat(discountPercent),
+        installments: installments.map(item => item.monthId)
+      })
+    };
+    try {
+      const response = await axios.post('http://localhost:8000/api/create-concession', payload);
+      if (response?.data.success) {
+        toast.success(response?.data?.message || "Concession data submitted successfully!");
+        setSelectedClass("");
+        setSelectedSection("");
+        setSelectedStudent("");
+        setConcessionType("");
+        setDiscountPercent("");
+        setInstallments([]);
+      }
+    } catch (error) {
+      console.error("Error submitting concession data:", error);
+      const errRes = error.response?.data;
+      toast.error(errRes);
+    }
+    // console.log("Submitting payload:", payload);
+    // toast.success("Submitted successfully!");
+  };
 
   const breadcrumbItems = [
     { label: "fees", link: "/fees/all-module" },
     { label: "Concession Entry", link: "null" }
   ];
-
-
   return (
     <>
       <div className="breadcrumbSheet position-relative">
         <Container>
           <Row className="mt-1 mb-1">
-            <Col>
-              <BreadcrumbComp items={breadcrumbItems} />
-            </Col>
+            <Col><BreadcrumbComp items={breadcrumbItems} /></Col>
           </Row>
         </Container>
       </div>
+
       <section>
         <Container>
-          <Row>
-            <Col>
-              <Tabs defaultActiveKey="Generate Transfer Certificate" id="controlled-tab" className="mb-3 TabButton">
-                <Tab eventKey="Generate Transfer Certificate" title="Concession Entry" className="cover-sheet p-4">
-                  {!showPreview ? (
-                    <Form className={styles.form} onSubmit={handleSubmit}>
-                      <Row className="mb-4">
-                        <FormGroup as={Col} md="4" controlId="registration_id">
-                          <FormLabel>Type Registration ID For Search Student</FormLabel>
-                          <FormControl
-                            name="registration_id"
-                            type="text"
-                            value={formData.registration_id}
-                            onChange={handleChange}
-                            required
-                          />
-                        </FormGroup>
-                      </Row>
+          <div className='cover-sheet'>
+            <div className="studentHeading">
+              <h2>Fee Concession</h2>
+            </div>
+            <div className='px-5'>
+              <Form className="formSheet mb-4">
+                {/* <Row>
+                  <Col lg={4}>
+                    <FormLabel className={styles.labelForm}>Class</FormLabel>
+                    <FormSelect
+                      value={selectedClass}
+                      onChange={handleClassChange}
+                      className={styles.formControl}
+                      disabled={isLoading}
+                    >
+                      <option value="">Select Class</option>
+                      {classList.map((cls) => (
+                        <option key={cls._id} value={cls._id}>{cls.class_name}</option>
+                      ))}
+                    </FormSelect>
+                  </Col>
+                  <Col lg={4}>
+                    <FormLabel className={styles.labelForm}>Section</FormLabel>
+                    <FormSelect
+                      value={selectedSection}
+                      onChange={(e) => setSelectedSection(e.target.value)}
+                      className={styles.formControl}
+                      disabled={!selectedClass || isLoading}
+                    >
+                      <option value="">Select Section</option>
+                      {sectionList.map((sec) => (
+                        <option key={sec._id} value={sec._id}>{sec.section_name}</option>
+                      ))}
+                    </FormSelect>
+                  </Col>
+                  <Col lg={4}>
+                    <FormLabel className={styles.labelForm}>Student</FormLabel>
+                    <FormSelect
+                      value={selectedStudent}
+                      onChange={(e) => setSelectedStudent(e.target.value)}
+                      className={styles.formControl}
+                      disabled={!selectedSection || isLoading}
+                    >
+                      <option value="">Select Student</option>
+                      {students?.map((std) => (
+                        <option key={std._id} value={std._id}>
+                          {`${std.first_name || ''} ${std.last_name || ''}`.trim()}
+                        </option>
+                      ))}
+                    </FormSelect>
+                  </Col>
+                </Row> */}
+                <Card className="shadow-sm p-3 mb-4">
+                  <Row>
+                    <Col lg={4}>
+                      <FormLabel className={styles.labelForm}>Class</FormLabel>
+                      <FormSelect
+                        value={selectedClass}
+                        onChange={handleClassChange}
+                        className={styles.formControl}
+                        disabled={isLoading}
+                      >
+                        <option value="">Select Class</option>
+                        {classList.map((cls) => (
+                          <option key={cls._id} value={cls._id}>{cls.class_name}</option>
+                        ))}
+                      </FormSelect>
+                    </Col>
 
-                      <Row className="mb-3">
-                        <FormGroup as={Col} md="3" controlId="class_section">
-                          <FormLabel>Class &amp; Section (in figures)</FormLabel>
-                          <FormControl
-                            name="class_section"
-                            value={formData.class_section}
-                            onChange={handleChange}
-                            readOnly
-                            type="text"
-                          />
-                        </FormGroup>
-                      </Row>
+                    <Col lg={4}>
+                      <FormLabel className={styles.labelForm}>Section</FormLabel>
+                      <FormSelect
+                        value={selectedSection}
+                        onChange={(e) => setSelectedSection(e.target.value)}
+                        className={styles.formControl}
+                        disabled={!selectedClass || isLoading}
+                      >
+                        <option value="">Select Section</option>
+                        {sectionList.map((sec) => (
+                          <option key={sec._id} value={sec._id}>{sec.section_name}</option>
+                        ))}
+                      </FormSelect>
+                    </Col>
 
-                      <Row>
-                        <Col>
-                          <div className="buttons1">
-                            <Button type="submit" id="submit">Submit</Button>
-                          </div>
-                        </Col>
-                      </Row>
-                    </Form>
-                  ) : (
-                    <Preview formData={formData} togglePreview={togglePreview} />
-                  )}
-                </Tab>
-              </Tabs>
-            </Col>
-          </Row>
+                    <Col lg={4}>
+                      <FormLabel className={styles.labelForm}>Student</FormLabel>
+                      <FormSelect
+                        value={selectedStudent}
+                        onChange={(e) => setSelectedStudent(e.target.value)}
+                        className={styles.formControl}
+                        disabled={!selectedSection || isLoading}
+                      >
+                        <option value="">Select Student</option>
+                        {students?.map((std) => (
+                          <option key={std._id} value={std._id}>
+                            {`${std.first_name || ''} ${std.last_name || ''}`.trim()}
+                          </option>
+                        ))}
+                      </FormSelect>
+                    </Col>
+                  </Row>
+                </Card>
+
+                <Row>
+                  <Col lg={12}>
+                    <Form.Group className="mb-3" controlId="concessionType">
+                      <Form.Label>Concession Type</Form.Label>
+                      <FormSelect
+                        value={concessionType}
+                        onChange={handleConcessionTypeChange}
+                        disabled={isLoading || !selectedClass || !selectedSection || !selectedStudent}
+                      >
+                        <option value="">No Concession</option>
+                        <option value="CUSTOM">Custom Concession</option>
+                        <option value="HALF">Half Concession (50%)</option>
+                        <option value="FULL">Full Concession (100%)</option>
+                      </FormSelect>
+                    </Form.Group>
+                  </Col>
+                </Row>
+                {concessionType === "CUSTOM" && (
+                  <>
+                    <Row>
+                      <Col lg={12}>
+                        <Form.Group className="mb-3" controlId="discountPercent">
+                          <Form.Label>Enter Discount % (0-100)</Form.Label>
+                          <Form.Control
+                            type="number"
+                            min="0"
+                            max="100"
+                            placeholder="Enter discount %"
+                            value={discountPercent}
+                            onChange={handleDiscountPercentChange}
+                            disabled={isLoading}
+                          />
+                        </Form.Group>
+                      </Col>
+                    </Row>
+                  </>
+                )}
+
+              </Form>
+
+
+              {installments.length > 0 && (
+                <>
+                  <h5><strong>Installments Amount</strong></h5>
+                  <Row className="mb-2">
+                    <Col md={2}></Col>
+                    <Col md={3}><strong>Actual Tuition Fee</strong></Col>
+                    <Col md={3}><strong>Discount Amount</strong></Col>
+                    <Col md={3}><strong>Total Amount</strong></Col>
+                  </Row>
+
+                  {installments.map((item, index) => (
+                    <Row key={index} className="mb-2 align-items-center">
+                      <Col md={2}><strong>{item.month}</strong></Col>
+                      <Col md={3}>
+                        <Form.Control type="text" value={item.actualFee} disabled />
+                      </Col>
+                      <Col md={3}>
+                        <Form.Control type="text" value={item.discountAmount || ""} disabled />
+                      </Col>
+                      <Col md={3}>
+                        <Form.Control type="text" value={item.totalAmount || ""} disabled />
+                      </Col>
+                    </Row>
+                  ))}
+                </>
+              )}
+
+
+
+              <Button
+                className="mt-3"
+                onClick={handleSubmit}
+                disabled={isLoading}
+              >
+                {isLoading ? 'Processing...' : 'Submit'}
+              </Button>
+            </div>
+          </div>
         </Container>
       </section>
     </>

@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { Accordion } from "react-bootstrap";
 import { FaHome, FaBug, FaBell, FaBriefcaseMedical, FaAngleDoubleRight, FaFile, FaEnvelope, FaUsersCog, FaBook, FaCalendarPlus, FaPhotoVideo, FaNewspaper, FaUserGraduate, FaFileAlt, FaBus, FaRupeeSign, FaBusinessTime, FaBoxOpen } from "react-icons/fa";
@@ -8,10 +8,21 @@ import { MdAccountBalance, MdLibraryBooks } from "react-icons/md";
 import { TiContacts } from "react-icons/ti";
 import { RiUserFollowLine } from "react-icons/ri";
 import { Image } from "react-bootstrap";
-
+import { jwtDecode } from "jwt-decode";
 export default function Sidebar({ isOpen }) {
     const [activeKey, setActiveKey] = useState(null);
     const [sidebarHover, setSidebarHover] = useState(false);
+    const [userName, setUserName] = useState("User Name");
+
+    useEffect(() => {
+        const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+        if (token) {
+            const decoded = jwtDecode(token);
+            // console.log(decoded);
+            const userName = decoded.data?.username;
+            setUserName(userName);
+        }
+    }, [])
 
     // Function to handle accordion toggle
     const handleAccordionToggle = (key) => {
@@ -132,7 +143,7 @@ export default function Sidebar({ isOpen }) {
         // { title: "Fee Statement", href: "/fees/fee-Statement", icon: <FaAngleDoubleRight /> },
         { title: "Fixed Amount", href: "/fees/fixed-amount", icon: <FaAngleDoubleRight /> },
         { title: "Fee Entry", href: "/fees/fee-entry", icon: <FaAngleDoubleRight /> },
-        { title: "Fee Entryy", href: "/fees/feeEntryy", icon: <FaAngleDoubleRight /> },
+        // { title: "Fee Entryy", href: "/fees/feeEntryy", icon: <FaAngleDoubleRight /> },
         { title: "Concession Entry", href: "/fees/concession-entry", icon: <FaAngleDoubleRight /> },
         { title: "Cheque Bounce Entry", href: "/fees/cheque-bounce", icon: <FaAngleDoubleRight /> },
     ];
@@ -310,8 +321,8 @@ export default function Sidebar({ isOpen }) {
         <div>
             <div
                 className={`sidebar ${isOpen || sidebarHover ? "open" : "closed"}`}
-                onMouseEnter={() => setSidebarHover(true)}
-                onMouseLeave={() => setSidebarHover(false)}
+            // onMouseEnter={() => setSidebarHover(true)}
+            // onMouseLeave={() => setSidebarHover(false)}
             >
                 <div className="sidebar-profile d-flex align-items-center flex-column">
                     <div className="position-relative">
@@ -319,7 +330,7 @@ export default function Sidebar({ isOpen }) {
                         <span className="count-dot"></span>
                     </div>
                     <div className="text-center">
-                        <h6 className="profile-name text-nowrap text-truncate">User Name</h6>
+                        <h6 className="profile-name text-nowrap text-truncate">{userName}</h6>
                         <span className="badge bg-danger">Principal</span>
                     </div>
                 </div>

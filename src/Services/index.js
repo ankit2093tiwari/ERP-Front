@@ -1,9 +1,10 @@
 import axios from "axios";
-const TOKEN = "6DJdQZJIv6WpChtccQOceQui2qYoKDWWJik2qTX3";
-axios.defaults.headers.common["Authorization"] = `Bearer ${TOKEN}`;
-
-// export const BASE_URL = 'http://localhost:8000'
-const BASE_URL = 'https://erp-backend-fy3n.onrender.com'
+// const token = localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
+// if (token) {
+//   axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+// }
+// const BASE_URL = 'https://erp-backend-fy3n.onrender.com'
+export const BASE_URL = 'http://localhost:8000'
 
 export const getClasses = async () => {
     const response = await axios.get(`${BASE_URL}/api/all-classes`);
@@ -68,6 +69,7 @@ export const getAllInstallments = async () => {
     const response = await axios.get(`${BASE_URL}/api/all-installments`)
     return response?.data;
 }
+
 export const getAllPaymentMode = async () => {
     const response = await axios.get(`${BASE_URL}/api/all-payment-mode`)
     return response?.data;
@@ -87,6 +89,10 @@ export const getFeeGroupDataBySectionId = async (sectionId) => {
     const response = await axios.get(`${BASE_URL}/api/fee-group/section/${sectionId}`)
     return response?.data;
 }
+export const getHeadsByInstallmentName = async (installmentName) => {
+    const response = await axios.get(`${BASE_URL}/api/installments/heads/${installmentName}`)
+    return response?.data;
+}
 
 export const getFeeHistoryByStudentId = async (studentId) => {
     const response = await axios.get(`${BASE_URL}/api/fee-history/${studentId}`)
@@ -95,6 +101,10 @@ export const getFeeHistoryByStudentId = async (studentId) => {
 
 export const addNewFeeEntry = async (payload) => {
     const response = await axios.post(`${BASE_URL}/api/fee-entries`, payload)
+    return response?.data;
+}
+export const addNewFixedAmount = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/create-fixed-amounts`, payload)
     return response?.data;
 }
 export const deleteFeeEntryById = async (id) => {
@@ -115,6 +125,7 @@ export const updateStudent = async (studentId, payload) => {
     })
     return response?.data;
 }
+
 export const updateBulkStudents = async (payload) => {
     const response = await axios.post(`${BASE_URL}/api/students/bulkUpdate`, payload)
     return response?.data;
@@ -127,5 +138,59 @@ export const addNewStudent = async (payload) => {
             'Authorization': `Bearer ${TOKEN}`,
         }
     })
+    return response?.data;
+}
+
+export const getItemCategories = async () => {
+    const response = await axios.get(`${BASE_URL}/api/itemCategories`)
+    return response?.data;
+}
+
+export const getAllVendors = async () => {
+    const response = await axios.get(`${BASE_URL}/api/vendors`)
+    return response?.data;
+}
+
+export const addNewVendor = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/vendor`, payload,)
+    return response?.data;
+}
+
+export const updateVendor = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/vendor/${id}`, payload,)
+    return response?.data;
+}
+
+export const deleteVendorRecordById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/vendor/${id}`)
+    return response?.data;
+}
+
+export const getQuotationStocks = async () => {
+    const response = await axios.get(`${BASE_URL}/api/quotation-stocks`)
+    return response?.data;
+}
+export const updateQuotationStockById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/quotation-stock/${id}`, payload)
+    return response?.data;
+}
+export const getAllItems = async () => {
+    const response = await axios.get(`${BASE_URL}/api/itemMasters`)
+    return response?.data;
+}
+
+export const getItemsByCategoryId = async (categoryId) => {
+    const response = await axios.get(`${BASE_URL}/api/items-by-category/${categoryId}`)
+    return response?.data;
+}
+
+export const getAllStores = async () => {
+    const response = await axios.get(`${BASE_URL}/api/stores`)
+    return response?.data;
+}
+
+
+export const getPurchaseOrders = async () => {
+    const response = await axios.get(`${BASE_URL}/api/stock-purchase-orders`)
     return response?.data;
 }

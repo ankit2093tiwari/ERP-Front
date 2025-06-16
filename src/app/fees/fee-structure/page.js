@@ -7,6 +7,7 @@ import { Form, Row, Col, Container, FormLabel, FormControl, Button, Breadcrumb, 
 import axios from "axios";
 import Table from "@/app/component/DataTable";
 import { getAllInstallments, getFeeGroups, getFeeStructures } from "@/Services";
+import { toast } from "react-toastify";
 
 const FeeStatement = () => {
   const [data, setData] = useState([]);
@@ -60,13 +61,49 @@ const FeeStatement = () => {
 
   const fetchInstallments = async () => {
     try {
-      const response = await getAllInstallments()
+      const response = await getAllInstallments();
       if (response?.success) {
-        const monthOrder = ["April", "May", "June", "July", "August", "September",
-          "October", "November", "December", "January", "February", "March"];
-        const sortedInstallments = response.data.sort((a, b) => {
-          return monthOrder.indexOf(a.name) - monthOrder.indexOf(b.name);
-        });
+        const monthOrder = [
+          "April", "May", "June", "July", "August",
+          "September", "October", "November", "December",
+          "January", "February", "March"
+        ];
+
+        const normalizeMonth = {
+          Jan: "January",
+          Feb: "February",
+          Mar: "March",
+          Apr: "April",
+          May: "May",
+          Jun: "June",
+          Jul: "July",
+          Aug: "August",
+          Sep: "September",
+          Oct: "October",
+          Nov: "November",
+          Dec: "December",
+          January: "January",
+          February: "February",
+          March: "March",
+          April: "April",
+          May: "May",
+          June: "June",
+          July: "July",
+          August: "August",
+          September: "September",
+          October: "October",
+          November: "November",
+          December: "December"
+        };
+
+        const sortedInstallments = response.data
+          .map(inst => ({
+            ...inst,
+            normalizedName: normalizeMonth[inst.installment_name] || inst.installment_name
+          }))
+          .sort((a, b) => {
+            return monthOrder.indexOf(a.normalizedName) - monthOrder.indexOf(b.normalizedName);
+          });
         setInstallments(sortedInstallments);
       } else {
         setInstallments([]);
@@ -76,6 +113,9 @@ const FeeStatement = () => {
       setInstallments([]);
     }
   };
+
+
+
 
   const handleGroupChange = (e) => {
     const selectedGroup = e.target.value;
@@ -185,6 +225,7 @@ const FeeStatement = () => {
       const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/create-fee-structure", payload);
 
       if (response.data?.success) {
+        toast.success(response.data?.message || "Fee structure added successfully");
         fetchData();
         resetForm();
         setIsPopoverOpen(false);
@@ -347,7 +388,7 @@ const FeeStatement = () => {
             <Col>
               <Breadcrumb>
                 <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-                <Breadcrumb.Item href="/fees/fee-Statement">Fee Structure</Breadcrumb.Item>
+                <Breadcrumb.Item href="/fees/all-module">Fees</Breadcrumb.Item>
                 <Breadcrumb.Item active>Manage Fee Structure</Breadcrumb.Item>
               </Breadcrumb>
             </Col>
@@ -438,6 +479,7 @@ const FeeStatement = () => {
                                 type="number"
                                 value={getFeeValue(installment._id, 'admission_fee')}
                                 onChange={(e) => handleFeeAmountChange(installment._id, 'admission_fee', e.target.value)}
+                                disabled={installment.installment_name.toLowerCase() !== 'april'}
                               />
                             </td>
                           ))}
@@ -455,6 +497,7 @@ const FeeStatement = () => {
                                 type="number"
                                 value={getFeeValue(installment._id, 'annual_fee')}
                                 onChange={(e) => handleFeeAmountChange(installment._id, 'annual_fee', e.target.value)}
+                                disabled={installment.installment_name.toLowerCase() !== 'april'}
                               />
                             </td>
                           ))}

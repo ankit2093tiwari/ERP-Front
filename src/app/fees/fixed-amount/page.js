@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { Container, Row, Col, FormLabel, FormSelect, Button, Form, Table } from "react-bootstrap";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { FaSave } from "react-icons/fa";
 import styles from "@/app/medical/routine-check-up/page.module.css";
+import { addNewFixedAmount, getAllInstallments, getClasses, getHeadsByInstallmentName, getSections, getStudentsByClassAndSection } from "@/Services";
+import { toast } from "react-toastify";
 
 const FixedAmount = () => {
     const [classList, setClassList] = useState([]);
@@ -18,20 +19,32 @@ const FixedAmount = () => {
     const [transDate, setTransDate] = useState(new Date().toISOString().split("T")[0]);
     const [loading, setLoading] = useState(false);
     const [viewType, setViewType] = useState("installmentWise"); // Default to Installment Wise
+    const [students, setStudents] = useState([]);
+    const [selectedStudent, setSelectedStudent] = useState("");
 
     useEffect(() => {
         fetchData();
     }, []);
+    useEffect(() => {
+        const AllStudents = async () => {
+            if (selectedClass && selectedSection) {
+                const response = await getStudentsByClassAndSection(selectedClass, selectedSection);
+                console.log(response);
+                setStudents(response.data || []);
+            }
+        }
+        AllStudents()
+    }, [selectedClass, selectedSection]);
 
     const fetchData = async () => {
         try {
             const [classRes, installmentRes] = await Promise.all([
-                axios.get("https://erp-backend-fy3n.onrender.com/api/all-classes"),
-                axios.get("https://erp-backend-fy3n.onrender.com/api/all-installments"),
+                getClasses(),
+                getAllInstallments()
             ]);
 
-            setClassList(classRes.data.data || []);
-            setInstallmentList(installmentRes.data.data || []);
+            setClassList(classRes.data || []);
+            setInstallmentList(installmentRes.data || []);
         } catch (error) {
             console.error("Error fetching initial data:", error);
         }
@@ -39,8 +52,8 @@ const FixedAmount = () => {
 
     const fetchSections = async (classId) => {
         try {
-            const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/sections/class/${classId}`);
-            setSectionList(response.data.data || []);
+            const response = await getSections(classId);
+            setSectionList(response.data || []);
         } catch (error) {
             console.error("Failed to fetch sections:", error);
         }
@@ -48,9 +61,9 @@ const FixedAmount = () => {
 
     const fetchHeadsByInstallment = async (installmentName) => {
         try {
-            const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/installments/heads/${installmentName}`);
+            const response = await getHeadsByInstallmentName(installmentName);
             // setHeads(response.data.data.map(head => ({ ...head, fixedAmount: "", remarks: "" })) || []);
-            setHeads(response.data.data.map(head => ({ ...head, fixedAmount: "", remarks: "" })) || []);
+            setHeads(response.data.map(head => ({ ...head, fixedAmount: "", remarks: "" })) || []);
 
         } catch (error) {
             console.error("Failed to fetch heads:", error);
@@ -77,12 +90,19 @@ const FixedAmount = () => {
     };
 
     const handleSubmit = async () => {
-        if (!selectedClass || !selectedSection || !selectedInstallment || !transDate || heads.length === 0) {
-            alert("Please fill all fields.");
+        if (!selectedClass || !selectedSection || !selectedInstallment || !selectedStudent || !transDate || heads.length === 0) {
+            toast.warn("Please select all fields.");
+            return;
+        }
+        const invalidHeads = heads.filter(head => !head.fixedAmount || isNaN(head.fixedAmount) || Number(head.fixedAmount) <= 0);
+        if (invalidHeads.length > 0) {
+            toast.warn("Please enter valid amounts for all fee heads.");
             return;
         }
 
+
         const payload = {
+            student: selectedStudent,
             class: selectedClass,
             section: selectedSection,
             transaction_date: transDate,
@@ -97,32 +117,24 @@ const FixedAmount = () => {
 
         setLoading(true);
         try {
-            const response = await axios.post(
-                "https://erp-backend-fy3n.onrender.com/api/create-fixed-amounts",
-                payload,
-                {
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                }
-            );
-
-            if (response.data.success) {
-                alert("Fixed Amount updated successfully!");
+            const response = await addNewFixedAmount(payload);
+            if (response.success) {
+                toast.success(response.message || "Fixed Amount updated successfully!");
                 // Optional: Reset form after successful submission
                 setSelectedClass("");
                 setSelectedSection("");
                 setSelectedInstallment("");
                 setHeads([]);
+                setSelectedStudent("")
             } else {
-                alert(`Operation failed: ${response.data.message}`);
+                toast.error(`Operation failed: ${response.message}`);
             }
         } catch (error) {
             console.error("Failed to update Fixed Amount:", error);
             const errorMessage = error.response?.data?.message ||
                 error.message ||
                 "Unknown error occurred";
-            alert(`Error updating Fixed Amount: ${errorMessage}`);
+            toast.error(errorMessage || "Error Updating Fixed Amount");
 
             // Debugging help
             console.log("Payload sent:", payload);
@@ -167,6 +179,19 @@ const FixedAmount = () => {
                                         <option value="">Select Section</option>
                                         {sectionList.map((sec) => (
                                             <option key={sec._id} value={sec._id}>{sec.section_name}</option>
+                                        ))}
+                                    </FormSelect>
+                                </Col>
+                                <Col lg={3}>
+                                    <FormLabel className={styles.labelForm}>Student</FormLabel>
+                                    <FormSelect
+                                        value={selectedStudent}
+                                        onChange={(e) => setSelectedStudent(e.target.value)}
+                                        className={styles.formControl}
+                                    >
+                                        <option value="">Select Student</option>
+                                        {students?.map((std) => (
+                                            <option key={std._id} value={std._id}>{std?.first_name + " " + std?.last_name}</option>
                                         ))}
                                     </FormSelect>
                                 </Col>
@@ -216,6 +241,7 @@ const FixedAmount = () => {
                                                     value={head.fixedAmount}
                                                     onChange={(e) => handleInputChange(index, "fixedAmount", e.target.value)}
                                                     className={styles.formControl}
+                                                    required
                                                 />
                                             </td>
                                             <td>
