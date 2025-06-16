@@ -30,7 +30,7 @@ const PurchaseList = () => {
     },
     {
       name: 'Item Category',
-      selector: row => row.quotation?.itemCategory?.categoryName || 'N/A', // if you populate category name, else fallback
+      selector: row => row.quotation?.itemCategory?.categoryName || 'N/A',
       sortable: true,
     },
     {
