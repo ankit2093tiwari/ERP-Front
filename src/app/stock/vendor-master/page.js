@@ -4,21 +4,12 @@ import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { FaEdit, FaTrashAlt, FaSave, FaTimes } from "react-icons/fa";
 import { CgAddR } from "react-icons/cg";
-import {
-  Form,
-  Row,
-  Col,
-  Container,
-  FormLabel,
-  FormControl,
-  Button,
-  FormSelect,
-  Alert,
-} from "react-bootstrap";
-import axios from "axios";
+import { Form, Row, Col, Container, FormLabel, FormControl, Button, FormSelect, Alert, } from "react-bootstrap";
 import Table from "@/app/component/DataTable";
 import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import { toast } from "react-toastify";
+import { deleteVendorRecordById, getAllVendors, getItemCategories, updateVendor } from "@/Services";
 
 const VendorMaster = () => {
   const [data, setData] = useState([]);
@@ -80,7 +71,7 @@ const VendorMaster = () => {
             <FormControl
               type="text"
               value={editedValues.organizationName || ""}
-              onChange={(e) => setEditedValues({...editedValues, organizationName: e.target.value})}
+              onChange={(e) => setEditedValues({ ...editedValues, organizationName: e.target.value })}
               required
             />
           ) : (
@@ -97,7 +88,7 @@ const VendorMaster = () => {
           {editingId === row._id ? (
             <FormSelect
               value={editedValues.organizationType || ""}
-              onChange={(e) => setEditedValues({...editedValues, organizationType: e.target.value})}
+              onChange={(e) => setEditedValues({ ...editedValues, organizationType: e.target.value })}
             >
               <option value="">Select Type</option>
               {organizationTypeOptions.map(option => (
@@ -121,7 +112,7 @@ const VendorMaster = () => {
             <FormControl
               type="text"
               value={editedValues.organizationAddress || ""}
-              onChange={(e) => setEditedValues({...editedValues, organizationAddress: e.target.value})}
+              onChange={(e) => setEditedValues({ ...editedValues, organizationAddress: e.target.value })}
               required
             />
           ) : (
@@ -140,7 +131,7 @@ const VendorMaster = () => {
               <FormControl
                 type="text"
                 value={editedValues.contactPersonName || ""}
-                onChange={(e) => setEditedValues({...editedValues, contactPersonName: e.target.value})}
+                onChange={(e) => setEditedValues({ ...editedValues, contactPersonName: e.target.value })}
               />
             ) : (
               row.contactPersonName || "N/A"
@@ -151,7 +142,7 @@ const VendorMaster = () => {
               <FormControl
                 type="text"
                 value={editedValues.contactNumber || ""}
-                onChange={(e) => setEditedValues({...editedValues, contactNumber: e.target.value})}
+                onChange={(e) => setEditedValues({ ...editedValues, contactNumber: e.target.value })}
               />
             ) : (
               row.contactNumber || "No contact"
@@ -162,7 +153,7 @@ const VendorMaster = () => {
               <FormControl
                 type="email"
                 value={editedValues.email || ""}
-                onChange={(e) => setEditedValues({...editedValues, email: e.target.value})}
+                onChange={(e) => setEditedValues({ ...editedValues, email: e.target.value })}
               />
             ) : (
               row.email || "No email"
@@ -220,11 +211,11 @@ const VendorMaster = () => {
     setError("");
     try {
       const [vendorsResponse, categoriesResponse] = await Promise.all([
-        axios.get("https://erp-backend-fy3n.onrender.com/api/vendors"),
-        axios.get("https://erp-backend-fy3n.onrender.com/api/itemCategories")
+        getAllVendors(),
+        getItemCategories()
       ]);
-      setData(vendorsResponse.data.data || []);
-      setCategories(categoriesResponse.data.data || []);
+      setData(vendorsResponse.data || []);
+      setCategories(categoriesResponse.data || []);
     } catch (err) {
       console.error("Error fetching data:", err);
       setError("Failed to fetch data. Please try again later.");
@@ -244,7 +235,8 @@ const VendorMaster = () => {
   const handleUpdate = async (id) => {
     try {
       // Validate required fields
-      if (!editedValues.organizationName || !editedValues.contactPersonName || !editedValues.contactNumber || !editedValues.email) {
+      if (!editedValues.organizationName || !editedValues.contactPersonName || !editedValues.contactNumber || !editedValues.email || !editedValues.itemCategory || !editedValues.organizationType) {
+        toast.error("Please fill all required fields");
         setError("Please fill all required fields");
         return;
       }
@@ -261,12 +253,16 @@ const VendorMaster = () => {
         return;
       }
 
-      await axios.put(`https://erp-backend-fy3n.onrender.com/api/vendor/${id}`, editedValues);
+      const response = await updateVendor(id, editedValues)
+      console.log(response);
+
+      toast.success(response.message || "Vendor updated successfully");
       fetchData();
       setEditingId(null);
       setEditedValues({});
       setError("");
     } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to update vendor");
       console.error("Error updating data:", error);
       setError("Failed to update vendor. Please try again later.");
     }
@@ -275,9 +271,11 @@ const VendorMaster = () => {
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this vendor?")) {
       try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/vendor/${id}`);
+        const response = await deleteVendorRecordById(id);
+        toast.success(response.message || "Vendor deleted successfully");
         fetchData();
       } catch (error) {
+        toast.error(error.response?.data?.message || "Failed to delete vendor");
         console.error("Error deleting data:", error);
         setError("Failed to delete vendor. Please try again later.");
       }
@@ -286,7 +284,8 @@ const VendorMaster = () => {
 
   const handleAdd = async () => {
     // Validate required fields
-    if (!formData.organizationName || !formData.contactPersonName || !formData.contactNumber || !formData.email) {
+    if (!formData.organizationName || !formData.contactPersonName || !formData.contactNumber || !formData.email || !formData.itemCategory || !formData.organizationType || !formData.statusOfEnterprise || !formData.organizationAddress) {
+      toast.warn("Please fill all required fields");
       setError("Please fill all required fields");
       return;
     }
@@ -312,7 +311,8 @@ const VendorMaster = () => {
         return;
       }
 
-      await axios.post("https://erp-backend-fy3n.onrender.com/api/vendor", formData);
+      const response = await addNewVendor(formData);
+      toast.success(response.message || "Vendor added successfully");
       fetchData();
       setFormData({
         organizationName: "",
@@ -336,6 +336,7 @@ const VendorMaster = () => {
       setIsPopoverOpen(false);
       setError("");
     } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to add vendor");
       console.error("Error adding data:", error);
       setError("Failed to add vendor. Please try again later.");
     }
@@ -441,7 +442,7 @@ const VendorMaster = () => {
                     </FormSelect>
                   </Col>
                 </Row>
-                
+
                 <Row className="mb-3">
                   <Col lg={6}>
                     <FormLabel className="labelForm">Contact Person Name*</FormLabel>
@@ -479,7 +480,10 @@ const VendorMaster = () => {
                       value={formData.contactNumber}
                       onChange={handleChange}
                       required
+                      maxLength={10}
                     />
+
+
                   </Col>
                   <Col lg={6}>
                     <FormLabel className="labelForm">Email*</FormLabel>
@@ -529,6 +533,7 @@ const VendorMaster = () => {
                       name="gstNumber"
                       value={formData.gstNumber}
                       onChange={handleChange}
+                      maxLength={15}
                     />
                   </Col>
                   <Col lg={6}>
@@ -538,6 +543,7 @@ const VendorMaster = () => {
                       name="panNumber"
                       value={formData.panNumber}
                       onChange={handleChange}
+                      maxLength={10}
                     />
                   </Col>
                 </Row>
@@ -550,6 +556,7 @@ const VendorMaster = () => {
                       name="tinNumber"
                       value={formData.tinNumber}
                       onChange={handleChange}
+                      maxLength={11}
                     />
                   </Col>
                   <Col lg={6}>
@@ -629,8 +636,6 @@ const VendorMaster = () => {
             <h2>Vendor Records</h2>
             {loading ? (
               <p>Loading...</p>
-            ) : error ? (
-              <p style={{ color: "red" }}>{error}</p>
             ) : (
               <Table
                 columns={columns}

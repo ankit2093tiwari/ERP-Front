@@ -10,6 +10,8 @@ import { copyContent, printContent } from '@/app/utils';
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { getAllItems, getAllStores, getAllVendors, getItemCategories, getItemsByCategoryId, getQuotationStocks, updateQuotationStockById } from '@/Services';
+import { toast } from 'react-toastify';
 
 const QuotationMaster = () => {
   const [data, setData] = useState([]);
@@ -41,6 +43,25 @@ const QuotationMaster = () => {
     remarks: '',
     date: new Date()
   });
+
+  const [showPurchaseForm, setShowPurchaseForm] = useState(false);
+  const [selectedQuotation, setSelectedQuotation] = useState(null);
+  const [stores, setStores] = useState([]);
+  const [purchaseFormData, setPurchaseFormData] = useState({
+    quotation: '',  // Will store the quotation ID
+    quantity: '',
+    store: '',
+    purchaseDate: new Date()
+  });
+  const fetchStores = async () => {
+    try {
+      const response = await getAllStores()
+      setStores(response.data || []);
+    } catch (err) {
+      console.error("Error fetching stores:", err);
+    }
+  };
+
 
   const columns = [
     {
@@ -171,26 +192,28 @@ const QuotationMaster = () => {
       sortable: true,
     },
     // {
-    //   name: 'Date',
-    //   cell: (row) => {
-    //     const date = row.date ? new Date(row.date) : null;
-    //     return (
-    //       <div>
-    //         {editingId === row._id ? (
-    //           <DatePicker
-    //             selected={editedData.date ? new Date(editedData.date) : new Date()}
-    //             onChange={(date) => setEditedData({ ...editedData, date })}
-    //             dateFormat="dd/MM/yyyy"
-    //             className="form-control"
-    //           />
-    //         ) : (
-    //           date ? date.toLocaleDateString('en-GB') : 'N/A'
-    //         )}
-    //       </div>
-    //     );
-    //   },
-    //   sortable: true,
-    // },
+    //   name: 'Actions',
+    //   cell: (row) => (
+    //     <div className="d-flex gap-2">
+    //       {editingId === row._id ? (
+    //         <>
+    //           <Button variant="success" size="sm" onClick={() => handleUpdate(row._id)}>
+    //             <FaSave /> Save
+    //           </Button>
+    //           <Button variant="secondary" size="sm" onClick={() => setEditingId(null)}>
+    //             <FaTimes /> Cancel
+    //           </Button>
+    //         </>
+    //       ) : (
+    //         <>
+    //           <Button variant="info" size="sm" onClick={() => handlePurchase(row._id)}>
+    //             Purchase
+    //           </Button>
+    //         </>
+    //       )}
+    //     </div>
+    //   ),
+    // }
     {
       name: 'Actions',
       cell: (row) => (
@@ -206,8 +229,14 @@ const QuotationMaster = () => {
             </>
           ) : (
             <>
-              <Button variant="info" size="sm" onClick={() => handlePurchase(row._id)}>
+              <Button variant="info" size="sm" onClick={() => handlePurchase(row)}>
                 Purchase
+              </Button>
+              <Button variant="warning" size="sm" onClick={() => handleEdit(row)}>
+                <FaEdit />
+              </Button>
+              <Button variant="danger" size="sm" onClick={() => handleDelete(row._id)}>
+                <FaTrashAlt />
               </Button>
             </>
           )}
@@ -220,8 +249,8 @@ const QuotationMaster = () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/quotation-stocks");
-      setData(response.data.data || []);
+      const response = await getQuotationStocks();
+      setData(response.data || []);
     } catch (err) {
       console.error("Error fetching data:", err);
       setError("Failed to fetch data. Please try again later.");
@@ -232,8 +261,8 @@ const QuotationMaster = () => {
 
   const fetchItemCategories = async () => {
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/itemCategories");
-      setItemCategories(response.data.data || []);
+      const response = await getItemCategories();
+      setItemCategories(response.data || []);
     } catch (err) {
       console.error("Error fetching item categories:", err);
     }
@@ -241,8 +270,8 @@ const QuotationMaster = () => {
 
   const fetchVendors = async () => {
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/vendors");
-      setVendors(response.data.data || []);
+      const response = await getAllVendors()
+      setVendors(response.data || []);
     } catch (err) {
       console.error("Error fetching vendors:", err);
     }
@@ -250,8 +279,8 @@ const QuotationMaster = () => {
 
   const fetchAllItems = async () => {
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/itemMasters");
-      setAllItems(response.data.data || []);
+      const response = await getAllItems()
+      setAllItems(response.data || []);
     } catch (err) {
       console.error("Error fetching all items:", err);
     }
@@ -263,8 +292,8 @@ const QuotationMaster = () => {
         setFilteredItems([]);
         return;
       }
-      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/items-by-category/${categoryId}`);
-      setFilteredItems(response.data.data || []);
+      const response = await getItemsByCategoryId(categoryId);
+      setFilteredItems(response.data || []);
     } catch (err) {
       console.error("Error fetching items by category:", err);
       setFilteredItems([]);
@@ -294,7 +323,8 @@ const QuotationMaster = () => {
         return;
       }
 
-      await axios.put(`https://erp-backend-fy3n.onrender.com/api/quotation-stock/${id}`, editedData);
+      const response = await updateQuotationStockById(id, editedData)
+      toast.success(response.message || "Quotation updated successfully!");
       fetchData();
       setEditingId(null);
       setEditedData({});
@@ -317,9 +347,15 @@ const QuotationMaster = () => {
     }
   };
 
-  const handlePurchase = (id) => {
-    console.log("Purchase item with ID:", id);
-    // Handle purchase action
+  const handlePurchase = (quotation) => {
+    setSelectedQuotation(quotation);
+    setPurchaseFormData({
+      quotation: quotation._id,  // Store the quotation ID
+      quantity: '',
+      store: '',
+      purchaseDate: new Date()
+    });
+    setShowPurchaseForm(true);
   };
 
   const handleAdd = async () => {
@@ -334,6 +370,7 @@ const QuotationMaster = () => {
         date: formData.date.toISOString()
       });
       if (response.data.success) {
+        toast.success(response.data.message || "Quotation added successfully!");
         fetchData();
         setFormData({
           itemCategory: '',
@@ -348,6 +385,7 @@ const QuotationMaster = () => {
         setError("");
       }
     } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to add quotation. Please try again later.");
       console.error("Error adding data:", error);
       setError(error.response?.data?.message || "Failed to add data. Please try again later.");
     }
@@ -375,7 +413,7 @@ const QuotationMaster = () => {
       const category = itemCategories.find(c => c._id === row.itemCategory) || {};
       const vendor = vendors.find(v => v._id === row.vendorName) || {};
       // const date = row.date ? new Date(row.date) : null;
-  
+
       return [
         index + 1,
         item.itemName || row.itemName || 'N/A',
@@ -389,15 +427,15 @@ const QuotationMaster = () => {
     });
     printContent(tableHeaders, tableRows);
   };
-  
+
   const handleCopy = () => {
-    const headers = ["#", "Item Name", "Item Category", "Vendor", "Quotation Price/Unit", "Quotation No",  "Actions"];
+    const headers = ["#", "Item Name", "Item Category", "Vendor", "Quotation Price/Unit", "Quotation No", "Actions"];
     const rows = data.map((row, index) => {
       const item = allItems.find(i => i._id === row.itemName) || {};
       const category = itemCategories.find(c => c._id === row.itemCategory) || {};
       const vendor = vendors.find(v => v._id === row.vendorName) || {};
       const date = row.date ? new Date(row.date) : null;
-  
+
       return `${index + 1}\t${item.itemName || row.itemName || 'N/A'}\t${category.categoryName || row.itemCategory?.categoryName || row.itemCategory || 'N/A'}\t${vendor.organizationName || row.vendorName?.organizationName || row.vendorName || 'N/A'}\t${row.pricePerUnit ? `${parseFloat(row.pricePerUnit).toFixed(2)}` : 'N/A'}\t${row.quotationNo || 'N/A'}\tPurchase`;
     });
     copyContent(headers, rows);
@@ -408,13 +446,136 @@ const QuotationMaster = () => {
     fetchItemCategories();
     fetchVendors();
     fetchAllItems();
+    fetchStores();
   }, []);
 
   const breadcrumbItems = [
     { label: "Stock", link: "/stock/all-module" },
     { label: "Quotation Master", link: "null" }
   ];
+  const PurchaseForm = () => {
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      try {
+        const response = await axios.post('http://localhost:8000/api/add-stock-order', {
+          quotation: purchaseFormData.quotation,
+          quantity: Number(purchaseFormData.quantity),
+          store: purchaseFormData.store,
+          purchaseDate: purchaseFormData.purchaseDate
+        });
+        toast.success(response?.data?.message || "Purchase order created successfully!");
+        setShowPurchaseForm(false);
+        fetchData(); // Refresh the quotation list
+      } catch (error) {
+        toast.error(error.response?.data?.message || "Failed to create purchase order");
+      }
+    };
 
+    const item = allItems.find(i => i._id === selectedQuotation?.itemName);
+    const vendor = vendors.find(v => v._id === selectedQuotation?.vendorName);
+
+    return (
+      <Container>
+        <div className="cover-sheet">
+          <div className="purchase-form">
+            <div className="studentHeading">
+              <h2>Create Purchase Order</h2>
+              <button
+                className="closeForm"
+                onClick={() => setShowPurchaseForm(false)}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="mb-1 p-3 bg-light rounded">
+              <h5>Quotation Information</h5>
+              <Row className="mb-3">
+                <FormGroup as={Col} md="6" controlId="item">
+                  <FormLabel className="labelForm">Item</FormLabel>
+                  <FormControl
+                    value={item?.itemName || 'N/A'}
+                    disabled
+                  />
+                </FormGroup>
+                <FormGroup as={Col} md="6" controlId="vendor">
+                  <FormLabel className="labelForm">Vendor</FormLabel>
+                  <FormControl
+                    value={selectedQuotation?.vendorName?.organizationName || 'N/A'}
+                    disabled
+                  />
+                </FormGroup>
+              </Row>
+
+              <Row className="mb-3">
+                <FormGroup as={Col} md="6" controlId="price">
+                  <FormLabel className="labelForm">Quoted Price</FormLabel>
+                  <FormControl
+                    value={selectedQuotation?.pricePerUnit ? `₹${parseFloat(selectedQuotation.pricePerUnit).toFixed(2)}` : 'N/A'}
+                    disabled
+                  />
+                </FormGroup>
+                <FormGroup as={Col} md="6" controlId="quotationNo">
+                  <FormLabel className="labelForm">Quotation #</FormLabel>
+                  <FormControl
+                    value={selectedQuotation?.quotationNo || 'N/A'}
+                    disabled
+                  />
+                </FormGroup>
+              </Row>
+            </div>
+
+            <Form onSubmit={handleSubmit} className="formSheet">
+              <Row className="mb-3">
+                <FormGroup as={Col} md="6" controlId="quantity">
+                  <FormLabel className="labelForm">Quantity*</FormLabel>
+                  <FormControl
+                    type="number"
+                    min="1"
+                    value={purchaseFormData.quantity}
+                    onChange={(e) => setPurchaseFormData({ ...purchaseFormData, quantity: e.target.value })}
+                    required
+                  />
+                </FormGroup>
+                <FormGroup as={Col} md="6" controlId="store">
+                  <FormLabel className="labelForm">Store*</FormLabel>
+                  <FormSelect
+                    value={purchaseFormData.store}
+                    onChange={(e) => setPurchaseFormData({ ...purchaseFormData, store: e.target.value })}
+                    required
+                  >
+                    <option value="">Select Store</option>
+                    {stores.map(store => (
+                      <option key={store._id} value={store._id}>{store.storeName}</option>
+                    ))}
+                  </FormSelect>
+                </FormGroup>
+              </Row>
+
+              <FormGroup className="mb-3" controlId="purchaseDate">
+                <FormLabel className="labelForm">Purchase Date</FormLabel>
+                <DatePicker
+                  selected={purchaseFormData.purchaseDate}
+                  onChange={(date) => setPurchaseFormData({ ...purchaseFormData, purchaseDate: date })}
+                  className="form-control"
+                  dateFormat="dd/MM/yyyy"
+                />
+              </FormGroup>
+
+              <div className="d-flex justify-content-end gap-2">
+                <Button variant="secondary" onClick={() => setShowPurchaseForm(false)}>
+                  Cancel
+                </Button>
+                <Button variant="primary" type="submit">
+                  Create Purchase
+                </Button>
+              </div>
+            </Form>
+          </div>
+        </div>
+      </Container>
+    );
+  };
   return (
     <>
       <div className="breadcrumbSheet position-relative">
@@ -426,6 +587,7 @@ const QuotationMaster = () => {
           </Row>
         </Container>
       </div>
+      {showPurchaseForm && <PurchaseForm />}
 
       <section>
         <Container>
@@ -558,8 +720,6 @@ const QuotationMaster = () => {
             <h2>Quotation Records</h2>
             {loading ? (
               <p>Loading...</p>
-            ) : error ? (
-              <p style={{ color: "red" }}>{error}</p>
             ) : (
               <Table
                 columns={columns}

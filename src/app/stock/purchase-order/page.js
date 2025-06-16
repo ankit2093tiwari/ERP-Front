@@ -1,13 +1,18 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import { Container, Row, Col, Alert } from 'react-bootstrap';
+import { toast } from 'react-toastify';
+import { BASE_URL } from '@/Services';
+
+import { FaEdit, FaTrashAlt } from 'react-icons/fa';
+import { Container, Row, Col, Alert, Button } from 'react-bootstrap';
 import axios from 'axios';
 import Table from '@/app/component/DataTable';
 import { copyContent, printContent } from '@/app/utils';
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import { getPurchaseOrders } from '@/Services';
 
-const QuotationMaster = () => {
+const PurchaseList = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -21,47 +26,77 @@ const QuotationMaster = () => {
     },
     {
       name: 'Item',
-      selector: row => row.itemName || 'N/A',
+      selector: row => row.quotation?.itemName?.itemName || 'N/A',
       sortable: true,
     },
     {
       name: 'Item Category',
-      selector: row => row.itemCategory?.categoryName || 'N/A',
+      selector: row => row.quotation?.itemCategory?.categoryName || 'N/A', // if you populate category name, else fallback
       sortable: true,
     },
     {
       name: 'Vendor',
-      cell: row => (
-        <div>
-          <strong>{row.vendorName?.organizationName || 'N/A'}</strong>
-          {row.vendorName?.contactPersonName && (
-            <div className="text-muted small">{row.vendorName.contactPersonName}</div>
-          )}
-          {row.vendorName?.contactNumber && (
-            <div className="text-muted small">{row.vendorName.contactNumber}</div>
-          )}
-        </div>
-      ),
+      cell: row => {
+        const vendor = row.quotation?.vendorName;
+        return (
+          <div>
+            <strong>{vendor?.organizationName || 'N/A'}</strong>
+            {vendor?.contactPersonName && (
+              <div className="text-muted small">{vendor.contactPersonName}</div>
+            )}
+            {vendor?.contactNumber && (
+              <div className="text-muted small">{vendor.contactNumber}</div>
+            )}
+          </div>
+        );
+      },
       sortable: true,
     },
     {
       name: 'Price/Unit',
-      selector: row => row.pricePerUnit ? `₹${row.pricePerUnit}` : 'N/A',
+      selector: row => row.quotation?.pricePerUnit ? `₹${row.quotation.pricePerUnit}` : 'N/A',
       sortable: true,
     },
     {
       name: 'Date',
-      selector: row => row.date ? new Date(row.date).toLocaleDateString() : 'N/A',
+      selector: row => row.purchaseDate ? new Date(row.purchaseDate).toLocaleDateString() : 'N/A',
       sortable: true,
     },
+    {
+      name: 'Actions',
+      cell: row => (
+        <Button variant="danger" size="sm" onClick={() => handleDelete(row._id)}>
+          <FaTrashAlt />
+        </Button>
+      ),
+    }
   ];
+  const handleDelete = async (id) => {
+    const confirm = window.confirm("Are you sure you want to delete this purchase order?");
+
+    if (!confirm) return;
+
+    try {
+      const res = await axios.delete(`${BASE_URL}/api/purchase-orders/${id}`);
+      if (res.data.success) {
+        toast.success('Purchase order deleted successfully!');
+        fetchData(); // Refresh list
+      } else {
+        toast.error(res.data.message || 'Failed to delete purchase order');
+      }
+    } catch (error) {
+      console.error("Delete Error:", error);
+      toast.error('Something went wrong while deleting!');
+    }
+  };
+
 
   const fetchData = async () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/quotation-stocks");
-      setData(response.data.data || []);
+      const response = await getPurchaseOrders()
+      setData(response.data || []);
     } catch (err) {
       console.error("Error fetching data:", err);
       setError("Failed to fetch data. Please try again later.");
@@ -74,23 +109,25 @@ const QuotationMaster = () => {
     const tableHeaders = [["#", "Item", "Category", "Vendor", "Price/Unit", "Quotation No", "Date"]];
     const tableRows = data.map((row, index) => [
       index + 1,
-      row.itemName || "N/A",
-      row.itemCategory?.categoryName || "N/A",
-      row.vendorName?.organizationName || "N/A",
-      row.pricePerUnit ? `₹${row.pricePerUnit}` : "N/A",
-      row.quotationNo || "N/A",
-      row.date ? new Date(row.date).toLocaleDateString() : "N/A"
+      row.quotation?.itemName?.itemName || "N/A",
+      row.quotation?.itemCategory?.categoryName || "N/A", // only if populated
+      row.quotation?.vendorName?.organizationName || "N/A",
+      row.quotation?.pricePerUnit ? `₹${row.quotation.pricePerUnit}` : "N/A",
+      row.quotation?.quotationNo || "N/A",
+      row.purchaseDate ? new Date(row.purchaseDate).toLocaleDateString() : "N/A"
     ]);
     printContent(tableHeaders, tableRows);
   };
 
+
   const handleCopy = () => {
     const headers = ["#", "Item", "Category", "Vendor", "Price/Unit", "Quotation No", "Date"];
     const rows = data.map((row, index) =>
-      `${index + 1}\t${row.itemName || "N/A"}\t${row.itemCategory?.categoryName || "N/A"}\t${row.vendorName?.organizationName || "N/A"}\t${row.pricePerUnit ? `₹${row.pricePerUnit}` : "N/A"}\t${row.quotationNo || "N/A"}\t${row.date ? new Date(row.date).toLocaleDateString() : "N/A"}`
+      `${index + 1}\t${row.quotation?.itemName?.itemName || "N/A"}\t${row.quotation?.itemCategory?.categoryName || "N/A"}\t${row.quotation?.vendorName?.organizationName || "N/A"}\t${row.quotation?.pricePerUnit ? `₹${row.quotation.pricePerUnit}` : "N/A"}\t${row.quotation?.quotationNo || "N/A"}\t${row.purchaseDate ? new Date(row.purchaseDate).toLocaleDateString() : "N/A"}`
     );
     copyContent(headers, rows);
   };
+
 
   useEffect(() => {
     fetchData();
@@ -138,4 +175,4 @@ const QuotationMaster = () => {
   );
 };
 
-export default dynamic(() => Promise.resolve(QuotationMaster), { ssr: false });
+export default dynamic(() => Promise.resolve(PurchaseList), { ssr: false });
