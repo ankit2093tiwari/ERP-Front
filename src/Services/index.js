@@ -3,8 +3,8 @@ import axios from "axios";
 // if (token) {
 //   axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
 // }
-// const BASE_URL = 'https://erp-backend-fy3n.onrender.com'
-export const BASE_URL = 'http://localhost:8000'
+const BASE_URL = 'https://erp-backend-fy3n.onrender.com'
+// export const BASE_URL = 'http://localhost:8000'
 
 export const getClasses = async () => {
     const response = await axios.get(`${BASE_URL}/api/all-classes`);
@@ -192,5 +192,11 @@ export const getAllStores = async () => {
 
 export const getPurchaseOrders = async () => {
     const response = await axios.get(`${BASE_URL}/api/stock-purchase-orders`)
+    return response?.data;
+}
+
+
+export const deletePurchaseOrderById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/purchase-orders/${id}`)
     return response?.data;
 }

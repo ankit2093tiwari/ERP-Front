@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { toast } from 'react-toastify';
-import { BASE_URL } from '@/Services';
+import { BASE_URL, deletePurchaseOrderById } from '@/Services';
 
 import { FaEdit, FaTrashAlt } from 'react-icons/fa';
 import { Container, Row, Col, Alert, Button } from 'react-bootstrap';
@@ -77,7 +77,7 @@ const PurchaseList = () => {
     if (!confirm) return;
 
     try {
-      const res = await axios.delete(`${BASE_URL}/api/purchase-orders/${id}`);
+      const res = await deletePurchaseOrderById(id);
       if (res.data.success) {
         toast.success('Purchase order deleted successfully!');
         fetchData(); // Refresh list
