@@ -233,6 +233,7 @@ const FeeStatement = () => {
         throw new Error(response.data?.message || "Failed to add fee structure");
       }
     } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to add fee structure");
       console.error("Add error:", err);
       setError(err.response?.data?.message || "Failed to add fee structure");
     }
@@ -565,7 +566,6 @@ const FeeStatement = () => {
           <div className="tableSheet">
             <h2>Fee Records</h2>
             {loading && <p>Loading...</p>}
-            {error && <p style={{ color: "red" }}>{error}</p>}
             {!loading && !error && data.length > 0 ? (
               <Table
                 columns={columns}

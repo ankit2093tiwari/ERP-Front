@@ -10,7 +10,7 @@ import { copyContent, printContent } from '@/app/utils';
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { getAllItems, getAllStores, getAllVendors, getItemCategories, getItemsByCategoryId, getQuotationStocks, updateQuotationStockById } from '@/Services';
+import { addNewQuotationStock, BASE_URL, deleteQuotationStockById, getAllItems, getAllStores, getAllVendors, getItemCategories, getItemsByCategoryId, getQuotationStocks, updateQuotationStockById } from '@/Services';
 import { toast } from 'react-toastify';
 
 const QuotationMaster = () => {
@@ -229,7 +229,7 @@ const QuotationMaster = () => {
             </>
           ) : (
             <>
-              <Button variant="info" size="sm" onClick={() => handlePurchase(row)}>
+              <Button variant="info" size="sm" onClick={() => handlePurchase(row)} style={{ whiteSpace: 'nowrap' }}>
                 Purchase
               </Button>
               <Button variant="warning" size="sm" onClick={() => handleEdit(row)}>
@@ -338,7 +338,10 @@ const QuotationMaster = () => {
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this quotation?")) {
       try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/quotation-stock/${id}`);
+        await deleteQuotationStockById(id);
+        toast.success("Quotation deleted successfully!");
+        setEditingId(null);
+        setEditedData({});
         fetchData();
       } catch (error) {
         console.error("Error deleting data:", error);
@@ -360,17 +363,18 @@ const QuotationMaster = () => {
 
   const handleAdd = async () => {
     if (!formData.itemCategory || !formData.itemName || !formData.quotationNo) {
-      setError("Please fill in all required fields.");
+      toast.error("Please fill all required fields.");
+      setError("Please fill all required fields.");
       return;
     }
 
     try {
-      const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/quotation-stock", {
+      const response = await addNewQuotationStock({
         ...formData,
         date: formData.date.toISOString()
-      });
-      if (response.data.success) {
-        toast.success(response.data.message || "Quotation added successfully!");
+      })
+      if (response?.success) {
+        toast.success(response?.message || "Quotation added successfully!");
         fetchData();
         setFormData({
           itemCategory: '',
@@ -457,7 +461,7 @@ const QuotationMaster = () => {
     const handleSubmit = async (e) => {
       e.preventDefault();
       try {
-        const response = await axios.post('http://localhost:8000/api/add-stock-order', {
+        const response = await axios.post(`${BASE_URL}/api/add-stock-order`, {
           quotation: purchaseFormData.quotation,
           quantity: Number(purchaseFormData.quantity),
           store: purchaseFormData.store,

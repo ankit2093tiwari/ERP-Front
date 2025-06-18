@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { BASE_URL } from "@/Services";
 
 const SpeechRecognition =
   typeof window !== "undefined"
@@ -18,7 +19,7 @@ export default function LoginPage({ onLogin }) {
 
   const router = useRouter();
   const recognitionRef = useRef(null);
-  const timeoutRef = useRef(null); 
+  const timeoutRef = useRef(null);
 
   // Voice recognition logic
   useEffect(() => {
@@ -73,7 +74,7 @@ export default function LoginPage({ onLogin }) {
     }
 
     try {
-      const response = await fetch("https://erp-backend-fy3n.onrender.com/api/login", {
+      const response = await fetch(`${BASE_URL}/api/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),

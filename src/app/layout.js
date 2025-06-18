@@ -13,7 +13,8 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import LoginPage from "./login";
 import SpeechRecognitionProvider from "@/app/component/SpeechRecognitionProvider";
-import { handleVoiceCommand as voiceCommandHandler } from "@/app/component/command"; 
+import { handleVoiceCommand as voiceCommandHandler } from "@/app/component/command";
+import "@/Services";
 import axios from "axios";
 
 export default function RootLayout({ children }) {
@@ -25,20 +26,20 @@ export default function RootLayout({ children }) {
   const toggleSidebar = () => setSidebarOpen(!isSidebarOpen);
 
   useEffect(() => {
-  const token = localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
+    const token = localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
 
-  if (token) {
-    axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-    setIsAuthenticated(true);
-  } else {
-    setIsAuthenticated(false);
-    if (!window.location.pathname.includes("/login")) {
-      router.replace("/login");
+    if (token) {
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      setIsAuthenticated(true);
+    } else {
+      setIsAuthenticated(false);
+      if (!window.location.pathname.includes("/login")) {
+        router.replace("/login");
+      }
     }
-  }
 
-  setIsLoading(false);
-}, [router]);
+    setIsLoading(false);
+  }, [router]);
 
 
   const handleLogin = (token, rememberMe) => {

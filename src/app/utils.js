@@ -112,20 +112,3 @@ export const motherTongueOptions = () => {
         { value: 12, label: 'Urdu' }
     ];
 }
-
-
- 
-const BASE_URL = 'http://localhost:8000'
-export const getCategories = async () => {
-    const response = await axios.get(`${BASE_URL}/api/categories`)
-    return response?.data;
-}
-export const getReligions = async () => {
-    const response = await axios.get(`${BASE_URL}/api/religions`)
-    return response?.data;
-}
- 
-export const getCastes = async () => {
-    const response = await axios.get(`${BASE_URL}/api/castes`)
-    return response?.data;
-}

@@ -1,4 +1,8 @@
 /** @type {import('next').NextConfig} */
-const nextConfig = {};
+const nextConfig = {
+    images:{
+        domains: ['erp-front.vercel.app', 'res.cloudinary.com',]
+    }
+};
 
 export default nextConfig;

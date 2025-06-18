@@ -18,6 +18,8 @@ import axios from "axios";
 import { CgAddR } from 'react-icons/cg';
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { copyContent, printContent } from "@/app/utils";
+import { addNewItem, getAllItems, getItemCategories, updateItemById } from "@/Services";
+import { toast } from "react-toastify";
 
 const ItemMaster = () => {
   const [data, setData] = useState([]);
@@ -48,9 +50,9 @@ const ItemMaster = () => {
       cell: (row) => editingId === row._id ? (
         <FormSelect
           value={editedValues.itemCategory?._id || editedValues.itemCategory || ""}
-          onChange={(e) => setEditedValues({ 
-            ...editedValues, 
-            itemCategory: e.target.value 
+          onChange={(e) => setEditedValues({
+            ...editedValues,
+            itemCategory: e.target.value
           })}
         >
           <option value="">Select Category</option>
@@ -100,9 +102,9 @@ const ItemMaster = () => {
         <FormControl
           type="number"
           value={editedValues.maintainMinimumStock || 0}
-          onChange={(e) => setEditedValues({ 
-            ...editedValues, 
-            maintainMinimumStock: parseInt(e.target.value) || 0 
+          onChange={(e) => setEditedValues({
+            ...editedValues,
+            maintainMinimumStock: parseInt(e.target.value) || 0
           })}
           min="0"
         />
@@ -171,7 +173,7 @@ const ItemMaster = () => {
                 className="editButton btn-danger"
                 onClick={() => handleDelete(row._id)}
               >
-                 <FaTrashAlt />
+                <FaTrashAlt />
               </button>
             </>
           )}
@@ -185,11 +187,11 @@ const ItemMaster = () => {
     setError("");
     try {
       const [itemsResponse, categoriesResponse] = await Promise.all([
-        axios.get("https://erp-backend-fy3n.onrender.com/api/itemMasters"),
-        axios.get("https://erp-backend-fy3n.onrender.com/api/itemCategories"),
+        getAllItems(),
+        getItemCategories()
       ]);
-      setData(itemsResponse.data.data || []);
-      setCategories(categoriesResponse.data.data || []);
+      setData(itemsResponse?.data || []);
+      setCategories(categoriesResponse?.data || []);
     } catch (err) {
       console.error("Error fetching data:", err);
       setError("Failed to fetch data. Please try again later.");
@@ -202,24 +204,28 @@ const ItemMaster = () => {
     const { itemName, itemCategory, description, maintainMinimumStock, itemType, date } = formValues;
     if (itemName.trim() && itemCategory.trim() && itemType.trim()) {
       try {
-        await axios.post("https://erp-backend-fy3n.onrender.com/api/itemMaster", {
+        const response = await addNewItem({
           itemName,
           itemCategory,
           description,
           maintainMinimumStock: parseInt(maintainMinimumStock) || 0,
           itemType,
           date
-        });
-        fetchData();
-        setFormValues({
-          itemName: "",
-          itemCategory: "",
-          description: "",
-          maintainMinimumStock: 0,
-          itemType: "",
-          date: new Date().toISOString().split('T')[0]
-        });
-        setIsPopoverOpen(false);
+        })
+        if (response?.success) {
+          toast.success(response?.message || "Item added Successfully")
+          fetchData();
+          setFormValues({
+            itemName: "",
+            itemCategory: "",
+            description: "",
+            maintainMinimumStock: 0,
+            itemType: "",
+            date: new Date().toISOString().split('T')[0]
+          });
+          setIsPopoverOpen(false);
+        }
+
       } catch (error) {
         console.error("Error adding data:", error);
         setError("Failed to add item. Please try again later.");
@@ -245,8 +251,8 @@ const ItemMaster = () => {
         ...editedValues,
         itemCategory: editedValues.itemCategory?._id || editedValues.itemCategory
       };
-      
-      await axios.put(`https://erp-backend-fy3n.onrender.com/api/itemMaster/${id}`, updateData);
+
+      await updateItemById(id, updateData)
       fetchData();
       setEditingId(null);
       setEditedValues({});

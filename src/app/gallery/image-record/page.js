@@ -2,17 +2,17 @@
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
-import { Row, Col, Container, Button, Alert, FormControl } from "react-bootstrap";
+import { Row, Col, Container, Button, FormControl } from "react-bootstrap";
 import Image from "next/image";
-import axios from "axios";
 import Table from "@/app/component/DataTable";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import { toast } from "react-toastify";
+import { deleteGalleryImageRecordById, getAllIGalleryImages, updateGalleryImageRecordById } from "@/Services";
 
 const ImageRecord = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [editingId, setEditingId] = useState(null);
   const [editFormData, setEditFormData] = useState({
     image: "",
@@ -48,11 +48,16 @@ const ImageRecord = () => {
         if (editingId === row._id) {
           return (
             <FormControl
-              type="text"
-              value={editFormData.image}
-              onChange={(e) => setEditFormData({ ...editFormData, image: e.target.value })}
-              placeholder="Image URL"
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files[0];
+                if (file) {
+                  setEditFormData({ ...editFormData, image: file });
+                }
+              }}
             />
+
           );
         }
 
@@ -161,8 +166,8 @@ const ImageRecord = () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/images");
-      const fetchedData = response.data.data || [];
+      const response = await getAllIGalleryImages()
+      const fetchedData = response.data || [];
       setData(
         fetchedData.map((item) => ({
           _id: item._id,
@@ -191,17 +196,22 @@ const ImageRecord = () => {
   };
 
   const handleUpdate = async (id) => {
-    if (!editFormData.image.trim() || !editFormData.shortText.trim() || !editFormData.date) {
+    if (!editFormData.image || !editFormData.shortText.trim() || !editFormData.date) {
       alert("Please fill all required fields.");
       return;
     }
+    const formData = new FormData();
+    formData.append("image", editFormData.image);
+    formData.append("shortText", editFormData.shortText);
+    formData.append("date", editFormData.date);
+    formData.append("groupName", editFormData.groupName)
 
     try {
       setLoading(true);
-      await axios.put(`https://erp-backend-fy3n.onrender.com/api/images/${id}`, editFormData);
+      await updateGalleryImageRecordById(id, formData);
+      toast.success("Data Updated Successfully")
       fetchData();
       setEditingId(null);
-      // setTimeout(() => setSuccess(""), 3000);
     } catch (error) {
       console.error("Error updating data:", error);
       setError("Failed to update image. Please try again later.");
@@ -214,10 +224,9 @@ const ImageRecord = () => {
     if (confirm("Are you sure you want to delete this entry?")) {
       try {
         setLoading(true);
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/images/${id}`);
-        setData((prevData) => prevData.filter((row) => row._id !== id));
-        setSuccess("Image deleted successfully.");
-        setTimeout(() => setSuccess(""), 3000);
+        const response = await deleteGalleryImageRecordById(id)
+        if (response?.success) toast.success("Record Deleted Successfully")
+        fetchData()
       } catch (error) {
         console.error("Error deleting data:", error);
         setError("Failed to delete data. Please try again later.");

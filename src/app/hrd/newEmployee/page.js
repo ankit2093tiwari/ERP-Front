@@ -1,21 +1,21 @@
 "use client";
-import { Tab, Tabs, Container, Row, Col, FormSelect } from 'react-bootstrap';
+import { Container, Row, Col, FormSelect } from 'react-bootstrap';
 import { Form, FormGroup, FormLabel, FormControl, Button } from 'react-bootstrap';
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import { useEffect, useState } from 'react';
-import { getCastes, getCategories, getReligions } from '@/app/utils';
 import { motherTongueOptions } from '@/app/utils';
-import axios from 'axios';
 import Table from "@/app/component/DataTable";
 import { FaEdit, FaTrashAlt, FaEye } from "react-icons/fa";
 import { CgAddR } from 'react-icons/cg';
+import { addNewEmployee, deleteEmployeeById, getAllEmployee, getCastes, getCategories, getReligions, updateEmployeeById } from '@/Services';
+import { toast } from 'react-toastify';
 
 // Validation Schema
 const schema = yup.object().shape({
-    employee_code: yup.string().required("Employee Code is required"),
+    // employee_code: yup.string().required("Employee Code is required"),
     employee_name: yup.string().required("Employee name is required"),
     date_of_birth: yup.string().required("Date of birth is required"),
     father_name: yup.string().required("Father's name is required"),
@@ -23,7 +23,7 @@ const schema = yup.object().shape({
     gender: yup.string().required("Gender is required"),
     nationality: yup.string().required("Nationality is required"),
     // social_category: yup.string().required("Social Category is required"),
-    mobile_no: yup.number().required("Mobile No. is required"),
+    mobile_no: yup.string().required("Mobile No. is required").matches(/^[0-9]{10}$/, "Mobile No. must be exactly 10 digits"),
     // religion: yup.string().required("Religion is required"),
     // caste: yup.string().required("Caste is required"),
     aadhar_number: yup.string().required("Aadhar number is required").matches(/^\d{12}$/, "Aadhar number must be exactly 12 digits"),
@@ -60,43 +60,43 @@ const Employee = () => {
     const [currentEmployeeId, setCurrentEmployeeId] = useState(null);
 
     // Function to generate employee code
-    const generateEmployeeCode = async () => {
-        try {
-            // Get the count of existing employees
-            const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-employee");
-            const count = response.data.data?.length || 0;
-            
-            // Generate code with prefix and sequential number
-            const newCode = `EMP${String(count + 1).padStart(4, '0')}`;
-            setValue("employee_code", newCode);
-        } catch (err) {
-            console.error("Error generating employee code:", err);
-            // Fallback code if API fails
-            const fallbackCode = `EMP${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}`;
-            setValue("employee_code", fallbackCode);
-        }
-    };
+    // const generateEmployeeCode = async () => {
+    //     try {
+    //         // Get the count of existing employees
+    //         const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-employee");
+    //         const count = response.data.data?.length || 0;
+
+    //         // Generate code with prefix and sequential number
+    //         const newCode = `EMP${String(count + 1).padStart(4, '0')}`;
+    //         setValue("employee_code", newCode);
+    //     } catch (err) {
+    //         console.error("Error generating employee code:", err);
+    //         // Fallback code if API fails
+    //         const fallbackCode = `EMP${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}`;
+    //         setValue("employee_code", fallbackCode);
+    //     }
+    // };
 
     const fetchCategories = async () => {
-        const response = await getCategories();
+        const response = await getCategories()
         setAllCategories(response?.data);
     };
 
     const fetchReligions = async () => {
-        const response = await getReligions();
+        const response = await getReligions()
         setAllReligions(response?.data);
     };
 
     const fetchCastes = async () => {
-        const response = await getCastes();
+        const response = await getCastes()
         setAllcastes(response?.data);
     };
 
     const fetchEmployees = async () => {
         setLoading(true);
         try {
-            const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-employee");
-            setEmployees(response.data.data || []);
+            const response = await getAllEmployee()
+            setEmployees(response.data || []);
         } catch (err) {
             setError("Failed to fetch employees");
         } finally {
@@ -107,60 +107,83 @@ const Employee = () => {
     const handleCreateEmployee = async (data) => {
         try {
             const formData = new FormData();
-            Object.keys(data).forEach(key => {
-                if (key === 'profile_image' || key === 'aadhar_card_image') {
-                    formData.append(key, data[key][0]);
-                } else {
-                    formData.append(key, data[key]);
+
+            // Explicitly exclude _id and other fields you don't want
+            const { _id, createdAt, updatedAt, __v, employee_code, ...createData } = data;
+
+            Object.entries(createData).forEach(([key, value]) => {
+                if ((key === 'profile_image' || key === 'aadhar_card_image') && value?.length) {
+                    formData.append(key, value[0]);
+                }
+                else if (value !== undefined && value !== null && value !== '' && value !== 'null') {
+                    formData.append(key, value);
                 }
             });
 
-            await axios.post("https://erp-backend-fy3n.onrender.com/api/create-employee", formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
-            });
-            fetchEmployees();
-            reset();
-            setIsFormOpen(false);
+            const response = await addNewEmployee(formData);
+            if (response?.success) {
+                toast.success(response?.message || "Employee Created Successfully..");
+                fetchEmployees();
+                resetForm();
+                setIsFormOpen(false);
+            }
         } catch (error) {
+            const errorMsg = error.response?.data?.error || "Failed to create employee";
+            if (errorMsg.includes("duplicate key error")) {
+                if (errorMsg.includes("mobile_no")) {
+                    toast.error("Mobile number already exists.");
+                } else if (errorMsg.includes("aadhar_number")) {
+                    toast.error("Aadhar number already exists.");
+                } else if (errorMsg.includes("employee_email")) {
+                    toast.error("Email already exists.");
+                } else {
+                    toast.error("Duplicate entry found. Please check your data.");
+                }
+            }
+
             setError(error.response?.data?.message || "Failed to create employee");
         }
     };
 
+
     const handleUpdateEmployee = async (data) => {
         try {
             const formData = new FormData();
-            Object.keys(data).forEach(key => {
-                if (key === 'profile_image' || key === 'aadhar_card_image') {
-                    if (data[key][0]) {
-                        formData.append(key, data[key][0]);
-                    }
-                } else {
-                    formData.append(key, data[key]);
+
+            Object.entries(data).forEach(([key, value]) => {
+                if ((key === 'profile_image' || key === 'aadhar_card_image') && value?.length) {
+                    formData.append(key, value[0]);
+                }
+                else if (value !== undefined && value !== null && value !== '' && value !== 'null') {
+                    formData.append(key, value);
                 }
             });
 
-            await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-employee/${currentEmployeeId}`, formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
-            });
-            fetchEmployees();
-            reset();
-            setIsFormOpen(false);
-            setEditMode(false);
+            const response = await updateEmployeeById(currentEmployeeId, formData)
+            if (response?.success) {
+                toast.success(response?.message || "Employee updated successfully.");
+                fetchEmployees();
+                resetForm();
+                setIsFormOpen(false);
+                setEditMode(false);
+            }
         } catch (error) {
+            toast.error(error.response?.data?.message || "Failed to update employee");
             setError(error.response?.data?.message || "Failed to update employee");
         }
     };
 
+
     const handleDeleteEmployee = async (id) => {
         if (confirm("Are you sure you want to delete this employee?")) {
             try {
-                await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-employee/${id}`);
-                fetchEmployees();
+                const response = await deleteEmployeeById(id)
+                if (response?.success) {
+                    toast.success(response?.message || "Employee Record Deleted Successfully..")
+                    fetchEmployees();
+                }
             } catch (error) {
+                toast.error(error.response?.data?.message || "Failed to delete employee")
                 setError(error.response?.data?.message || "Failed to delete employee");
             }
         }
@@ -226,13 +249,40 @@ const Employee = () => {
         fetchCastes();
         fetchEmployees();
     }, []);
+    const resetForm = () => {
+        const defaultValues = {
+            employee_name: "",
+            date_of_birth: "",
+            father_name: "",
+            employee_email: "",
+            gender: "",
+            nationality: "",
+            mobile_no: "",
+            aadhar_number: "",
+            permanent_address: "",
+            profile_image: null,
+            aadhar_card_image: null,
+            // Reset radio buttons and selects
+            employee_pf_limit: "No",
+            employer_pf_limit: "No",
+            // ... other default values
+        };
+
+        // Reset the form with default values
+        reset(defaultValues);
+
+        // Reset all state variables
+        setEditMode(false);
+        setCurrentEmployeeId(null);
+        setError("");
+    };
 
     // Generate employee code when form opens in create mode
-    useEffect(() => {
-        if (isFormOpen && !editMode) {
-            generateEmployeeCode();
-        }
-    }, [isFormOpen, editMode]);
+    // useEffect(() => {
+    //     if (isFormOpen && !editMode) {
+    //         generateEmployeeCode();
+    //     }
+    // }, [isFormOpen, editMode]);
 
     return (
         <>
@@ -254,8 +304,8 @@ const Employee = () => {
                                 onClick={() => {
                                     setIsFormOpen(true);
                                     setEditMode(false);
-                                    reset();
-                                    generateEmployeeCode();
+                                    resetForm();
+                                    // generateEmployeeCode();
                                 }}
                                 className="btn-add mb-3"
                             >
@@ -263,14 +313,14 @@ const Employee = () => {
                             </Button>
 
                             {isFormOpen && (
-                                <div className="cover-sheet mb-4">
+                                <div className="cover-sheet mb-4" key={editMode ? `edit-${currentEmployeeId}` : 'create'}>
                                     <div className="studentHeading">
                                         <h2>{editMode ? "Edit Employee" : "Add New Employee"}</h2>
                                         <button
                                             className="closeForm"
                                             onClick={() => {
                                                 setIsFormOpen(false);
-                                                reset();
+                                                resetForm();
                                             }}
                                         >
                                             X
@@ -281,7 +331,7 @@ const Employee = () => {
                                         onSubmit={handleSubmit(editMode ? handleUpdateEmployee : handleCreateEmployee)}
                                     >
                                         <Row>
-                                            <FormGroup as={Col} md="3" controlId="employee_code">
+                                            {/* <FormGroup as={Col} md="3" controlId="employee_code">
                                                 <FormLabel className="labelForm">Employee Code</FormLabel>
                                                 <FormControl
                                                     type="text"
@@ -293,8 +343,8 @@ const Employee = () => {
                                                 <FormControl.Feedback type="invalid">
                                                     {errors.employee_code?.message}
                                                 </FormControl.Feedback>
-                                            </FormGroup>
-                                              <FormGroup as={Col} md="3" controlId="employee_name">
+                                            </FormGroup> */}
+                                            <FormGroup as={Col} md="3" controlId="employee_name">
                                                 <FormLabel className="labelForm">Employee Name</FormLabel>
                                                 <FormControl
                                                     type="text"
@@ -346,7 +396,6 @@ const Employee = () => {
                                             </FormGroup>
                                         </Row>
 
-                                        {/* Row 2 */}
                                         <Row>
                                             <FormGroup as={Col} md="3" controlId="gender">
                                                 <FormLabel className="labelForm">Gender</FormLabel>
@@ -1066,7 +1115,7 @@ const Employee = () => {
                                                         className="btn btn-secondary mt-4"
                                                         onClick={() => {
                                                             setIsFormOpen(false);
-                                                            reset();
+                                                            resetForm();
                                                         }}
                                                     >
                                                         Cancel
@@ -1084,7 +1133,7 @@ const Employee = () => {
                             <div className="tableSheet">
                                 <h2>Employee Records</h2>
                                 {loading && <p>Loading...</p>}
-                                {error && <p className="text-danger">{error}</p>}
+                                {/* {error && <p className="text-danger">{error}</p>} */}
                                 {!loading && !error && (
                                     <Table
                                         columns={columns}

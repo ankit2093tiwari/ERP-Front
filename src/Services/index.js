@@ -1,10 +1,26 @@
 import axios from "axios";
-// const token = localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
-// if (token) {
-//   axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-// }
-const BASE_URL = 'https://erp-backend-fy3n.onrender.com'
-// export const BASE_URL = 'http://localhost:8000'
+
+// const BASE_URL = 'https://erp-backend-fy3n.onrender.com'
+export const BASE_URL = 'http://localhost:8000'
+axios.interceptors.response.use(
+    (response) => {
+        if (response.data?.error === "Token expired") {
+            localStorage.removeItem("authToken");
+            sessionStorage.removeItem("authToken");
+            window.location.href = "/login"; // or "/"
+        }
+        return response;
+    },
+    (error) => {
+        if (error.response?.data?.error === "Token expired") {
+            localStorage.removeItem("authToken");
+            sessionStorage.removeItem("authToken");
+            window.location.href = "/login"; // or "/"
+        }
+        return Promise.reject(error);
+    }
+);
+
 
 export const getClasses = async () => {
     const response = await axios.get(`${BASE_URL}/api/all-classes`);
@@ -170,12 +186,29 @@ export const getQuotationStocks = async () => {
     const response = await axios.get(`${BASE_URL}/api/quotation-stocks`)
     return response?.data;
 }
+export const addNewQuotationStock = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/quotation-stock`, payload)
+    return response?.data;
+}
 export const updateQuotationStockById = async (id, payload) => {
     const response = await axios.put(`${BASE_URL}/api/quotation-stock/${id}`, payload)
     return response?.data;
 }
+export const deleteQuotationStockById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/quotation-stock/${id}`)
+    return response?.data;
+}
 export const getAllItems = async () => {
     const response = await axios.get(`${BASE_URL}/api/itemMasters`)
+    return response?.data;
+}
+export const addNewItem = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/itemMaster`,payload)
+    return response?.data;
+}
+
+export const updateItemById = async (id,payload) => {
+    const response = await axios.put(`${BASE_URL}/api/itemMaster/${id}`,payload)
     return response?.data;
 }
 
@@ -189,14 +222,93 @@ export const getAllStores = async () => {
     return response?.data;
 }
 
-
 export const getPurchaseOrders = async () => {
     const response = await axios.get(`${BASE_URL}/api/stock-purchase-orders`)
     return response?.data;
 }
 
-
 export const deletePurchaseOrderById = async (id) => {
     const response = await axios.delete(`${BASE_URL}/api/purchase-orders/${id}`)
+    return response?.data;
+}
+
+export const getAllDepartments = async () => {
+    const response = await axios.get(`${BASE_URL}/api/all-departments`)
+    return response?.data;
+}
+
+export const getAllIssuedItems = async () => {
+    const response = await axios.get(`${BASE_URL}/api/issued-items`)
+    return response?.data;
+}
+
+export const addNewIssuedItem = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/issue-item`, payload)
+    return response?.data;
+}
+
+export const deleteIssuedItemById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/issued-item/${id}`)
+    return response?.data;
+}
+
+export const getAllIGalleryImages = async () => {
+    const response = await axios.get(`${BASE_URL}/api/images`)
+    return response?.data;
+}
+
+
+export const updateGalleryImageRecordById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/images/${id}`, payload)
+    return response?.data;
+}
+export const deleteGalleryImageRecordById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/images/${id}`)
+    return response?.data;
+}
+
+
+export const getAllNotices = async () => {
+    const response = await axios.get(`${BASE_URL}/api/notices`)
+    return response?.data;
+}
+
+export const updateNoticeById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/notices/${id}`, payload)
+    return response?.data;
+}
+
+export const deleteNoticeById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/notices/${id}`)
+    return response?.data;
+}
+
+export const addNewDoctorProfile = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/doctors`, payload)
+    return response?.data;
+}
+
+export const updateDoctorProfileById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/doctors/${id}`, payload)
+    return response?.data;
+}
+
+export const getAllEmployee = async () => {
+    const response = await axios.get(`${BASE_URL}/api/all-employee`)
+    return response?.data;
+}
+
+export const addNewEmployee = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/create-employee`, payload)
+    return response?.data;
+}
+
+export const deleteEmployeeById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/delete-employee/${id}`,)
+    return response?.data;
+}
+
+export const updateEmployeeById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/update-employee/${id}`, payload)
     return response?.data;
 }

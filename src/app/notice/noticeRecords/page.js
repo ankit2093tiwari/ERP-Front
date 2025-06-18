@@ -5,9 +5,10 @@ import dynamic from "next/dynamic";
 import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
 import { Row, Col, Container, Button, Alert, FormControl } from "react-bootstrap";
 import Image from "next/image";
-import axios from "axios";
 import Table from "@/app/component/DataTable";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import { deleteNoticeById, getAllNotices, updateNoticeById } from "@/Services";
+import { toast } from "react-toastify";
 
 const NoticeRecord = () => {
   const [data, setData] = useState([]);
@@ -17,7 +18,8 @@ const NoticeRecord = () => {
   const [editingId, setEditingId] = useState(null);
   const [editFormData, setEditFormData] = useState({
     short_text: "",
-    image: ""
+    image: null,
+    previewImage: ""
   });
 
   const isValidUrl = (url) => {
@@ -41,12 +43,29 @@ const NoticeRecord = () => {
       cell: (row) => {
         if (editingId === row._id) {
           return (
-            <FormControl
-              type="text"
-              value={editFormData.image}
-              onChange={(e) => setEditFormData({ ...editFormData, image: e.target.value })}
-              placeholder="Image URL"
-            />
+            <div>
+              <FormControl
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  setEditFormData({
+                    ...editFormData,
+                    image: file,
+                    previewImage: URL.createObjectURL(file),
+                  });
+                }}
+              />
+              {editFormData.previewImage && (
+                <Image
+                  src={editFormData.previewImage}
+                  alt="Preview"
+                  width={50}
+                  height={50}
+                  style={{ objectFit: "cover", marginTop: 4 }}
+                />
+              )}
+            </div>
           );
         }
 
@@ -143,8 +162,8 @@ const NoticeRecord = () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/notices");
-      setData(response.data.data || []);
+      const response = await getAllNotices()
+      setData(response?.data || []);
     } catch (err) {
       console.error("Error fetching notices:", err);
       setError("Failed to fetch notices. Please try again later.");
@@ -157,23 +176,31 @@ const NoticeRecord = () => {
     setEditingId(notice._id);
     setEditFormData({
       short_text: notice.short_text || "",
-      image: notice.image || ""
+      image: null,
+      previewImage: notice.image || ""
     });
   };
 
   const handleUpdate = async (id) => {
     if (!editFormData.short_text.trim()) {
-      alert("Please fill all required fields.");
+      alert("Please enter a short text.");
       return;
+    }
+
+    const formData = new FormData();
+    formData.append("short_text", editFormData.short_text);
+    if (editFormData.image) {
+      formData.append("image", editFormData.image);
     }
 
     try {
       setLoading(true);
-      await axios.put(`https://erp-backend-fy3n.onrender.com/api/notices/${id}`, editFormData);
+      const response = await updateNoticeById(id, formData)
+      toast.success(response?.message || "Notice Record Updated Successfully")
       fetchData();
       setEditingId(null);
-      setSuccess("Notice updated successfully.");
-      setTimeout(() => setSuccess(""), 3000);
+      // setSuccess("Notice updated successfully.");
+      // setTimeout(() => setSuccess(""), 3000);
     } catch (error) {
       console.error("Error updating notice:", error);
       setError("Failed to update notice. Please try again later.");
@@ -186,8 +213,10 @@ const NoticeRecord = () => {
     if (confirm("Are you sure you want to delete this notice?")) {
       try {
         setLoading(true);
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/notices/${id}`);
-        setData((prevData) => prevData.filter((row) => row._id !== id));
+        const response = await deleteNoticeById(id);
+        toast.success(response?.message || "Notice Record Updated Successfully")
+        toast.success
+        fetchData()
         setSuccess("Notice deleted successfully.");
         setTimeout(() => setSuccess(""), 3000);
       } catch (error) {

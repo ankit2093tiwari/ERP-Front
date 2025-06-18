@@ -1,23 +1,15 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
+import { FaEdit, FaTrashAlt, FaSave, FaTimes } from "react-icons/fa";
 import { CgAddR } from "react-icons/cg";
-import {
-  Form,
-  Row,
-  Col,
-  Container,
-  FormLabel,
-  FormControl,
-  Button,
-  Alert,
-  FormSelect,
-} from "react-bootstrap";
+import { Form, Row, Col, Container, FormLabel, FormControl, Button, Alert, FormSelect, } from "react-bootstrap";
 import axios from "axios";
 import Table from "@/app/component/DataTable";
 import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import { toast } from "react-toastify";
+import { addNewDoctorProfile, updateDoctorProfileById } from "@/Services";
 
 const AddDoctorProfile = () => {
   const [data, setData] = useState([]);
@@ -57,7 +49,7 @@ const AddDoctorProfile = () => {
           <FormControl
             type="text"
             value={editFormData.doctor_name}
-            onChange={(e) => setEditFormData({...editFormData, doctor_name: e.target.value})}
+            onChange={(e) => setEditFormData({ ...editFormData, doctor_name: e.target.value })}
           />
         ) : (
           row.doctor_name || "N/A"
@@ -71,7 +63,7 @@ const AddDoctorProfile = () => {
           <FormControl
             type="text"
             value={editFormData.mobile_no}
-            onChange={(e) => setEditFormData({...editFormData, mobile_no: e.target.value})}
+            onChange={(e) => setEditFormData({ ...editFormData, mobile_no: e.target.value })}
           />
         ) : (
           row.mobile_no || "N/A"
@@ -84,7 +76,7 @@ const AddDoctorProfile = () => {
           <FormControl
             type="email"
             value={editFormData.email_id}
-            onChange={(e) => setEditFormData({...editFormData, email_id: e.target.value})}
+            onChange={(e) => setEditFormData({ ...editFormData, email_id: e.target.value })}
           />
         ) : (
           row.email_id || "N/A"
@@ -97,7 +89,7 @@ const AddDoctorProfile = () => {
           <FormControl
             type="text"
             value={editFormData.address}
-            onChange={(e) => setEditFormData({...editFormData, address: e.target.value})}
+            onChange={(e) => setEditFormData({ ...editFormData, address: e.target.value })}
           />
         ) : (
           row.address || "N/A"
@@ -109,7 +101,7 @@ const AddDoctorProfile = () => {
         editingId === row._id ? (
           <FormSelect
             value={editFormData.specialist}
-            onChange={(e) => setEditFormData({...editFormData, specialist: e.target.value})}
+            onChange={(e) => setEditFormData({ ...editFormData, specialist: e.target.value })}
           >
             <option value="">Select</option>
             {specialistOptions.map((option) => (
@@ -129,7 +121,7 @@ const AddDoctorProfile = () => {
           <FormControl
             as="textarea"
             value={editFormData.description}
-            onChange={(e) => setEditFormData({...editFormData, description: e.target.value})}
+            onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
           />
         ) : (
           row.description || "N/A"
@@ -141,38 +133,49 @@ const AddDoctorProfile = () => {
         <div className="d-flex gap-2">
           {editingId === row._id ? (
             <>
-              <button
-                className="editButton"
+              <Button
+                variant="success"
+                size="sm"
+                className="d-flex align-items-center justify-content-center"
                 onClick={() => handleUpdate(row._id)}
+                disabled={loading}
               >
                 <FaSave />
-              </button>
-              <button
-                className="editButton btn-danger"
+              </Button>
+              <Button
+                size="sm"
+                variant="danger"
+                className="d-flex align-items-center justify-content-center"
                 onClick={() => setEditingId(null)}
               >
-                Cancel
-              </button>
+                <FaTimes />
+              </Button>
             </>
           ) : (
             <>
-              <button
-                className="editButton"
+              <Button
+                variant="primary"
+                size="sm"
+                className="d-flex align-items-center justify-content-center"
                 onClick={() => handleEdit(row)}
               >
                 <FaEdit />
-              </button>
-              <button
-                className="editButton btn-danger"
+              </Button>
+              <Button
+                variant="danger"
+                size="sm"
+                className="d-flex align-items-center justify-content-center"
                 onClick={() => handleDelete(row._id)}
               >
                 <FaTrashAlt />
-              </button>
+              </Button>
             </>
           )}
         </div>
       ),
-    },
+    }
+
+
   ];
 
   const fetchData = async () => {
@@ -212,10 +215,32 @@ const AddDoctorProfile = () => {
   };
 
   const handleUpdate = async (id) => {
+    const { doctor_name, mobile_no, email_id } = editFormData;
+
+    if (!doctor_name.trim()) {
+      setError("Doctor name is required.");
+      return;
+    }
+    if (!mobile_no.trim()) {
+      setError("Mobile number is required.");
+      return;
+    }
+    if (!email_id.trim()) {
+      setError("Email ID is required.");
+      return;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email_id)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
     try {
-      await axios.put(`https://erp-backend-fy3n.onrender.com/api/doctors/${id}`, editFormData);
+      const response = await updateDoctorProfileById(id, editFormData)
+      toast.success(response?.message || "Doctor Profile added Successfully")
       fetchData();
       setEditingId(null);
+      setError("");
     } catch (error) {
       console.error("Error updating data:", error);
       setError("Failed to update doctor. Please try again later.");
@@ -235,36 +260,77 @@ const AddDoctorProfile = () => {
   };
 
   const handleAdd = async () => {
-    const { doctor_name, mobile_no } = formData;
-    if (doctor_name.trim() && mobile_no.trim()) {
-      try {
-        const existingDoctor = data.find(
-          (doctor) => doctor.email_id === formData.email_id
-        );
-        if (existingDoctor) {
-          setError("Doctor with this email already exists.");
-          return;
-        }
+    const { doctor_name, mobile_no, email_id, address, specialist } = formData;
 
-        await axios.post("https://erp-backend-fy3n.onrender.com/api/doctors", formData);
-        fetchData();
-        setFormData({
-          doctor_name: "",
-          mobile_no: "",
-          email_id: "",
-          address: "",
-          specialist: "",
-          description: "",
-        });
-        setIsPopoverOpen(false);
-      } catch (error) {
-        console.error("Error adding data:", error);
-        setError("Failed to add doctor. Please try again later.");
+    if (!doctor_name.trim()) {
+      setError("Doctor name is required.");
+      return;
+    }
+
+    if (!/^[a-zA-Z\s]+$/.test(doctor_name)) {
+      setError("Doctor name should contain only letters and spaces.");
+      return;
+    }
+
+    if (!mobile_no.trim()) {
+      setError("Mobile number is required.");
+      return;
+    }
+
+    if (!/^\d{10}$/.test(mobile_no)) {
+      setError("Mobile number must be exactly 10 digits.");
+      return;
+    }
+
+    if (!email_id.trim()) {
+      setError("Email ID is required.");
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email_id)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
+    if (!address.trim()) {
+      setError("Address is required.");
+      return;
+    }
+
+    if (!specialist) {
+      setError("Please select a specialist.");
+      return;
+    }
+
+    try {
+      const existingDoctor = data.find(
+        (doctor) => doctor.email_id === formData.email_id
+      );
+      if (existingDoctor) {
+        setError("Doctor with this email already exists.");
+        return;
       }
-    } else {
-      alert("Please fill out all required fields.");
+
+      const response = await addNewDoctorProfile(formData)
+      toast.success(response?.message || "Doctor Profile added Successfully")
+      fetchData();
+      setFormData({
+        doctor_name: "",
+        mobile_no: "",
+        email_id: "",
+        address: "",
+        specialist: "",
+        description: "",
+      });
+      setIsPopoverOpen(false);
+      setError("");
+    } catch (error) {
+      console.error("Error adding data:", error);
+      setError("Failed to add doctor. Please try again later.");
     }
   };
+
 
   const handlePrint = () => {
     const tableHeaders = [["#", "Doctor Name", "Mobile No", "Email ID", "Address", "Specialist", "Description"]];
@@ -313,7 +379,7 @@ const AddDoctorProfile = () => {
       <section>
         <Container>
           {error && <Alert variant="danger">{error}</Alert>}
-          
+
           <Button
             onClick={() => setIsPopoverOpen(true)}
             className="btn-add"
@@ -343,7 +409,7 @@ const AddDoctorProfile = () => {
                       type="text"
                       placeholder="Enter Doctor Name"
                       value={formData.doctor_name}
-                      onChange={(e) => setFormData({...formData, doctor_name: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, doctor_name: e.target.value })}
                     />
                   </Col>
                   <Col lg={6}>
@@ -352,7 +418,7 @@ const AddDoctorProfile = () => {
                       type="text"
                       placeholder="Enter Mobile Number"
                       value={formData.mobile_no}
-                      onChange={(e) => setFormData({...formData, mobile_no: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, mobile_no: e.target.value })}
                     />
                   </Col>
                 </Row>
@@ -363,7 +429,7 @@ const AddDoctorProfile = () => {
                       type="email"
                       placeholder="Enter Email ID"
                       value={formData.email_id}
-                      onChange={(e) => setFormData({...formData, email_id: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, email_id: e.target.value })}
                     />
                   </Col>
                   <Col lg={6}>
@@ -372,7 +438,7 @@ const AddDoctorProfile = () => {
                       type="text"
                       placeholder="Enter Address"
                       value={formData.address}
-                      onChange={(e) => setFormData({...formData, address: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                     />
                   </Col>
                 </Row>
@@ -381,7 +447,7 @@ const AddDoctorProfile = () => {
                     <FormLabel className="labelForm">Specialist</FormLabel>
                     <FormSelect
                       value={formData.specialist}
-                      onChange={(e) => setFormData({...formData, specialist: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, specialist: e.target.value })}
                     >
                       <option value="">Select</option>
                       {specialistOptions.map((option) => (
@@ -397,7 +463,7 @@ const AddDoctorProfile = () => {
                       as="textarea"
                       placeholder="Enter Description"
                       value={formData.description}
-                      onChange={(e) => setFormData({...formData, description: e.target.value})}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                     />
                   </Col>
                 </Row>
@@ -412,8 +478,6 @@ const AddDoctorProfile = () => {
             <h2>Doctor Profile Records</h2>
             {loading ? (
               <p>Loading...</p>
-            ) : error ? (
-              <p style={{ color: "red" }}>{error}</p>
             ) : (
               <Table
                 columns={columns}
