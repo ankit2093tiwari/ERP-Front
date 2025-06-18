@@ -1,7 +1,7 @@
 import axios from "axios";
 
-// const BASE_URL = 'https://erp-backend-fy3n.onrender.com'
-export const BASE_URL = 'http://localhost:8000'
+const BASE_URL = 'https://erp-backend-fy3n.onrender.com'
+// export const BASE_URL = 'http://localhost:8000'
 axios.interceptors.response.use(
     (response) => {
         if (response.data?.error === "Token expired") {
