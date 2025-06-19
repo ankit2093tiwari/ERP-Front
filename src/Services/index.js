@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const BASE_URL = 'https://erp-backend-fy3n.onrender.com'
+export const BASE_URL = 'https://erp-backend-fy3n.onrender.com'
 // export const BASE_URL = 'http://localhost:8000'
 axios.interceptors.response.use(
     (response) => {
@@ -202,13 +202,17 @@ export const getAllItems = async () => {
     const response = await axios.get(`${BASE_URL}/api/itemMasters`)
     return response?.data;
 }
+export const getItemById = async (id) => {
+    const response = await axios.get(`${BASE_URL}/api/itemMaster/${id}`)
+    return response?.data;
+}
 export const addNewItem = async (payload) => {
-    const response = await axios.post(`${BASE_URL}/api/itemMaster`,payload)
+    const response = await axios.post(`${BASE_URL}/api/itemMaster`, payload)
     return response?.data;
 }
 
-export const updateItemById = async (id,payload) => {
-    const response = await axios.put(`${BASE_URL}/api/itemMaster/${id}`,payload)
+export const updateItemById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/itemMaster/${id}`, payload)
     return response?.data;
 }
 
@@ -310,5 +314,20 @@ export const deleteEmployeeById = async (id) => {
 
 export const updateEmployeeById = async (id, payload) => {
     const response = await axios.put(`${BASE_URL}/api/update-employee/${id}`, payload)
+    return response?.data;
+}
+
+export const addNewReturnItem = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/return-item`, payload)
+    return response?.data;
+}
+
+
+export const addWriteOffEntry = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/write-off-item`, payload)
+    return response?.data;
+}
+export const getAllWriteOffItems = async () => {
+    const response = await axios.get(`${BASE_URL}/api/write-off-items`)
     return response?.data;
 }
