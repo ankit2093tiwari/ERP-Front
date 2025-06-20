@@ -9,7 +9,7 @@ import axios from 'axios';
 import Table from '@/app/component/DataTable';
 import { copyContent, printContent } from '@/app/utils';
 import BreadcrumbComp from "@/app/component/Breadcrumb";
-import { getPurchaseOrders } from '@/Services';
+import { deletePurchaseOrderById, getPurchaseOrders } from '@/Services';
 
 const PurchaseList = () => {
   const [data, setData] = useState([]);
@@ -77,11 +77,11 @@ const PurchaseList = () => {
 
     try {
       const res = await deletePurchaseOrderById(id);
-      if (res.data.success) {
+      if (res.success) {
         toast.success('Purchase order deleted successfully!');
         fetchData(); // Refresh list
       } else {
-        toast.error(res.data.message || 'Failed to delete purchase order');
+        toast.error(res.message || 'Failed to delete purchase order');
       }
     } catch (error) {
       console.error("Delete Error:", error);

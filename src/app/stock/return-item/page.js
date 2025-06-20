@@ -6,28 +6,25 @@ import { Container, Row, Col, Form, FormLabel, FormGroup, FormControl, FormSelec
 import { CgAddR } from 'react-icons/cg';
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import dynamic from 'next/dynamic';
-import { addNewIssuedItem, deleteIssuedItemById, getAllDepartments, getAllIssuedItems, getAllStudents, getItemCategories, getItemsByCategoryId } from '@/Services';
+import { addNewIssuedItem, addNewReturnItem, deleteIssuedItemById, getAllDepartments, getAllIssuedItems, getAllStudents, getItemCategories, getItemsByCategoryId } from '@/Services';
 import { toast } from 'react-toastify';
 
 const ReturnItem = () => {
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const onOpen = () => setIsPopoverOpen(true);
-  const onClose = () => setIsPopoverOpen(false);
-
+  const onClose = () => {
+    setIsPopoverOpen(false);
+    setSelectedIssuedItem(null);
+    setQuantity(0);
+  };
   const [data, setData] = useState([]);
   const [itemCategories, setItemCategories] = useState([]);
   const [selectedCategory, setSelectedCategory] = useState('');
   const [items, setItems] = useState([]);
-  const [selectedItem, setSelectedItem] = useState('');
-  const [departmentData, setDepartmentData] = useState([]);
-  const [selectedDepartment, setSelectedDepartment] = useState('');
-  const [students, setStudents] = useState([]);
-  const [selectedStudent, setSelectedStudent] = useState('');
-  const [issueTo, setIssueTo] = useState('');
-  const [otherName, setOtherName] = useState('');
   const [quantity, setQuantity] = useState();
   const [remarks, setRemarks] = useState('');
-
+  const [selectedIssuedItem, setSelectedIssuedItem] = useState(null);
+  const [condition, setCondition] = useState("Good");
   const breadcrumbItems = [
     { label: "Stock", link: "/stock/all-module" },
     { label: "Issue Item", link: "null" }
@@ -51,7 +48,7 @@ const ReturnItem = () => {
         <button
           // onClick={onOpen}
           className="editButton bg-success"
-          onClick={() => handleReturn(row._id)}
+          onClick={() => handleReturn(row)}
         >
           Return <FaUndo />
         </button>
@@ -62,7 +59,8 @@ const ReturnItem = () => {
   const fetchData = async () => {
     try {
       const response = await getAllIssuedItems();
-      setData(response.data || []);
+      const filtered = (response.data || []).filter(item => !item.isReturned);
+      setData(filtered);
     } catch (error) {
       console.error("Error fetching issued items:", error);
       toast.error("Failed to fetch issued items. Please try again.");
@@ -98,98 +96,36 @@ const ReturnItem = () => {
     }
   };
 
-  const fetchStudents = async () => {
-    const response = await getAllStudents();
-    setStudents(response.data);
-  };
 
-  const fetchDepartments = async () => {
-    const response = await getAllDepartments();
-    setDepartmentData(response.data);
+  const handleReturn = (item) => {
+    setSelectedIssuedItem(item);
+    setQuantity(item.quantity);
+    setIsPopoverOpen(true);
   };
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    let issuedToId = '';
-    let issuedToName = '';
-
-    if (issueTo === 'Student') {
-      const student = students.find((s) => s._id === selectedStudent);
-      if (!student) {
-        toast.error("Please select a student.");
-        return;
-      }
-      issuedToId = student._id;
-      issuedToName = `${student.first_name} ${student.last_name}`;
-    } else if (issueTo === 'Department') {
-      const dept = departmentData.find((d) => d._id === selectedDepartment);
-      if (!dept) {
-        toast.error("Please select a department.");
-        return;
-      }
-      issuedToId = dept._id;
-      issuedToName = dept.department_name;
-    } else if (issueTo === 'Other') {
-      if (!otherName.trim()) {
-        toast.error("Please enter a name.");
-        return;
-      }
-      issuedToId = otherName.trim();
-      issuedToName = otherName.trim();
-    } else {
-      toast.error("Please select whom to issue to.");
-      return;
-    }
-
-    if (!selectedCategory || !selectedItem || !quantity || quantity <= 0 || !remarks.trim()) {
-      toast.error("Please fill all required fields properly.");
-      return;
-    }
-
-    const payload = {
-      itemCategory: selectedCategory,
-      item: selectedItem,
-      issuedToType: issueTo,
-      issuedToId,
-      issuedToName,
-      quantity: parseInt(quantity, 10),
-      remarks: remarks.trim(),
-    };
-
-
     try {
-      const response = await addNewIssuedItem(payload);
-      toast.success(response?.message || "Item issued successfully!");
-      onClose();
+      const payload = {
+        issuedItemId: selectedIssuedItem._id,
+        quantity: parseInt(quantity, 10),
+        condition: "Good", // or optionally ask the user
+        remarks: selectedIssuedItem.remarks,
+      };
+
+      const response = await addNewReturnItem(payload)
+      toast.success(response?.message || "Item returned successfully!");
       fetchData();
-      setSelectedCategory('');
-      setSelectedItem('');
-      setIssueTo('');
-      setSelectedStudent('');
-      setSelectedDepartment('');
-      setOtherName('');
+      setIsPopoverOpen(false);
+      setSelectedIssuedItem(null);
       setQuantity(0);
-      setRemarks('');
     } catch (error) {
-      console.error("Error issuing item:", error);
-      toast.error(error?.response?.data?.message || "Failed to issue item. Please try again.");
+      console.error("Error returning item:", error);
+      const errorMessage =
+        error?.response?.data?.message || "Failed to return item.";
+      toast.error(errorMessage);
     }
   };
-
-  const handleReturn = async (id) => {
-
-    const confirmDelete = confirm("Are you sure you want to return this issued item?");
-    if (confirmDelete) {
-      try {
-        const response = await deleteIssuedItemById(id);
-        toast.success("Item return successfully!");
-        fetchData();
-      } catch (error) {
-        console.error("Error deleting issued item:", error);
-        toast.error(error?.response?.data?.message || "Failed to delete issued item. Please try again.");
-      }
-    }
-  }
 
 
   useEffect(() => { fetchItemCategories(); fetchData() }, []);
@@ -223,103 +159,80 @@ const ReturnItem = () => {
                     <Row className="mb-3">
                       <FormGroup as={Col} md="6">
                         <FormLabel>Item Category</FormLabel>
-                        <FormSelect required onChange={(e) => setSelectedCategory(e.target.value)}>
-                          <option value="">Select Category</option>
-                          {itemCategories.map((category) => (
-                            <option key={category._id} value={category._id}>
-                              {category.categoryName}
-                            </option>
-                          ))}
-                        </FormSelect>
+                        <FormControl
+                          value={selectedIssuedItem?.itemCategory}
+                          disabled
+                        />
                       </FormGroup>
 
                       <FormGroup as={Col} md="6">
                         <FormLabel>Item Name</FormLabel>
-                        <FormSelect required onChange={(e) => setSelectedItem(e.target.value)}>
-                          <option value="">Select</option>
-                          {items.map((item) => (
-                            <option key={item._id} value={item._id}>
-                              {item.itemName}
-                            </option>
-                          ))}
-                        </FormSelect>
+                        <FormControl
+                          value={selectedIssuedItem?.itemName}
+                          disabled
+                        />
                       </FormGroup>
-                    </Row>
-
-                    <Row>
-                      <FormGroup as={Col} md="6">
-                        <FormLabel>Select Issue To</FormLabel>
-                        <FormSelect
-                          required
-                          value={issueTo}
-                          onChange={(e) => {
-                            const selected = e.target.value;
-                            setIssueTo(selected);
-                            if (selected === "Student") fetchStudents();
-                            else if (selected === "Department") fetchDepartments();
-                          }}
-                        >
-                          <option value="">Select</option>
-                          <option value="Student">Student</option>
-                          <option value="Department">Department</option>
-                          <option value="Other">Other</option>
-                        </FormSelect>
-                      </FormGroup>
-
-                      {issueTo === 'Student' && (
-                        <FormGroup as={Col} md="6">
-                          <FormLabel>Select Student</FormLabel>
-                          <FormSelect required value={selectedStudent} onChange={(e) => setSelectedStudent(e.target.value)}>
-                            <option value="">Select Student</option>
-                            {students.map((stu) => (
-                              <option key={stu._id} value={stu._id}>
-                                {stu.first_name} {stu.last_name} (Father: {stu.father_name})
-                              </option>
-                            ))}
-                          </FormSelect>
-                        </FormGroup>
-                      )}
-
-                      {issueTo === 'Department' && (
-                        <FormGroup as={Col} md="6">
-                          <FormLabel>Select Department</FormLabel>
-                          <FormSelect required value={selectedDepartment} onChange={(e) => setSelectedDepartment(e.target.value)}>
-                            <option value="">Select Department</option>
-                            {departmentData.map((dept) => (
-                              <option key={dept._id} value={dept._id}>
-                                {dept.department_name}
-                              </option>
-                            ))}
-                          </FormSelect>
-                        </FormGroup>
-                      )}
-
-                      {issueTo === 'Other' && (
-                        <FormGroup as={Col} md="6">
-                          <FormLabel>Enter Name</FormLabel>
-                          <FormControl
-                            type="text"
-                            required
-                            value={otherName}
-                            onChange={(e) => setOtherName(e.target.value)}
-                          />
-                        </FormGroup>
-                      )}
                     </Row>
 
                     <Row className="mb-3">
                       <FormGroup as={Col} md="6">
-                        <FormLabel>Issued Quantity</FormLabel>
-                        <FormControl type="number" required value={quantity} onChange={(e) => setQuantity(e.target.value)} />
+                        <FormLabel>Issued To</FormLabel>
+                        <FormControl
+                          value={selectedIssuedItem?.issuedTo}
+                          disabled
+                        />
                       </FormGroup>
+
                       <FormGroup as={Col} md="6">
                         <FormLabel>Remarks</FormLabel>
-                        <FormControl type="text" required value={remarks} onChange={(e) => setRemarks(e.target.value)} />
+                        <FormControl
+                          value={selectedIssuedItem?.remarks}
+                          disabled
+                        />
                       </FormGroup>
                     </Row>
 
-                    <Button type="submit">Issue Item</Button>
+                    <Row className="mb-3">
+                      <FormGroup as={Col} md="6">
+                        <FormLabel>Condition</FormLabel>
+                        <FormSelect
+                          value={condition}
+                          onChange={(e) => setCondition(e.target.value)}
+                          required
+                        >
+                          <option value="Good">Good</option>
+                          <option value="Damaged">Damaged</option>
+                          <option value="Used">Used</option>
+                        </FormSelect>
+                      </FormGroup>
+
+                      <FormGroup as={Col} md="6">
+                        <FormLabel>Return Quantity</FormLabel>
+                        <FormControl
+                          type="number"
+                          required
+                          value={quantity}
+                          onChange={(e) => setQuantity(e.target.value)}
+                        />
+                      </FormGroup>
+                    </Row>
+                    <Row>
+                      <FormGroup as={Col} md="12">
+                        <FormLabel>Remarks</FormLabel>
+                        <FormControl
+                          required
+                          type="text"
+                          placeholder="Enter return remarks"
+                          value={remarks}
+                          onChange={(e) => setRemarks(e.target.value)}
+                        />
+                      </FormGroup>
+
+
+                    </Row>
+                    <Button type="submit">Submit Return</Button>
                   </Form>
+
                 </div>
               )}
             </Col>

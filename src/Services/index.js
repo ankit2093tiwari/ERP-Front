@@ -1,7 +1,7 @@
 import axios from "axios";
 
-export const BASE_URL = 'https://erp-backend-fy3n.onrender.com'
-// export const BASE_URL = 'http://localhost:8000'
+// export const BASE_URL = 'https://erp-backend-fys3n.onrender.com'
+export const BASE_URL = 'http://localhost:8000'
 axios.interceptors.response.use(
     (response) => {
         if (response.data?.error === "Token expired") {
@@ -20,7 +20,6 @@ axios.interceptors.response.use(
         return Promise.reject(error);
     }
 );
-
 
 export const getClasses = async () => {
     const response = await axios.get(`${BASE_URL}/api/all-classes`);
@@ -61,6 +60,7 @@ export const getFeeGroups = async () => {
     const response = await axios.get(`${BASE_URL}/api/all-fee-groups`)
     return response?.data;
 }
+
 export const getAllStudents = async () => {
     const response = await axios.get(`${BASE_URL}/api/students/search`)
     return response?.data;
@@ -119,6 +119,7 @@ export const addNewFeeEntry = async (payload) => {
     const response = await axios.post(`${BASE_URL}/api/fee-entries`, payload)
     return response?.data;
 }
+
 export const addNewFixedAmount = async (payload) => {
     const response = await axios.post(`${BASE_URL}/api/create-fixed-amounts`, payload)
     return response?.data;
@@ -322,12 +323,114 @@ export const addNewReturnItem = async (payload) => {
     return response?.data;
 }
 
-
 export const addWriteOffEntry = async (payload) => {
     const response = await axios.post(`${BASE_URL}/api/write-off-item`, payload)
     return response?.data;
 }
 export const getAllWriteOffItems = async () => {
     const response = await axios.get(`${BASE_URL}/api/write-off-items`)
+    return response?.data;
+}
+
+export const getAdvertisementTypes = async () => {
+    const response = await axios.get(`${BASE_URL}/api/advertisings`)
+    return response?.data;
+}
+
+export const getAdvertisements = async () => {
+    const response = await axios.get(`${BASE_URL}/api/advertisements`)
+    return response?.data;
+}
+
+export const addNewAdvertisement = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/advertisements`, payload)
+    return response?.data;
+}
+
+export const updateAdvertisementById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/advertisements/${id}`, payload)
+    return response?.data;
+}
+
+export const deleteAdvertisementById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/advertisements/${id}`)
+    return response?.data;
+}
+
+export const getAllTeachers = async () => {
+    const response = await axios.get(`${BASE_URL}/api/teachers`)
+    return response?.data;
+}
+
+export const getDailyDiaryRecords = async () => {
+    const response = await axios.get(`${BASE_URL}/api/dailyDairy`)
+    return response?.data;
+}
+
+export const addDailyDiaryRecord = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/dailyDairy`, payload)
+    return response?.data;
+}
+
+export const deleteDailyDiaryRecord = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/dailyDairy/${id}`)
+    return response?.data;
+}
+
+export const updateDailyDiaryRecord = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/dailyDairy/${id}`, payload)
+    return response?.data;
+}
+
+export const getAllPublishers = async () => {
+    const response = await axios.get(`${BASE_URL}/api/publishers`)
+    return response?.data;
+}
+
+export const addNewPublisher = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/publishers`, payload)
+    return response?.data;
+}
+
+export const updatePublisherById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/publishers/${id}`, payload)
+    return response?.data;
+}
+
+export const deletePublisherById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/publishers/${id}`)
+    return response?.data;
+}
+
+export const getAllRacks = async () => {
+    const response = await axios.get(`${BASE_URL}/api/racks`)
+    return response?.data;
+}
+export const getAllShelves = async () => {
+    const response = await axios.get(`${BASE_URL}/api/shelves`)
+    return response?.data;
+}
+export const addNewRack = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/racks`, payload)
+    return response?.data;
+}
+export const addNewShelf = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/shelves`, payload)
+    return response?.data;
+}
+export const updateRackById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/racks/${id}`, payload)
+    return response?.data;
+}
+export const updateShelfById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/shelves/${id}`, payload)
+    return response?.data;
+}
+export const deleteRackById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/racks/${id}`)
+    return response?.data;
+}
+export const deleteShelfById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/shelves/${id}`)
     return response?.data;
 }

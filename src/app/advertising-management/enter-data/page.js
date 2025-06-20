@@ -2,23 +2,15 @@
 
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
+import { FaEdit, FaTrashAlt, FaSave, FaTimes } from "react-icons/fa";
 import { CgAddR } from "react-icons/cg";
-import {
-  Form,
-  Row,
-  Col,
-  Container,
-  FormLabel,
-  FormControl,
-  FormSelect,
-  Button,
-  Alert,
-} from "react-bootstrap";
+import { Form, Row, Col, Container, FormLabel, FormControl, FormSelect, Button, Alert } from "react-bootstrap";
 import axios from "axios";
 import Table from "@/app/component/DataTable";
 import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import { toast } from "react-toastify";
+import { addNewAdvertisement, deleteAdvertisementById, getAdvertisements, getAdvertisementTypes, updateAdvertisementById } from "@/Services";
 
 const AdvertisementPage = () => {
   const [data, setData] = useState([]);
@@ -28,7 +20,7 @@ const AdvertisementPage = () => {
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [advertisementTypes, setAdvertisementTypes] = useState([]);
-  
+
   // Form data for adding new advertisement
   const [formData, setFormData] = useState({
     advertisement_type: "",
@@ -40,7 +32,7 @@ const AdvertisementPage = () => {
     file: null,
     publish_date: "",
   });
-  
+
   // Form data for editing existing advertisement
   const [editFormData, setEditFormData] = useState({
     advertisement_type: "",
@@ -55,19 +47,19 @@ const AdvertisementPage = () => {
 
   // Table columns configuration
   const columns = [
-    { 
-      name: "#", 
-      selector: (row, index) => index + 1, 
-      width: "80px", 
-      sortable: false 
+    {
+      name: "#",
+      selector: (row, index) => index + 1,
+      width: "80px",
+      sortable: false
     },
-    { 
-      name: "Advertisement Type", 
+    {
+      name: "Advertisement Type",
       cell: (row) => editingId === row._id ? (
         <FormSelect
           name="advertisement_type"
           value={editFormData.advertisement_type}
-          onChange={(e) => setEditFormData({...editFormData, advertisement_type: e.target.value})}
+          onChange={(e) => setEditFormData({ ...editFormData, advertisement_type: e.target.value })}
         >
           <option value="">Select Type</option>
           {advertisementTypes.map((type) => (
@@ -79,86 +71,86 @@ const AdvertisementPage = () => {
       ) : (
         row.advertisement_type?.type_name || "N/A"
       ),
-      sortable: true 
+      sortable: true
     },
-    { 
-      name: "Advertisement Name", 
+    {
+      name: "Advertisement Name",
       cell: (row) => editingId === row._id ? (
         <FormControl
           type="text"
           value={editFormData.advertisement_name}
-          onChange={(e) => setEditFormData({...editFormData, advertisement_name: e.target.value})}
+          onChange={(e) => setEditFormData({ ...editFormData, advertisement_name: e.target.value })}
         />
       ) : (
         row.advertisement_name || "N/A"
       ),
-      sortable: true 
+      sortable: true
     },
-    { 
-      name: "Page No", 
+    {
+      name: "Page No",
       cell: (row) => editingId === row._id ? (
         <FormControl
           type="text"
           value={editFormData.page_no}
-          onChange={(e) => setEditFormData({...editFormData, page_no: e.target.value})}
+          onChange={(e) => setEditFormData({ ...editFormData, page_no: e.target.value })}
         />
       ) : (
         row.page_no || "N/A"
       ),
-      sortable: true 
+      sortable: true
     },
-    { 
-      name: "Size", 
+    {
+      name: "Size",
       cell: (row) => editingId === row._id ? (
         <FormControl
           type="text"
           value={editFormData.size}
-          onChange={(e) => setEditFormData({...editFormData, size: e.target.value})}
+          onChange={(e) => setEditFormData({ ...editFormData, size: e.target.value })}
         />
       ) : (
         row.size || "N/A"
       ),
-      sortable: true 
+      sortable: true
     },
-    { 
-      name: "Amount", 
+    {
+      name: "Amount",
       cell: (row) => editingId === row._id ? (
         <FormControl
           type="text"
           value={editFormData.amount}
-          onChange={(e) => setEditFormData({...editFormData, amount: e.target.value})}
+          onChange={(e) => setEditFormData({ ...editFormData, amount: e.target.value })}
         />
       ) : (
         row.amount || "N/A"
       ),
-      sortable: true 
+      sortable: true
     },
-    { 
-      name: "Remark", 
+    {
+      name: "Remark",
       cell: (row) => editingId === row._id ? (
         <FormControl
           as="textarea"
           rows={1}
           value={editFormData.remark}
-          onChange={(e) => setEditFormData({...editFormData, remark: e.target.value})}
+          onChange={(e) => setEditFormData({ ...editFormData, remark: e.target.value })}
         />
       ) : (
         row.remark || "N/A"
       ),
-      sortable: true 
+      sortable: true
     },
-    { 
-      name: "Publish Date", 
+    {
+      name: "Publish Date",
       cell: (row) => editingId === row._id ? (
         <FormControl
           type="date"
           value={editFormData.publish_date ? new Date(editFormData.publish_date).toISOString().split('T')[0] : ""}
-          onChange={(e) => setEditFormData({...editFormData, publish_date: e.target.value})}
+          onChange={(e) => setEditFormData({ ...editFormData, publish_date: e.target.value })}
         />
       ) : (
         row.publish_date ? new Date(row.publish_date).toLocaleDateString() : "N/A"
       ),
-      sortable: true 
+      sortable: true
     },
     {
       name: "Actions",
@@ -166,38 +158,49 @@ const AdvertisementPage = () => {
         <div className="d-flex gap-2">
           {editingId === row._id ? (
             <>
-              <button
-                className="editButton"
+              <Button
+                variant="success"
+                size="sm"
+                title="Save"
                 onClick={() => handleUpdate(row._id)}
               >
                 <FaSave />
-              </button>
-              <button
-                className="editButton btn-danger"
+              </Button>
+
+              <Button
+                variant="outline-secondary"
+                size="sm"
+                title="Cancel"
                 onClick={() => setEditingId(null)}
               >
-                Cancel
-              </button>
+                <FaTimes />
+              </Button>
             </>
           ) : (
             <>
-              <button
-                className="editButton"
+              <Button
+                variant="warning"
+                size="sm"
+                title="Edit"
                 onClick={() => handleEdit(row)}
               >
                 <FaEdit />
-              </button>
-              <button
-                className="editButton btn-danger"
+              </Button>
+
+              <Button
+                variant="danger"
+                size="sm"
+                title="Delete"
                 onClick={() => handleDelete(row._id)}
               >
                 <FaTrashAlt />
-              </button>
+              </Button>
             </>
           )}
         </div>
       ),
-    },
+    }
+
   ];
 
   // Fetch advertisements data
@@ -205,8 +208,8 @@ const AdvertisementPage = () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/advertisements");
-      setData(response.data.data || []);
+      const response = await getAdvertisements()
+      setData(response?.data || []);
     } catch (err) {
       console.error("Error fetching data:", err);
       setError("Failed to fetch advertisements. Please try again later.");
@@ -218,8 +221,8 @@ const AdvertisementPage = () => {
   // Fetch advertisement types
   const fetchAdvertisementTypes = async () => {
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/advertisings");
-      setAdvertisementTypes(response.data.data || []);
+      const response = await getAdvertisementTypes()
+      setAdvertisementTypes(response?.data || []);
     } catch (err) {
       console.error("Error fetching advertisement types:", err);
       setError("Failed to fetch advertisement types. Please try again later.");
@@ -237,8 +240,8 @@ const AdvertisementPage = () => {
 
   // Add a new advertisement
   const handleAdd = async () => {
-    if (!formData.advertisement_type || !formData.advertisement_name) {
-      setError("Advertisement Type and Name are required");
+    if (!formData.advertisement_type || !formData.advertisement_name || !formData.amount || !formData.page_no || !formData.publish_date, !formData.size) {
+      toast.warn("All Fields are required");
       return;
     }
 
@@ -250,12 +253,7 @@ const AdvertisementPage = () => {
         }
       });
 
-      const response = await axios.post(
-        "https://erp-backend-fy3n.onrender.com/api/advertisements",
-        form,
-        { headers: { "Content-Type": "multipart/form-data" } }
-      );
-
+      const response = await addNewAdvertisement(form)
       fetchData();
       setFormData({
         advertisement_type: "",
@@ -268,11 +266,11 @@ const AdvertisementPage = () => {
         publish_date: "",
       });
       setIsPopoverOpen(false);
-      // setSuccessMessage("Advertisement added successfully!");
-      setTimeout(() => setSuccessMessage(""), 3000);
+      toast.success(response?.data?.message || "Advertisement added successfully!");
     } catch (error) {
       console.error("Error adding advertisement:", error);
-      setError(error.response?.data?.message || "Failed to add advertisement. Please try again.");
+      toast.error(error.response?.data?.message || "Failed to add advertisement.");
+
     }
   };
 
@@ -294,7 +292,7 @@ const AdvertisementPage = () => {
   // Update an advertisement
   const handleUpdate = async (id) => {
     if (!editFormData.advertisement_type || !editFormData.advertisement_name) {
-      setError("Advertisement Type and Name are required");
+      toast.warn("Advertisement Type and Name are required");
       return;
     }
 
@@ -306,19 +304,14 @@ const AdvertisementPage = () => {
         }
       });
 
-      await axios.put(
-        `https://erp-backend-fy3n.onrender.com/api/advertisements/${id}`,
-        form,
-        { headers: { "Content-Type": "multipart/form-data" } }
-      );
-
+      const response = await updateAdvertisementById(id, form)
+      toast.success(response?.message || "Advertisement updated successfully!");
       fetchData();
       setEditingId(null);
-      // setSuccessMessage("Advertisement updated successfully!");
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (error) {
       console.error("Error updating advertisement:", error);
-      setError(error.response?.data?.message || "Failed to update advertisement. Please try again.");
+      toast.error(error.response?.data?.message || "Failed to update advertisement.");
     }
   };
 
@@ -326,13 +319,14 @@ const AdvertisementPage = () => {
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this advertisement?")) {
       try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/advertisements/${id}`);
+        const response = await deleteAdvertisementById(id)
+        toast.success(response?.message || "Advertisement deleted successfully!");
+
         fetchData();
-        // setSuccessMessage("Advertisement deleted successfully!");
-        setTimeout(() => setSuccessMessage(""), 3000);
       } catch (error) {
         console.error("Error deleting advertisement:", error);
-        setError(error.response?.data?.message || "Failed to delete advertisement. Please try again.");
+        toast.error(error.response?.data?.message || "Failed to delete advertisement.");
+
       }
     }
   };
@@ -389,7 +383,7 @@ const AdvertisementPage = () => {
         <Container>
           {successMessage && <Alert variant="success">{successMessage}</Alert>}
           {error && <Alert variant="danger">{error}</Alert>}
-          
+
           <Button
             onClick={() => setIsPopoverOpen(true)}
             className="btn-add"
@@ -430,11 +424,11 @@ const AdvertisementPage = () => {
                   </Col>
                   <Col lg={6}>
                     <FormLabel className="labelForm">Publish Date</FormLabel>
-                    <FormControl 
-                      type="date" 
-                      name="publish_date" 
-                      value={formData.publish_date} 
-                      onChange={handleChange} 
+                    <FormControl
+                      type="date"
+                      name="publish_date"
+                      value={formData.publish_date}
+                      onChange={handleChange}
                     />
                   </Col>
                   <Col lg={6}>
@@ -449,51 +443,51 @@ const AdvertisementPage = () => {
                   </Col>
                   <Col lg={6}>
                     <FormLabel className="labelForm">Size</FormLabel>
-                    <FormControl 
-                      type="text" 
-                      name="size" 
-                      value={formData.size} 
-                      onChange={handleChange} 
-                      placeholder="Enter Size" 
+                    <FormControl
+                      type="text"
+                      name="size"
+                      value={formData.size}
+                      onChange={handleChange}
+                      placeholder="Enter Size"
                     />
                   </Col>
                   <Col lg={6}>
                     <FormLabel className="labelForm">Page No</FormLabel>
-                    <FormControl 
-                      type="text" 
-                      name="page_no" 
-                      value={formData.page_no} 
-                      onChange={handleChange} 
-                      placeholder="Enter Page Number" 
+                    <FormControl
+                      type="text"
+                      name="page_no"
+                      value={formData.page_no}
+                      onChange={handleChange}
+                      placeholder="Enter Page Number"
                     />
                   </Col>
                   <Col lg={6}>
                     <FormLabel className="labelForm">File</FormLabel>
-                    <FormControl 
-                      type="file" 
-                      name="file" 
-                      onChange={handleChange} 
+                    <FormControl
+                      type="file"
+                      name="file"
+                      onChange={handleChange}
                     />
                   </Col>
                   <Col lg={6}>
                     <FormLabel className="labelForm">Amount</FormLabel>
-                    <FormControl 
-                      type="text" 
-                      name="amount" 
-                      value={formData.amount} 
-                      onChange={handleChange} 
-                      placeholder="Enter Amount" 
+                    <FormControl
+                      type="text"
+                      name="amount"
+                      value={formData.amount}
+                      onChange={handleChange}
+                      placeholder="Enter Amount"
                     />
                   </Col>
                   <Col lg={6}>
                     <FormLabel className="labelForm">Remark</FormLabel>
-                    <FormControl 
-                      as="textarea" 
-                      rows={1} 
-                      name="remark" 
-                      value={formData.remark} 
-                      onChange={handleChange} 
-                      placeholder="Enter Remark" 
+                    <FormControl
+                      as="textarea"
+                      rows={1}
+                      name="remark"
+                      value={formData.remark}
+                      onChange={handleChange}
+                      placeholder="Enter Remark"
                     />
                   </Col>
                 </Row>
@@ -508,8 +502,6 @@ const AdvertisementPage = () => {
             <h2>Advertisement Records</h2>
             {loading ? (
               <p>Loading...</p>
-            ) : error ? (
-              <p style={{ color: "red" }}>{error}</p>
             ) : (
               <Table
                 columns={columns}

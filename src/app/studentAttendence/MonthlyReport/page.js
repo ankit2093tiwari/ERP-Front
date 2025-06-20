@@ -5,8 +5,11 @@ import axios from "axios";
 import { Form, Row, Col, Container, FormLabel, Button, Breadcrumb, FormSelect } from "react-bootstrap";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
+
 import styles from "@/app/students/assign-roll-no/page.module.css";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import { toast } from "react-toastify";
+import { getClasses, getSections } from "@/Services";
 
 const MonthlyReport = () => {
   const [classList, setClassList] = useState([]);
@@ -23,27 +26,27 @@ const MonthlyReport = () => {
 
   const fetchClasses = async () => {
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-classes");
-      setClassList(response.data.data || []);
+      const response = await getClasses()
+      setClassList(response?.data || []);
     } catch (error) {
-      alert("Failed to fetch classes. Please try again.");
+      toast.error(error.response?.data.message || "Failed to fetch classes. Please try again.");
       console.error("Error fetching classes:", error);
     }
   };
 
   const fetchSections = async (classId) => {
     try {
-      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/sections/class/${classId}`);
-      setSectionList(response.data.data || []);
+      const response = await getSections(classId)
+      setSectionList(response?.data || []);
     } catch (error) {
-      alert("Failed to fetch sections. Please try again.");
+      toast.error(error.response?.data.message || "Failed to fetch sections. Please try again.");
       console.error("Error fetching sections:", error);
     }
   };
 
   const fetchAttendanceReports = async () => {
     if (!selectedClass || !selectedSection || !attendanceDate) {
-      alert("Please select class, section, and attendance date");
+      toast.warn("Please select class, section, and attendance date");
       return;
     }
     setLoading(true);
@@ -55,20 +58,42 @@ const MonthlyReport = () => {
         setAttendanceReports(response.data.data || []);
         generatePDF(response.data.data); // Pass the fetched data to generatePDF
       } else {
-        alert(response.data.message || "No attendance records found.");
+        toast.warn(response.data.message || "No attendance records found.");
       }
     } catch (error) {
-      alert("Failed to fetch attendance reports. Please try again.");
-      console.error("Error fetching attendance reports:", error.response?.data || error.message);
+      toast.error(error.response?.data.message || "Failed to fetch attendance reports. Please try again.");
+      console.error("Error fetching attendance reports:", error.response?.data.message || error.message);
     }
     setLoading(false);
   };
+  const getClassName = (id) => {
+    const found = classList.find((cls) => cls._id === id);
+    return found ? found.class_name : "N/A";
+  };
 
+  const getSectionName = (id) => {
+    const found = sectionList.find((sec) => sec._id === id);
+    return found ? found.section_name : "N/A";
+  };
   const generatePDF = (data) => {
     const doc = new jsPDF();
-    doc.text("Attendance Report", 14, 10);
-    doc.text(`Date: ${attendanceDate}`, 14, 20);
 
+    const className = getClassName(selectedClass);
+    const sectionName = getSectionName(selectedSection);
+    const reportTitle = "Attendance Report";
+    const secondLine = `Class: ${className} (${sectionName})  ||  Date: ${attendanceDate}`;
+
+    const pageWidth = doc.internal.pageSize.getWidth();
+
+    // ✅ Line 1 - Attendance Report (centered)
+    doc.setFontSize(16);
+    doc.text(reportTitle, pageWidth / 2, 15, { align: "center" });
+
+    // ✅ Line 2 - Class & Date (centered)
+    doc.setFontSize(12);
+    doc.text(secondLine, pageWidth / 2, 25, { align: "center" });
+
+    // ✅ Table Data
     const tableData = data.map((report, index) => [
       index + 1,
       report.student_id?.roll_no || "N/A",
@@ -76,17 +101,20 @@ const MonthlyReport = () => {
       report.student_id?.father_name || "N/A",
       new Date(report.attendance_date).toLocaleDateString(),
       report.status || "N/A",
-      report.taken_by || "N/A",
+      // report.taken_by || "N/A", // 👈 Commented for future use
     ]);
 
+    // ✅ Table
     doc.autoTable({
-      head: [["#", "Roll No", "Student Name", "Father Name", "Date", "Status", "Taken By"]],
+      head: [["#", "Roll No", "Student Name", "Father Name", "Date", "Status"]],
       body: tableData,
-      startY: 30,
+      startY: 35,
     });
 
+    // ✅ Save PDF
     doc.save("Attendance_Report.pdf");
   };
+
 
   const breadcrumbItems = [{ label: "Student Attendance", link: "/studentAttendence/allModule" }, { label: "Monthly-Report", link: "null" }]
 
