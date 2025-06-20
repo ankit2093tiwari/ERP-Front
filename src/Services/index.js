@@ -1,6 +1,6 @@
 import axios from "axios";
 
-export const BASE_URL = 'https://erp-backend-fys3n.onrender.com'
+export const BASE_URL = 'https://erp-backend-fy3n.onrender.com'
 // export const BASE_URL = 'http://localhost:8000'
 axios.interceptors.response.use(
     (response) => {
