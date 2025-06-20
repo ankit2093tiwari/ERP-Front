@@ -170,7 +170,7 @@ const VendorMaster = () => {
                   <Col md={4}><FormLabel>Remark</FormLabel><FormControl {...register("remark")} isInvalid={!!errors.remark} /></Col>
                   <Col md={4}><FormLabel>Excise Reg. Number</FormLabel><FormControl {...register("exciseRegistrationNumber")} isInvalid={!!errors.exciseRegistrationNumber} /></Col>
                   <Col md={4}><FormLabel>Bank A/C Number</FormLabel><FormControl {...register("bankAccountNumber")} isInvalid={!!errors.bankAccountNumber} /></Col>
-                  <Col md={4}><FormLabel>Banker's Name & Address</FormLabel><FormControl {...register("bankersNameWithAddress")} isInvalid={!!errors.bankersNameWithAddress} /></Col>
+                  <Col md={4}><FormLabel>Bankers Name & Address</FormLabel><FormControl {...register("bankersNameWithAddress")} isInvalid={!!errors.bankersNameWithAddress} /></Col>
                   <Col md={4}><FormLabel>IFSC Code</FormLabel><FormControl {...register("ifscCode")} isInvalid={!!errors.ifscCode} /></Col>
                 </Row>
                 <Button type="submit" className="mt-3">{editId ? "Update" : "Add"} Vendor</Button>
