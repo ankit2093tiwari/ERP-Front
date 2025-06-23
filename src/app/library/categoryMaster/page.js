@@ -2,14 +2,14 @@
 
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import styles from "@/app/medical/routine-check-up/page.module.css";
 import Table from "@/app/component/DataTable";
 import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
 import { Form, Row, Col, Container, FormLabel, FormControl, Button, Breadcrumb, Alert } from "react-bootstrap";
-import axios from "axios";
 import { CgAddR } from 'react-icons/cg';
-import { copyContent } from "@/app/utils";
+import { copyContent,printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import { addNewBookCategory, deleteBookCategoryById, getBookCategories, updateBookCategoryById } from "@/Services";
+import { toast } from "react-toastify";
 
 const BookCategory = () => {
   const [data, setData] = useState([]);
@@ -24,8 +24,8 @@ const BookCategory = () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/bookCategories");
-      setData(response.data.data || []);
+      const response = await getBookCategories()
+      setData(response?.data || []);
     } catch (err) {
       setError("Failed to fetch book groups.");
     } finally {
@@ -40,13 +40,14 @@ const BookCategory = () => {
 
   const handleSave = async (id) => {
     try {
-      await axios.put(`https://erp-backend-fy3n.onrender.com/api/bookCategory/${id}`, {
+      const response = await updateBookCategoryById(id, {
         groupName: editGroupName,
-      });
-      setData((prevData) => prevData.map((row) => (row._id === id ? { ...row, groupName: editGroupName } : row)));
+      })
+      toast.success(response?.message || "BookCategory Updated successfully!")
       fetchData();
       setEditId(null);
-    } catch {
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Failed to update category..")
       setError("Failed to update book group.");
     }
   };
@@ -54,30 +55,49 @@ const BookCategory = () => {
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this group?")) {
       try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/bookCategory/${id}`);
-        setData((prevData) => prevData.filter((row) => row._id !== id));
+        const response = await deleteBookCategoryById(id)
+        toast.success(response?.message || "BookCategory deleted successfully!")
         fetchData();
-      } catch {
+      } catch (err) {
+        toast.error(err?.response?.data?.message || "Failed to delete category..")
         setError("Failed to delete book group.");
       }
     }
   };
 
   const handleAdd = async () => {
-    if (newGroupName.trim()) {
-      try {
-        const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/bookCategory", {
-          groupName: newGroupName,
-        });
-        setData((prevData) => [...prevData, response.data]);
-        setNewGroupName("");
-        setIsPopoverOpen(false);
-        fetchData();
-      } catch {
-        setError("Failed to add book group.");
-      }
+    const trimmedName = newGroupName.trim();
+
+    // 💡 Validation
+    if (!trimmedName) {
+      toast.error("Group name is required.");
+      return;
+    }
+
+    if (trimmedName.length > 50) {
+      toast.error("Group name must be under 50 characters.");
+      return;
+    }
+
+    const exists = data.some(
+      (item) => item.groupName.toLowerCase() === trimmedName.toLowerCase()
+    );
+    if (exists) {
+      toast.error("Group name already exists.");
+      return;
+    }
+
+    try {
+      const response = await addNewBookCategory({ groupName: trimmedName });
+      toast.success(response?.message || "BookCategory added successfully!");
+      setNewGroupName("");
+      setIsPopoverOpen(false);
+      fetchData();
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Failed to add book category.");
     }
   };
+
 
   const handlePrint = async () => {
     const tableHeaders = [["#", "Group Name"]];
@@ -168,6 +188,7 @@ const BookCategory = () => {
                   <Col lg={6}>
                     <FormLabel className="labelForm">Group Name</FormLabel>
                     <FormControl
+                      required
                       type="text"
                       placeholder="Enter Group Name"
                       value={newGroupName}
@@ -184,7 +205,7 @@ const BookCategory = () => {
             <h2>Book Group Records</h2>
             {loading && <p>Loading...</p>}
             {error && <Alert variant="danger">{error}</Alert>}
-            {!loading && !error && (
+            {!loading && (
               <Table
                 columns={columns}
                 data={data}

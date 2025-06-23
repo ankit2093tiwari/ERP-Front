@@ -12,10 +12,11 @@ import {
   FormControl,
   Button,
 } from "react-bootstrap";
-import axios from "axios";
 import Table from "@/app/component/DataTable";
 import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import { addNewHead, deleteHeadById, getAllHeads, updateHeadById } from "@/Services";
+import { toast } from "react-toastify";
 
 const HeadMasterPage = () => {
   const [data, setData] = useState([]);
@@ -45,7 +46,7 @@ const HeadMasterPage = () => {
 
   const handleCopy = () => {
     const headers = ["#", "Head Name", "Head Type"];
-    const rows = data.map((row, index) => 
+    const rows = data.map((row, index) =>
       `${index + 1}\t${row.head_name || "N/A"}\t${row.head_type || "N/A"}`
     );
 
@@ -56,15 +57,15 @@ const HeadMasterPage = () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-fee-type");
-      if (response.data && response.data.success) {
-        setData(response.data.data);
+      const response = await getAllHeads()
+      if (response.success) {
+        setData(response.data);
       } else {
         setData([]);
         setError("No records found.");
       }
     } catch (err) {
-      setData([]);
+      toast.error(err?.response?.data?.message || "Failed to fetch HeadMaster records")
       setError("Failed to fetch HeadMasters.");
     } finally {
       setLoading(false);
@@ -78,12 +79,13 @@ const HeadMasterPage = () => {
           (row) => row.head_name === newHeadMaster.head_name
         );
         if (existingHeadMaster) {
-          alert("HeadMaster name already exists.");
+          toast.warn("HeadMaster name already exists.");
           return;
         }
 
-        const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/add-fee-type", newHeadMaster);
-        if (response.data && response.data.success) {
+        const response = await addNewHead(newHeadMaster)
+        if (response.success) {
+          toast.success(response?.message || "HeadMaster record aded succesfully")
           fetchData();
           setNewHeadMaster({ head_name: "", head_type: "" });
           setIsPopoverOpen(false);
@@ -91,10 +93,11 @@ const HeadMasterPage = () => {
           setError("Failed to add HeadMaster.");
         }
       } catch (err) {
+        toast.error(err?.response?.data?.message || "Failed to add HeadMaster.")
         setError("Failed to add HeadMaster.");
       }
     } else {
-      alert("Both Head Name and Head Type are required.");
+      toast.warn("Both Head Name and Head Type are required.");
     }
   };
 
@@ -109,23 +112,27 @@ const HeadMasterPage = () => {
   const handleUpdate = async (id) => {
     if (editedData.head_name.trim() && editedData.head_type.trim()) {
       try {
-        await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-fee-type/${id}`, editedData);
+        const response = await updateHeadById(id, editedData)
+        toast.success(response?.message || "HeadMaster record updated successfully.")
         fetchData();
         setEditingId(null);
       } catch (err) {
+        toast.error(err?.response?.data?.message || "Failed to update HeadMaster records")
         setError("Failed to update HeadMaster.");
       }
     } else {
-      alert("Both Head Name and Head Type are required.");
+      toast.warn("Both Head Name and Head Type are required.");
     }
   };
 
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this HeadMaster?")) {
       try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-fee-type/${id}`);
+        const response = await deleteHeadById(id)
+        toast.success(response?.message || "HeadMaster record deleted successfully.")
         fetchData();
       } catch (err) {
+        toast.error(err?.response?.data?.message || "Failed to delete HeadMaster records")
         setError("Failed to delete HeadMaster.");
       }
     }
@@ -207,7 +214,7 @@ const HeadMasterPage = () => {
   ];
 
   const breadcrumbItems = [
-    { label: "Fee", link: "/fees/all-module" }, 
+    { label: "Fee", link: "/fees/all-module" },
     { label: "head-master", link: "null" }
   ];
 
@@ -274,12 +281,12 @@ const HeadMasterPage = () => {
             <h2>HeadMaster Records</h2>
             {loading && <p>Loading...</p>}
             {error && <p>{error}</p>}
-            {!loading && !error && (
-              <Table 
-                columns={columns} 
-                data={data} 
-                handleCopy={handleCopy} 
-                handlePrint={handlePrint} 
+            {!loading && (
+              <Table
+                columns={columns}
+                data={data}
+                handleCopy={handleCopy}
+                handlePrint={handlePrint}
               />
             )}
           </div>

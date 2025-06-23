@@ -1,71 +1,239 @@
 "use client";
-import React from "react";
+
+import React, { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
-import styles from "@/app/medical/routine-check-up/page.module.css";
-import Table from "@/app/component/DataTable";
-import { FaEdit, FaTrashAlt } from "react-icons/fa";
-import { Form, Row, Col, Container, FormLabel, FormSelect, FormControl, Button, Breadcrumb } from "react-bootstrap";
-import { CgAddR } from 'react-icons/cg';
+import {
+    Form,
+    Row,
+    Col,
+    Container,
+    FormLabel,
+    FormSelect,
+    FormControl,
+    Button,
+} from "react-bootstrap";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import {
+    addNewBookEntry,
+    getAllPublishers,
+    getAllRacks,
+    getBookCategories,
+    getLibraryGroups,
+    getLibraryVendors,
+    getShelfByRackId,
+} from "@/Services";
+import { toast } from "react-toastify";
 
 const NewBookEntry = () => {
-    const columns = [
-        {
-            name: "#",
-            selector: (row) => row.id,
-            sortable: true,
-            width: "80px",
-        },
-        {
-            name: "Entry Date",
-            selector: (row) => row.entryDate,
-            sortable: false,
-        },
-        {
-            name: "Teacher Name",
-            selector: (row) => row.teacherName,
-            sortable: false,
-        },
-        {
-            name: "Work Details",
-            selector: (row) => row.workDetail,
-            sortable: false,
-        },
-    ];
+    const [bookCategories, setBookCategories] = useState([]);
+    const [libraryGroups, setLibraryGroups] = useState([]);
+    const [libraryVendors, setLibraryVendors] = useState([]);
+    const [publishers, setPublishers] = useState([]);
+    const [racks, setRacks] = useState([]);
+    const [shelves, setShelves] = useState([]);
+    const [errors, setErrors] = useState({});
 
-    const data = [
-        {
-            id: 1,
-            entryDate: '',
-            teacherName: "",
-            workDetail: '',
-        },
+    const initialFormData = {
+        itemGroup: "",
+        itemVolume: "",
+        accessionNo: "",
+        accessionDate: "",
+        bookTitle: "",
+        subject: "",
+        subTitle: "",
+        description: "",
+        classificationNo: "",
+        costPrice: "",
+        discount: "",
+        edition: "",
+        bookCategory: "",
+        classNo: "",
+        bookNo: "",
+        itemStatus: "In Stock",
+        pageNumber: "",
+        authorName1: "",
+        authorName2: "",
+        authorName3: "",
+        language: "",
+        publicationYear: "",
+        publisher: "",
+        rack: "",
+        shelf: "",
+        isbnNo: "",
+        vendor: "",
+        billNo: "",
+        billDate: "",
+    };
 
-    ];
-    const handleEdit = (id) => {
-        const item = data.find((row) => row.id === id);
-        const updatedName = prompt("Enter new name:", item.name);
+    const handleRackChange = async (e) => {
+        const rackId = e.target.value;
+        setFormData((prev) => ({ ...prev, rack: rackId, shelf: "" }));
+        const response = await getShelfByRackId(rackId);
+        setShelves(response?.data || []);
+        // Clear errors when user selects a rack
+        setErrors((prev) => ({
+            ...prev,
+            rack: "",
+            shelf: ""
+        }));
+    };
+
+    const [formData, setFormData] = useState(initialFormData);
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        setFormData((prev) => ({ ...prev, [name]: value }));
+        // Clear error when user starts typing
+        if (errors[name]) {
+            setErrors((prev) => ({ ...prev, [name]: "" }));
+        }
+    };
+
+    const validateForm = () => {
+        const newErrors = {};
+        let isValid = true;
+
+        // Required fields validation
+        if (!formData.itemGroup) {
+            newErrors.itemGroup = "Item Group is required";
+            isValid = false;
+        }
+        if (!formData.accessionNo) {
+            newErrors.accessionNo = "Accession No is required";
+            isValid = false;
+        } else if (isNaN(Number(formData.accessionNo))) {
+            newErrors.accessionNo = "Accession No must be a number";
+            isValid = false;
+        }
+        if (!formData.accessionDate) {
+            newErrors.accessionDate = "Accession Date is required";
+            isValid = false;
+        }
+        if (!formData.bookTitle) {
+            newErrors.bookTitle = "Book Title is required";
+            isValid = false;
+        }
+        if (!formData.classNo) {
+            newErrors.classNo = "Class No is required";
+            isValid = false;
+        }
+        if (!formData.bookNo) {
+            newErrors.bookNo = "Book No is required";
+            isValid = false;
+        }
+        if (!formData.pageNumber) {
+            newErrors.pageNumber = "Page Number is required";
+            isValid = false;
+        } else if (isNaN(Number(formData.pageNumber))) {
+            newErrors.pageNumber = "Page Number must be a number";
+            isValid = false;
+        }
+        if (!formData.authorName1) {
+            newErrors.authorName1 = "Author Name 1 is required";
+            isValid = false;
+        }
+        if (!formData.bookCategory) {
+            newErrors.bookCategory = "Book Category is required";
+            isValid = false;
+        }
+        if (!formData.publisher) {
+            newErrors.publisher = "Publisher is required";
+            isValid = false;
+        }
+        if (!formData.rack) {
+            newErrors.rack = "Rack is required";
+            isValid = false;
+        }
+        if (!formData.shelf) {
+            newErrors.shelf = "Shelf is required";
+            isValid = false;
+        }
+
+        // Numeric fields validation
+        if (formData.discount && isNaN(Number(formData.discount))) {
+            newErrors.discount = "Discount must be a number";
+            isValid = false;
+        }
+
+        // Date validation
+        if (formData.billDate && new Date(formData.billDate) > new Date()) {
+            newErrors.billDate = "Bill Date cannot be in the future";
+            isValid = false;
+        }
+        if (formData.accessionDate && new Date(formData.accessionDate) > new Date()) {
+            newErrors.accessionDate = "Accession Date cannot be in the future";
+            isValid = false;
+        }
+        if (!formData.vendor) {
+            newErrors.vendor = "Vendor is required";
+            isValid = false;
+        }
+
+
+        setErrors(newErrors);
+        return isValid;
+    };
+
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        if (!validateForm()) return;
 
         try {
-            const parsedSections = JSON.parse(updatedSection);
-            setData((prevData) =>
-                prevData.map((row) =>
-                    row.id === id
-                        ? { ...row, name: updatedName }
-                        : row
-                )
-            );
+            // Prepare data for backend
+            const submissionData = {
+                ...formData,
+                accessionNo: Number(formData.accessionNo),
+                pageNumber: Number(formData.pageNumber),
+                discount: formData.discount ? Number(formData.discount) : 0,
+                costPrice: formData.costPrice ? Number(formData.costPrice) : 0,
+                accessionDate: new Date(formData.accessionDate),
+                billDate: formData.billDate ? new Date(formData.billDate) : null,
+            };
+
+            const response = await addNewBookEntry(submissionData)
+            toast.success(response?.message || "Book entry submitted successfully!")
+            setFormData(initialFormData);
+            setShelves([])
+            setErrors({});
         } catch (error) {
-            alert("Invalid JSON for sections. Please try again.");
-        }
-    };
-    const handleDelete = (row) => {
-        if (confirm("Are you sure you want to delete this entry?")) {
-            setData((prevData) => prevData.filter((item) => item.id !== row.id));
+            const errorMessage = error.response?.data?.error || "Failed to create book entry";
+
+            if (errorMessage.includes("duplicate key error") && errorMessage.includes("accessionNo")) {
+                toast.error("Accession Number already exists. Please use a unique number.");
+            } else {
+                toast.error(errorMessage);
+            }
+            console.error("Submission error:", error);
         }
     };
 
-    const breadcrumbItems = [{ label: "Library", link: "/library/all-module" }, { label: "New Book Entry", link: "null" }]
+    const fetchAll = async () => {
+        try {
+            const [cats, groups, pubs, racksData, vendors] = await Promise.all([
+                getBookCategories(),
+                getLibraryGroups(),
+                getAllPublishers(),
+                getAllRacks(),
+                getLibraryVendors(),
+            ]);
+            setBookCategories(cats?.data || []);
+            setLibraryGroups(groups?.data || []);
+            setPublishers(pubs?.data || []);
+            setRacks(racksData?.data || []);
+            setLibraryVendors(vendors?.data || []);
+        } catch (error) {
+            toast.error("Failed to load initial data");
+            console.error("Fetch error:", error);
+        }
+    };
+
+    useEffect(() => {
+        fetchAll();
+    }, []);
+
+    const breadcrumbItems = [
+        { label: "Library", link: "/library/all-module" },
+        { label: "New Book Entry", link: null },
+    ];
 
     return (
         <>
@@ -79,197 +247,400 @@ const NewBookEntry = () => {
                 </Container>
             </div>
             <section>
-                <Container className="">
-                    <Row>
-                        <Col>
-                            <div className="cover-sheet">
-                                <div className="studentHeading"><h2>New Book Entry</h2></div>
-                                <Form className="formSheet">
-                                    <Row>
-                                        <Col lg={3}>
-                                            <FormLabel className="labelForm">Item Group </FormLabel>
-                                            <FormSelect>
-                                                <option>Select</option>
-                                                <option value="1">Comic Book</option>
-                                                <option value="2">Current Affairs</option>
-                                                <option value="3">School Books</option>
-                                            </FormSelect>
-                                        </Col>
-                                        <Col lg={3}>
-                                            <FormLabel className="labelForm">Item volume</FormLabel>
-                                            <FormControl required type="text" />
-                                        </Col>
-                                        <Col lg={3}>
-                                            <FormLabel className="labelForm">Accession No </FormLabel>
-                                            <FormControl required type="text" />
-                                        </Col>
-                                        <Col lg={3}>
-                                            <FormLabel className="labelForm">Accession Date</FormLabel>
-                                            <FormControl required type="date" />
-                                        </Col>
-                                    </Row>
-                                    <br />
-                                    <Row>
-                                        <Col lg={3}>
-                                            <FormLabel className="labelForm">Book Title </FormLabel>
-                                            <FormControl required type="text" />
-                                        </Col>
-                                        <Col lg={3}>
-                                            <FormLabel className="labelForm">Subject</FormLabel>
-                                            <FormControl required type="text" />
-                                        </Col>
-                                        <Col lg={3}>
-                                            <FormLabel className="labelForm">Sub Title </FormLabel>
-                                            <FormControl required type="text" />
-                                        </Col>
-                                        <Col lg={3}>
-                                            <FormLabel className="labelForm">Description</FormLabel>
-                                            <FormControl as={"textarea"} rows={1} required />
-                                        </Col>
-                                    </Row>
-                                    <br />
-                                    <Row>
-                                        <Col lg={3}>
-                                            <FormLabel className="labelForm">Classification No </FormLabel>
-                                            <FormControl required type="text" />
-                                        </Col>
-                                        <Col lg={3}>
-                                            <FormLabel className="labelForm">Cost Price Description</FormLabel>
-                                            <FormControl required type="text" />
-                                        </Col>
-                                        <Col lg={3}>
-                                            <FormLabel className="labelForm">Discount </FormLabel>
-                                            <FormControl required type="text" />
-                                        </Col>
-                                        <Col lg={3}>
-                                            <FormLabel className="labelForm">Edition</FormLabel>
-                                            <FormControl required type="text" />
-                                        </Col>
-                                    </Row>
-                                    <br />
-                                    <Row>
-                                        <Col lg={3}>
-                                            <FormLabel className="labelForm">Book Category </FormLabel>
-                                            <FormSelect>
-                                                <option>Select</option>
-                                                <option value="1">Central Library</option>
-                                                <option value="2">Information Technology</option>
-                                            </FormSelect>
-                                        </Col>
-                                        <Col lg={3}>
-                                            <FormLabel className="labelForm">Class No</FormLabel>
-                                            <FormControl required type="text" />
-                                        </Col>
-                                        <Col lg={3}>
-                                            <FormLabel className="labelForm">Book No </FormLabel>
-                                            <FormControl required type="text" />
-                                        </Col>
-                                        <Col lg={3}>
-                                            <FormLabel className="labelForm">Item Status</FormLabel>
-                                            <FormSelect>
-                                                <option>Select</option>
-                                                <option value="1">In Stock</option>
-                                                <option value="2">Under Repair</option>
-                                            </FormSelect>
-                                        </Col>
-                                    </Row>
-                                    <br />
-                                    <Row>
-                                        <Col lg={3}>
-                                            <FormLabel className="labelForm">Language</FormLabel>
-                                            <FormSelect>
-                                                <option>Select</option>
-                                                <option value="1">English</option>
-                                                <option value="2">Hindi</option>
-                                            </FormSelect>
-                                        </Col>
-                                        <Col lg={3}>
-                                            <FormLabel className="labelForm">Page Number </FormLabel>
-                                            <FormControl required type="text" />
-                                        </Col>
-                                        <Col lg={3}>
-                                            <FormLabel className="labelForm">Author Name 1  </FormLabel>
-                                            <FormControl required type="text" />
-                                        </Col>
-                                        <Col lg={3}>
-                                            <FormLabel className="labelForm">Author Name 2</FormLabel>
-                                            <FormControl required type="text" />
-                                        </Col>
-                                    </Row>
-                                    <br />
-                                    <Row>
-                                        <Col lg={3}>
-                                            <FormLabel className="labelForm">Author Name 3</FormLabel>
-                                            <FormControl required type="text" />
-                                        </Col>
-                                        <Col lg={3}>
-                                            <FormLabel className="labelForm">Publisher Name </FormLabel>
-                                            <FormSelect>
-                                                <option>Select</option>
-                                                <option value="1">Dhairya Publisher</option>
-                                                <option value="2">Miles Kelly </option>
-                                                <option value="1">Sunny Guha</option>
-                                                <option value="2">Test Publishers ltd</option>
-                                            </FormSelect>
-                                        </Col>
-                                        <Col lg={3}>
-                                            <FormLabel className="labelForm">Rack </FormLabel>
-                                            <FormSelect>
-                                                <option>Select</option>
-                                                <option value="1">Class 1-8</option>
-                                                <option value="2">Class 9-12 </option>
-                                                <option value="1">Comic Book</option>
-                                                <option value="2">Story Book</option>
-                                            </FormSelect>
-                                        </Col>
-                                        <Col lg={3}>
-                                            <FormLabel className="labelForm">Shelf</FormLabel>
-                                            <FormControl required type="text" disabled />
-                                        </Col>
-                                    </Row>
-                                    <br />
-                                    <Row>
-                                        <Col lg={3}>
-                                            <FormLabel className="labelForm">PublicationYear</FormLabel>
-                                            <FormControl required type="text" />
-                                        </Col>
-                                        <Col lg={3}>
-                                            <FormLabel className="labelForm">ISBN No</FormLabel>
-                                            <FormControl required type="text" />
-                                        </Col>
-                                        <Col lg={3}>
-                                            <FormLabel className="labelForm">Vendor Name  </FormLabel>
-                                            <FormSelect>
-                                                <option>Select</option>
-                                                <option value="1">1</option>
-                                                <option value="2">2</option>
-                                            </FormSelect>
-                                        </Col>
-                                        <Col lg={3}>
-                                            <FormLabel className="labelForm">Bill No</FormLabel>
-                                            <FormControl required type="text" />
-                                        </Col>
-                                    </Row>
-                                    <br />
-                                    <Row>
-                                        <Col lg={3}>
-                                            <FormLabel className="labelForm">Bill Date</FormLabel>
-                                            <FormControl required type="date" />
-                                        </Col>
-                                    </Row>
-                                    <br />
-                                    <Row>
-                                        <Col className="text-center"><Button className="btn btn-primary mt-4">Update</Button></Col>
-                                    </Row>
-
-                                </Form>
-                            </div>
-                        </Col>
-                    </Row>
-                </Container>
+                <div className="cover-sheet">
+                    <div className="studentHeading">
+                        <h2>New Book Entry</h2>
+                    </div>
+                    <Container>
+                        <Form className="formSheet" onSubmit={handleSubmit}>
+                            <Row>
+                                <Col lg={3}>
+                                    <FormLabel>Item Group</FormLabel>
+                                    <FormSelect
+                                        name="itemGroup"
+                                        value={formData.itemGroup}
+                                        onChange={handleChange}
+                                        isInvalid={!!errors.itemGroup}
+                                    >
+                                        <option value="">Select</option>
+                                        {libraryGroups.map((g) => (
+                                            <option key={g._id} value={g._id}>
+                                                {g.groupName}
+                                            </option>
+                                        ))}
+                                    </FormSelect>
+                                    <Form.Control.Feedback type="invalid">
+                                        {errors.itemGroup}
+                                    </Form.Control.Feedback>
+                                </Col>
+                                <Col lg={3}>
+                                    <FormLabel>Item Volume</FormLabel>
+                                    <FormControl
+                                        name="itemVolume"
+                                        value={formData.itemVolume}
+                                        onChange={handleChange}
+                                    />
+                                </Col>
+                                <Col lg={3}>
+                                    <FormLabel>Accession No</FormLabel>
+                                    <FormControl
+                                        name="accessionNo"
+                                        value={formData.accessionNo}
+                                        onChange={handleChange}
+                                        isInvalid={!!errors.accessionNo}
+                                    />
+                                    <Form.Control.Feedback type="invalid">
+                                        {errors.accessionNo}
+                                    </Form.Control.Feedback>
+                                </Col>
+                                <Col lg={3}>
+                                    <FormLabel>Accession Date</FormLabel>
+                                    <FormControl
+                                        type="date"
+                                        name="accessionDate"
+                                        value={formData.accessionDate}
+                                        onChange={handleChange}
+                                        isInvalid={!!errors.accessionDate}
+                                    />
+                                    <Form.Control.Feedback type="invalid">
+                                        {errors.accessionDate}
+                                    </Form.Control.Feedback>
+                                </Col>
+                            </Row>
+                            <br />
+                            <Row>
+                                <Col lg={3}>
+                                    <FormLabel>Book Title</FormLabel>
+                                    <FormControl
+                                        name="bookTitle"
+                                        value={formData.bookTitle}
+                                        onChange={handleChange}
+                                        isInvalid={!!errors.bookTitle}
+                                    />
+                                    <Form.Control.Feedback type="invalid">
+                                        {errors.bookTitle}
+                                    </Form.Control.Feedback>
+                                </Col>
+                                <Col lg={3}>
+                                    <FormLabel>Subject</FormLabel>
+                                    <FormControl
+                                        name="subject"
+                                        value={formData.subject}
+                                        onChange={handleChange}
+                                    />
+                                </Col>
+                                <Col lg={3}>
+                                    <FormLabel>Sub Title</FormLabel>
+                                    <FormControl
+                                        name="subTitle"
+                                        value={formData.subTitle}
+                                        onChange={handleChange}
+                                    />
+                                </Col>
+                                <Col lg={3}>
+                                    <FormLabel>Description</FormLabel>
+                                    <FormControl
+                                        as="textarea"
+                                        rows={1}
+                                        name="description"
+                                        value={formData.description}
+                                        onChange={handleChange}
+                                    />
+                                </Col>
+                            </Row>
+                            <br />
+                            <Row>
+                                <Col lg={3}>
+                                    <FormLabel>Classification No</FormLabel>
+                                    <FormControl
+                                        name="classificationNo"
+                                        value={formData.classificationNo}
+                                        onChange={handleChange}
+                                    />
+                                </Col>
+                                <Col lg={3}>
+                                    <FormLabel>Cost Price</FormLabel>
+                                    <FormControl
+                                        name="costPrice"
+                                        value={formData.costPrice}
+                                        onChange={handleChange}
+                                        isInvalid={!!errors.costPrice}
+                                    />
+                                    <Form.Control.Feedback type="invalid">
+                                        {errors.costPrice}
+                                    </Form.Control.Feedback>
+                                </Col>
+                                <Col lg={3}>
+                                    <FormLabel>Discount</FormLabel>
+                                    <FormControl
+                                        name="discount"
+                                        value={formData.discount}
+                                        onChange={handleChange}
+                                        isInvalid={!!errors.discount}
+                                    />
+                                    <Form.Control.Feedback type="invalid">
+                                        {errors.discount}
+                                    </Form.Control.Feedback>
+                                </Col>
+                                <Col lg={3}>
+                                    <FormLabel>Edition</FormLabel>
+                                    <FormControl
+                                        name="edition"
+                                        value={formData.edition}
+                                        onChange={handleChange}
+                                    />
+                                </Col>
+                            </Row>
+                            <br />
+                            <Row>
+                                <Col lg={3}>
+                                    <FormLabel>Book Category</FormLabel>
+                                    <FormSelect
+                                        name="bookCategory"
+                                        value={formData.bookCategory}
+                                        onChange={handleChange}
+                                        isInvalid={!!errors.bookCategory}
+                                    >
+                                        <option value="">Select</option>
+                                        {bookCategories.map((c) => (
+                                            <option key={c._id} value={c._id}>
+                                                {c.groupName}
+                                            </option>
+                                        ))}
+                                    </FormSelect>
+                                    <Form.Control.Feedback type="invalid">
+                                        {errors.bookCategory}
+                                    </Form.Control.Feedback>
+                                </Col>
+                                <Col lg={3}>
+                                    <FormLabel>Class No</FormLabel>
+                                    <FormControl
+                                        name="classNo"
+                                        value={formData.classNo}
+                                        onChange={handleChange}
+                                        isInvalid={!!errors.classNo}
+                                    />
+                                    <Form.Control.Feedback type="invalid">
+                                        {errors.classNo}
+                                    </Form.Control.Feedback>
+                                </Col>
+                                <Col lg={3}>
+                                    <FormLabel>Book No</FormLabel>
+                                    <FormControl
+                                        name="bookNo"
+                                        value={formData.bookNo}
+                                        onChange={handleChange}
+                                        isInvalid={!!errors.bookNo}
+                                    />
+                                    <Form.Control.Feedback type="invalid">
+                                        {errors.bookNo}
+                                    </Form.Control.Feedback>
+                                </Col>
+                                <Col lg={3}>
+                                    <FormLabel>Item Status</FormLabel>
+                                    <FormSelect
+                                        name="itemStatus"
+                                        value={formData.itemStatus}
+                                        onChange={handleChange}
+                                    >
+                                        <option value="In Stock">In Stock</option>
+                                        <option value="Issued">Issued</option>
+                                        <option value="Lost">Lost</option>
+                                        <option value="Damaged">Damaged</option>
+                                    </FormSelect>
+                                </Col>
+                            </Row>
+                            <br />
+                            <Row>
+                                <Col lg={3}>
+                                    <FormLabel>Total Page Number</FormLabel>
+                                    <FormControl
+                                        name="pageNumber"
+                                        value={formData.pageNumber}
+                                        onChange={handleChange}
+                                        isInvalid={!!errors.pageNumber}
+                                    />
+                                    <Form.Control.Feedback type="invalid">
+                                        {errors.pageNumber}
+                                    </Form.Control.Feedback>
+                                </Col>
+                                <Col lg={3}>
+                                    <FormLabel>Author Name 1</FormLabel>
+                                    <FormControl
+                                        name="authorName1"
+                                        value={formData.authorName1}
+                                        onChange={handleChange}
+                                        isInvalid={!!errors.authorName1}
+                                    />
+                                    <Form.Control.Feedback type="invalid">
+                                        {errors.authorName1}
+                                    </Form.Control.Feedback>
+                                </Col>
+                                <Col lg={3}>
+                                    <FormLabel>Author Name 2</FormLabel>
+                                    <FormControl
+                                        name="authorName2"
+                                        value={formData.authorName2}
+                                        onChange={handleChange}
+                                    />
+                                </Col>
+                                <Col lg={3}>
+                                    <FormLabel>Author Name 3</FormLabel>
+                                    <FormControl
+                                        name="authorName3"
+                                        value={formData.authorName3}
+                                        onChange={handleChange}
+                                    />
+                                </Col>
+                            </Row>
+                            <br />
+                            <Row>
+                                <Col lg={3}>
+                                    <FormLabel>Language</FormLabel>
+                                    <FormSelect
+                                        name="language"
+                                        value={formData.language}
+                                        onChange={handleChange}
+                                    >
+                                        <option value="">Select</option>
+                                        <option value="English">English</option>
+                                        <option value="Hindi">Hindi</option>
+                                    </FormSelect>
+                                </Col>
+                                <Col lg={3}>
+                                    <FormLabel>Publication Year</FormLabel>
+                                    <FormControl
+                                        name="publicationYear"
+                                        value={formData.publicationYear}
+                                        onChange={handleChange}
+                                    />
+                                </Col>
+                                <Col lg={3}>
+                                    <FormLabel>Publisher</FormLabel>
+                                    <FormSelect
+                                        name="publisher"
+                                        value={formData.publisher}
+                                        onChange={handleChange}
+                                        isInvalid={!!errors.publisher}
+                                    >
+                                        <option value="">Select</option>
+                                        {publishers.map((p) => (
+                                            <option key={p._id} value={p._id}>
+                                                {p.publisherName}
+                                            </option>
+                                        ))}
+                                    </FormSelect>
+                                    <Form.Control.Feedback type="invalid">
+                                        {errors.publisher}
+                                    </Form.Control.Feedback>
+                                </Col>
+                                <Col lg={3}>
+                                    <FormLabel>Rack</FormLabel>
+                                    <FormSelect
+                                        name="rack"
+                                        value={formData.rack}
+                                        onChange={handleRackChange}
+                                        isInvalid={!!errors.rack}
+                                    >
+                                        <option value="">Select</option>
+                                        {racks.map((r) => (
+                                            <option key={r._id} value={r._id}>
+                                                {r.rackName}
+                                            </option>
+                                        ))}
+                                    </FormSelect>
+                                    <Form.Control.Feedback type="invalid">
+                                        {errors.rack}
+                                    </Form.Control.Feedback>
+                                </Col>
+                            </Row>
+                            <br />
+                            <Row>
+                                <Col lg={3}>
+                                    <FormLabel>Shelf</FormLabel>
+                                    <FormSelect
+                                        name="shelf"
+                                        value={formData.shelf}
+                                        onChange={handleChange}
+                                        disabled={!shelves.length}
+                                        isInvalid={!!errors.shelf}
+                                    >
+                                        <option value="">Select</option>
+                                        {shelves.map((s) => (
+                                            <option key={s._id} value={s.shelfName}>
+                                                {s.shelfName}
+                                            </option>
+                                        ))}
+                                    </FormSelect>
+                                    <Form.Control.Feedback type="invalid">
+                                        {errors.shelf}
+                                    </Form.Control.Feedback>
+                                </Col>
+                                <Col lg={3}>
+                                    <FormLabel>ISBN No</FormLabel>
+                                    <FormControl
+                                        name="isbnNo"
+                                        value={formData.isbnNo}
+                                        onChange={handleChange}
+                                    />
+                                </Col>
+                                <Col lg={3}>
+                                    <FormLabel>Vendor</FormLabel>
+                                    <FormSelect
+                                        name="vendor"
+                                        value={formData.vendor}
+                                        onChange={handleChange}
+                                        isInvalid={!!errors.vendor}
+                                    >
+                                        <option value="">Select</option>
+                                        {libraryVendors.map((v) => (
+                                            <option key={v._id} value={v._id}>
+                                                {v.organizationName}
+                                            </option>
+                                        ))}
+                                    </FormSelect>
+                                    <Form.Control.Feedback type="invalid">
+                                        {errors.vendor}
+                                    </Form.Control.Feedback>
+                                </Col>
+                                <Col lg={3}>
+                                    <FormLabel>Bill No</FormLabel>
+                                    <FormControl
+                                        name="billNo"
+                                        value={formData.billNo}
+                                        onChange={handleChange}
+                                    />
+                                </Col>
+                            </Row>
+                            <br />
+                            <Row>
+                                <Col lg={3}>
+                                    <FormLabel>Bill Date</FormLabel>
+                                    <FormControl
+                                        type="date"
+                                        name="billDate"
+                                        value={formData.billDate}
+                                        onChange={handleChange}
+                                        isInvalid={!!errors.billDate}
+                                    />
+                                    <Form.Control.Feedback type="invalid">
+                                        {errors.billDate}
+                                    </Form.Control.Feedback>
+                                </Col>
+                            </Row>
+                            <Row>
+                                <Col className="text-center">
+                                    <Button className="btn btn-primary mt-4" type="submit">
+                                        Submit
+                                    </Button>
+                                </Col>
+                            </Row>
+                        </Form>
+                    </Container>
+                </div>
             </section>
         </>
-    )
-}
+    );
+};
 
-export default dynamic(() => Promise.resolve(NewBookEntry), { ssr: false })
+export default dynamic(() => Promise.resolve(NewBookEntry), { ssr: false });

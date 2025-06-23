@@ -18,6 +18,8 @@ import Table from "@/app/component/DataTable";
 import styles from "@/app/medical/routine-check-up/page.module.css";
 import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import { toast } from "react-toastify";
+import { addNewInstallment, deleteInstallmentById, getAllInstallments, updateInstallmentById } from "@/Services";
 
 const InstallmentMaster = () => {
   const [data, setData] = useState([]);
@@ -33,9 +35,9 @@ const InstallmentMaster = () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-installments");
-      if (response.data && response.data.data) {
-        setData(response.data.data);
+      const response = await getAllInstallments()
+      if (response.success) {
+        setData(response.data);
       } else {
         setData([]);
         setError("No records found.");
@@ -52,15 +54,15 @@ const InstallmentMaster = () => {
   const handleAdd = async () => {
     if (newInstallment.trim()) {
       try {
-        const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/add-installments", {
-          installment_name: newInstallment
-        });
-        setData((prevData) => [...prevData, response.data.data]);
+        const response = await addNewInstallment({ installment_name: newInstallment })
+        toast.success(response?.message || "Installment added successfully")
+        fetchData()
         setNewInstallment("");
         setIsPopoverOpen(false);
         fetchData(); // Refresh data
       } catch (err) {
-        setError("Failed to add installment.");
+        toast.error(err?.response?.data?.message || "Failed to add installment.")
+        setError("Failed to add installment.", err);
       }
     }
   };
@@ -75,17 +77,14 @@ const InstallmentMaster = () => {
   const handleUpdate = async (id) => {
     if (editedName.trim()) {
       try {
-        await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-installments/${id}`, {
+        const response = await updateInstallmentById(id, {
           installment_name: editedName
-        });
-        setData((prevData) =>
-          prevData.map((row) =>
-            row._id === id ? { ...row, installment_name: editedName } : row
-          )
-        );
+        })
+        toast.success(response?.message || "Installment updated successfully")
         fetchData();
         setEditingId(null); // Exit edit mode
       } catch (err) {
+        toast.error(err?.response?.data?.message || "Failed to update installment.")
         setError("Failed to update installment.");
       }
     }
@@ -95,10 +94,11 @@ const InstallmentMaster = () => {
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this installment?")) {
       try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-installments/${id}`);
-        setData((prevData) => prevData.filter((row) => row._id !== id));
+        const response = await deleteInstallmentById(id)
+        toast.success(response?.message || "Installment deleted successfully")
         fetchData();
       } catch (err) {
+        toast.error(err?.response?.data?.message || "Failed to delete installment.")
         setError("Failed to delete installment.");
       }
     }
@@ -229,8 +229,7 @@ const InstallmentMaster = () => {
           <div className="tableSheet">
             <h2>Installment Records</h2>
             {loading && <p>Loading...</p>}
-            {error && <p>{error}</p>}
-            {!loading && !error && (
+            {!loading && (
               <Table
                 columns={columns}
                 data={data}

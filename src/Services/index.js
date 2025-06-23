@@ -80,12 +80,47 @@ export const updateFeeGroupById = async (id, payload) => {
     const response = await axios.put(`${BASE_URL}/api/update-fee-groups/${id}`, payload)
     return response?.data;
 }
+export const addNewFeeConcessionEntry = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/create-concession`, payload)
+    return response?.data;
+}
+
 
 export const getAllInstallments = async () => {
     const response = await axios.get(`${BASE_URL}/api/all-installments`)
     return response?.data;
 }
+export const addNewInstallment = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/add-installments`, payload)
+    return response?.data;
+}
+export const updateInstallmentById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/update-installments/${id}`, payload)
+    return response?.data;
+}
+export const deleteInstallmentById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/delete-installments/${id}`)
+    return response?.data;
+}
 
+export const getAllHeads = async () => {
+    const response = await axios.get(`${BASE_URL}/api/all-fee-type`)
+    return response?.data;
+}
+export const addNewHead = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/add-fee-type`, payload)
+    return response?.data;
+}
+
+export const updateHeadById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/update-fee-type/${id}`, payload)
+    return response?.data;
+}
+
+export const deleteHeadById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/delete-fee-type/${id}`)
+    return response?.data;
+}
 export const getAllPaymentMode = async () => {
     const response = await axios.get(`${BASE_URL}/api/all-payment-mode`)
     return response?.data;
@@ -410,6 +445,10 @@ export const getAllShelves = async () => {
     const response = await axios.get(`${BASE_URL}/api/shelves`)
     return response?.data;
 }
+export const getShelfByRackId = async (id) => {
+    const response = await axios.get(`${BASE_URL}/api/shelves/${id}`)
+    return response?.data;
+}
 export const addNewRack = async (payload) => {
     const response = await axios.post(`${BASE_URL}/api/racks`, payload)
     return response?.data;
@@ -432,5 +471,57 @@ export const deleteRackById = async (id) => {
 }
 export const deleteShelfById = async (id) => {
     const response = await axios.delete(`${BASE_URL}/api/shelves/${id}`)
+    return response?.data;
+}
+
+export const getLibraryGroups = async () => {
+    const response = await axios.get(`${BASE_URL}/api/libraryGroup`)
+    return response?.data;
+}
+export const getLibraryVendors = async () => {
+    const response = await axios.get(`${BASE_URL}/api/library-vendor`)
+    return response?.data;
+}
+export const addNewLibraryVendor = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/library-vendor`, payload)
+    return response?.data;
+}
+
+export const updateLibraryVendorById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/library-vendor/${id}`, payload)
+    return response?.data;
+}
+export const deleteLibraryVendorById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/library-vendor/${id}`)
+    return response?.data;
+}
+
+export const getFineMaster = async () => {
+    const response = await axios.get(`${BASE_URL}/api/fine-master`)
+    return response?.data;
+}
+export const updateFineMaster = async (payload) => {
+    const response = await axios.put(`${BASE_URL}/api/fine-master`, payload)
+    return response?.data;
+}
+export const getBookCategories = async () => {
+    const response = await axios.get(`${BASE_URL}/api/bookCategories`)
+    return response?.data;
+}
+export const addNewBookCategory = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/bookCategory`, payload)
+    return response?.data;
+}
+export const updateBookCategoryById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/bookCategory/${id}`, payload)
+    return response?.data;
+}
+export const deleteBookCategoryById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/bookCategory/${id}`)
+    return response?.data;
+}
+
+export const addNewBookEntry = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/book-entry`, payload)
     return response?.data;
 }

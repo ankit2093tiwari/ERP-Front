@@ -4,7 +4,7 @@ import { Container, Row, Col, FormLabel, FormSelect, Button, Form, Card } from "
 import { toast } from "react-toastify";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import styles from "@/app/medical/routine-check-up/page.module.css";
-import { getClasses, getFeeGroupDataBySectionId, getFeeStructureByFeeGroupId, getSections, getStudentsByClassAndSection } from "@/Services";
+import { addNewFeeConcessionEntry, BASE_URL, getClasses, getFeeGroupDataBySectionId, getFeeStructureByFeeGroupId, getSections, getStudentsByClassAndSection } from "@/Services";
 import axios from 'axios';
 
 const ConcessionEntry = () => {
@@ -192,9 +192,9 @@ const ConcessionEntry = () => {
       })
     };
     try {
-      const response = await axios.post('http://localhost:8000/api/create-concession', payload);
-      if (response?.data.success) {
-        toast.success(response?.data?.message || "Concession data submitted successfully!");
+      const response = await addNewFeeConcessionEntry(payload)
+      if (response?.success) {
+        toast.success(response?.message || "Concession data submitted successfully!");
         setSelectedClass("");
         setSelectedSection("");
         setSelectedStudent("");
@@ -233,52 +233,6 @@ const ConcessionEntry = () => {
             </div>
             <div className='px-5'>
               <Form className="formSheet mb-4">
-                {/* <Row>
-                  <Col lg={4}>
-                    <FormLabel className={styles.labelForm}>Class</FormLabel>
-                    <FormSelect
-                      value={selectedClass}
-                      onChange={handleClassChange}
-                      className={styles.formControl}
-                      disabled={isLoading}
-                    >
-                      <option value="">Select Class</option>
-                      {classList.map((cls) => (
-                        <option key={cls._id} value={cls._id}>{cls.class_name}</option>
-                      ))}
-                    </FormSelect>
-                  </Col>
-                  <Col lg={4}>
-                    <FormLabel className={styles.labelForm}>Section</FormLabel>
-                    <FormSelect
-                      value={selectedSection}
-                      onChange={(e) => setSelectedSection(e.target.value)}
-                      className={styles.formControl}
-                      disabled={!selectedClass || isLoading}
-                    >
-                      <option value="">Select Section</option>
-                      {sectionList.map((sec) => (
-                        <option key={sec._id} value={sec._id}>{sec.section_name}</option>
-                      ))}
-                    </FormSelect>
-                  </Col>
-                  <Col lg={4}>
-                    <FormLabel className={styles.labelForm}>Student</FormLabel>
-                    <FormSelect
-                      value={selectedStudent}
-                      onChange={(e) => setSelectedStudent(e.target.value)}
-                      className={styles.formControl}
-                      disabled={!selectedSection || isLoading}
-                    >
-                      <option value="">Select Student</option>
-                      {students?.map((std) => (
-                        <option key={std._id} value={std._id}>
-                          {`${std.first_name || ''} ${std.last_name || ''}`.trim()}
-                        </option>
-                      ))}
-                    </FormSelect>
-                  </Col>
-                </Row> */}
                 <Card className="shadow-sm p-3 mb-4">
                   <Row>
                     <Col lg={4}>
