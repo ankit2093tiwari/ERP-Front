@@ -197,6 +197,18 @@ export const getItemCategories = async () => {
     const response = await axios.get(`${BASE_URL}/api/itemCategories`)
     return response?.data;
 }
+export const addNewCategory = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/itemCategory`, payload)
+    return response?.data;
+}
+export const updateCategoryById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/itemCategory/${id}`, payload)
+    return response?.data;
+}
+export const deleteCategoryById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/itemCategory/${id}`)
+    return response?.data;
+}
 
 export const getAllVendors = async () => {
     const response = await axios.get(`${BASE_URL}/api/vendors`)
@@ -251,6 +263,10 @@ export const updateItemById = async (id, payload) => {
     const response = await axios.put(`${BASE_URL}/api/itemMaster/${id}`, payload)
     return response?.data;
 }
+export const deleteItemById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/itemMaster/${id}`)
+    return response?.data;
+}
 
 export const getItemsByCategoryId = async (categoryId) => {
     const response = await axios.get(`${BASE_URL}/api/items-by-category/${categoryId}`)
@@ -259,6 +275,18 @@ export const getItemsByCategoryId = async (categoryId) => {
 
 export const getAllStores = async () => {
     const response = await axios.get(`${BASE_URL}/api/stores`)
+    return response?.data;
+}
+export const addNewStore = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/store`, payload)
+    return response?.data;
+}
+export const deleteStoreById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/store/${id}`)
+    return response?.data;
+}
+export const updateStoreById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/store/${id}`, payload)
     return response?.data;
 }
 
@@ -523,5 +551,37 @@ export const deleteBookCategoryById = async (id) => {
 
 export const addNewBookEntry = async (payload) => {
     const response = await axios.post(`${BASE_URL}/api/book-entry`, payload)
+    return response?.data;
+}
+export const getAllBooks = async () => {
+    const response = await axios.get(`${BASE_URL}/api/book-entry`)
+    return response?.data;
+}
+
+export const addNewBookSuggestion = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/book-suggestions`, payload)
+    return response?.data;
+}
+
+export const getAllBookSuggestions = async () => {
+    const response = await axios.get(`${BASE_URL}/api/book-suggestions`,)
+    return response?.data;
+}
+
+export const deleteBookSuggestionById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/book-suggestions/${id}`,)
+    return response?.data;
+}
+
+export const getAllIssuedBooks = async () => {
+    const response = await axios.get(`${BASE_URL}/api/issued-books`,)
+    return response?.data;
+}
+export const addNewIssuedBook = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/issue-book`, payload)
+    return response?.data;
+}
+export const deleteIssuedBook = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/issue-book/${id}`)
     return response?.data;
 }

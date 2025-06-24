@@ -14,11 +14,10 @@ import {
   FormSelect,
   Alert,
 } from "react-bootstrap";
-import axios from "axios";
 import { CgAddR } from 'react-icons/cg';
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { copyContent, printContent } from "@/app/utils";
-import { addNewItem, getAllItems, getItemCategories, updateItemById } from "@/Services";
+import { addNewItem, deleteItemById, getAllItems, getItemCategories, updateItemById } from "@/Services";
 import { toast } from "react-toastify";
 
 const ItemMaster = () => {
@@ -29,6 +28,8 @@ const ItemMaster = () => {
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [editedValues, setEditedValues] = useState({});
+  const [formErrors, setFormErrors] = useState({});
+
   const [formValues, setFormValues] = useState({
     itemName: "",
     itemCategory: "",
@@ -145,40 +146,17 @@ const ItemMaster = () => {
         <div className="d-flex gap-2">
           {editingId === row._id ? (
             <>
-              <button
-                className="editButton"
-                onClick={() => handleSave(row._id)}
-              >
-                <FaSave />
-              </button>
-              <button
-                className="editButton btn-danger"
-                onClick={() => {
-                  setEditingId(null);
-                  setEditedValues({});
-                }}
-              >
-                <FaTimes />
-              </button>
+              <button className="editButton" onClick={() => handleSave(row._id)}><FaSave /></button>
+              <button className="editButton btn-danger" onClick={() => { setEditingId(null); setEditedValues({}); }}><FaTimes /></button>
             </>
           ) : (
             <>
-              <button
-                className="editButton"
-                onClick={() => handleEdit(row)}
-              >
-                <FaEdit />
-              </button>
-              <button
-                className="editButton btn-danger"
-                onClick={() => handleDelete(row._id)}
-              >
-                <FaTrashAlt />
-              </button>
+              <button className="editButton" onClick={() => handleEdit(row)}><FaEdit /></button>
+              <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}><FaTrashAlt /></button>
             </>
           )}
         </div>
-      ),
+      )
     },
   ];
 
@@ -201,37 +179,46 @@ const ItemMaster = () => {
   };
 
   const handleAdd = async () => {
-    const { itemName, itemCategory, description, maintainMinimumStock, itemType, date } = formValues;
-    if (itemName.trim() && itemCategory.trim() && itemType.trim()) {
-      try {
-        const response = await addNewItem({
-          itemName,
-          itemCategory,
-          description,
-          maintainMinimumStock: parseInt(maintainMinimumStock) || 0,
-          itemType,
-          date
-        })
-        if (response?.success) {
-          toast.success(response?.message || "Item added Successfully")
-          fetchData();
-          setFormValues({
-            itemName: "",
-            itemCategory: "",
-            description: "",
-            maintainMinimumStock: 0,
-            itemType: "",
-            date: new Date().toISOString().split('T')[0]
-          });
-          setIsPopoverOpen(false);
-        }
+    const { itemName, itemCategory, itemType } = formValues;
+    const errors = {};
 
-      } catch (error) {
-        console.error("Error adding data:", error);
-        setError("Failed to add item. Please try again later.");
+    if (!itemName.trim()) errors.itemName = "Item Name is required.";
+    if (!itemCategory.trim()) errors.itemCategory = "Item Category is required.";
+    if (!itemType.trim()) errors.itemType = "Item Type is required.";
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      toast.warning("Please correct the highlighted fields.");
+      return;
+    }
+
+    try {
+      const response = await addNewItem({
+        ...formValues,
+        itemName: itemName.trim(),
+        description: formValues.description.trim(),
+        maintainMinimumStock: parseInt(formValues.maintainMinimumStock) || 0,
+      });
+
+      if (response?.success) {
+        toast.success(response.message || "Item added successfully!");
+        fetchData();
+        setFormValues({
+          itemName: "",
+          itemCategory: "",
+          description: "",
+          maintainMinimumStock: 0,
+          itemType: "",
+          date: new Date().toISOString().split("T")[0]
+        });
+        setFormErrors({});
+        setIsPopoverOpen(false);
+      } else {
+        toast.error(response.message || "Failed to add item.");
       }
-    } else {
-      alert("Please fill out all required fields.");
+    } catch (error) {
+      console.error("Add error:", error);
+      toast.error("Failed to add item due to server error.");
     }
   };
 
@@ -245,38 +232,57 @@ const ItemMaster = () => {
   };
 
   const handleSave = async (id) => {
+    const { itemName, itemCategory, itemType } = editedValues;
+
+    // Validate required fields
+    if (!itemName?.trim()) {
+      toast.error("Item Name is required.");
+      return;
+    }
+    if (!itemCategory || itemCategory === "") {
+      toast.error("Item Category is required.");
+      return;
+    }
+    if (!itemType || itemType === "") {
+      toast.error("Item Type is required.");
+      return;
+    }
+
     try {
-      // Prepare the data for API call
+      // Format category in case it's an object
       const updateData = {
         ...editedValues,
-        itemCategory: editedValues.itemCategory?._id || editedValues.itemCategory
+        itemCategory: editedValues.itemCategory?._id || editedValues.itemCategory,
       };
 
-      await updateItemById(id, updateData)
+      const response = await updateItemById(id, updateData);
+      toast.success(response?.message || "Item updated successfully.");
       fetchData();
       setEditingId(null);
       setEditedValues({});
     } catch (error) {
       console.error("Error updating data:", error);
-      setError("Failed to update item. Please try again later.");
+      toast.error("Failed to update item. Please try again later.");
     }
   };
+
 
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this entry?")) {
       try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/itemMaster/${id}`);
+        await deleteItemById(id);
         fetchData();
+        toast.success("Item deleted successfully.");
       } catch (error) {
         console.error("Error deleting data:", error);
-        setError("Failed to delete item. Please try again later.");
+        toast.error("Failed to delete item.");
       }
     }
   };
 
   const handlePrint = () => {
-    const tableHeaders = [["#", "Date", "Category", "Item Type", "Item Name", "Minimum Stock", "Description"]];
-    const tableRows = data.map((row, index) => [
+    const headers = [["#", "Date", "Category", "Item Type", "Item Name", "Minimum Stock", "Description"]];
+    const rows = data.map((row, index) => [
       index + 1,
       new Date(row.date).toLocaleDateString(),
       row.itemCategory?.categoryName || "N/A",
@@ -285,7 +291,7 @@ const ItemMaster = () => {
       row.maintainMinimumStock || "N/A",
       row.description || "N/A"
     ]);
-    printContent(tableHeaders, tableRows);
+    printContent(headers, rows);
   };
 
   const handleCopy = () => {
@@ -329,9 +335,7 @@ const ItemMaster = () => {
             <div className="cover-sheet">
               <div className="studentHeading">
                 <h2>Add New Item</h2>
-                <button className='closeForm' onClick={() => setIsPopoverOpen(false)}>
-                  X
-                </button>
+                <button className='closeForm' onClick={() => setIsPopoverOpen(false)}>X</button>
               </div>
 
               <Form className="formSheet">
@@ -345,41 +349,54 @@ const ItemMaster = () => {
                     />
                   </Col>
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Item Category</FormLabel>
+                    <FormLabel className="labelForm">Item Category <span className="text-danger">*</span></FormLabel>
                     <FormSelect
                       value={formValues.itemCategory}
-                      onChange={(e) => setFormValues({ ...formValues, itemCategory: e.target.value })}
+                      isInvalid={!!formErrors.itemCategory}
+                      onChange={(e) => {
+                        setFormValues({ ...formValues, itemCategory: e.target.value });
+                        if (formErrors.itemCategory) setFormErrors(prev => ({ ...prev, itemCategory: "" }));
+                      }}
                     >
                       <option value="">Select</option>
-                      {categories.map((category) => (
-                        <option key={category._id} value={category._id}>
-                          {category.categoryName}
-                        </option>
+                      {categories.map((cat) => (
+                        <option key={cat._id} value={cat._id}>{cat.categoryName}</option>
                       ))}
                     </FormSelect>
+                    {formErrors.itemCategory && <div className="text-danger mt-1">{formErrors.itemCategory}</div>}
                   </Col>
                 </Row>
 
                 <Row className="mb-3">
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Item Type</FormLabel>
+                    <FormLabel className="labelForm">Item Type <span className="text-danger">*</span></FormLabel>
                     <FormSelect
                       value={formValues.itemType}
-                      onChange={(e) => setFormValues({ ...formValues, itemType: e.target.value })}
+                      isInvalid={!!formErrors.itemType}
+                      onChange={(e) => {
+                        setFormValues({ ...formValues, itemType: e.target.value });
+                        if (formErrors.itemType) setFormErrors(prev => ({ ...prev, itemType: "" }));
+                      }}
                     >
                       <option value="">Select</option>
                       <option value="recurring">Recurring</option>
                       <option value="non-recurring">Non-Recurring</option>
                     </FormSelect>
+                    {formErrors.itemType && <div className="text-danger mt-1">{formErrors.itemType}</div>}
                   </Col>
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Item Name</FormLabel>
+                    <FormLabel className="labelForm">Item Name <span className="text-danger">*</span></FormLabel>
                     <FormControl
                       type="text"
                       placeholder="Enter Item Name"
                       value={formValues.itemName}
-                      onChange={(e) => setFormValues({ ...formValues, itemName: e.target.value })}
+                      isInvalid={!!formErrors.itemName}
+                      onChange={(e) => {
+                        setFormValues({ ...formValues, itemName: e.target.value });
+                        if (formErrors.itemName) setFormErrors(prev => ({ ...prev, itemName: "" }));
+                      }}
                     />
+                    {formErrors.itemName && <div className="text-danger mt-1">{formErrors.itemName}</div>}
                   </Col>
                 </Row>
 
@@ -408,9 +425,7 @@ const ItemMaster = () => {
                   </Col>
                 </Row>
 
-                <Button className="mt-3" onClick={handleAdd}>
-                  Add New Item
-                </Button>
+                <Button className="mt-3" onClick={handleAdd}>Add New Item</Button>
               </Form>
             </div>
           )}

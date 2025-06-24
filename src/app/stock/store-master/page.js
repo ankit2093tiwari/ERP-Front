@@ -12,10 +12,11 @@ import {
   FormControl,
   Button,
 } from "react-bootstrap";
-import axios from "axios";
 import Table from "@/app/component/DataTable";
 import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import { toast } from "react-toastify";
+import { addNewStore, deleteStoreById, getAllStores, updateStoreById } from "@/Services";
 
 const StoreMaster = () => {
   const [data, setData] = useState([]);
@@ -27,6 +28,8 @@ const StoreMaster = () => {
   const [formData, setFormData] = useState({
     storeName: ""
   });
+  const [formErrors, setFormErrors] = useState({});
+
 
   const columns = [
     {
@@ -37,6 +40,7 @@ const StoreMaster = () => {
     },
     {
       name: "Store Name",
+      selector: (row) => row.storeName,
       cell: (row) =>
         editingId === row._id ? (
           <FormControl
@@ -93,8 +97,8 @@ const StoreMaster = () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/stores");
-      setData(response.data.data || []);
+      const response = await getAllStores()
+      setData(response.data || []);
     } catch (err) {
       console.error("Error fetching data:", err);
       setError("Failed to fetch data. Please try again later.");
@@ -109,55 +113,76 @@ const StoreMaster = () => {
   };
 
   const handleUpdate = async (id) => {
+    if (!editedName.trim()) {
+      toast.error("Store name cannot be empty.");
+      return;
+    }
+
+    const isDuplicate = data.some(
+      (store) =>
+        store._id !== id &&
+        store.storeName.toLowerCase() === editedName.trim().toLowerCase()
+    );
+    if (isDuplicate) {
+      toast.error("Store name already exists.");
+      return;
+    }
+
     try {
-      await axios.put(`https://erp-backend-fy3n.onrender.com/api/store/${id}`, {
-        storeName: editedName,
+      const response = await updateStoreById(id, {
+        storeName: editedName.trim(),
       });
+      toast.success(response?.message || "Store updated successfully.");
       fetchData();
       setEditingId(null);
     } catch (error) {
       console.error("Error updating data:", error);
-      setError("Failed to update data. Please try again later.");
+      toast.error("Failed to update data. Please try again later.");
     }
   };
+
 
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this store?")) {
       try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/store/${id}`);
+        const response = await deleteStoreById(id)
+        toast.success(response?.message || "Store deleted successfully.")
         fetchData();
       } catch (error) {
         console.error("Error deleting data:", error);
-        setError("Failed to delete data. Please try again later.");
+        toast.error("Failed to delete data. Please try again later.");
       }
     }
   };
 
   const handleAdd = async () => {
-    if (formData.storeName.trim()) {
-      try {
-        const existingStore = data.find(
-          (store) => store.storeName === formData.storeName
-        );
-        if (existingStore) {
-          setError("Store name already exists.");
-          return;
-        }
+    const errors = {};
+    if (!formData.storeName.trim()) {
+      errors.storeName = "Store name is required.";
+    } else if (
+      data.find((store) => store.storeName.toLowerCase() === formData.storeName.toLowerCase())
+    ) {
+      errors.storeName = "Store name already exists.";
+    }
 
-        await axios.post("https://erp-backend-fy3n.onrender.com/api/store", {
-          storeName: formData.storeName,
-        });
-        fetchData();
-        setFormData({ storeName: "" });
-        setIsPopoverOpen(false);
-      } catch (error) {
-        console.error("Error adding data:", error);
-        setError("Failed to add data. Please try again later.");
-      }
-    } else {
-      alert("Please enter a valid store name.");
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
+    }
+
+    try {
+      const response = await addNewStore({ storeName: formData.storeName, })
+      toast.success(response?.message || "Store added successfully")
+      fetchData();
+      setFormData({ storeName: "" });
+      setFormErrors({});
+      setIsPopoverOpen(false);
+    } catch (error) {
+      console.error("Error adding data:", error);
+      toast.error("Failed to add data. Please try again later.");
     }
   };
+
 
   const handlePrint = () => {
     const tableHeaders = [["#", "Store Name"]];
@@ -223,15 +248,24 @@ const StoreMaster = () => {
               <Form className="formSheet">
                 <Row className="mb-3">
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Store Name</FormLabel>
+                    <FormLabel className="labelForm">Store Name <span className="text-danger">*</span></FormLabel>
                     <FormControl
                       type="text"
                       placeholder="Enter Store Name"
                       value={formData.storeName}
-                      onChange={(e) =>
-                        setFormData({ storeName: e.target.value })
-                      }
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setFormData({ storeName: value });
+                        // Clear the error when valid input is entered
+                        if (value.trim()) {
+                          setFormErrors((prev) => ({ ...prev, storeName: "" }));
+                        }
+                      }}
                     />
+                    {formErrors.storeName && (
+                      <div className="text-danger mt-1">{formErrors.storeName}</div>
+                    )}
+
                   </Col>
                 </Row>
                 <Button onClick={handleAdd} className="btn btn-primary">

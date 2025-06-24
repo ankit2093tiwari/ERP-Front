@@ -253,9 +253,9 @@ const NewBookEntry = () => {
                     </div>
                     <Container>
                         <Form className="formSheet" onSubmit={handleSubmit}>
-                            <Row>
+                            <Row className="mb-2">
                                 <Col lg={3}>
-                                    <FormLabel>Item Group</FormLabel>
+                                    <FormLabel className="labelForm">Item Group <span className="text-danger">*</span></FormLabel>
                                     <FormSelect
                                         name="itemGroup"
                                         value={formData.itemGroup}
@@ -274,7 +274,7 @@ const NewBookEntry = () => {
                                     </Form.Control.Feedback>
                                 </Col>
                                 <Col lg={3}>
-                                    <FormLabel>Item Volume</FormLabel>
+                                    <FormLabel className="labelForm">Item Volume</FormLabel>
                                     <FormControl
                                         name="itemVolume"
                                         value={formData.itemVolume}
@@ -282,7 +282,7 @@ const NewBookEntry = () => {
                                     />
                                 </Col>
                                 <Col lg={3}>
-                                    <FormLabel>Accession No</FormLabel>
+                                    <FormLabel className="labelForm">Accession No <span className="text-danger">*</span></FormLabel>
                                     <FormControl
                                         name="accessionNo"
                                         value={formData.accessionNo}
@@ -294,7 +294,7 @@ const NewBookEntry = () => {
                                     </Form.Control.Feedback>
                                 </Col>
                                 <Col lg={3}>
-                                    <FormLabel>Accession Date</FormLabel>
+                                    <FormLabel className="labelForm">Accession Date <span className="text-danger">*</span></FormLabel>
                                     <FormControl
                                         type="date"
                                         name="accessionDate"
@@ -307,10 +307,9 @@ const NewBookEntry = () => {
                                     </Form.Control.Feedback>
                                 </Col>
                             </Row>
-                            <br />
-                            <Row>
+                            <Row className="mb-2">
                                 <Col lg={3}>
-                                    <FormLabel>Book Title</FormLabel>
+                                    <FormLabel className="labelForm">Book Title <span className="text-danger">*</span></FormLabel>
                                     <FormControl
                                         name="bookTitle"
                                         value={formData.bookTitle}
@@ -322,7 +321,7 @@ const NewBookEntry = () => {
                                     </Form.Control.Feedback>
                                 </Col>
                                 <Col lg={3}>
-                                    <FormLabel>Subject</FormLabel>
+                                    <FormLabel className="labelForm">Subject</FormLabel>
                                     <FormControl
                                         name="subject"
                                         value={formData.subject}
@@ -330,7 +329,7 @@ const NewBookEntry = () => {
                                     />
                                 </Col>
                                 <Col lg={3}>
-                                    <FormLabel>Sub Title</FormLabel>
+                                    <FormLabel className="labelForm">Sub Title</FormLabel>
                                     <FormControl
                                         name="subTitle"
                                         value={formData.subTitle}
@@ -338,7 +337,7 @@ const NewBookEntry = () => {
                                     />
                                 </Col>
                                 <Col lg={3}>
-                                    <FormLabel>Description</FormLabel>
+                                    <FormLabel className="labelForm">Description</FormLabel>
                                     <FormControl
                                         as="textarea"
                                         rows={1}
@@ -348,10 +347,9 @@ const NewBookEntry = () => {
                                     />
                                 </Col>
                             </Row>
-                            <br />
-                            <Row>
+                            <Row className="mb-2">
                                 <Col lg={3}>
-                                    <FormLabel>Classification No</FormLabel>
+                                    <FormLabel className="labelForm">Classification No</FormLabel>
                                     <FormControl
                                         name="classificationNo"
                                         value={formData.classificationNo}
@@ -359,7 +357,7 @@ const NewBookEntry = () => {
                                     />
                                 </Col>
                                 <Col lg={3}>
-                                    <FormLabel>Cost Price</FormLabel>
+                                    <FormLabel className="labelForm">Cost Price</FormLabel>
                                     <FormControl
                                         name="costPrice"
                                         value={formData.costPrice}
@@ -371,7 +369,7 @@ const NewBookEntry = () => {
                                     </Form.Control.Feedback>
                                 </Col>
                                 <Col lg={3}>
-                                    <FormLabel>Discount</FormLabel>
+                                    <FormLabel className="labelForm">Discount</FormLabel>
                                     <FormControl
                                         name="discount"
                                         value={formData.discount}
@@ -383,7 +381,7 @@ const NewBookEntry = () => {
                                     </Form.Control.Feedback>
                                 </Col>
                                 <Col lg={3}>
-                                    <FormLabel>Edition</FormLabel>
+                                    <FormLabel className="labelForm">Edition</FormLabel>
                                     <FormControl
                                         name="edition"
                                         value={formData.edition}
@@ -391,10 +389,9 @@ const NewBookEntry = () => {
                                     />
                                 </Col>
                             </Row>
-                            <br />
-                            <Row>
+                            <Row className="mb-2">
                                 <Col lg={3}>
-                                    <FormLabel>Book Category</FormLabel>
+                                    <FormLabel className="labelForm">Book Category <span className="text-danger">*</span></FormLabel>
                                     <FormSelect
                                         name="bookCategory"
                                         value={formData.bookCategory}
@@ -413,7 +410,7 @@ const NewBookEntry = () => {
                                     </Form.Control.Feedback>
                                 </Col>
                                 <Col lg={3}>
-                                    <FormLabel>Class No</FormLabel>
+                                    <FormLabel className="labelForm">Class No <span className="text-danger">*</span></FormLabel>
                                     <FormControl
                                         name="classNo"
                                         value={formData.classNo}
@@ -425,7 +422,7 @@ const NewBookEntry = () => {
                                     </Form.Control.Feedback>
                                 </Col>
                                 <Col lg={3}>
-                                    <FormLabel>Book No</FormLabel>
+                                    <FormLabel className="labelForm">Book No <span className="text-danger">*</span></FormLabel>
                                     <FormControl
                                         name="bookNo"
                                         value={formData.bookNo}
@@ -437,7 +434,7 @@ const NewBookEntry = () => {
                                     </Form.Control.Feedback>
                                 </Col>
                                 <Col lg={3}>
-                                    <FormLabel>Item Status</FormLabel>
+                                    <FormLabel className="labelForm">Item Status</FormLabel>
                                     <FormSelect
                                         name="itemStatus"
                                         value={formData.itemStatus}
@@ -450,10 +447,9 @@ const NewBookEntry = () => {
                                     </FormSelect>
                                 </Col>
                             </Row>
-                            <br />
-                            <Row>
+                            <Row className="mb-2">
                                 <Col lg={3}>
-                                    <FormLabel>Total Page Number</FormLabel>
+                                    <FormLabel className="labelForm">Total Page Number <span className="text-danger">*</span></FormLabel>
                                     <FormControl
                                         name="pageNumber"
                                         value={formData.pageNumber}
@@ -465,7 +461,7 @@ const NewBookEntry = () => {
                                     </Form.Control.Feedback>
                                 </Col>
                                 <Col lg={3}>
-                                    <FormLabel>Author Name 1</FormLabel>
+                                    <FormLabel className="labelForm">Author Name 1 <span className="text-danger">*</span></FormLabel>
                                     <FormControl
                                         name="authorName1"
                                         value={formData.authorName1}
@@ -477,7 +473,7 @@ const NewBookEntry = () => {
                                     </Form.Control.Feedback>
                                 </Col>
                                 <Col lg={3}>
-                                    <FormLabel>Author Name 2</FormLabel>
+                                    <FormLabel className="labelForm">Author Name 2</FormLabel>
                                     <FormControl
                                         name="authorName2"
                                         value={formData.authorName2}
@@ -485,7 +481,7 @@ const NewBookEntry = () => {
                                     />
                                 </Col>
                                 <Col lg={3}>
-                                    <FormLabel>Author Name 3</FormLabel>
+                                    <FormLabel className="labelForm">Author Name 3</FormLabel>
                                     <FormControl
                                         name="authorName3"
                                         value={formData.authorName3}
@@ -493,10 +489,9 @@ const NewBookEntry = () => {
                                     />
                                 </Col>
                             </Row>
-                            <br />
-                            <Row>
+                            <Row className="mb-2">
                                 <Col lg={3}>
-                                    <FormLabel>Language</FormLabel>
+                                    <FormLabel className="labelForm">Language</FormLabel>
                                     <FormSelect
                                         name="language"
                                         value={formData.language}
@@ -508,7 +503,7 @@ const NewBookEntry = () => {
                                     </FormSelect>
                                 </Col>
                                 <Col lg={3}>
-                                    <FormLabel>Publication Year</FormLabel>
+                                    <FormLabel className="labelForm">Publication Year</FormLabel>
                                     <FormControl
                                         name="publicationYear"
                                         value={formData.publicationYear}
@@ -516,7 +511,7 @@ const NewBookEntry = () => {
                                     />
                                 </Col>
                                 <Col lg={3}>
-                                    <FormLabel>Publisher</FormLabel>
+                                    <FormLabel className="labelForm">Publisher <span className="text-danger">*</span></FormLabel>
                                     <FormSelect
                                         name="publisher"
                                         value={formData.publisher}
@@ -535,7 +530,7 @@ const NewBookEntry = () => {
                                     </Form.Control.Feedback>
                                 </Col>
                                 <Col lg={3}>
-                                    <FormLabel>Rack</FormLabel>
+                                    <FormLabel className="labelForm">Rack <span className="text-danger">*</span></FormLabel>
                                     <FormSelect
                                         name="rack"
                                         value={formData.rack}
@@ -554,10 +549,9 @@ const NewBookEntry = () => {
                                     </Form.Control.Feedback>
                                 </Col>
                             </Row>
-                            <br />
-                            <Row>
+                            <Row className="mb-2">
                                 <Col lg={3}>
-                                    <FormLabel>Shelf</FormLabel>
+                                    <FormLabel className="labelForm">Shelf <span className="text-danger">*</span></FormLabel>
                                     <FormSelect
                                         name="shelf"
                                         value={formData.shelf}
@@ -577,7 +571,7 @@ const NewBookEntry = () => {
                                     </Form.Control.Feedback>
                                 </Col>
                                 <Col lg={3}>
-                                    <FormLabel>ISBN No</FormLabel>
+                                    <FormLabel className="labelForm">ISBN No</FormLabel>
                                     <FormControl
                                         name="isbnNo"
                                         value={formData.isbnNo}
@@ -585,7 +579,7 @@ const NewBookEntry = () => {
                                     />
                                 </Col>
                                 <Col lg={3}>
-                                    <FormLabel>Vendor</FormLabel>
+                                    <FormLabel className="labelForm">Vendor <span className="text-danger">*</span></FormLabel>
                                     <FormSelect
                                         name="vendor"
                                         value={formData.vendor}
@@ -604,7 +598,7 @@ const NewBookEntry = () => {
                                     </Form.Control.Feedback>
                                 </Col>
                                 <Col lg={3}>
-                                    <FormLabel>Bill No</FormLabel>
+                                    <FormLabel className="labelForm">Bill No</FormLabel>
                                     <FormControl
                                         name="billNo"
                                         value={formData.billNo}
@@ -612,10 +606,9 @@ const NewBookEntry = () => {
                                     />
                                 </Col>
                             </Row>
-                            <br />
-                            <Row>
+                            <Row className="mb-2">
                                 <Col lg={3}>
-                                    <FormLabel>Bill Date</FormLabel>
+                                    <FormLabel className="labelForm">Bill Date</FormLabel>
                                     <FormControl
                                         type="date"
                                         name="billDate"
@@ -628,7 +621,7 @@ const NewBookEntry = () => {
                                     </Form.Control.Feedback>
                                 </Col>
                             </Row>
-                            <Row>
+                            <Row className="mb-2">
                                 <Col className="text-center">
                                     <Button className="btn btn-primary mt-4" type="submit">
                                         Submit

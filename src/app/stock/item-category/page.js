@@ -18,6 +18,8 @@ import axios from "axios";
 import Table from "@/app/component/DataTable";
 import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import { addNewCategory, deleteCategoryById, getItemCategories, updateCategoryById } from "@/Services";
+import { toast } from "react-toastify";
 
 const ItemCategory = () => {
   const [data, setData] = useState([]);
@@ -29,6 +31,8 @@ const ItemCategory = () => {
   const [formData, setFormData] = useState({
     categoryName: ""
   });
+  const [formErrors, setFormErrors] = useState({});
+
 
   const columns = [
     {
@@ -39,13 +43,17 @@ const ItemCategory = () => {
     },
     {
       name: "Category Name",
+      selector: (row) => row.categoryName,
       cell: (row) =>
         editingId === row._id ? (
-          <FormControl
-            type="text"
-            value={editedName}
-            onChange={(e) => setEditedName(e.target.value)}
-          />
+          <div>
+            <FormControl
+              type="text"
+              value={editedName}
+              onChange={(e) => setEditedName(e.target.value)}
+              isInvalid={!editedName.trim()}
+            />
+          </div>
         ) : (
           row.categoryName || "N/A"
         ),
@@ -95,11 +103,11 @@ const ItemCategory = () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/itemCategories");
-      setData(response.data.data || []);
+      const response = await getItemCategories()
+      setData(response.data || []);
     } catch (err) {
       console.error("Error fetching data:", err);
-      setError("Failed to fetch item categories. Please try again later.");
+      toast.error("Failed to fetch item categories. Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -111,55 +119,78 @@ const ItemCategory = () => {
   };
 
   const handleUpdate = async (id) => {
+    if (!editedName.trim()) {
+      toast.error("Category name cannot be empty.");
+      return;
+    }
+
+    const isDuplicate = data.some(
+      (category) =>
+        category._id !== id &&
+        category.categoryName.toLowerCase() === editedName.trim().toLowerCase()
+    );
+
+    if (isDuplicate) {
+      toast.error("Category name already exists.");
+      return;
+    }
+
     try {
-      await axios.put(`https://erp-backend-fy3n.onrender.com/api/itemCategory/${id}`, {
-        categoryName: editedName,
-      });
+      const response = await updateCategoryById(id, { categoryName: editedName.trim() });
+      toast.success(response.message || "Item category updated successfully.");
       fetchData();
       setEditingId(null);
     } catch (error) {
       console.error("Error updating data:", error);
-      setError("Failed to update category. Please try again later.");
+      toast.error("Failed to update category. Please try again later.");
     }
   };
 
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this category?")) {
       try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/itemCategory/${id}`);
+        const response = await deleteCategoryById(id)
+        toast.success(response.message || "Category deleted successfully.")
         fetchData();
       } catch (error) {
         console.error("Error deleting data:", error);
-        setError("Failed to delete category. Please try again later.");
+        toast.error("Failed to delete category. Please try again later.");
       }
     }
   };
 
   const handleAdd = async () => {
-    if (formData.categoryName.trim()) {
-      try {
-        const existingCategory = data.find(
-          (category) => category.categoryName === formData.categoryName
-        );
-        if (existingCategory) {
-          setError("Category name already exists.");
-          return;
-        }
+    const errors = {};
 
-        await axios.post("https://erp-backend-fy3n.onrender.com/api/itemCategory", {
-          categoryName: formData.categoryName,
-        });
-        fetchData();
-        setFormData({ categoryName: "" });
-        setIsPopoverOpen(false);
-      } catch (error) {
-        console.error("Error adding data:", error);
-        setError("Failed to add category. Please try again later.");
-      }
-    } else {
-      alert("Please enter a valid category name.");
+    if (!formData.categoryName.trim()) {
+      errors.categoryName = "Category name is required.";
+    } else if (
+      data.find(
+        (category) =>
+          category.categoryName.toLowerCase() === formData.categoryName.trim().toLowerCase()
+      )
+    ) {
+      errors.categoryName = "Category name already exists.";
+    }
+
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
+    }
+
+    try {
+      const response = await addNewCategory({ categoryName: formData.categoryName.trim() });
+      toast.success(response.message || "Category added successfully.");
+      fetchData();
+      setFormData({ categoryName: "" });
+      setFormErrors({});
+      setIsPopoverOpen(false);
+    } catch (error) {
+      console.error("Error adding data:", error);
+      toast.error("Failed to add category. Please try again later.");
     }
   };
+
 
   const handlePrint = () => {
     const tableHeaders = [["#", "Category Name"]];
@@ -184,7 +215,7 @@ const ItemCategory = () => {
 
   const breadcrumbItems = [
     { label: "Stock", link: "/stock/all-module" },
-    { label: "Item Category", link: "null" },
+    { label: "Item Category", link: null },
   ];
 
   return (
@@ -202,7 +233,7 @@ const ItemCategory = () => {
       <section>
         <Container>
           {error && <Alert variant="danger">{error}</Alert>}
-          
+
           <Button
             onClick={() => setIsPopoverOpen(true)}
             className="btn-add"
@@ -227,15 +258,25 @@ const ItemCategory = () => {
               <Form className="formSheet">
                 <Row className="mb-3">
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Category Name</FormLabel>
+                    <FormLabel className="labelForm">Category Name <span className="text-danger">*</span></FormLabel>
                     <FormControl
                       type="text"
                       placeholder="Enter Category Name"
                       value={formData.categoryName}
-                      onChange={(e) =>
-                        setFormData({ categoryName: e.target.value })
-                      }
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setFormData({ categoryName: value });
+                        // Clear errors on typing
+                        if (value.trim()) {
+                          setFormErrors((prev) => ({ ...prev, categoryName: "" }));
+                        }
+                      }}
+                      isInvalid={!!formErrors.categoryName}
                     />
+                    {formErrors.categoryName && (
+                      <div className="text-danger mt-1">{formErrors.categoryName}</div>
+                    )}
+
                   </Col>
                 </Row>
                 <Button onClick={handleAdd} className="btn btn-primary">
