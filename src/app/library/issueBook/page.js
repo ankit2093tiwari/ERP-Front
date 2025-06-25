@@ -18,6 +18,8 @@ const IssueBook = () => {
   const [employees, setEmployees] = useState([]);
   const [showAddForm, setShowAddForm] = useState(false);
   const [errors, setErrors] = useState({});
+  const [loadingIssued, setLoadingIssued] = useState(true);
+
 
   const [formData, setFormData] = useState({
     book: "",
@@ -34,10 +36,10 @@ const IssueBook = () => {
 
   const columns = [
     { name: "#", selector: (row, index) => index + 1, width: "60px" },
-    { name: "Book Name", selector: row => row.bookName,sortable: true, },
-    { name: "Issued To", selector: row => `${row.issuedToType}: ${row.issuedToName}`,sortable: true, },
-    { name: "Issue Period", selector: row => `${row.issuePeriod} Days`,sortable: true, },
-    { name: "Issue Date", selector: row => new Date(row.issueDate).toLocaleDateString() ,sortable: true,},
+    { name: "Book Name", selector: row => row.bookName, sortable: true, },
+    { name: "Issued To", selector: row => `${row.issuedToType}: ${row.issuedToName}`, sortable: true, },
+    { name: "Issue Period", selector: row => `${row.issuePeriod} Days`, sortable: true, },
+    { name: "Issue Date", selector: row => new Date(row.issueDate).toLocaleDateString(), sortable: true, },
     {
       name: "Actions",
       cell: (row) => (
@@ -73,11 +75,15 @@ const IssueBook = () => {
   };
 
   const fetchIssuedBooks = async () => {
-    const response = await getAllIssuedBooks()
+    setLoadingIssued(true);
+    const response = await getAllIssuedBooks();
     if (response?.success) {
-      setData(response?.data)
+      const filtered = response?.data?.filter((item) => item.returned === false);
+      setData(filtered);
     }
-  }
+    setLoadingIssued(false);
+  };
+
 
   const fetchBooks = async () => {
     const response = await getAllBooks()
@@ -302,13 +308,23 @@ const IssueBook = () => {
 
           <div className="tableSheet mt-4">
             <h2>Issued Book Records</h2>
-            <Table
-              columns={columns}
-              data={data}
-              handleCopy={handleCopyIssuedBooks}
-              handlePrint={handlePrintIssuedBooks}
-            />
+            {loadingIssued ? (
+              <div className="text-center py-4">
+                <p>Loading..</p>
+                {/* <div className="spinner-border text-primary" role="status">
+                  <span className="visually-hidden">Loading...</span>
+                </div> */}
+              </div>
+            ) : (
+              <Table
+                columns={columns}
+                data={data}
+                handleCopy={handleCopyIssuedBooks}
+                handlePrint={handlePrintIssuedBooks}
+              />
+            )}
           </div>
+
         </Container>
       </section>
     </>

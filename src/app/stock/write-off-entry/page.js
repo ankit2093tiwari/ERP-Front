@@ -6,7 +6,7 @@ import { Container, Row, Col, Form, FormLabel, FormGroup, FormControl, FormSelec
 import { CgAddR } from 'react-icons/cg';
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import dynamic from 'next/dynamic';
-import { getItemCategories, getItemsByCategoryId, getItemById, addWriteOffEntry,getAllWriteOffItems } from '@/Services';
+import { getItemCategories, getItemsByCategoryId, getItemById, addWriteOffEntry, getAllWriteOffItems } from '@/Services';
 import { toast } from 'react-toastify';
 const StockWriteOffEntry = () => {
   const [itemCategories, setItemCategories] = useState([]);
@@ -131,7 +131,7 @@ const StockWriteOffEntry = () => {
     id: idx + 1,
     itemCategory: entry.itemCategory?.categoryName || '',
     itemName: entry.item?.itemName || '',
-    totalStock: entry.totalStock || 0,
+    totalStock: entry.item.availableStock || 0,
   }));
 
   return (

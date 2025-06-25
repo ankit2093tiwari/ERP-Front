@@ -8,6 +8,8 @@ import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
 import { CgAddR } from "react-icons/cg";
 import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import { addNewClass, addNewSection, deleteClassById, deleteSectionById, getAllSections, getClasses, updateClassById, updateSectionById } from "@/Services";
+import { toast } from "react-toastify";
 
 const ClassMasterPage = () => {
   const [data, setData] = useState([]);
@@ -136,11 +138,11 @@ const ClassMasterPage = () => {
     setLoading(true);
     setError("");
     try {
-      const classResponse = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-classes");
-      const classes = classResponse.data.data;
+      const classResponse = await getClasses()
+      const classes = classResponse.data;
 
-      const sectionResponse = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-sections");
-      const sections = sectionResponse.data.data;
+      const sectionResponse = await getAllSections()
+      const sections = sectionResponse.data;
 
       const updatedData = classes.map((classItem) => {
         const classSections = sections
@@ -167,18 +169,21 @@ const ClassMasterPage = () => {
   const handleAddClass = async () => {
     if (!formData.class_name.trim() || !formData.class_code.trim()) {
       setError("Both class name and code are required");
+      toast.warn("Please fill all required fields!");
       return;
     }
 
     try {
-      await axios.post("https://erp-backend-fy3n.onrender.com/api/add-class", {
+      const response = await addNewClass({
         class_name: formData.class_name,
         class_code: formData.class_code,
-      });
+      })
+      toast.success("Class added successfully!")
       fetchData();
       setFormData({ ...formData, class_name: "", class_code: "" });
       setIsClassFormOpen(false);
     } catch (err) {
+      toast.error(err?.response?.data?.message || "Failed to add new class:");
       console.error("Error adding class:", err);
       setError("Failed to add class. Please try again later.");
     }
@@ -187,19 +192,22 @@ const ClassMasterPage = () => {
   const handleAddSection = async () => {
     if (!formData.class_id || !formData.section_name.trim() || !formData.section_code.trim()) {
       setError("Class, section name and code are required");
+      toast.warn("Please fill all required fields");
       return;
     }
 
     try {
-      await axios.post("https://erp-backend-fy3n.onrender.com/api/add-sections", {
+      const res = await addNewSection({
         class_name: formData.class_id,
         section_name: formData.section_name,
         section_code: formData.section_code,
-      });
+      })
+      toast.success("Section added successfully!")
       fetchData();
       setFormData({ ...formData, section_name: "", section_code: "", class_id: "" });
       setIsSectionFormOpen(false);
     } catch (err) {
+      toast.error(err?.response?.data?.message || "failed to add new section:");
       console.error("Error adding section:", err);
       setError("Failed to add section. Please try again later.");
     }
@@ -226,19 +234,22 @@ const ClassMasterPage = () => {
   const handleUpdateClass = async (id) => {
     if (!formData.class_name.trim() || !formData.class_code.trim()) {
       setError("Both class name and code are required");
+      toast.warn("fill required fileds first!");
       return;
     }
 
     try {
-      await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-class/${id}`, {
+      const res = await updateClassById(id, {
         class_name: formData.class_name,
         class_code: formData.class_code,
-      });
+      })
+      toast.success("Class updated successfully!")
       fetchData();
       setEditingClass(null);
       setFormData({ ...formData, class_name: "", class_code: "" });
     } catch (err) {
       console.error("Error updating class:", err);
+      toast.error(err?.response?.data?.message || "Failed to update class:");
       setError("Failed to update class. Please try again later.");
     }
   };
@@ -246,19 +257,22 @@ const ClassMasterPage = () => {
   const handleUpdateSection = async (id) => {
     if (!formData.section_name.trim() || !formData.section_code.trim()) {
       setError("Both section name and code are required");
+      toast.warn("fill required fileds first!");
       return;
     }
 
     try {
-      await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-sections/${id}`, {
+      const res = await updateSectionById(id, {
         section_name: formData.section_name,
         section_code: formData.section_code,
-      });
+      })
+      toast.success("Section updated successfully!")
       fetchData();
       setEditingSection(null);
       setFormData({ ...formData, section_name: "", section_code: "" });
     } catch (err) {
       console.error("Error updating section:", err);
+      toast.error(err?.response?.data?.message || "Failed to update section:");
       setError("Failed to update section. Please try again later.");
     }
   };
@@ -266,9 +280,11 @@ const ClassMasterPage = () => {
   const handleDeleteClass = async (id) => {
     if (confirm("Are you sure you want to delete this class and all its sections?")) {
       try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-class/${id}`);
+        const res = await deleteClassById(id)
+        toast.success("Class deleted successfully!")
         fetchData();
       } catch (err) {
+        toast.error(err?.response?.data?.message || "Failed to delete class:");
         console.error("Error deleting class:", err);
         setError("Failed to delete class. Please try again later.");
       }
@@ -278,9 +294,11 @@ const ClassMasterPage = () => {
   const handleDeleteSection = async (id) => {
     if (confirm("Are you sure you want to delete this section?")) {
       try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-sections/${id}`);
+        await deleteSectionById(id);
+        toast.success("Section deleted successfully!")
         fetchData();
       } catch (err) {
+        toast.error(err?.response?.data?.message || "Failed to delete section");
         console.error("Error deleting section:", err);
         setError("Failed to delete section. Please try again later.");
       }
@@ -364,7 +382,7 @@ const ClassMasterPage = () => {
               <Form className="formSheet">
                 <Row className="mb-3">
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Class Name</FormLabel>
+                    <FormLabel className="labelForm">Class Name<span className="text-danger">*</span></FormLabel>
                     <FormControl
                       type="text"
                       placeholder="Enter Class Name"
@@ -375,7 +393,7 @@ const ClassMasterPage = () => {
                     />
                   </Col>
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Class Code</FormLabel>
+                    <FormLabel className="labelForm">Class Code<span className="text-danger">*</span></FormLabel>
                     <FormControl
                       type="text"
                       placeholder="Enter Class Code"
@@ -416,7 +434,7 @@ const ClassMasterPage = () => {
               <Form className="formSheet">
                 <Row className="mb-3">
                   <Col lg={12}>
-                    <FormLabel className="labelForm">Select Class</FormLabel>
+                    <FormLabel className="labelForm">Select Class<span className="text-danger">*</span></FormLabel>
                     <FormControl
                       as="select"
                       value={formData.class_id}
@@ -435,7 +453,7 @@ const ClassMasterPage = () => {
                 </Row>
                 <Row className="mb-3">
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Section Code</FormLabel>
+                    <FormLabel className="labelForm">Section Code<span className="text-danger">*</span></FormLabel>
                     <FormControl
                       type="text"
                       placeholder="Section Code"
@@ -446,7 +464,7 @@ const ClassMasterPage = () => {
                     />
                   </Col>
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Section Name</FormLabel>
+                    <FormLabel className="labelForm">Section Name<span className="text-danger">*</span></FormLabel>
                     <FormControl
                       type="text"
                       placeholder="Section Name"
@@ -472,8 +490,6 @@ const ClassMasterPage = () => {
             <h2>Class Records</h2>
             {loading ? (
               <p>Loading...</p>
-            ) : error ? (
-              <p style={{ color: "red" }}>{error}</p>
             ) : (
               <Table
                 columns={columns}

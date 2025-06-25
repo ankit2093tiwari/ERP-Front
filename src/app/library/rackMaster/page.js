@@ -17,13 +17,14 @@ const RackAndShelfManager = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [formData, setFormData] = useState({ rackName: "", shelfName: "", rackId: "" });
+  const [errors, setErrors] = useState({});
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [editShelfId, setEditShelfId] = useState(null);
   const [editRackId, setEditRackId] = useState(null);
 
   const fetchRacks = async () => {
     try {
-      const response = await getAllRacks()
+      const response = await getAllRacks();
       setRacks(response.data || []);
     } catch (err) {
       setError("Failed to fetch racks");
@@ -32,7 +33,7 @@ const RackAndShelfManager = () => {
 
   const fetchShelves = async () => {
     try {
-      const response = await getAllShelves()
+      const response = await getAllShelves();
       setShelves(response.data || []);
     } catch (err) {
       setError("Failed to fetch shelves");
@@ -45,26 +46,29 @@ const RackAndShelfManager = () => {
   }, []);
 
   const handleAddRack = async () => {
-    if (!formData.rackName) {
-      toast.warning("Rack Name is required");
+    const newErrors = {};
+    if (!formData.rackName.trim()) newErrors.rackName = "Rack Name is required";
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      toast.warning("Please fill all required fields");
       return;
     }
 
     try {
       if (editRackId) {
-        const res = await updateRackById(editRackId, { rackName: formData.rackName, })
+        const res = await updateRackById(editRackId, { rackName: formData.rackName });
         toast.success(res.message || "Rack updated successfully");
       } else {
-        const response = await addNewRack({ rackName: formData.rackName, })
+        const response = await addNewRack({ rackName: formData.rackName });
         toast.success(response.message || "Rack added successfully");
       }
-
       setFormData({ ...formData, rackName: "" });
+      setErrors({});
       setEditRackId(null);
       fetchRacks();
     } catch (err) {
-      const errorMsg = err?.response?.data?.message || "Failed to save rack";
-      toast.error(errorMsg);
+      toast.error(err?.response?.data?.message || "Failed to save rack");
     }
   };
 
@@ -76,60 +80,60 @@ const RackAndShelfManager = () => {
 
   const handleDeleteRack = async (id) => {
     if (!confirm("Are you sure you want to delete this rack and its shelves?")) return;
-
     try {
-      await deleteRackById(id)
+      await deleteRackById(id);
       fetchRacks();
       fetchShelves();
       toast.success("Rack deleted successfully!");
-    } catch (err) {
+    } catch {
       toast.error("Failed to delete rack");
     }
   };
 
   const handleEditShelf = (shelf) => {
-    setFormData({
-      shelfName: shelf.shelfName,
-      rackId: shelf.rackId?._id || shelf.rackId,
-    });
+    setFormData({ shelfName: shelf.shelfName, rackId: shelf.rackId?._id || shelf.rackId });
     setEditShelfId(shelf._id);
     setIsPopoverOpen(true);
   };
 
   const handleAddShelf = async () => {
-    if (!formData.rackId || !formData.shelfName) {
-      toast.warning("Rack and Shelf Name are required");
+    const newErrors = {};
+    if (!formData.rackId) newErrors.rackId = "Rack is required";
+    if (!formData.shelfName.trim()) newErrors.shelfName = "Shelf Name is required";
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      toast.warning("Please fill all required fields");
       return;
     }
 
     try {
       if (editShelfId) {
-        const res = await updateShelfById(editShelfId, { rackId: formData.rackId, shelfName: formData.shelfName, })
-        toast.success(res.message || "Shelf updated successfully!");
-      } else {
-        await addNewShelf({
+        const res = await updateShelfById(editShelfId, {
           rackId: formData.rackId,
           shelfName: formData.shelfName,
-        })
+        });
+        toast.success(res.message || "Shelf updated successfully!");
+      } else {
+        await addNewShelf({ rackId: formData.rackId, shelfName: formData.shelfName });
         toast.success("Shelf added successfully!");
       }
-
       setFormData({ ...formData, shelfName: "", rackId: "" });
+      setErrors({});
       setEditShelfId(null);
       fetchShelves();
-    } catch (err) {
+    } catch {
       toast.error("Failed to save shelf");
     }
   };
 
   const handleDeleteShelf = async (id) => {
     if (!confirm("Are you sure you want to delete this shelf?")) return;
-
     try {
-      await deleteShelfById(id)
+      await deleteShelfById(id);
       fetchShelves();
       toast.success("Shelf deleted successfully!");
-    } catch (err) {
+    } catch {
       toast.error("Failed to delete shelf");
     }
   };
@@ -159,37 +163,29 @@ const RackAndShelfManager = () => {
   };
 
   const shelfColumns = [
-    { name: "#", selector: (row, index) => index + 1, sortable: false },
+    { name: "#", selector: (row, index) => index + 1 },
     { name: "Rack", selector: (row) => row.rackId?.rackName || "N/A", sortable: true },
     { name: "Shelf Name", selector: (row) => row.shelfName },
     {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
-          <Button variant="info" size="sm" onClick={() => handleEditShelf(row)}>
-            <FaEdit />
-          </Button>
-          <Button variant="danger" size="sm" onClick={() => handleDeleteShelf(row._id)}>
-            <FaTrashAlt />
-          </Button>
+          <Button variant="info" size="sm" onClick={() => handleEditShelf(row)}><FaEdit /></Button>
+          <Button variant="danger" size="sm" onClick={() => handleDeleteShelf(row._id)}><FaTrashAlt /></Button>
         </div>
       ),
     },
   ];
 
   const rackColumns = [
-    { name: "#", selector: (row, index) => index + 1, sortable: false },
+    { name: "#", selector: (row, index) => index + 1 },
     { name: "Rack Name", selector: (row) => row.rackName, sortable: true },
     {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
-          <Button variant="info" size="sm" onClick={() => handleEditRack(row)}>
-            <FaEdit />
-          </Button>
-          <Button variant="danger" size="sm" onClick={() => handleDeleteRack(row._id)}>
-            <FaTrashAlt />
-          </Button>
+          <Button variant="info" size="sm" onClick={() => handleEditRack(row)}><FaEdit /></Button>
+          <Button variant="danger" size="sm" onClick={() => handleDeleteRack(row._id)}><FaTrashAlt /></Button>
         </div>
       ),
     },
@@ -205,12 +201,11 @@ const RackAndShelfManager = () => {
       <div className="breadcrumbSheet position-relative">
         <Container>
           <Row className="mt-1 mb-1">
-            <Col>
-              <BreadcrumbComp items={breadcrumbItems} />
-            </Col>
+            <Col><BreadcrumbComp items={breadcrumbItems} /></Col>
           </Row>
         </Container>
       </div>
+
       <section>
         <Container>
           <Button onClick={() => setIsPopoverOpen(!isPopoverOpen)} className="btn-add">
@@ -228,13 +223,18 @@ const RackAndShelfManager = () => {
                   <Col lg={6} className="mb-3">
                     <div className="p-3 shadow-sm rounded bg-white">
                       <h5 className="mb-3">Add Rack</h5>
-                      <FormLabel>Rack Name</FormLabel>
+                      <FormLabel>Rack Name <span className="text-danger">*</span></FormLabel>
                       <FormControl
                         type="text"
                         placeholder="Enter Rack Name"
                         value={formData.rackName}
-                        onChange={(e) => setFormData({ ...formData, rackName: e.target.value })}
+                        isInvalid={!!errors.rackName}
+                        onChange={(e) => {
+                          setFormData({ ...formData, rackName: e.target.value });
+                          setErrors(prev => ({ ...prev, rackName: null }));
+                        }}
                       />
+                      <Form.Control.Feedback type="invalid">{errors.rackName}</Form.Control.Feedback>
                       <Button variant="primary" className="mt-3 w-100" onClick={handleAddRack}>
                         {editRackId ? "Update Rack" : "Add Rack"}
                       </Button>
@@ -244,36 +244,40 @@ const RackAndShelfManager = () => {
                   <Col lg={6} className="mb-3">
                     <div className="p-3 shadow-sm rounded bg-white">
                       <h5 className="mb-3">Add Shelf</h5>
-                      <FormLabel>Select Rack</FormLabel>
+                      <FormLabel>Select Rack <span className="text-danger">*</span></FormLabel>
                       <Form.Select
                         value={formData.rackId}
-                        onChange={(e) => setFormData({ ...formData, rackId: e.target.value })}
+                        isInvalid={!!errors.rackId}
+                        onChange={(e) => {
+                          setFormData({ ...formData, rackId: e.target.value });
+                          setErrors(prev => ({ ...prev, rackId: null }));
+                        }}
                       >
                         <option value="">Select Rack</option>
                         {racks.map(rack => (
                           <option key={rack._id} value={rack._id}>{rack.rackName}</option>
                         ))}
                       </Form.Select>
+                      <Form.Control.Feedback type="invalid">{errors.rackId}</Form.Control.Feedback>
 
-                      <FormLabel className="mt-2">Shelf Name</FormLabel>
+                      <FormLabel className="mt-2">Shelf Name <span className="text-danger">*</span></FormLabel>
                       <FormControl
                         type="text"
                         placeholder="Enter Shelf Name"
                         value={formData.shelfName}
-                        onChange={(e) => setFormData({ ...formData, shelfName: e.target.value })}
+                        isInvalid={!!errors.shelfName}
+                        onChange={(e) => {
+                          setFormData({ ...formData, shelfName: e.target.value });
+                          setErrors(prev => ({ ...prev, shelfName: null }));
+                        }}
                       />
+                      <Form.Control.Feedback type="invalid">{errors.shelfName}</Form.Control.Feedback>
                       <Button variant="primary" className="mt-3 w-100" onClick={handleAddShelf}>
                         {editShelfId ? "Update Shelf" : "Add Shelf"}
                       </Button>
                     </div>
                   </Col>
                 </Row>
-
-                {error && (
-                  <div className="text-danger text-center mt-2">
-                    {error}
-                  </div>
-                )}
               </Form>
             </div>
           )}
@@ -301,7 +305,6 @@ const RackAndShelfManager = () => {
               />
             )}
           </div>
-
         </Container>
       </section>
     </>

@@ -17,8 +17,8 @@ import axios from "axios";
 import Table from "@/app/component/DataTable";
 import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-toastify";
+import { addNewReligion, deleteReligionById, getReligions } from "@/Services";
 
 const ReligionMasterPage = () => {
   const [data, setData] = useState([]);
@@ -27,7 +27,7 @@ const ReligionMasterPage = () => {
   const [newReligionName, setNewReligionName] = useState("");
   const [editingId, setEditingId] = useState(null);
   const [editedName, setEditedName] = useState("");
-
+  const [fieldError, setFieldError] = useState("")
   const columns = [
     {
       name: "#",
@@ -79,21 +79,10 @@ const ReligionMasterPage = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await axios.get("https://erp-backend-fy3n.onrender.com/api/religions");
-      const fetchedData = res.data.data || [];
-
-      const normalized = fetchedData.map((item) => ({
-        ...item,
-        religion_name: item.religion_name || "N/A",
-      }));
-
-      const sorted = [...normalized].sort(
-        (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-      );
-
-      setData(sorted);
+      const res = await getReligions()
+      setData(res.data)
     } catch (err) {
-      toast.error("Failed to fetch data.", { position: "top-right" });
+      toast.error("Failed to fetch data.");
     } finally {
       setLoading(false);
     }
@@ -106,7 +95,7 @@ const ReligionMasterPage = () => {
 
   const handleSave = async (id) => {
     if (!editedName.trim()) {
-      toast.warning("Religion name cannot be empty.", { position: "top-right" });
+      toast.warning("Religion name cannot be empty.");
       return;
     }
 
@@ -117,7 +106,7 @@ const ReligionMasterPage = () => {
     );
 
     if (exists) {
-      toast.warning("Religion name already exists!", { position: "top-right" });
+      toast.warning("Religion name already exists!");
       setEditingId(null);
       return;
     }
@@ -127,7 +116,7 @@ const ReligionMasterPage = () => {
         religion_name: editedName,
       });
 
-      toast.success("Religion updated successfully!", { position: "top-right" });
+      toast.success("Religion updated successfully!");
 
       const updated = res.data?.data;
       if (updated) {
@@ -138,57 +127,51 @@ const ReligionMasterPage = () => {
 
       setEditingId(null);
     } catch (err) {
-      toast.error("Failed to update religion.", { position: "top-right" });
+      toast.error("Failed to update religion.");
     }
   };
 
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this religion?")) {
       try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/religions/${id}`);
-        toast.success("Religion deleted successfully!", { position: "top-right" });
+        await deleteReligionById(id)
+        toast.success("Religion deleted successfully!");
         fetchData();
       } catch (err) {
-        toast.error("Failed to delete religion.", { position: "top-right" });
+        toast.error("Failed to delete religion.");
+        console.log("failed to delete record", err)
       }
     }
   };
 
   const handleAdd = async () => {
     if (!newReligionName.trim()) {
-      toast.warning("Please enter a valid religion name.", { position: "top-right" });
+      setFieldError("Religion Name is required!");
+      toast.warning("Please enter a valid religion name.");
       return;
     }
-
     const exists = data.find(
       (item) =>
         item.religion_name.trim().toLowerCase() === newReligionName.trim().toLowerCase()
     );
-
     if (exists) {
-      toast.warning("Religion already exists!", { position: "top-right" });
-      setNewReligionName("");
-      setIsPopoverOpen(false);
+      toast.warning("Religion already exists!");
+      setFieldError("Religion already exists!");
       return;
     }
 
     try {
-      const res = await axios.post("https://erp-backend-fy3n.onrender.com/api/religions", {
+      const res = await addNewReligion({
         religion_name: newReligionName,
-      });
-
-      const added = res?.data?.data;
-      if (added) {
-        setData((prev) => [added, ...prev]);
-      } else {
-        fetchData();
-      }
-
-      toast.success("Religion added successfully!", { position: "top-right" });
+      })
+      toast.success("Religion added successfully!");
+      fetchData()
       setNewReligionName("");
       setIsPopoverOpen(false);
     } catch (err) {
-      toast.error("Failed to add religion.", { position: "top-right" });
+      toast.error(err?.response?.data?.messsage || "Failed to add religion.");
+      console.log("Failed to add religion", err);
+
     }
   };
 
@@ -248,13 +231,15 @@ const ReligionMasterPage = () => {
               <Form className="formSheet">
                 <Row className="mb-3">
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Religion Name</FormLabel>
+                    <FormLabel className="labelForm">Religion Name<span className="text-danger">*</span></FormLabel>
                     <FormControl
                       type="text"
                       placeholder="Enter Religion Name"
                       value={newReligionName}
-                      onChange={(e) => setNewReligionName(e.target.value)}
+                      isInvalid={!!fieldError}
+                      onChange={(e) => { setNewReligionName(e.target.value); if (fieldError) setFieldError("") }}
                     />
+                    {fieldError && <p className="text-danger">{fieldError}</p>}
                   </Col>
                 </Row>
                 <Button onClick={handleAdd} className="btn btn-primary">
@@ -278,8 +263,6 @@ const ReligionMasterPage = () => {
           </div>
         </Container>
       </section>
-
-      <ToastContainer />
     </>
   );
 };

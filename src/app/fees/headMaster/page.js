@@ -15,7 +15,12 @@ import {
 import Table from "@/app/component/DataTable";
 import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
-import { addNewHead, deleteHeadById, getAllHeads, updateHeadById } from "@/Services";
+import {
+  addNewHead,
+  deleteHeadById,
+  getAllHeads,
+  updateHeadById,
+} from "@/Services";
 import { toast } from "react-toastify";
 
 const HeadMasterPage = () => {
@@ -26,6 +31,7 @@ const HeadMasterPage = () => {
     head_name: "",
     head_type: "",
   });
+  const [errors, setErrors] = useState({});
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [editedData, setEditedData] = useState({
@@ -33,31 +39,19 @@ const HeadMasterPage = () => {
     head_type: "",
   });
 
-  const handlePrint = async () => {
-    const tableHeaders = [["#", "Head Name", "Head Type"]];
-    const tableRows = data.map((row, index) => [
-      index + 1,
-      row.head_name || "N/A",
-      row.head_type || "N/A",
-    ]);
-
-    printContent(tableHeaders, tableRows);
-  };
-
-  const handleCopy = () => {
-    const headers = ["#", "Head Name", "Head Type"];
-    const rows = data.map((row, index) =>
-      `${index + 1}\t${row.head_name || "N/A"}\t${row.head_type || "N/A"}`
-    );
-
-    copyContent(headers, rows);
+  const validateForm = () => {
+    let formErrors = {};
+    if (!newHeadMaster.head_name.trim()) formErrors.head_name = "Head Name is Required";
+    if (!newHeadMaster.head_type.trim()) formErrors.head_type = "Head Type is Required";
+    setErrors(formErrors);
+    return Object.keys(formErrors).length === 0;
   };
 
   const fetchData = async () => {
     setLoading(true);
     setError("");
     try {
-      const response = await getAllHeads()
+      const response = await getAllHeads();
       if (response.success) {
         setData(response.data);
       } else {
@@ -65,7 +59,9 @@ const HeadMasterPage = () => {
         setError("No records found.");
       }
     } catch (err) {
-      toast.error(err?.response?.data?.message || "Failed to fetch HeadMaster records")
+      toast.error(
+        err?.response?.data?.message || "Failed to fetch HeadMaster records"
+      );
       setError("Failed to fetch HeadMasters.");
     } finally {
       setLoading(false);
@@ -73,31 +69,26 @@ const HeadMasterPage = () => {
   };
 
   const handleAdd = async () => {
-    if (newHeadMaster.head_name.trim() && newHeadMaster.head_type.trim()) {
-      try {
-        const existingHeadMaster = data.find(
-          (row) => row.head_name === newHeadMaster.head_name
-        );
-        if (existingHeadMaster) {
-          toast.warn("HeadMaster name already exists.");
-          return;
-        }
+    if (!validateForm()) return;
 
-        const response = await addNewHead(newHeadMaster)
-        if (response.success) {
-          toast.success(response?.message || "HeadMaster record aded succesfully")
-          fetchData();
-          setNewHeadMaster({ head_name: "", head_type: "" });
-          setIsPopoverOpen(false);
-        } else {
-          setError("Failed to add HeadMaster.");
-        }
-      } catch (err) {
-        toast.error(err?.response?.data?.message || "Failed to add HeadMaster.")
-        setError("Failed to add HeadMaster.");
+    try {
+      const existing = data.find(
+        (row) =>
+          row.head_name.toLowerCase() === newHeadMaster.head_name.toLowerCase()
+      );
+      if (existing) {
+        toast.warning("Head Name already exists.");
+        return;
       }
-    } else {
-      toast.warn("Both Head Name and Head Type are required.");
+
+      const response = await addNewHead(newHeadMaster);
+      toast.success(response?.message || "Head Master added successfully");
+      fetchData();
+      setNewHeadMaster({ head_name: "", head_type: "" });
+      setErrors({});
+      setIsPopoverOpen(false);
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Failed to add Head Master");
     }
   };
 
@@ -110,32 +101,50 @@ const HeadMasterPage = () => {
   };
 
   const handleUpdate = async (id) => {
-    if (editedData.head_name.trim() && editedData.head_type.trim()) {
-      try {
-        const response = await updateHeadById(id, editedData)
-        toast.success(response?.message || "HeadMaster record updated successfully.")
-        fetchData();
-        setEditingId(null);
-      } catch (err) {
-        toast.error(err?.response?.data?.message || "Failed to update HeadMaster records")
-        setError("Failed to update HeadMaster.");
-      }
-    } else {
-      toast.warn("Both Head Name and Head Type are required.");
+    if (!editedData.head_name.trim() || !editedData.head_type.trim()) {
+      toast.warning("Both fields are required.");
+      return;
+    }
+
+    try {
+      const response = await updateHeadById(id, editedData);
+      toast.success(response?.message || "Updated successfully");
+      fetchData();
+      setEditingId(null);
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Update failed");
     }
   };
 
   const handleDelete = async (id) => {
-    if (confirm("Are you sure you want to delete this HeadMaster?")) {
+    if (confirm("Are you sure you want to delete this Head Master?")) {
       try {
-        const response = await deleteHeadById(id)
-        toast.success(response?.message || "HeadMaster record deleted successfully.")
+        const response = await deleteHeadById(id);
+        toast.success(response?.message || "Deleted successfully");
         fetchData();
       } catch (err) {
-        toast.error(err?.response?.data?.message || "Failed to delete HeadMaster records")
-        setError("Failed to delete HeadMaster.");
+        toast.error(err?.response?.data?.message || "Delete failed");
       }
     }
+  };
+
+  const handlePrint = () => {
+    const headers = [["#", "Head Name", "Head Type"]];
+    const rows = data.map((row, index) => [
+      index + 1,
+      row.head_name || "N/A",
+      row.head_type || "N/A",
+    ]);
+    printContent(headers, rows);
+  };
+
+  const handleCopy = () => {
+    const headers = ["#", "Head Name", "Head Type"];
+    const rows = data.map(
+      (row, index) =>
+        `${index + 1}\t${row.head_name || "N/A"}\t${row.head_type || "N/A"}`
+    );
+    copyContent(headers, rows);
   };
 
   useEffect(() => {
@@ -169,8 +178,7 @@ const HeadMasterPage = () => {
       name: "Head Type",
       cell: (row) =>
         editingId === row._id ? (
-          <FormControl
-            as="select"
+          <Form.Select
             value={editedData.head_type}
             onChange={(e) =>
               setEditedData({ ...editedData, head_type: e.target.value })
@@ -179,7 +187,7 @@ const HeadMasterPage = () => {
             <option value="">Select Head Type</option>
             <option value="Installment Type">Installment Type</option>
             <option value="Lifetime">Lifetime</option>
-          </FormControl>
+          </Form.Select>
         ) : (
           row.head_type || "N/A"
         ),
@@ -191,19 +199,31 @@ const HeadMasterPage = () => {
         <div className="d-flex gap-2">
           {editingId === row._id ? (
             <>
-              <button className="editButton" onClick={() => handleUpdate(row._id)}>
+              <button
+                className="editButton"
+                onClick={() => handleUpdate(row._id)}
+              >
                 <FaSave />
               </button>
-              <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
+              <button
+                className="editButton btn-danger"
+                onClick={() => handleDelete(row._id)}
+              >
                 <FaTrashAlt />
               </button>
             </>
           ) : (
             <>
-              <button className="editButton" onClick={() => handleEdit(row)}>
+              <button
+                className="editButton"
+                onClick={() => handleEdit(row)}
+              >
                 <FaEdit />
               </button>
-              <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
+              <button
+                className="editButton btn-danger"
+                onClick={() => handleDelete(row._id)}
+              >
                 <FaTrashAlt />
               </button>
             </>
@@ -215,7 +235,7 @@ const HeadMasterPage = () => {
 
   const breadcrumbItems = [
     { label: "Fee", link: "/fees/all-module" },
-    { label: "head-master", link: "null" }
+    { label: "Head Master", link: null },
   ];
 
   return (
@@ -229,59 +249,79 @@ const HeadMasterPage = () => {
           </Row>
         </Container>
       </div>
+
       <section>
         <Container>
           <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
-            <CgAddR /> Add HeadMaster
+            <CgAddR /> Add Head Master
           </Button>
 
           {isPopoverOpen && (
             <div className="cover-sheet">
               <div className="studentHeading">
-                <h2>Add New HeadMaster</h2>
-                <button className="closeForm" onClick={() => setIsPopoverOpen(false)}>
+                <h2>Add New Head Master</h2>
+                <button
+                  className="closeForm"
+                  onClick={() => setIsPopoverOpen(false)}
+                >
                   X
                 </button>
               </div>
               <Form className="formSheet">
                 <Row>
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Head Name</FormLabel>
+                    <FormLabel className="labelForm">
+                      Head Name <span className="text-danger">*</span>
+                    </FormLabel>
                     <FormControl
                       type="text"
+                      placeholder="Enter Head Name"
                       value={newHeadMaster.head_name}
-                      onChange={(e) =>
-                        setNewHeadMaster({ ...newHeadMaster, head_name: e.target.value })
-                      }
+                      isInvalid={!!errors.head_name}
+                      onChange={(e) => {
+                        setNewHeadMaster({ ...newHeadMaster, head_name: e.target.value });
+                        if (errors.head_name) setErrors((prev) => ({ ...prev, head_name: "" }));
+                      }}
+
                     />
+                    <Form.Control.Feedback type="invalid">
+                      {errors.head_name}
+                    </Form.Control.Feedback>
                   </Col>
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Head Type</FormLabel>
-                    <FormControl
-                      as="select"
+                    <FormLabel className="labelForm">
+                      Head Type <span className="text-danger">*</span>
+                    </FormLabel>
+                    <Form.Select
                       value={newHeadMaster.head_type}
-                      onChange={(e) =>
-                        setNewHeadMaster({ ...newHeadMaster, head_type: e.target.value })
-                      }
+                      isInvalid={!!errors.head_type}
+                      onChange={(e) => {
+                        setNewHeadMaster({ ...newHeadMaster, head_type: e.target.value });
+                        if (errors.head_type) setErrors((prev) => ({ ...prev, head_type: "" }));
+                      }}
+
                     >
                       <option value="">Select Head Type</option>
                       <option value="Installment Type">Installment Type</option>
                       <option value="Lifetime">Lifetime</option>
-                    </FormControl>
+                    </Form.Select>
+                    <Form.Control.Feedback type="invalid">
+                      {errors.head_type}
+                    </Form.Control.Feedback>
                   </Col>
                 </Row>
                 <Button onClick={handleAdd} className="btn btn-primary mt-3">
-                  Add HeadMaster
+                  Add Head Master
                 </Button>
               </Form>
             </div>
           )}
 
-          <div className="tableSheet">
-            <h2>HeadMaster Records</h2>
-            {loading && <p>Loading...</p>}
-            {error && <p>{error}</p>}
-            {!loading && (
+          <div className="tableSheet mt-4">
+            <h2>Head Master Records</h2>
+            {loading ? (
+              <p>Loading...</p>
+            ) : (
               <Table
                 columns={columns}
                 data={data}

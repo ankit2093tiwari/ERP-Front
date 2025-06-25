@@ -17,14 +17,16 @@ import axios from "axios";
 import Table from "@/app/component/DataTable";
 import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-toastify";
+import { BASE_URL } from "@/Services";
+
 
 const DocumentMasterPage = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [newDocumentName, setNewDocumentName] = useState("");
+  const [formError, setFormError] = useState("");
   const [editingId, setEditingId] = useState(null);
   const [editedName, setEditedName] = useState("");
 
@@ -80,7 +82,7 @@ const DocumentMasterPage = () => {
     setLoading(true);
     try {
       const res = await axios.get(
-        "https://erp-backend-fy3n.onrender.com/api/document-uploads"
+        `${BASE_URL}/api/document-uploads`
       );
       const fetchedData = Array.isArray(res.data)
         ? res.data
@@ -89,7 +91,7 @@ const DocumentMasterPage = () => {
           : [];
       setData(fetchedData);
     } catch {
-      toast.error("Failed to fetch documents.", { position: "top-right" });
+      toast.error("Failed to fetch documents.");
     } finally {
       setLoading(false);
     }
@@ -102,7 +104,7 @@ const DocumentMasterPage = () => {
 
   const handleSave = async (id) => {
     if (!editedName.trim()) {
-      toast.warning("Document name cannot be empty.", { position: "top-right" });
+      toast.warning("Document name cannot be empty.");
       return;
     }
 
@@ -113,13 +115,13 @@ const DocumentMasterPage = () => {
     );
 
     if (exists) {
-      toast.warning("Document name already exists.", { position: "top-right" });
+      toast.warn("Document name already exists.");
       return;
     }
 
     try {
       const res = await axios.put(
-        `https://erp-backend-fy3n.onrender.com/api/document-uploads/${id}`,
+        `${BASE_URL}/api/document-uploads/${id}`,
         { document_name: editedName }
       );
 
@@ -130,10 +132,10 @@ const DocumentMasterPage = () => {
         fetchData();
       }
 
-      toast.success("Document updated successfully.", { position: "top-right" });
+      toast.success("Document updated successfully.");
       setEditingId(null);
     } catch {
-      toast.error("Failed to update document.", { position: "top-right" });
+      toast.error("Failed to update document.");
     }
   };
 
@@ -141,20 +143,24 @@ const DocumentMasterPage = () => {
     if (confirm("Are you sure you want to delete this document?")) {
       try {
         await axios.delete(
-          `https://erp-backend-fy3n.onrender.com/api/document-uploads/${id}`
+          `${BASE_URL}/api/document-uploads/${id}`
         );
-        toast.success("Document deleted successfully.", { position: "top-right" });
+        toast.success("Document deleted successfully.");
         fetchData();
       } catch {
-        toast.error("Failed to delete document.", { position: "top-right" });
+        toast.error("Failed to delete document.");
       }
     }
   };
 
   const handleAdd = async () => {
+    setFormError("");
+
     if (!newDocumentName.trim()) {
-      toast.warning("Please enter a valid document name.", { position: "top-right" });
-      setIsPopoverOpen(false); // Close the form even if input is invalid
+      setFormError("Document name is required.");
+      toast.warning("Please enter a valid document name.", {
+        position: "top-right",
+      });
       return;
     }
 
@@ -164,15 +170,14 @@ const DocumentMasterPage = () => {
     );
 
     if (exists) {
-      toast.warning("Document already exists.", { position: "top-right" });
-      setIsPopoverOpen(false); // Close the form when duplicate is found
-      setNewDocumentName(""); // Clear input
+      setFormError("This document name already exists.");
+      toast.warning("Document already exists.");
       return;
     }
 
     try {
       const res = await axios.post(
-        "https://erp-backend-fy3n.onrender.com/api/document-uploads",
+        `${BASE_URL}/api/document-uploads`,
         { document_name: newDocumentName }
       );
 
@@ -183,15 +188,14 @@ const DocumentMasterPage = () => {
         fetchData();
       }
 
-      toast.success("Document added successfully.", { position: "top-right" });
-    } catch {
-      toast.error("Failed to add document.", { position: "top-right" });
-    } finally {
+      toast.success("Document added successfully.");
+      setIsPopoverOpen(false);
       setNewDocumentName("");
-      setIsPopoverOpen(false); 
+      setFormError("");
+    } catch {
+      toast.error("Failed to add document.");
     }
   };
-
 
   const handlePrint = () => {
     const tableHeaders = [["#", "Document Name"]];
@@ -241,6 +245,7 @@ const DocumentMasterPage = () => {
                   onClick={() => {
                     setIsPopoverOpen(false);
                     setNewDocumentName("");
+                    setFormError("");
                   }}
                 >
                   X
@@ -249,13 +254,20 @@ const DocumentMasterPage = () => {
               <Form className="formSheet">
                 <Row className="mb-3">
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Document Name</FormLabel>
+                    <FormLabel className="labelForm">Document Name<span className="text-danger">*</span></FormLabel>
                     <FormControl
                       type="text"
                       placeholder="Enter Document Name"
                       value={newDocumentName}
-                      onChange={(e) => setNewDocumentName(e.target.value)}
+                      onChange={(e) => {
+                        setNewDocumentName(e.target.value);
+                        setFormError("");
+                      }}
+                      isInvalid={!!formError}
                     />
+                    {formError && (
+                      <div className="text-danger mt-1">{formError}</div>
+                    )}
                   </Col>
                 </Row>
                 <Button onClick={handleAdd} className="btn btn-primary">
@@ -280,7 +292,6 @@ const DocumentMasterPage = () => {
         </Container>
       </section>
 
-      <ToastContainer />
     </>
   );
 };

@@ -10,32 +10,34 @@ import {
   Container,
   FormLabel,
   FormControl,
-  Button,
-  Breadcrumb
+  Button
 } from "react-bootstrap";
-import axios from "axios";
 import Table from "@/app/component/DataTable";
-import styles from "@/app/medical/routine-check-up/page.module.css";
 import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { toast } from "react-toastify";
-import { addNewInstallment, deleteInstallmentById, getAllInstallments, updateInstallmentById } from "@/Services";
+import {
+  addNewInstallment,
+  deleteInstallmentById,
+  getAllInstallments,
+  updateInstallmentById
+} from "@/Services";
 
 const InstallmentMaster = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [newInstallment, setNewInstallment] = useState("");
+  const [newError, setNewError] = useState("");
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const [editingId, setEditingId] = useState(null); // Track which row is being edited
-  const [editedName, setEditedName] = useState(""); // Store the edited installment name
+  const [editingId, setEditingId] = useState(null);
+  const [editedName, setEditedName] = useState("");
 
-  // Fetch data from the API
   const fetchData = async () => {
     setLoading(true);
     setError("");
     try {
-      const response = await getAllInstallments()
+      const response = await getAllInstallments();
       if (response.success) {
         setData(response.data);
       } else {
@@ -50,85 +52,71 @@ const InstallmentMaster = () => {
     }
   };
 
-  // Add a new installment
   const handleAdd = async () => {
-    if (newInstallment.trim()) {
-      try {
-        const response = await addNewInstallment({ installment_name: newInstallment })
-        toast.success(response?.message || "Installment added successfully")
-        fetchData()
-        setNewInstallment("");
-        setIsPopoverOpen(false);
-        fetchData(); // Refresh data
-      } catch (err) {
-        toast.error(err?.response?.data?.message || "Failed to add installment.")
-        setError("Failed to add installment.", err);
-      }
+    if (!newInstallment.trim()) {
+      setNewError("Installment name is required");
+      return;
+    }
+    try {
+      const response = await addNewInstallment({ installment_name: newInstallment });
+      toast.success(response?.message || "Installment added successfully");
+      fetchData();
+      setNewInstallment("");
+      setIsPopoverOpen(false);
+      setNewError("");
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Failed to add installment.");
     }
   };
 
-  // Enter edit mode for a row
   const handleEdit = (row) => {
-    setEditingId(row._id); // Set the ID of the row being edited
-    setEditedName(row.installment_name); // Set the current installment name
+    setEditingId(row._id);
+    setEditedName(row.installment_name);
   };
 
-  // Save changes for the edited row
   const handleUpdate = async (id) => {
-    if (editedName.trim()) {
-      try {
-        const response = await updateInstallmentById(id, {
-          installment_name: editedName
-        })
-        toast.success(response?.message || "Installment updated successfully")
-        fetchData();
-        setEditingId(null); // Exit edit mode
-      } catch (err) {
-        toast.error(err?.response?.data?.message || "Failed to update installment.")
-        setError("Failed to update installment.");
-      }
+    if (!editedName.trim()) {
+      toast.warning("Installment name cannot be empty");
+      return;
+    }
+    try {
+      const response = await updateInstallmentById(id, { installment_name: editedName });
+      toast.success(response?.message || "Installment updated successfully");
+      fetchData();
+      setEditingId(null);
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Failed to update installment.");
     }
   };
 
-  // Delete an installment
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this installment?")) {
       try {
-        const response = await deleteInstallmentById(id)
-        toast.success(response?.message || "Installment deleted successfully")
+        const response = await deleteInstallmentById(id);
+        toast.success(response?.message || "Installment deleted successfully");
         fetchData();
       } catch (err) {
-        toast.error(err?.response?.data?.message || "Failed to delete installment.")
-        setError("Failed to delete installment.");
+        toast.error(err?.response?.data?.message || "Failed to delete installment.");
       }
     }
   };
 
-  // Handle Print Functionality
-  const handlePrint = async () => {
-    const tableHeaders = [["#", "Installment Name"]]; // Add headers
-    const tableRows = data.map((row, index) => [
-      index + 1,
-      row.installment_name || "N/A",
-    ]);
-
-    printContent(tableHeaders, tableRows);
+  const handlePrint = () => {
+    const headers = [["#", "Installment Name"]];
+    const rows = data.map((row, index) => [index + 1, row.installment_name || "N/A"]);
+    printContent(headers, rows);
   };
 
-  // Copy table data to clipboard
   const handleCopy = () => {
-    const headers = ["#", "Installment Name"]; // Tab-separated headers
+    const headers = ["#", "Installment Name"];
     const rows = data.map((row, index) => `${index + 1}\t${row.installment_name || "N/A"}`);
-
     copyContent(headers, rows);
   };
 
-  // Fetch data on component mount
   useEffect(() => {
     fetchData();
   }, []);
 
-  // Table columns definition
   const columns = [
     {
       name: "#",
@@ -144,6 +132,7 @@ const InstallmentMaster = () => {
             type="text"
             value={editedName}
             onChange={(e) => setEditedName(e.target.value)}
+            isInvalid={!editedName.trim()}
           />
         ) : (
           row.installment_name || "N/A"
@@ -178,7 +167,10 @@ const InstallmentMaster = () => {
     },
   ];
 
-  const breadcrumbItems = [{ label: "Fee", link: "/fees/all-module" }, { label: "installment-master", link: "null" }]
+  const breadcrumbItems = [
+    { label: "Fee", link: "/fees/all-module" },
+    { label: "Installment Master", link: "null" }
+  ];
 
   return (
     <>
@@ -192,14 +184,11 @@ const InstallmentMaster = () => {
         </Container>
       </div>
       <section>
-        <Container className="">
-
-          {/* Add Installment Button */}
+        <Container>
           <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
             <CgAddR /> Add Installment
           </Button>
 
-          {/* Add Installment Popover */}
           {isPopoverOpen && (
             <div className="cover-sheet">
               <div className="studentHeading">
@@ -209,27 +198,32 @@ const InstallmentMaster = () => {
               <Form className="formSheet">
                 <Row>
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Installment Name</FormLabel>
+                    <FormLabel className="labelForm">Installment Name <span className="text-danger">*</span></FormLabel>
                     <FormControl
                       type="text"
                       placeholder="Enter Installment Name"
                       value={newInstallment}
-                      onChange={(e) => setNewInstallment(e.target.value)}
+                      isInvalid={!!newError}
+                      onChange={(e) => {
+                        setNewInstallment(e.target.value);
+                        if (newError) setNewError("");
+                      }}
                     />
+                    <Form.Control.Feedback type="invalid">
+                      {newError}
+                    </Form.Control.Feedback>
                   </Col>
                 </Row>
-                <Button onClick={handleAdd} className="btn btn-primary">
+                <Button onClick={handleAdd} className="btn btn-primary mt-3">
                   Add Installment
                 </Button>
               </Form>
             </div>
           )}
 
-          {/* Installment Records Table */}
-          <div className="tableSheet">
+          <div className="tableSheet mt-4">
             <h2>Installment Records</h2>
-            {loading && <p>Loading...</p>}
-            {!loading && (
+            {loading ? <p>Loading...</p> : (
               <Table
                 columns={columns}
                 data={data}

@@ -1,25 +1,34 @@
-// Updated code working //with data
 "use client";
 
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import styles from "@/app/medical/routine-check-up/page.module.css";
 import Table from "@/app/component/DataTable";
 import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
-import { Form, Row, Col, Container, FormLabel, FormControl, Button, Breadcrumb } from "react-bootstrap";
-import axios from "axios";
+import { Form, Row, Col, Container, FormLabel, FormControl, Button } from "react-bootstrap";
 import { CgAddR } from 'react-icons/cg';
 import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import axios from "axios";
+import { toast } from "react-toastify";
+import { addNewLibraryGroup, deleteLibraryGroupById, getLibraryGroups, updateLibraryGroupById } from "@/Services";
 
 const AddLibraryGroup = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  // const [showAddForm, setShowAddForm] = useState(false);
   const [newGroupName, setNewGroupName] = useState("");
   const [editId, setEditId] = useState(null);
   const [editGroupName, setEditGroupName] = useState("");
+  const [fieldError, setFieldError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const onOpen = () => setIsPopoverOpen(true);
+  const onClose = () => {
+    setIsPopoverOpen(false);
+    setFieldError("");
+    setNewGroupName("");
+  };
 
   const columns = [
     { name: "#", selector: (row, index) => index + 1, width: "80px" },
@@ -58,15 +67,15 @@ const AddLibraryGroup = () => {
     },
   ];
 
-
   const fetchData = async () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/libraryGroup");
-      setData(response.data.data || []);
+      const response = await getLibraryGroups()
+      setData(response.data || []);
     } catch (err) {
       setError("Failed to fetch data.");
+      toast.error("Failed to fetch group records.");
     } finally {
       setLoading(false);
     }
@@ -78,63 +87,73 @@ const AddLibraryGroup = () => {
   };
 
   const handleSave = async (id) => {
+    if (!editGroupName.trim()) {
+      toast.error("Group name cannot be empty");
+      return;
+    }
+
     try {
-      await axios.put(`https://erp-backend-fy3n.onrender.com/api/libraryGroup/${id}`, {
+      await updateLibraryGroupById(id, {
         groupName: editGroupName,
-      });
-      setData((prevData) => prevData.map((row) => (row._id === id ? { ...row, groupName: editGroupName } : row)));
-      fetchData();
+      })
+      toast.success("Group updated successfully");
       setEditId(null);
+      fetchData();
     } catch (error) {
-      setError("Failed to update data.");
+      toast.error("Failed to update group");
     }
   };
 
   const handleDelete = async (id) => {
-    if (confirm("Are you sure?")) {
+    if (confirm("Are you sure you want to delete this group?")) {
       try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/libraryGroup/${id}`);
-        setData((prevData) => prevData.filter((row) => row._id !== id));
+        await deleteLibraryGroupById(id)
+        toast.success("Group deleted successfully");
         fetchData();
       } catch (error) {
-        setError("Failed to delete data.");
+        toast.error("Failed to delete group");
       }
     }
   };
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const onOpen = () => setIsPopoverOpen(true);
-  const onClose = () => setIsPopoverOpen(false);
+
   const handleAdd = async () => {
-    if (newGroupName.trim()) {
-      try {
-        const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/libraryGroup", {
-          groupName: newGroupName,
-        });
-        setData((prevData) => [...prevData, response.data]);
-        setNewGroupName("");
-        setIsPopoverOpen(false);
-        fetchData();
-      } catch (error) {
-        setError("Failed to add data.");
-      }
+    setFieldError("");
+
+    if (!newGroupName.trim()) {
+      setFieldError("Group name is required");
+      return;
+    }
+
+    if (newGroupName.length < 3) {
+      setFieldError("Group name must be at least 3 characters");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const response = await addNewLibraryGroup({
+        groupName: newGroupName.trim(),
+      })
+      toast.success("Group added successfully");
+      fetchData();
+      setNewGroupName("");
+      setIsPopoverOpen(false);
+    } catch (error) {
+      toast.error("Failed to add group");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handlePrint = async () => {
-    const tableHeaders = [["#", "Group Name"]];
-    const tableRows = data.map((row, index) => [
-      index + 1,
-      row.groupName || "N/A",
-    ]);
-
-    printContent(tableHeaders, tableRows);
-
+  const handlePrint = () => {
+    const headers = [["#", "Group Name"]];
+    const rows = data.map((row, index) => [index + 1, row.groupName || "N/A"]);
+    printContent(headers, rows);
   };
 
   const handleCopy = () => {
     const headers = ["#", "Group Name"];
     const rows = data.map((row, index) => `${index + 1}\t${row.groupName || "N/A"}`);
-
     copyContent(headers, rows);
   };
 
@@ -142,8 +161,10 @@ const AddLibraryGroup = () => {
     fetchData();
   }, []);
 
-  const breadcrumbItems = [{ label: "Library", link: "/library/all-module" }, { label: "Group Master", link: "null" }]
-
+  const breadcrumbItems = [
+    { label: "Library", link: "/library/all-module" },
+    { label: "Group Master", link: "null" },
+  ];
 
   return (
     <>
@@ -156,41 +177,65 @@ const AddLibraryGroup = () => {
           </Row>
         </Container>
       </div>
+
       <section>
-        <Container className="">
+        <Container>
           <Button onClick={onOpen} className="btn-add">
             <CgAddR /> Add Group
           </Button>
-          {isPopoverOpen && (
 
+          {isPopoverOpen && (
             <div className="cover-sheet">
-              <div className="studentHeading"><h2> Add New Group</h2>
-                <button className='closeForm' onClick={onClose}> X </button></div>
-              <Form className="formSheet">
+              <div className="studentHeading">
+                <h2>Add New Group</h2>
+                <button className="closeForm" onClick={onClose}>X</button>
+              </div>
+              <Form className="formSheet" onSubmit={(e) => e.preventDefault()}>
                 <Row>
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Group Name</FormLabel>
+                    <FormLabel className="labelForm">Group Name <span className="text-danger">*</span></FormLabel>
                     <FormControl
                       type="text"
                       placeholder="Enter Group Name"
                       value={newGroupName}
-                      onChange={(e) => setNewGroupName(e.target.value)}
+                      isInvalid={!!fieldError}
+                      onChange={(e) => {
+                        setNewGroupName(e.target.value);
+                        setFieldError("");
+                      }}
                     />
+                    {fieldError && (
+                      <Form.Control.Feedback type="invalid">
+                        {fieldError}
+                      </Form.Control.Feedback>
+                    )}
                   </Col>
                 </Row>
-                <Button onClick={handleAdd} className="btn btn-primary">
-                  Add Group
+                <Button
+                  className="btn btn-primary mt-3"
+                  onClick={handleAdd}
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? "Adding..." : "Add Group"}
                 </Button>
               </Form>
             </div>
           )}
 
-
-          <div className="tableSheet">
+          <div className="tableSheet mt-4">
             <h2>Group Records</h2>
-            {loading && <p>Loading...</p>}
-            {error && <p>{error}</p>}
-            {!loading && !error && <Table columns={columns} data={data} handleCopy={handleCopy} handlePrint={handlePrint} />}
+            {loading ? (
+              <p>Loading...</p>
+            ) : error ? (
+              <p className="text-danger">{error}</p>
+            ) : (
+              <Table
+                columns={columns}
+                data={data}
+                handleCopy={handleCopy}
+                handlePrint={handlePrint}
+              />
+            )}
           </div>
         </Container>
       </section>
