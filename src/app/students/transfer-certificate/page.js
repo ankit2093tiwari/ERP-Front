@@ -10,6 +10,8 @@ import axios from 'axios';
 import Table from "@/app/component/DataTable";
 import { copyContent, printContent } from "@/app/utils";
 import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
+import { deleteTransferCertificateById, generateTransferCertificate, getAllTCRecords, getLastTCNumber, getStudentByRegistrationId, updateTransferCertificateById } from '@/Services';
+import { toast } from 'react-toastify';
 
 const TransferCertificate = () => {
   const [studentData, setStudentData] = useState(null);
@@ -20,10 +22,8 @@ const TransferCertificate = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [editingId, setEditingId] = useState(null);
-  const [editedData, setEditedData] = useState({});
   const [alreadyExists, setAlreadyExists] = useState(false);
-
+  const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({
     registration_id: '',
     tc_no: '',
@@ -37,7 +37,7 @@ const TransferCertificate = () => {
     caste: '',
     nationality: 'Indian',
     whether_failed: 'No',
-    school_name: '',
+    school_name: 'R.D.S. MEMORIAL PUBLIC SCHOOL (English Medium)',
     subject_studies: ['', '', '', '', '', ''],
     class_promotion: 'false',
     class_promotion_inwords: '',
@@ -51,6 +51,13 @@ const TransferCertificate = () => {
     date_of_issue: new Date().toISOString().split('T')[0],
     remarks: ''
   });
+
+  const requiredFields = [
+    'registration_id', 'tc_no', 'date_of_issue', 'date_of_admission',
+    'student_name', 'class_section', 'caste', 'father_name', 'mother_name',
+    'dob', 'dob_inWords', 'school_name', 'subject_studies_0', 'date_of_application',
+    'general_conduct', 'total_working_days', 'reason_for_leaving_school'
+  ];
 
   const columns = [
     {
@@ -87,56 +94,37 @@ const TransferCertificate = () => {
     {
       name: "Actions",
       cell: (row) => (
-        <div className="d-flex gap-2">
-          {editingId === row._id ? (
-            <>
-              <button className="editButton" onClick={() => handleUpdate(row._id)}>
-                <FaSave />
-              </button>
-              <button className="editButton btn-danger" onClick={() => handleCancelEdit()}>
-                Cancel
-              </button>
-            </>
-          ) : (
-            <>
-              {/* <button className="editButton" onClick={() => handleEdit(row)}>
-                <FaEdit />
-              </button> */}
-              <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
-                <FaTrashAlt />
-              </button>
-            </>
-          )}
-        </div>
+        <>
+          <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
+            <FaTrashAlt />
+          </button>
+        </>
       ),
     },
   ];
-
-  // Fetch TC records when component mounts
-  useEffect(() => {
-    const fetchTcRecords = async () => {
-      setLoading(true);
-      try {
-        const response = await axios.get('https://erp-backend-fy3n.onrender.com/api/transfer-certificates');
-        if (response.data.success) {
-          setTcRecords(response.data.data);
-        }
-      } catch (error) {
-        console.error("Error fetching TC records:", error);
-        setError("Failed to fetch TC records");
-      } finally {
-        setLoading(false);
+  const fetchTcRecords = async () => {
+    setLoading(true);
+    try {
+      const response = await getAllTCRecords()
+      if (response.success) {
+        setTcRecords(response.data);
       }
-    };
-
+    } catch (error) {
+      console.error("Error fetching TC records:", error);
+      setError("Failed to fetch TC records");
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
     fetchTcRecords();
     fetchLastTcNumber();
   }, []);
 
   const fetchLastTcNumber = async () => {
     try {
-      const response = await axios.get('https://erp-backend-fy3n.onrender.com/api/transfer-certificates/last-tc-number');
-      const lastNumber = response.data.lastTcNumber || 0;
+      const response = await getLastTCNumber()
+      const lastNumber = response.lastTcNumber || 0;
       const newTcNumber = `TC${String(lastNumber + 1).padStart(4, '0')}`;
       setFormData(prev => ({ ...prev, tc_no: newTcNumber }));
     } catch (error) {
@@ -145,71 +133,65 @@ const TransferCertificate = () => {
     }
   };
 
-  const handleEdit = (record) => {
-    setEditingId(record._id);
-    setEditedData({
-      tc_no: record.tc_no,
-      student_name: record.student_name,
-      class_section: record.class_section,
-      date_of_issue: record.date_of_issue,
-      reason_for_leaving_school: record.reason_for_leaving_school,
-      remarks: record.remarks
+  const validateField = (name, value) => {
+    let error = '';
+
+    if (requiredFields.includes(name) && !value) {
+      error = 'This field is required';
+    }
+
+    if (name === 'total_working_days' || name === 'present_working_days') {
+      if (value && isNaN(value)) {
+        error = 'Must be a number';
+      }
+      if (name === 'present_working_days' && formData.total_working_days &&
+        parseInt(value) > parseInt(formData.total_working_days)) {
+        error = 'Cannot exceed total working days';
+      }
+    }
+
+    return error;
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+    let isValid = true;
+
+    requiredFields.forEach(field => {
+      const value = field.startsWith('subject_studies_') ?
+        formData.subject_studies[parseInt(field.split('_')[2])] :
+        formData[field];
+
+      const error = validateField(field, value);
+      if (error) {
+        newErrors[field] = error;
+        isValid = false;
+      }
     });
-  };
 
-  const handleCancelEdit = () => {
-    setEditingId(null);
-    setEditedData({});
-  };
-
-  const handleUpdate = async (id) => {
-    try {
-      const response = await axios.put(
-        `https://erp-backend-fy3n.onrender.com/api/transfer-certificates/${id}`,
-        editedData
-      );
-
-      if (response.data.success) {
-        setTcRecords(prevRecords =>
-          prevRecords.map(record =>
-            record._id === id ? { ...record, ...editedData } : record
-          )
-        );
-        setEditingId(null);
-        setEditedData({});
-        alert("Transfer Certificate updated successfully!");
+    formData.subject_studies.forEach((subject, index) => {
+      if (index === 0 && !subject) {
+        newErrors[`subject_studies_${index}`] = 'At least one subject is required';
+        isValid = false;
       }
-    } catch (error) {
-      console.error("Error updating TC:", error);
-      alert("Failed to update Transfer Certificate");
-    }
-  };
+    });
 
-  const handleDelete = async (id) => {
-    if (confirm("Are you sure you want to delete this Transfer Certificate?")) {
-      try {
-        const response = await axios.delete(
-          `https://erp-backend-fy3n.onrender.com/api/transfer-certificates/${id}`
-        );
-
-        if (response.data.success) {
-          setTcRecords(prevRecords =>
-            prevRecords.filter(record => record._id !== id)
-          );
-          alert("Transfer Certificate deleted successfully!");
-        }
-      } catch (error) {
-        console.error("Error deleting TC:", error);
-        alert("Failed to delete Transfer Certificate");
-      }
-    }
+    setErrors(newErrors);
+    return isValid;
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    if (editingId) {
-      setEditedData(prev => ({ ...prev, [name]: value }));
-    } else if (name.startsWith("subject_studies_")) {
+
+    if (errors[name]) {
+      setErrors(prev => {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      });
+    }
+
+    if (name.startsWith("subject_studies_")) {
       const index = parseInt(name.split("_")[2], 10);
       const newSubjects = [...formData.subject_studies];
       newSubjects[index] = value;
@@ -227,26 +209,21 @@ const TransferCertificate = () => {
     setIsSubmitting(true);
     setAlreadyExists(false);
 
-    try {
-      const response = await axios.post(
-        'https://erp-backend-fy3n.onrender.com/api/transfer-certificates',
-        formData
-      );
+    if (!validateForm()) {
+      setIsSubmitting(false);
+      return;
+    }
 
-      if (response.data.success) {
-        if (response.data.alreadyExists) {
+    try {
+      const response = await generateTransferCertificate(formData)
+      if (response.success) {
+        if (response.alreadyExists) {
           setAlreadyExists(true);
-          alert("Transfer Certificate already exists for this student.");
+          toast.warn("Transfer Certificate already exists for this student.");
           return;
         }
-
-        alert("Transfer Certificate generated successfully!");
-
-        // Refresh TC records
-        const recordsResponse = await axios.get('https://erp-backend-fy3n.onrender.com/api/transfer-certificates');
-        setTcRecords(recordsResponse.data.data);
-
-        // Reset form with new TC number
+        toast.success("Transfer Certificate generated successfully!");
+        fetchTcRecords()
         const newNumber = parseInt(formData.tc_no.replace(/^TC0*/, '')) + 1;
         const newTcNumber = `TC${String(newNumber).padStart(4, '0')}`;
 
@@ -277,20 +254,48 @@ const TransferCertificate = () => {
           date_of_issue: new Date().toISOString().split('T')[0],
           remarks: ''
         });
-
         setStudentData(null);
         setStudentId("");
       }
     } catch (error) {
       console.error("Error submitting form:", error);
       if (error.response?.data?.message) {
-        alert(error.response.data.message);
+        toast.error(error.response.data.message);
       } else {
-        alert("An error occurred while submitting the form");
+        toast.error("An error occurred while submitting the form");
       }
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const renderFormControl = (name, label, type = 'text', options = {}) => {
+    const isRequired = requiredFields.includes(name);
+    const value = name.startsWith('subject_studies_') ?
+      formData.subject_studies[parseInt(name.split('_')[2])] :
+      formData[name] || '';
+    const error = errors[name];
+
+    return (
+      <FormGroup as={Col} md={options.md || '3'} controlId={name}>
+        <FormLabel>
+          {label} {isRequired && <span className="text-danger">*</span>}
+        </FormLabel>
+        <FormControl
+          name={name}
+          value={value}
+          onChange={handleChange}
+          type={type}
+          isInvalid={!!error}
+          {...options}
+        />
+        {error && (
+          <FormControl.Feedback type="invalid">
+            {error}
+          </FormControl.Feedback>
+        )}
+      </FormGroup>
+    );
   };
 
   const togglePreview = () => {
@@ -302,11 +307,10 @@ const TransferCertificate = () => {
 
     const fetchStudentInfo = async () => {
       try {
-        const url = `https://erp-backend-fy3n.onrender.com/api/students/search?registration_id=${studentId}`;
-        const response = await axios.get(url);
+        const response = await getStudentByRegistrationId(studentId)
 
-        if (response?.data.success) {
-          setStudentData(response?.data?.data[0]);
+        if (response?.success) {
+          setStudentData(response?.data[0]);
         }
       } catch (error) {
         console.error("Error fetching student info:", error);
@@ -364,7 +368,20 @@ const TransferCertificate = () => {
     );
     copyContent(headers, rows);
   };
-
+  const handleDelete = async (id) => {
+    if (confirm("Are you sure you want to delete this Transfer Certificate?")) {
+      try {
+        const response = await deleteTransferCertificateById(id)
+        if (response.success) {
+          fetchTcRecords()
+          toast.success("Transfer Certificate deleted successfully!");
+        }
+      } catch (error) {
+        console.error("Error deleting TC:", error);
+        toast.error("Failed to delete Transfer Certificate");
+      }
+    }
+  };
   return (
     <>
       <div className="breadcrumbSheet position-relative">
@@ -391,301 +408,82 @@ const TransferCertificate = () => {
                       )}
 
                       <Row className="mb-4">
-                        <FormGroup as={Col} md="4" controlId="registration_id">
-                          <FormLabel>Type Registration ID For Search Student</FormLabel>
-                          <FormControl
-                            name="registration_id"
-                            type="text"
-                            value={formData.registration_id}
-                            onChange={handleChange}
-                            required
-                          />
-                        </FormGroup>
+                        {renderFormControl('registration_id', 'Type Registration ID For Search Student', 'text', { md: '4' })}
                       </Row>
 
                       <Row className="mb-3">
-                        <FormGroup as={Col} md="3" controlId="tc_no">
-                          <FormLabel>TC No</FormLabel>
-                          <FormControl
-                            name="tc_no"
-                            value={formData.tc_no}
-                            onChange={handleChange}
-                            disabled
-                            type="text"
-                          />
-                        </FormGroup>
-                        <FormGroup as={Col} md="3" controlId="date_of_issue">
-                          <FormLabel>Date of Issue</FormLabel>
-                          <FormControl
-                            name="date_of_issue"
-                            value={formData.date_of_issue}
-                            onChange={handleChange}
-                            required
-                            type="date"
-                          />
-                        </FormGroup>
-                        <FormGroup as={Col} md="3" controlId="date_of_admission">
-                          <FormLabel>Date of Admission</FormLabel>
-                          <FormControl
-                            name="date_of_admission"
-                            value={formData.date_of_admission}
-                            onChange={handleChange}
-                            required
-                            type="date"
-                          />
-                        </FormGroup>
-                        <FormGroup as={Col} md="3" controlId="date_of_admission_inwords">
-                          <FormLabel>Date of Admission (In Words)</FormLabel>
-                          <FormControl
-                            name="date_of_admission_inwords"
-                            value={formData.date_of_admission_inwords}
-                            onChange={handleChange}
-                            type="text"
-                          />
-                        </FormGroup>
+                        {renderFormControl('tc_no', 'TC No', 'text', { disabled: true })}
+                        {renderFormControl('date_of_issue', 'Date of Issue', 'date')}
+                        {renderFormControl('date_of_admission', 'Date of Admission', 'date')}
+                        {renderFormControl('date_of_admission_inwords', 'Date of Admission (In Words)')}
                       </Row>
 
                       <Row className="mb-3">
-                        <FormGroup as={Col} md="3" controlId="student_name">
-                          <FormLabel>Student Name</FormLabel>
-                          <FormControl
-                            name="student_name"
-                            value={formData.student_name}
-                            onChange={handleChange}
-                            readOnly
-                            type="text"
-                          />
-                        </FormGroup>
-                        <FormGroup as={Col} md="3" controlId="class_section">
-                          <FormLabel>Class &amp; Section (in figures)</FormLabel>
-                          <FormControl
-                            name="class_section"
-                            value={formData.class_section}
-                            onChange={handleChange}
-                            readOnly
-                            type="text"
-                          />
-                        </FormGroup>
-                        <FormGroup as={Col} md="3" controlId="class_section_inwords">
-                          <FormLabel>Class &amp; Section (in words)</FormLabel>
-                          <FormControl
-                            name="class_section_inwords"
-                            value={formData.class_section_inwords}
-                            onChange={handleChange}
-                            type="text"
-                          />
-                        </FormGroup>
-                        <FormGroup as={Col} md="3" controlId="caste">
-                          <FormLabel>Caste</FormLabel>
-                          <FormControl
-                            name="caste"
-                            value={formData.caste}
-                            onChange={handleChange}
-                            required
-                            type="text"
-                          />
-                        </FormGroup>
+                        {renderFormControl('student_name', 'Student Name', 'text', { readOnly: true })}
+                        {renderFormControl('class_section', 'Class & Section (in figures)', 'text', { readOnly: true })}
+                        {renderFormControl('class_section_inwords', 'Class & Section (in words)')}
+                        {renderFormControl('caste', 'Caste')}
                       </Row>
 
                       <Row className="mb-3">
-                        <FormGroup as={Col} md="3" controlId="father_name">
-                          <FormLabel>Father&apos;s/Guardian&apos;s Name</FormLabel>
-                          <FormControl
-                            name="father_name"
-                            value={formData.father_name}
-                            onChange={handleChange}
-                            readOnly
-                            type="text"
-                          />
-                        </FormGroup>
-                        <FormGroup as={Col} md="3" controlId="mother_name">
-                          <FormLabel>Mother&apos;s Name</FormLabel>
-                          <FormControl
-                            name="mother_name"
-                            value={formData.mother_name}
-                            onChange={handleChange}
-                            required
-                            type="text"
-                          />
-                        </FormGroup>
-                        <FormGroup as={Col} md="3" controlId="dob">
-                          <FormLabel>Date of Birth (In Figure)</FormLabel>
-                          <FormControl
-                            name="dob"
-                            value={formData.dob}
-                            onChange={handleChange}
-                            required
-                            type="date"
-                          />
-                        </FormGroup>
-                        <FormGroup as={Col} md="3" controlId="dob_inWords">
-                          <FormLabel>Date of Birth (In Words)</FormLabel>
-                          <FormControl
-                            name="dob_inWords"
-                            value={formData.dob_inWords}
-                            onChange={handleChange}
-                            required
-                            type="text"
-                          />
-                        </FormGroup>
+                        {renderFormControl('father_name', 'Father\'s/Guardian\'s Name', 'text', { readOnly: true })}
+                        {renderFormControl('mother_name', 'Mother\'s Name', 'text')}
+                        {renderFormControl('dob', 'Date of Birth (In Figure)', 'date')}
+                        {renderFormControl('dob_inWords', 'Date of Birth (In Words)')}
                       </Row>
 
                       <Row className="mb-3">
-                        <FormGroup as={Col} md="3" controlId="school_name">
-                          <FormLabel>School Name</FormLabel>
-                          <FormControl
-                            name="school_name"
-                            value={formData.school_name}
-                            onChange={handleChange}
-                            required
-                            type="text"
-                          />
-                        </FormGroup>
-                        <FormGroup as={Col} md="3" controlId="nationality">
-                          <FormLabel>Nationality</FormLabel>
-                          <FormControl
-                            name="nationality"
-                            value={formData.nationality}
-                            onChange={handleChange}
-                            readOnly
-                            type="text"
-                          />
-                        </FormGroup>
-                        <FormGroup as={Col} md="3" controlId="whether_failed">
-                          <FormLabel>Whether Failed (Once / Twice)</FormLabel>
-                          <FormControl
-                            name="whether_failed"
-                            value={formData.whether_failed}
-                            onChange={handleChange}
-                            type="text"
-                          />
-                        </FormGroup>
-
-                        <FormGroup as={Col} md="3" controlId="subject_studies_0">
-                          <FormLabel>Subject Studies 1</FormLabel>
-                          <FormControl
-                            name="subject_studies_0"
-                            value={formData.subject_studies ? formData.subject_studies[0] || "" : ""}
-                            onChange={handleChange}
-                            required
-                            type="text"
-                          />
-                        </FormGroup>
+                        {renderFormControl('school_name', 'School Name')}
+                        {renderFormControl('nationality', 'Nationality', 'text', { readOnly: true })}
+                        {renderFormControl('whether_failed', 'Whether Failed (Once / Twice)')}
+                        {renderFormControl('subject_studies_0', 'Subject Studies 1')}
                       </Row>
 
                       <Row className="mb-3">
-                        {[1, 2, 3, 4, 5].map(i => (
-                          <FormGroup key={i} as={Col} md="3" controlId={`subject_studies_${i}`}>
-                            <FormLabel>Subject Studies {i + 1}</FormLabel>
-                            <FormControl
-                              name={`subject_studies_${i}`}
-                              value={formData.subject_studies ? formData.subject_studies[i] || "" : ""}
-                              onChange={handleChange}
-                              type="text"
-                            />
-                          </FormGroup>
-                        ))}
+                        {renderFormControl('subject_studies_1', 'Subject Studies 2')}
+                        {renderFormControl('subject_studies_2', 'Subject Studies 3')}
+                        {renderFormControl('subject_studies_3', 'Subject Studies 4')}
+                        {renderFormControl('subject_studies_4', 'Subject Studies 5')}
                       </Row>
 
                       <Row className="mb-3">
-                        <FormGroup as={Col} md="6" controlId="class_promotion">
-                          <FormLabel>Promotion to the higher class (in figures)</FormLabel>
-                          <FormControl
-                            name="class_promotion"
-                            value={formData.class_promotion}
-                            onChange={handleChange}
-                            type="text"
-                          />
-                        </FormGroup>
-
-                        <FormGroup as={Col} md="6" controlId="class_promotion_inwords">
-                          <FormLabel>Promotion to the higher class (in words)</FormLabel>
-                          <FormControl
-                            name="class_promotion_inwords"
-                            value={formData.class_promotion_inwords}
-                            onChange={handleChange}
-                            type="text"
-                          />
-                        </FormGroup>
+                        {renderFormControl('subject_studies_5', 'Subject Studies 6')}
+                        <Col md="3"></Col>
+                        <Col md="3"></Col>
                       </Row>
 
                       <Row className="mb-3">
-                        <FormGroup as={Col} md="6" controlId="whether_ncc_cadet">
-                          <FormLabel>Whether NCC Cadet / Boy Scout / Girl Guide (Details may be given)</FormLabel>
-                          <FormControl
-                            name="whether_ncc_cadet"
-                            value={formData.whether_ncc_cadet}
-                            onChange={handleChange}
-                            type="text"
-                          />
-                        </FormGroup>
-                        <FormGroup as={Col} md="6" controlId="date_of_application">
-                          <FormLabel>Date of application for certificate</FormLabel>
-                          <FormControl
-                            name="date_of_application"
-                            value={formData.date_of_application}
-                            onChange={handleChange}
-                            required
-                            type="date"
-                          />
-                        </FormGroup>
+                        {renderFormControl('class_promotion', 'Promotion to the higher class (in figures)')}
+                        {renderFormControl('class_promotion_inwords', 'Promotion to the higher class (in words)')}
+                        {renderFormControl('whether_ncc_cadet', 'Whether NCC Cadet / Boy Scout / Girl Guide')}
+                        {renderFormControl('date_of_application', 'Date of application for certificate', 'date')}
                       </Row>
 
                       <Row className="mb-3">
-                        <FormGroup as={Col} md="6" controlId="fee_concession">
-                          <FormLabel>Any fee concession availed (nature of concession)</FormLabel>
-                          <FormControl
-                            name="fee_concession"
-                            value={formData.fee_concession}
-                            onChange={handleChange}
-                            type="number"
-                          />
-                        </FormGroup>
-                        <FormGroup as={Col} md="6" controlId="general_conduct">
-                          <FormLabel>General Conduct</FormLabel>
-                          <FormControl
-                            name="general_conduct"
-                            value={formData.general_conduct}
-                            onChange={handleChange}
-                            required
-                            type="text"
-                          />
-                        </FormGroup>
-                      </Row>
-
-                      <Row className="mb-3">
-                        <FormGroup as={Col} md="6" controlId="total_working_days">
-                          <FormLabel>Total Working Days</FormLabel>
-                          <FormControl
-                            name="total_working_days"
-                            value={formData.total_working_days}
-                            onChange={handleChange}
-                            required
-                            type="number"
-                          />
-                        </FormGroup>
-                        <FormGroup as={Col} md="6" controlId="present_working_days">
-                          <FormLabel>Days Present</FormLabel>
-                          <FormControl
-                            name="present_working_days"
-                            value={formData.present_working_days}
-                            onChange={handleChange}
-                            type="number"
-                          />
-                        </FormGroup>
+                        {renderFormControl('fee_concession', 'Any fee concession availed', 'number')}
+                        {renderFormControl('general_conduct', 'General Conduct')}
+                        {renderFormControl('total_working_days', 'Total Working Days', 'number')}
+                        {renderFormControl('present_working_days', 'Days Present', 'number')}
                       </Row>
 
                       <Row className="mb-3">
                         <FormGroup as={Col} md="6" controlId="reason_for_leaving_school">
-                          <FormLabel>Reason for Leaving School</FormLabel>
+                          <FormLabel>
+                            Reason for Leaving School <span className="text-danger">*</span>
+                          </FormLabel>
                           <FormControl
                             name="reason_for_leaving_school"
                             value={formData.reason_for_leaving_school}
                             onChange={handleChange}
-                            required
+                            isInvalid={!!errors.reason_for_leaving_school}
                             as="textarea"
                             rows={3}
                           />
+                          {errors.reason_for_leaving_school && (
+                            <FormControl.Feedback type="invalid">
+                              {errors.reason_for_leaving_school}
+                            </FormControl.Feedback>
+                          )}
                         </FormGroup>
                         <FormGroup as={Col} md="6" controlId="remarks">
                           <FormLabel>Remarks</FormLabel>
@@ -714,7 +512,7 @@ const TransferCertificate = () => {
                   )}
                 </Tab>
 
-                <Tab eventKey="TC Records" title="TC Records" >
+                <Tab eventKey="TC Records" title="TC Records">
                   <div className="tableSheet">
                     <div className="d-flex justify-content-between align-items-center mb-3">
                       <h2>Transfer Certificate Records</h2>

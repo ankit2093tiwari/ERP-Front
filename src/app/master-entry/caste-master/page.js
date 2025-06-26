@@ -13,13 +13,11 @@ import {
   FormControl,
   Button,
 } from "react-bootstrap";
-import axios from "axios";
 import Table from "@/app/component/DataTable";
-import styles from "@/app/medical/routine-check-up/page.module.css";
 import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-toastify";
+import { addNewCaste, deleteCasteById, getCastes, updateCasteById } from "@/Services";
 
 const CasteMasterPage = () => {
   const [data, setData] = useState([]);
@@ -28,6 +26,7 @@ const CasteMasterPage = () => {
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [editedName, setEditedName] = useState("");
+  const [fieldError, setFieldError] = useState("");
 
   const columns = [
     {
@@ -38,13 +37,22 @@ const CasteMasterPage = () => {
     },
     {
       name: "Name",
+      selector: (row) => row.caste_name,
       cell: (row) =>
         editingId === row._id ? (
-          <FormControl
-            type="text"
-            value={editedName}
-            onChange={(e) => setEditedName(e.target.value)}
-          />
+          <>
+            <FormControl
+              type="text"
+              value={editedName}
+              isInvalid={!editedName.trim()}
+              onChange={(e) => {
+                setEditedName(e.target.value);
+                if (!e.target.value.trim()) setFieldError("Caste name is required.");
+                else setFieldError("");
+              }}
+            />
+            {/* {fieldError && <div className="text-danger mt-1">{fieldError}</div>} */}
+          </>
         ) : (
           row.caste_name || "N/A"
         ),
@@ -97,19 +105,15 @@ const CasteMasterPage = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(
-        "https://erp-backend-fy3n.onrender.com/api/castes"
-      );
-      const fetchedData = response.data.data || [];
+      const response = await getCastes()
+      const fetchedData = response.data || [];
       const normalizedData = fetchedData.map((item) => ({
         ...item,
         caste_name: item.caste_name || "N/A",
       }));
       setData(normalizedData);
     } catch (err) {
-      toast.error("Failed to fetch data. Please try again later.", {
-        position: "top-right",
-      });
+      toast.error("Failed to fetch data. Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -121,77 +125,63 @@ const CasteMasterPage = () => {
   };
 
   const handleSave = async (id) => {
+    if (!editedName.trim()) {
+      toast.warn("Caste name is required.")
+      setFieldError("Caste name is required.");
+      return;
+    }
+
     try {
-      await axios.put(
-        `https://erp-backend-fy3n.onrender.com/api/castes/${id}`,
-        {
-          caste_name: editedName,
-        }
-      );
+      await updateCasteById(id, {
+        caste_name: editedName.trim(),
+      })
+      toast.success("Caste updated successfully!");
       fetchData();
       setEditingId(null);
-      toast.success("Caste updated successfully!", { position: "top-right" });
     } catch (error) {
-      toast.error("Failed to update data. Please try again later.", {
-        position: "top-right",
-      });
+      toast.error("Failed to update data. Please try again later.");
     }
   };
 
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this entry?")) {
       try {
-        await axios.delete(
-          `https://erp-backend-fy3n.onrender.com/api/castes/${id}`
-        );
+        await deleteCasteById(id)
+        toast.success("Caste deleted successfully!");
         fetchData();
-        toast.success("Caste deleted successfully!", {
-          position: "top-right",
-        });
       } catch (error) {
-        toast.error("Failed to delete data. Please try again later.", {
-          position: "top-right",
-        });
+        toast.error("Failed to delete data. Please try again later.");
       }
     }
   };
 
   const handleAdd = async () => {
-    if (newCasteName.trim()) {
-      try {
-        const existingCaste = data.find(
-          (caste) =>
-            caste.caste_name.toLowerCase().trim() ===
-            newCasteName.toLowerCase().trim()
-        );
-        if (existingCaste) {
-          setIsPopoverOpen(false); // close the form if caste exists
-          setNewCasteName(""); // clear input
-          toast.warning("Caste name already exists!", {
-            position: "top-right",
-          });
-          return;
-        }
+    if (!newCasteName.trim()) {
+      setFieldError("Caste name is required.");
+      toast.warning("Please enter a valid caste name.");
+      return;
+    }
 
-        await axios.post("https://erp-backend-fy3n.onrender.com/api/castes", {
-          caste_name: newCasteName,
-        });
-
+    try {
+      const existingCaste = data.find(
+        (caste) =>
+          caste.caste_name.toLowerCase().trim() ===
+          newCasteName.toLowerCase().trim()
+      );
+      if (existingCaste) {
         setNewCasteName("");
-        setIsPopoverOpen(false);
-        fetchData();
-        toast.success("Caste added successfully!", {
-          position: "top-right",
-        });
-      } catch (error) {
-        toast.error("Failed to add data. Please try again later.", {
-          position: "top-right",
-        });
+        setFieldError("Already present! try another.");
+        toast.warning("Caste name already exists!");
+        return;
       }
-    } else {
-      toast.warning("Please enter a valid caste name.", {
-        position: "top-right",
-      });
+
+      await addNewCaste({ caste_name: newCasteName.trim() })
+      setNewCasteName("");
+      setIsPopoverOpen(false);
+      fetchData();
+      toast.success("Caste added successfully!");
+    } catch (error) {
+      toast.error("Failed to add data. Please try again later.");
     }
   };
 
@@ -231,6 +221,7 @@ const CasteMasterPage = () => {
                   onClick={() => {
                     setIsPopoverOpen(false);
                     setNewCasteName("");
+                    setFieldError("");
                   }}
                 >
                   X
@@ -239,13 +230,20 @@ const CasteMasterPage = () => {
               <Form className="formSheet">
                 <Row className="mb-3">
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Caste Name</FormLabel>
+                    <FormLabel className="labelForm">Caste Name<span className="text-danger">*</span></FormLabel>
                     <FormControl
                       type="text"
                       placeholder="Enter Caste Name"
                       value={newCasteName}
-                      onChange={(e) => setNewCasteName(e.target.value)}
+                      isInvalid={!!fieldError && !newCasteName.trim()}
+                      onChange={(e) => {
+                        setNewCasteName(e.target.value);
+                        if (fieldError && e.target.value.trim()) setFieldError("");
+                      }}
                     />
+                    {fieldError && !newCasteName.trim() && (
+                      <div className="text-danger mt-1">{fieldError}</div>
+                    )}
                   </Col>
                 </Row>
                 <Button onClick={handleAdd} className="btn btn-primary">
@@ -269,8 +267,6 @@ const CasteMasterPage = () => {
           </div>
         </Container>
       </section>
-
-      <ToastContainer />
     </>
   );
 };

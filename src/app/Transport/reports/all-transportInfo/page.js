@@ -2,15 +2,10 @@
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import Table from "@/app/component/DataTable";
-import { FaEdit, FaTrashAlt } from "react-icons/fa";
+import { copyContent, printContent } from '@/app/utils';
 import { Container, Row, Col, Breadcrumb } from "react-bootstrap";
 import axios from "axios";
-import { CgAddR } from "react-icons/cg";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
-import {
-    Button
-} from "react-bootstrap";
-
 const AllTransportInfo = () => {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -131,6 +126,48 @@ const AllTransportInfo = () => {
         { label: "Transport", link: "/Transport/all-module" },
         { label: "Vehicle Master", link: "null" },
     ];
+    const handlePrint = () => {
+        const headers = [[
+            "#", "Vehicle Type", "Vehicle No",
+            "Driver Name", "Driver Licence", "Driver Mobile No",
+        ]];
+
+        const rows = data.map((row, index) => [
+            index + 1,
+            row.Vehicle_Type?.type_name || "N/A",
+            row.Vehicle_No,
+            row.Driver_Name || "N/A",
+            row.Driver_Licence_No || "N/A",
+            row.Driver_Mobile_No || "N/A",
+        ]);
+
+        printContent(headers, rows);
+    };
+
+    const handleCopy = () => {
+        const headers = [
+            "#", "Vehicle Type", "Vehicle No", "Chassis No", "Seats",
+            "Driver Name", "Driver Licence", "Licence Valid Till", "Driver Mobile No",
+            "Insurance Due On", "Insurance Company", "Insurance Amount",
+        ];
+
+        const rows = data.map((row, index) => [
+            index + 1,
+            row.Vehicle_Type?.type_name || "N/A",
+            row.Vehicle_No,
+            row.Chassis_No || "N/A",
+            row.Seating_Capacity || "N/A",
+            row.Driver_Name || "N/A",
+            row.Driver_Licence_No || "N/A",
+            new Date(row.Licence_Valid_Till).toLocaleDateString(),
+            row.Driver_Mobile_No || "N/A",
+            new Date(row.Insurance_Valid_Till).toLocaleDateString(),
+            row.Insurance_Company ? `${row.Insurance_Company} (${row.Insurance_Policy_No})` : "N/A",
+            row.Insurance_Amount ? `₹${row.Insurance_Amount}` : "N/A",
+        ].join("\t"));
+
+        copyContent(headers, rows);
+    };
 
     return (
         <>
@@ -161,6 +198,8 @@ const AllTransportInfo = () => {
                                     <Table
                                         columns={columns}
                                         data={data}
+                                        handleCopy={handleCopy}
+                                        handlePrint={handlePrint}
                                         responsive
                                         highlightOnHover
                                         pagination

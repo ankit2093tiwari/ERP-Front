@@ -3,21 +3,12 @@ import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
 import { CgAddR } from "react-icons/cg";
-import {
-  Form,
-  Row,
-  Col,
-  Container,
-  FormLabel,
-  FormControl,
-  Button,
-  FormSelect,
-  FormCheck,
-} from "react-bootstrap";
-import axios from "axios";
+import { Form, Row, Col, Container, FormLabel, FormControl, Button, FormSelect, FormCheck, } from "react-bootstrap";
 import Table from "@/app/component/DataTable";
 import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import { addNewSubject, deleteSubjectById, getAllEmployee, getAllSubjetcs, getClasses, getSections, updateSubjectById } from "@/Services";
+import { toast } from "react-toastify";
 
 const SubjectMaster = () => {
   const [classList, setClassList] = useState([]);
@@ -28,6 +19,7 @@ const SubjectMaster = () => {
   const [error, setError] = useState("");
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [fieldsError, setFieldsError] = useState({})
 
   // Form states
   const [formData, setFormData] = useState({
@@ -60,9 +52,11 @@ const SubjectMaster = () => {
         editingId === row._id ? (
           <FormSelect
             value={editedData.class_name}
-            onChange={(e) =>
-              setEditedData({ ...editedData, class_name: e.target.value })
-            }
+            onChange={(e) => {
+              setEditedData({ ...editedData, class_name: e.target.value });
+              fetchSections(e.target.value);
+            }}
+
           >
             <option value="">Select Class</option>
             {classList.map((cls) => (
@@ -196,10 +190,8 @@ const SubjectMaster = () => {
 
   const fetchClasses = async () => {
     try {
-      const response = await axios.get(
-        "https://erp-backend-fy3n.onrender.com/api/all-classes"
-      );
-      setClassList(response.data.data || []);
+      const response = await getClasses()
+      setClassList(response.data || []);
     } catch (error) {
       console.error("Failed to fetch classes", error);
     }
@@ -207,10 +199,8 @@ const SubjectMaster = () => {
 
   const fetchSections = async (classId) => {
     try {
-      const response = await axios.get(
-        `https://erp-backend-fy3n.onrender.com/api/sections/class/${classId}`
-      );
-      setSectionList(response.data.data || []);
+      const response = await getSections(classId);
+      setSectionList(response.data || []);
     } catch (error) {
       console.error("Failed to fetch sections", error);
     }
@@ -218,10 +208,8 @@ const SubjectMaster = () => {
 
   const fetchEmployees = async () => {
     try {
-      const response = await axios.get(
-        "https://erp-backend-fy3n.onrender.com/api/all-employee"
-      );
-      setEmployeeList(response.data.data || []);
+      const response = await getAllEmployee()
+      setEmployeeList(response.data || []);
     } catch (error) {
       console.error("Failed to fetch employees", error);
     }
@@ -231,10 +219,8 @@ const SubjectMaster = () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get(
-        "https://erp-backend-fy3n.onrender.com/api/all-subject"
-      );
-      setSubjectList(response.data.data || []);
+      const response = await getAllSubjetcs()
+      setSubjectList(response.data || []);
     } catch (error) {
       console.error("Failed to fetch subjects", error);
       setError("Failed to fetch subjects. Please try again later.");
@@ -244,10 +230,14 @@ const SubjectMaster = () => {
   };
 
   const handleAdd = async () => {
-    if (!formData.class_name || !formData.subject_name || !formData.employee) {
-      alert("Please fill all required fields");
-      return;
-    }
+    const errors = {};
+
+    if (!formData.class_name.trim()) errors.class_name = "Class is required";
+    if (!formData.subject_name.trim()) errors.subject_name = "Subject name is required";
+    if (!formData.employee.trim()) errors.employee = "Teacher is required";
+    setFieldsError(errors);
+    if (Object.keys(errors).length > 0) return;
+
 
     const subjectData = {
       class_name: formData.class_name,
@@ -258,14 +248,13 @@ const SubjectMaster = () => {
     };
 
     try {
-      await axios.post(
-        "https://erp-backend-fy3n.onrender.com/api/create-subject",
-        subjectData
-      );
+      await addNewSubject(subjectData)
       fetchSubjects();
+      toast.success("Subject added successfully!")
       resetForm();
       setIsPopoverOpen(false);
     } catch (error) {
+      toast.error(error?.response?.data?.message || "Error adding subject");
       console.error("Error adding subject", error);
       setError("Failed to add subject. Please try again later.");
     }
@@ -285,19 +274,18 @@ const SubjectMaster = () => {
 
   const handleUpdate = async (id) => {
     try {
-      await axios.put(
-        `https://erp-backend-fy3n.onrender.com/api/update-subject/${id}`,
-        {
-          class_name: editedData.class_name,
-          section_name: editedData.section_name || null,
-          subject_name: editedData.subject_name,
-          compulsory: editedData.compulsory,
-          employee: editedData.employee,
-        }
-      );
+      const res = await updateSubjectById(id, {
+        class_name: editedData.class_name,
+        section_name: editedData.section_name || null,
+        subject_name: editedData.subject_name,
+        compulsory: editedData.compulsory,
+        employee: editedData.employee,
+      })
+      toast.success("Subject updated successfully.")
       fetchSubjects();
       setEditingId(null);
     } catch (error) {
+      toast.error(error?.response?.data?.message || "Error updating subject");
       console.error("Error updating subject", error);
       setError("Failed to update subject. Please try again later.");
     }
@@ -306,11 +294,11 @@ const SubjectMaster = () => {
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this subject?")) {
       try {
-        await axios.delete(
-          `https://erp-backend-fy3n.onrender.com/api/delete-subject/${id}`
-        );
+        const res = await deleteSubjectById(id)
+        toast.success("Subject deleted successfully.")
         fetchSubjects();
       } catch (error) {
+        toast.error(error?.response?.data?.message || "Error deleting subject");
         console.error("Error deleting subject", error);
         setError("Failed to delete subject. Please try again later.");
       }
@@ -325,6 +313,7 @@ const SubjectMaster = () => {
       compulsory: false,
       employee: "",
     });
+    setFieldsError({});
   };
 
   const handlePrint = async () => {
@@ -345,10 +334,8 @@ const SubjectMaster = () => {
   const handleCopy = () => {
     const headers = ["#", "Class Name", "Section Name", "Subject & Teacher", "Compulsory"];
     const rows = subjectList.map((row, index) =>
-      `${index + 1}\t${row.class_name?.class_name || "N/A"}\t${
-        row.section_name?.section_name || "N/A"
-      }\t${row.subject_details.subject_name} - ${
-        row.subject_details.employee?.employee_name
+      `${index + 1}\t${row.class_name?.class_name || "N/A"}\t${row.section_name?.section_name || "N/A"
+      }\t${row.subject_details.subject_name} - ${row.subject_details.employee?.employee_name
       }\t${row.subject_details.compulsory ? "Yes" : "No"}`
     );
 
@@ -397,13 +384,17 @@ const SubjectMaster = () => {
               <Form className="formSheet">
                 <Row className="mb-3">
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Select Class</FormLabel>
+                    <FormLabel className="labelForm">Select Class<span className="text-danger">*</span></FormLabel>
                     <FormSelect
                       value={formData.class_name}
                       onChange={(e) => {
                         setFormData({ ...formData, class_name: e.target.value });
                         fetchSections(e.target.value);
+                        if (fieldsError.class_name) {
+                          setFieldsError({ ...fieldsError, class_name: "" });
+                        }
                       }}
+                      isInvalid={!!fieldsError.class_name}
                     >
                       <option value="">Select Class</option>
                       {classList.map((cls) => (
@@ -412,6 +403,9 @@ const SubjectMaster = () => {
                         </option>
                       ))}
                     </FormSelect>
+                    {fieldsError.class_name && (
+                      <div className="text-danger mt-1">{fieldsError.class_name}</div>
+                    )}
                   </Col>
                   <Col lg={6}>
                     <FormLabel className="labelForm">Select Section (Optional)</FormLabel>
@@ -432,19 +426,27 @@ const SubjectMaster = () => {
                 </Row>
                 <Row className="mb-3">
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Subject Name</FormLabel>
+                    <FormLabel className="labelForm">Subject Name<span className="text-danger">*</span></FormLabel>
                     <FormControl
                       type="text"
                       value={formData.subject_name}
-                      onChange={(e) =>
-                        setFormData({ ...formData, subject_name: e.target.value })
+                      isInvalid={!!fieldsError.subject_name}
+                      onChange={(e) => {
+                        setFormData({ ...formData, subject_name: e.target.value }); if (fieldsError.subject_name) {
+                          setFieldsError({ ...fieldsError, subject_name: "" });
+                        }
+                      }
                       }
                     />
+                    {fieldsError.subject_name && (
+                      <div className="text-danger mt-1">{fieldsError.subject_name}</div>
+                    )}
                   </Col>
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Teacher</FormLabel>
+                    <FormLabel className="labelForm">Teacher<span className="text-danger">*</span></FormLabel>
                     <FormSelect
                       value={formData.employee}
+                      isInvalid={!!fieldsError.employee}
                       onChange={(e) =>
                         setFormData({ ...formData, employee: e.target.value })
                       }
@@ -455,7 +457,11 @@ const SubjectMaster = () => {
                           {emp.employee_name}
                         </option>
                       ))}
+
                     </FormSelect>
+                    {fieldsError.employee && (
+                      <div className="text-danger mt-1">{fieldsError.employee}</div>
+                    )}
                   </Col>
                 </Row>
                 <Row className="mb-3">
@@ -479,10 +485,13 @@ const SubjectMaster = () => {
 
           <div className="tableSheet">
             <h2>Subject Master</h2>
+
+            {error && (
+              <p style={{ color: "red" }}>{error}</p>
+            )}
+
             {loading ? (
               <p>Loading...</p>
-            ) : error ? (
-              <p style={{ color: "red" }}>{error}</p>
             ) : (
               <Table
                 columns={columns}

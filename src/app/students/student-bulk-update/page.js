@@ -145,17 +145,26 @@ const StudentBulkUpdate = () => {
   const handleUpdateStudents = async () => {
     try {
       const response = await updateBulkStudents({ students: updatedStudents });
+
       if (response?.success) {
-        toast.success(response?.message)
-      }
-      else {
-        toast.error(response?.message)
+        toast.success(response?.message);
+        setSelectedClass("");
+        setSelectedSection("");
+        setStudents([]);
+        setUpdatedStudents([]);
+        setShowUpdateButton(false);
+        setNoRecordsFound(false);
+        // Optionally hide update button or reset flags
+        setShowUpdateButton(false);
+      } else {
+        toast.error(response?.message);
       }
     } catch (error) {
       console.error("Failed to update students", error);
       toast.error("Error updating students.");
     }
   };
+
 
   const columns = [
     {
@@ -270,7 +279,7 @@ const StudentBulkUpdate = () => {
             <Form className="formSheet">
               <Row>
                 <Col>
-                  <FormLabel className="labelForm">Select Class</FormLabel>
+                  <FormLabel className="labelForm">Select Class<span className="text-danger">*</span></FormLabel>
                   <FormSelect value={selectedClass} onChange={handleClassChange}>
                     <option value="">Select Class</option>
                     {classList.map((cls) => (
@@ -281,7 +290,7 @@ const StudentBulkUpdate = () => {
                   </FormSelect>
                 </Col>
                 <Col>
-                  <FormLabel className="labelForm">Select Section</FormLabel>
+                  <FormLabel className="labelForm">Select Section<span className="text-danger">*</span></FormLabel>
                   <FormSelect
                     value={selectedSection}
                     onChange={handleSectionChange}
@@ -320,7 +329,7 @@ const StudentBulkUpdate = () => {
                 ) : students.length > 0 ? (
                   <Table columns={columns} data={students} />
                 ) : (
-                  <p className="text-center">Please select both class and section to view students.</p>
+                  <p className="text-center text-danger">Please select both class and section to view students.</p>
                 )}
               </div>
             </Col>

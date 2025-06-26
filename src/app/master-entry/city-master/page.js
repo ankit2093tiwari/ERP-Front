@@ -14,280 +14,330 @@ import {
 } from "react-bootstrap";
 import axios from "axios";
 import Table from "@/app/component/DataTable";
-import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-toastify";
+import { copyContent, printContent } from "@/app/utils";
 
-const StateCityMasterPage = () => {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [isStateFormOpen, setIsStateFormOpen] = useState(false);
-  const [isCityFormOpen, setIsCityFormOpen] = useState(false);
-  const [editingState, setEditingState] = useState(null);
-  const [editingCity, setEditingCity] = useState(null);
+const StateCityMaster = () => {
+  const [states, setStates] = useState([]);
+  const [cities, setCities] = useState([]);
   const [formData, setFormData] = useState({
     state_name: "",
     city_name: "",
-    state_id: ""
+    state_id: "",
   });
+  const [errors, setErrors] = useState({
+    state_name: "",
+    city_name: "",
+    state_id: "",
+  });
+  const [editingState, setEditingState] = useState(null);
+  const [editingCity, setEditingCity] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [isStateFormOpen, setIsStateFormOpen] = useState(false);
+  const [isCityFormOpen, setIsCityFormOpen] = useState(false);
+
+  const validateStateForm = () => {
+    let isValid = true;
+    const newErrors = { ...errors };
+
+    if (!formData.state_name.trim()) {
+      newErrors.state_name = "State name is required";
+      isValid = false;
+    } else if (formData.state_name.trim().length < 2) {
+      newErrors.state_name = "State name must be at least 2 characters";
+      isValid = false;
+    } else {
+      newErrors.state_name = "";
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
+
+  const validateCityForm = () => {
+    let isValid = true;
+    const newErrors = { ...errors };
+
+    if (!formData.city_name.trim()) {
+      newErrors.city_name = "City name is required";
+      isValid = false;
+    } else if (formData.city_name.trim().length < 2) {
+      newErrors.city_name = "City name must be at least 2 characters";
+      isValid = false;
+    } else {
+      newErrors.city_name = "";
+    }
+
+    if (!formData.state_id) {
+      newErrors.state_id = "Please select a state";
+      isValid = false;
+    } else {
+      newErrors.state_id = "";
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [stateResponse, cityResponse] = await Promise.all([
+      const [stateRes, cityRes] = await Promise.all([
         axios.get("https://erp-backend-fy3n.onrender.com/api/all-states"),
-        axios.get("https://erp-backend-fy3n.onrender.com/api/all-cities")
+        axios.get("https://erp-backend-fy3n.onrender.com/api/all-cities"),
       ]);
-
-      const states = stateResponse.data.data || [];
-      const cities = cityResponse.data.data || [];
-
-      const updatedData = states.reverse().map((state) => {
-        const stateCities = cities
-          .filter((city) => city?.state?._id === state?._id || city?.state === state?._id)
-          .map((city) => ({
-            city_name: city?.city_name,
-            _id: city?._id,
-            state_id: city?.state?._id || city?.state || ""
-          }));
-
-        return { ...state, cities: stateCities || [] };
-      });
-
-      setData(updatedData);
+      setStates(stateRes.data.data || []);
+      setCities(cityRes.data.data || []);
     } catch (err) {
-      toast.error("Failed to fetch data. Please try again later.", { position: "top-right" });
+      toast.error("Failed to fetch data");
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleAddState = async () => {
-    if (!formData.state_name.trim()) {
-      toast.warning("State name is required", { position: "top-right" });
-      return;
-    }
-
-    try {
-      await axios.post("https://erp-backend-fy3n.onrender.com/api/add-states", {
-        state_name: formData.state_name,
-      });
-      toast.success("State added successfully", { position: "top-right" });
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to add state.", { position: "top-right" });
-    } finally {
-      setFormData({ ...formData, state_name: "" });
-      setIsStateFormOpen(false); // ❗ Always close the form
-      fetchData();
-    }
-  };
-
-
-  const handleAddCity = async () => {
-    if (!formData.state_id || !formData.city_name.trim()) {
-      toast.warning("Both state and city name are required", { position: "top-right" });
-      return;
-    }
-
-    try {
-      await axios.post("https://erp-backend-fy3n.onrender.com/api/add-cities", {
-        state: formData.state_id,
-        city_name: formData.city_name,
-      });
-      toast.success("City added successfully", { position: "top-right" });
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to add city.", { position: "top-right" });
-    } finally {
-      setFormData({ ...formData, city_name: "", state_id: "" });
-      setIsCityFormOpen(false); // ❗ Always close the form
-      fetchData();
-    }
-  };
-
-
-  const handleEditState = (state) => {
-    if (!state) return;
-    setEditingState(state);
-    setFormData({ ...formData, state_name: state?.state_name || "" });
-  };
-
-  const handleEditCity = (city) => {
-    if (!city) return;
-    setEditingCity(city);
-    setFormData({
-      ...formData,
-      city_name: city?.city_name || "",
-      state_id: city?.state_id || city?.state?._id || city?.state || ""
-    });
-  };
-
-  const handleUpdateState = async (id) => {
-    if (!formData.state_name.trim()) {
-      toast.warning("State name is required", { position: "top-right" });
-      return;
-    }
-
-    try {
-      await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-states/${id}`, {
-        state_name: formData.state_name,
-      });
-      toast.success("State updated successfully", { position: "top-right" });
-      setEditingState(null);
-      setFormData({ ...formData, state_name: "" });
-      fetchData();
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to update state.", { position: "top-right" });
-    }
-  };
-
-  const handleUpdateCity = async (id) => {
-    if (!formData.state_id || !formData.city_name.trim()) {
-      toast.warning("Both state and city name are required", { position: "top-right" });
-      return;
-    }
-
-    try {
-      await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-cities/${id}`, {
-        state: formData.state_id,
-        city_name: formData.city_name,
-      });
-      toast.success("City updated successfully", { position: "top-right" });
-      setEditingCity(null);
-      setFormData({ ...formData, city_name: "", state_id: "" });
-      fetchData();
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to update city.", { position: "top-right" });
-    }
-  };
-
-  const handleDeleteState = async (id) => {
-    if (confirm("Are you sure you want to delete this state and all its cities?")) {
-      try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-states/${id}`);
-        toast.success("State deleted successfully", { position: "top-right" });
-        fetchData();
-      } catch (err) {
-        toast.error(err.response?.data?.message || "Failed to delete state.", { position: "top-right" });
-      }
-    }
-  };
-
-  const handleDeleteCity = async (id) => {
-    if (confirm("Are you sure you want to delete this city?")) {
-      try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-cities/${id}`);
-        toast.success("City deleted successfully", { position: "top-right" });
-        fetchData();
-      } catch (err) {
-        toast.error(err.response?.data?.message || "Failed to delete city.", { position: "top-right" });
-      }
-    }
-  };
-
-  const handlePrint = () => {
-    const tableHeaders = [["#", "State Name", "Cities"]];
-    const tableRows = data.map((state, index) => [
-      index + 1,
-      state?.state_name || "N/A",
-      state?.cities?.map(c => c?.city_name).join(", ") || "N/A"
-    ]);
-    printContent(tableHeaders, tableRows);
-  };
-
-  const handleCopy = () => {
-    const headers = ["#", "State Name", "Cities"];
-    const rows = data.map((state, index) =>
-      `${index + 1}\t${state?.state_name || "N/A"}\t${state?.cities?.map(c => c?.city_name).join(", ") || "N/A"}`
-    );
-    copyContent(headers, rows);
   };
 
   useEffect(() => {
     fetchData();
   }, []);
 
-  const columns = [
+  const handleAddState = async () => {
+    if (!validateStateForm()) return;
+
+    try {
+      await axios.post("https://erp-backend-fy3n.onrender.com/api/add-states", {
+        state_name: formData.state_name.trim()
+      });
+      toast.success("State added successfully");
+      setFormData({ ...formData, state_name: "" });
+      setIsStateFormOpen(false);
+      fetchData();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to add state");
+    }
+  };
+
+  const handleAddCity = async () => {
+    if (!validateCityForm()) return;
+
+    try {
+      await axios.post("https://erp-backend-fy3n.onrender.com/api/add-cities", {
+        city_name: formData.city_name.trim(),
+        state: formData.state_id,
+      });
+      toast.success("City added successfully");
+      setFormData({ ...formData, city_name: "", state_id: "" });
+      setIsCityFormOpen(false);
+      fetchData();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to add city");
+    }
+  };
+
+  const handleEditState = (state) => {
+    setEditingState(state);
+    setFormData({ ...formData, state_name: state.state_name });
+    setErrors({ ...errors, state_name: "" });
+  };
+
+  const handleUpdateState = async (id) => {
+    if (!validateStateForm()) return;
+
+    try {
+      await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-states/${id}`, {
+        state_name: formData.state_name.trim(),
+      });
+      toast.success("State updated successfully");
+      setEditingState(null);
+      setFormData({ ...formData, state_name: "" });
+      fetchData();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to update state");
+    }
+  };
+
+  const handleDeleteState = async (id) => {
+    if (window.confirm("Are you sure you want to delete this state and all its cities?")) {
+      try {
+        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-states/${id}`);
+        toast.success("State deleted successfully");
+        fetchData();
+      } catch (err) {
+        toast.error(err.response?.data?.message || "Failed to delete state");
+      }
+    }
+  };
+
+  const handleEditCity = (city) => {
+    setEditingCity(city);
+    setFormData({
+      ...formData,
+      city_name: city.city_name,
+      state_id: city?.state?._id || city?.state,
+    });
+    setErrors({ ...errors, city_name: "", state_id: "" });
+  };
+
+  const handleUpdateCity = async (id) => {
+    if (!validateCityForm()) return;
+
+    try {
+      await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-cities/${id}`, {
+        city_name: formData.city_name.trim(),
+        state: formData.state_id,
+      });
+      toast.success("City updated successfully");
+      setEditingCity(null);
+      setFormData({ ...formData, city_name: "", state_id: "" });
+      fetchData();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to update city");
+    }
+  };
+
+  const handleDeleteCity = async (id) => {
+    if (window.confirm("Are you sure you want to delete this city?")) {
+      try {
+        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-cities/${id}`);
+        toast.success("City deleted successfully");
+        fetchData();
+      } catch (err) {
+        toast.error(err.response?.data?.message || "Failed to delete city");
+      }
+    }
+  };
+
+  const stateColumns = [
     {
       name: "#",
-      selector: (row, index) => index + 1,
-      width: "80px",
+      selector: (row, i) => i + 1,
+      width: "60px",
     },
     {
       name: "State Name",
-      cell: (row) => (
-        <div className="d-flex justify-content-between align-items-center w-100">
-          {editingState && editingState._id === row._id ? (
-            <FormControl
-              type="text"
-              value={formData.state_name}
-              onChange={(e) => setFormData({ ...formData, state_name: e.target.value })}
-            />
-          ) : (
-            row.state_name || "N/A"
-          )}
+      selector: (row) => row.state_name,
+      cell: (row) =>
+        editingState?._id === row._id ? (
           <div>
-            {editingState && editingState._id === row._id ? (
-              <button className="editButton ms-2" onClick={() => handleUpdateState(row._id)}>
-                <FaSave />
-              </button>
-            ) : (
-              <button className="editButton ms-2" onClick={() => handleEditState(row)}>
-                <FaEdit />
-              </button>
-            )}
-            <button className="editButton btn-danger ms-2" onClick={() => handleDeleteState(row._id)}>
+            <FormControl
+              value={formData.state_name}
+              onChange={(e) => {
+                setFormData({ ...formData, state_name: e.target.value });
+                if (errors.state_name) {
+                  setErrors({ ...errors, state_name: "" });
+                }
+              }}
+              placeholder="Enter State"
+              isInvalid={!!errors.state_name}
+            />
+            <Form.Control.Feedback type="invalid">
+              {errors.state_name}
+            </Form.Control.Feedback>
+          </div>
+        ) : (
+          row.state_name
+        ),
+      grow: 2,
+      sortable: true,
+    },
+    {
+      name: "Actions",
+      cell: (row) =>
+        editingState?._id === row._id ? (
+          <div className="d-flex flex-wrap gap-2 justify-content-start">
+            <Button size="sm" variant="success" onClick={() => handleUpdateState(row._id)}>
+              <FaSave />
+            </Button>
+            <Button size="sm" variant="secondary" onClick={() => setEditingState(null)}>
+              Cancel
+            </Button>
+          </div>
+        ) : (
+          <div className="d-flex gap-2">
+            <button className="editButton" onClick={() => handleEditState(row)}>
+              <FaEdit />
+            </button>
+            <button className="editButton btn-danger" onClick={() => handleDeleteState(row._id)}>
               <FaTrashAlt />
             </button>
           </div>
-        </div>
-      ),
-    },
-    {
-      name: "Cities",
-      cell: (row) => (
-        <div>
-          {row.cities?.map((city, idx) => (
-            <div key={idx} className="d-flex justify-content-between align-items-center mb-2">
-              {editingCity && editingCity._id === city._id ? (
-                <>
-                  
-                  <FormControl
-                    type="text"
-                    value={formData.city_name}
-                    onChange={(e) => setFormData({ ...formData, city_name: e.target.value })}
-                    placeholder="City Name"
-                  />
-                  <button className="editButton" onClick={() => handleUpdateCity(city._id)}>
-                    <FaSave />
-                  </button>
-                  <button className="editButton btn-danger" onClick={() => setEditingCity(null)}>
-                    Cancel
-                  </button>
-                </>
-              ) : (
-                <>
-                  <span>{city?.city_name || "N/A"}</span>
-                  <div>
-                    <button className="editButton" onClick={() => handleEditCity(city)}>
-                      <FaEdit />
-                    </button>
-                    <button className="editButton btn-danger" onClick={() => handleDeleteCity(city._id)}>
-                      <FaTrashAlt />
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-          ))}
-        </div>
-      ),
-    },
+        ),
+    }
   ];
 
-  const breadcrumbItems = [
-    { label: "Master Entry", link: "/master-entry/all-module" },
-    { label: "state-city-master", link: "null" },
+  const cityColumns = [
+    {
+      name: "#",
+      selector: (row, i) => i + 1,
+      width: "60px",
+    },
+    {
+      name: "City Name",
+      selector: (row) => row.city_name,
+      cell: (row) =>
+        editingCity?._id === row._id ? (
+          <div>
+            <FormControl
+              value={formData.city_name}
+              onChange={(e) => {
+                setFormData({ ...formData, city_name: e.target.value });
+                if (errors.city_name) {
+                  setErrors({ ...errors, city_name: "" });
+                }
+              }}
+              placeholder="Enter City"
+              isInvalid={!!errors.city_name}
+            />
+            <Form.Control.Feedback type="invalid">
+              {errors.city_name}
+            </Form.Control.Feedback>
+          </div>
+        ) : (
+          row.city_name || "N/A"
+        ),
+      grow: 2,
+      sortable: true,
+    },
+    {
+      name: "State",
+      selector: (row) =>
+        states.find((s) => s._id === (row?.state?._id || row?.state))?.state_name || "N/A",
+      grow: 2,
+      sortable: true,
+    },
+    {
+      name: "Actions",
+      cell: (row) =>
+        editingCity?._id === row._id ? (
+          <div className="d-flex gap-2">
+            <Button
+              variant="success"
+              size="sm"
+              className="d-flex align-items-center justify-content-center"
+              onClick={() => handleUpdateCity(row._id)}
+            >
+              <FaSave />
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              className="d-flex align-items-center justify-content-center"
+              onClick={() => setEditingCity(null)}
+            >
+              Cancel
+            </Button>
+          </div>
+        ) : (
+          <div className="d-flex gap-2">
+            <button className="editButton" onClick={() => handleEditCity(row)}>
+              <FaEdit />
+            </button>
+            <button className="editButton btn-danger" onClick={() => handleDeleteCity(row._id)}>
+              <FaTrashAlt />
+            </button>
+          </div>
+        ),
+    }
+
   ];
 
   return (
@@ -296,120 +346,223 @@ const StateCityMasterPage = () => {
         <Container>
           <Row className="mt-1 mb-1">
             <Col>
-              <BreadcrumbComp items={breadcrumbItems} />
+              <BreadcrumbComp
+                items={[
+                  { label: "Master Entry", link: "/master-entry/all-module" },
+                  { label: "State-City Master", link: "" },
+                ]}
+              />
             </Col>
           </Row>
         </Container>
       </div>
-
       <section>
         <Container>
           <div className="d-flex gap-2 mb-3">
-            <Button onClick={() => setIsStateFormOpen(true)} className="btn-add">
+            <Button className="btn-add" onClick={() => setIsStateFormOpen(true)}>
               <CgAddR /> Add State
             </Button>
-            <Button onClick={() => setIsCityFormOpen(true)} className="btn-add">
+            <Button
+              className="btn-add"
+              onClick={() => setIsCityFormOpen(true)}
+              disabled={states.length === 0}
+              title={states.length === 0 ? "Please add states first" : ""}
+            >
               <CgAddR /> Add City
             </Button>
           </div>
 
           {/* State Form */}
           {isStateFormOpen && (
-            <div className="cover-sheet">
-              <div className="studentHeading">
-                <h2>{editingState ? "Update State" : "Add New State"}</h2>
-                <button className="closeForm" onClick={() => {
-                  setIsStateFormOpen(false);
-                  setEditingState(null);
-                  setFormData({ ...formData, state_name: "" });
-                }}>
+            <div className="cover-sheet mb-4">
+              <div className="studentHeading d-flex justify-content-between align-items-center mb-3">
+                <h2>Add State</h2>
+                <button
+                  className="closeForm"
+                  onClick={() => {
+                    setIsStateFormOpen(false);
+                    setFormData({ ...formData, state_name: "" });
+                    setErrors({ ...errors, state_name: "" });
+                  }}
+                >
                   X
                 </button>
               </div>
               <Form className="formSheet">
-                <Row className="mb-3">
-                  <Col>
-                    <FormLabel>State Name</FormLabel>
-                    <FormControl
-                      type="text"
-                      placeholder="Enter State Name"
-                      value={formData.state_name}
-                      onChange={(e) => setFormData({ ...formData, state_name: e.target.value })}
-                    />
+                <Row>
+                  <Col md={8}>
+                    <Form.Group controlId="stateName">
+                      <Form.Label>State Name</Form.Label>
+                      <Form.Control
+                        type="text"
+                        placeholder="Enter State"
+                        value={formData.state_name}
+                        onChange={(e) => {
+                          setFormData({ ...formData, state_name: e.target.value });
+                          if (errors.state_name) {
+                            setErrors({ ...errors, state_name: "" });
+                          }
+                        }}
+                        isInvalid={!!errors.state_name}
+                      />
+                      <Form.Control.Feedback type="invalid">
+                        {errors.state_name}
+                      </Form.Control.Feedback>
+                    </Form.Group>
                   </Col>
                 </Row>
-                <Button onClick={editingState ? () => handleUpdateState(editingState._id) : handleAddState}>
-                  {editingState ? "Update State" : "Add State"}
-                </Button>
+                <div className="d-flex gap-2 mt-3">
+                  <Button variant="primary" onClick={handleAddState}>
+                    Add State
+                  </Button>
+                  <Button
+                    variant="primary"
+                    onClick={() => {
+                      setIsStateFormOpen(false);
+                      setFormData({ ...formData, state_name: "" });
+                      setErrors({ ...errors, state_name: "" });
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
               </Form>
             </div>
           )}
 
           {/* City Form */}
           {isCityFormOpen && (
-            <div className="cover-sheet">
-              <div className="studentHeading">
-                <h2>{editingCity ? "Update City" : "Add New City"}</h2>
-                <button className="closeForm" onClick={() => {
-                  setIsCityFormOpen(false);
-                  setEditingCity(null);
-                  setFormData({ ...formData, city_name: "", state_id: "" });
-                }}>
+            <div className="cover-sheet mb-4">
+              <div className="studentHeading d-flex justify-content-between align-items-center mb-3">
+                <h2>Add City</h2>
+                <button
+                  className="closeForm"
+                  onClick={() => {
+                    setIsCityFormOpen(false);
+                    setFormData({ ...formData, city_name: "", state_id: "" });
+                    setErrors({ ...errors, city_name: "", state_id: "" });
+                  }}
+                >
                   X
                 </button>
               </div>
               <Form className="formSheet">
                 <Row className="mb-3">
-                  <Col>
-                    <FormLabel>Select State</FormLabel>
-                    <FormControl
-                      as="select"
-                      value={formData.state_id}
-                      onChange={(e) => setFormData({ ...formData, state_id: e.target.value })}
-                    >
-                      <option value="">Select State</option>
-                      {data.map((state) => (
-                        <option key={state._id} value={state._id}>
-                          {state.state_name}
-                        </option>
-                      ))}
-                    </FormControl>
+                  <Col md={8}>
+                    <Form.Group controlId="stateSelect">
+                      <Form.Label>Select State</Form.Label>
+                      <Form.Select
+                        value={formData.state_id}
+                        onChange={(e) => {
+                          setFormData({ ...formData, state_id: e.target.value });
+                          if (errors.state_id) {
+                            setErrors({ ...errors, state_id: "" });
+                          }
+                        }}
+                        isInvalid={!!errors.state_id}
+                      >
+                        <option value="">Select State</option>
+                        {states.map((s) => (
+                          <option key={s._id} value={s._id}>
+                            {s.state_name}
+                          </option>
+                        ))}
+                      </Form.Select>
+                      <Form.Control.Feedback type="invalid">
+                        {errors.state_id}
+                      </Form.Control.Feedback>
+                    </Form.Group>
                   </Col>
                 </Row>
-                <Row className="mb-3">
-                  <Col>
-                    <FormLabel>City Name</FormLabel>
-                    <FormControl
-                      type="text"
-                      placeholder="Enter City Name"
-                      value={formData.city_name}
-                      onChange={(e) => setFormData({ ...formData, city_name: e.target.value })}
-                    />
+                <Row>
+                  <Col md={8}>
+                    <Form.Group controlId="cityName">
+                      <Form.Label>City Name</Form.Label>
+                      <Form.Control
+                        type="text"
+                        placeholder="Enter City"
+                        value={formData.city_name}
+                        onChange={(e) => {
+                          setFormData({ ...formData, city_name: e.target.value });
+                          if (errors.city_name) {
+                            setErrors({ ...errors, city_name: "" });
+                          }
+                        }}
+                        isInvalid={!!errors.city_name}
+                      />
+                      <Form.Control.Feedback type="invalid">
+                        {errors.city_name}
+                      </Form.Control.Feedback>
+                    </Form.Group>
                   </Col>
                 </Row>
-                <Button onClick={editingCity ? () => handleUpdateCity(editingCity._id) : handleAddCity}>
-                  {editingCity ? "Update City" : "Add City"}
-                </Button>
+                <div className="d-flex gap-2 mt-3">
+                  <Button variant="primary" onClick={handleAddCity}>
+                    Add City
+                  </Button>
+                  <Button
+                    variant="primary"
+                    onClick={() => {
+                      setIsCityFormOpen(false);
+                      setFormData({ ...formData, city_name: "", state_id: "" });
+                      setErrors({ ...errors, city_name: "", state_id: "" });
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
               </Form>
             </div>
           )}
 
-          <div className="tableSheet">
-            <h2>State & City Records</h2>
-            {loading ? <p>Loading...</p> : (
+          {/* State Table */}
+          <div className="tableSheet mb-4">
+            <h2>State List</h2>
+            {loading ? (
+              <div className="text-center py-4">Loading states...</div>
+            ) : states.length === 0 ? (
+              <div className="text-center py-4">No states found</div>
+            ) : (
               <Table
-                columns={columns}
-                data={data}
-                handleCopy={handleCopy}
-                handlePrint={handlePrint}
+                columns={stateColumns}
+                data={states}
+                handleCopy={() => copyContent(["#", "State"], states.map((s, i) => `${i + 1}\t${s.state_name}`))}
+                handlePrint={() => printContent([["#", "State"]], states.map((s, i) => [i + 1, s.state_name]))}
+              />
+            )}
+          </div>
+
+          {/* City Table */}
+          <div className="tableSheet">
+            <h2>Cities List</h2>
+            {loading ? (
+              <div className="text-center py-4">Loading cities...</div>
+            ) : cities.length === 0 ? (
+              <div className="text-center py-4">No cities found</div>
+            ) : (
+              <Table
+                columns={cityColumns}
+                data={cities}
+                handleCopy={() =>
+                  copyContent(["#", "City", "State"], cities.map((c, i) => `${i + 1}\t${c.city_name}\t${c?.state?.state_name || "N/A"}`))
+                }
+                handlePrint={() =>
+                  printContent(
+                    [["#", "City", "State"]],
+                    cities.map((c, i) => [
+                      i + 1,
+                      c.city_name,
+                      states.find((s) => s._id === (c.state?._id || c.state))?.state_name || "N/A",
+                    ])
+                  )
+                }
               />
             )}
           </div>
         </Container>
       </section>
-      <ToastContainer />
     </>
   );
 };
 
-export default dynamic(() => Promise.resolve(StateCityMasterPage), { ssr: false });
+export default dynamic(() => Promise.resolve(StateCityMaster), { ssr: false });

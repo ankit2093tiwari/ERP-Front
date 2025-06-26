@@ -13,12 +13,11 @@ import {
   Button,
   Breadcrumb,
 } from "react-bootstrap";
-import axios from "axios";
 import { CgAddR } from "react-icons/cg";
 import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-toastify";
+import { addNewVehicleType, deleteVehicleTypeById, getAllVehicleTypes, updateVehicleTypeById } from "@/Services";
 
 const VehicleRecords = () => {
   const [data, setData] = useState([]);
@@ -27,7 +26,7 @@ const VehicleRecords = () => {
   const [editValues, setEditValues] = useState({});
   const [showAddForm, setShowAddForm] = useState(false);
   const [newVehicle, setNewVehicle] = useState({ type_name: "" });
-
+  const [fieldError, setFieldError] = useState("")
   const handleInputChange = (e, field) => {
     setEditValues({ ...editValues, [field]: e.target.value });
   };
@@ -71,39 +70,44 @@ const VehicleRecords = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/vehicleTypes");
-      const result = response.data.data || [];
-      setData(result.reverse()); // Display newest entries at the top
+      const response = await getAllVehicleTypes();
+      const result = Array.isArray(response.data) ? response.data : [];
+      setData(result.reverse());
     } catch (err) {
-      toast.error("Failed to fetch vehicle types.", { position: "top-right" });
+      console.error("Error fetching vehicle types:", err);
+      toast.error("Failed to fetch vehicle types.");
     } finally {
       setLoading(false);
     }
   };
 
+
   const handleAdd = async () => {
     const trimmed = newVehicle.type_name.trim();
     if (!trimmed) {
-      toast.warning("Please enter a vehicle type.", { position: "top-right" });
+      toast.warning("Please enter a vehicle type.");
+      setFieldError("Please enter a vehicle type.")
       return;
     }
 
     if (data.some((vehicle) => vehicle.type_name.toLowerCase() === trimmed.toLowerCase())) {
-      toast.warning("This vehicle type already exists!", { position: "top-right" });
-      setShowAddForm(false); // Auto-close form on duplicate
+      toast.warning("This vehicle type already exists!");
+      setFieldError("This vehicle type already exists!");
       return;
     }
 
     try {
-      const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/vehicleType", {
+      const response = await addNewVehicleType({
         type_name: trimmed,
-      });
-      toast.success("Vehicle type added successfully!", { position: "top-right" });
+      })
+      toast.success("Vehicle type added successfully!");
+      fetchData()
       setNewVehicle({ type_name: "" });
       setShowAddForm(false);
-      setData((prev) => [response.data.data, ...prev]); // Insert new at top
+      setFieldError("");
     } catch (error) {
-      toast.error("Failed to add vehicle type.", { position: "top-right" });
+      console.log("Failed to add vehicle type..", error)
+      toast.error("Failed to add vehicle type.");
     }
   };
 
@@ -116,7 +120,7 @@ const VehicleRecords = () => {
   const handleSave = async (id) => {
     const trimmed = editValues?.type_name?.trim();
     if (!trimmed) {
-      toast.warning("Vehicle type cannot be empty.", { position: "top-right" });
+      toast.warning("Vehicle type cannot be empty.");
       return;
     }
 
@@ -125,34 +129,31 @@ const VehicleRecords = () => {
         v.type_name.trim().toLowerCase() === trimmed.toLowerCase() && v._id !== id
     );
     if (exists) {
-      toast.warning("Vehicle type already exists.", { position: "top-right" });
+      toast.warning("Vehicle type already exists.");
       setEditRowId(null); // Auto-close edit on duplicate
       return;
     }
 
     try {
-      await axios.put(`https://erp-backend-fy3n.onrender.com/api/vehicleType/${id}`, {
+      await updateVehicleTypeById(id, {
         type_name: trimmed,
-      });
-      toast.success("Vehicle type updated successfully!", { position: "top-right" });
-      const updatedData = data.map((item) =>
-        item._id === id ? { ...item, type_name: trimmed } : item
-      );
-      setData(updatedData); // Updated without full re-fetch
+      })
+      toast.success("Vehicle type updated successfully!");
+      fetchData()
       setEditRowId(null);
     } catch (error) {
-      toast.error("Failed to update vehicle type.", { position: "top-right" });
+      toast.error("Failed to update vehicle type.");
     }
   };
 
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this vehicle?")) {
       try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/vehicleType/${id}`);
-        toast.success("Vehicle type deleted successfully!", { position: "top-right" });
-        setData((prev) => prev.filter((item) => item._id !== id));
+        await deleteVehicleTypeById(id)
+        toast.success("Vehicle type deleted successfully!");
+        fetchData()
       } catch (error) {
-        toast.error("Failed to delete vehicle type.", { position: "top-right" });
+        toast.error("Failed to delete vehicle type.");
       }
     }
   };
@@ -205,13 +206,15 @@ const VehicleRecords = () => {
               <Form className="formSheet">
                 <Row className="mb-3">
                   <Col>
-                    <FormLabel className="labelForm">Vehicle Type</FormLabel>
+                    <FormLabel className="labelForm">Vehicle Type<span className="text-danger">*</span></FormLabel>
                     <FormControl
                       type="text"
                       placeholder="Enter Vehicle Type"
                       value={newVehicle.type_name}
-                      onChange={(e) => setNewVehicle({ type_name: e.target.value })}
+                      onChange={(e) => { setNewVehicle({ type_name: e.target.value }); if (fieldError) setFieldError("") }}
+                      isInvalid={!!fieldError}
                     />
+                    {fieldError && <p className="text-danger">{fieldError}</p>}
                   </Col>
                 </Row>
                 <Row>
@@ -241,8 +244,6 @@ const VehicleRecords = () => {
           </Row>
         </Container>
       </section>
-
-      <ToastContainer />
     </>
   );
 };

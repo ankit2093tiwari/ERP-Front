@@ -93,6 +93,18 @@ export const getCastes = async () => {
     const response = await axios.get(`${BASE_URL}/api/castes`)
     return response?.data;
 }
+export const addNewCaste = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/castes`, payload)
+    return response?.data;
+}
+export const updateCasteById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/castes/${id}`, payload)
+    return response?.data;
+}
+export const deleteCasteById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/castes/${id}`)
+    return response?.data;
+}
 
 export const getStates = async () => {
     const response = await axios.get(`${BASE_URL}/api/all-states`)
@@ -115,6 +127,27 @@ export const deleteSubjectById = async (id) => {
     return response?.data;
 };
 
+export const getAllTCRecords = async () => {
+    const response = await axios.get(`${BASE_URL}/api/transfer-certificates`);
+    return response?.data;
+}
+export const getLastTCNumber = async () => {
+    const response = await axios.get(`${BASE_URL}/api/transfer-certificates/last-tc-number`);
+    return response?.data;
+}
+export const generateTransferCertificate = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/transfer-certificates`, payload);
+    return response?.data;
+}
+export const updateTransferCertificateById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/transfer-certificates/${id}`, payload);
+    return response?.data;
+}
+export const deleteTransferCertificateById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/delete-transfer-certificates/${id}`);
+    return response?.data;
+}
+
 export const getFeeGroups = async () => {
     const response = await axios.get(`${BASE_URL}/api/all-fee-groups`)
     return response?.data;
@@ -124,7 +157,100 @@ export const getAllStudents = async () => {
     const response = await axios.get(`${BASE_URL}/api/students/search`)
     return response?.data;
 }
+export const getStudentByRegistrationId = async (studentId) => {
+    const response = await axios.get(`${BASE_URL}/api/students/search?registration_id=${studentId}`)
+    return response?.data;
+}
 
+
+export const getAllVehicleTypes = async () => {
+    const response = await axios.get(`${BASE_URL}/api/vehicleTypes`)
+    return response?.data;
+}
+export const getAllVehicles = async () => {
+    const response = await axios.get(`${BASE_URL}/api/all-vehicles`)
+    return response?.data;
+}
+export const getAllRoutes = async () => {
+    const response = await axios.get(`${BASE_URL}/api/all-routes`)
+    return response?.data;
+}
+export const getAllFuelFillings = async () => {
+    const response = await axios.get(`${BASE_URL}/api/all-fuel-fillings`)
+    return response?.data;
+}
+export const addNewVehicleType = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/vehicleType`, payload)
+    return response?.data;
+}
+export const addNewVehicle = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/create-vehicles`, payload)
+    return response?.data;
+}
+export const addNewRoute = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/create-routes`, payload)
+    return response?.data;
+}
+export const addNewFuelFilling = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/create-fuel-fillings`, payload)
+    return response?.data;
+}
+export const updateVehicleTypeById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/vehicleType/${id}`, payload)
+    return response?.data;
+}
+export const updateVehicleById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/update-vehicles/${id}`, payload)
+    return response?.data;
+}
+export const updateRouteById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/update-routes/${id}`, payload)
+    return response?.data;
+}
+export const updateFuelFillingById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/update-fuel-fillings/${id}`, payload)
+    return response?.data;
+}
+export const deleteVehicleTypeById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/vehicleType/${id}`)
+    return response?.data;
+}
+export const deleteVehicleById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/delete-vehicles/${id}`)
+    return response?.data;
+}
+export const deleteRouteById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/delete-routes/${id}`)
+    return response?.data;
+}
+export const deleteFuelFillingById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/delete-fuel-fillings/${id}`)
+    return response?.data;
+}
+export const getRoutes = async () => {
+    const response = await axios.get(`${BASE_URL}/api/routes`);
+    return response?.data;
+}
+export const getAllStudentVehicles = async () => {
+    const response = await axios.get(`${BASE_URL}/api/all-studentVehicle`);
+    return response?.data;
+}
+export const addNewStudentVehicle = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/assign-studentVehicle`, payload);
+    return response?.data;
+}
+export const updateStudentVehicleById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/update-studentVehicle/${id}`, payload);
+    return response?.data;
+}
+export const deleteStudentVehicleById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/student-vehicle/${id}`);
+    return response?.data;
+}
+export const getAllPickupPoints = async () => {
+    const response = await axios.get(`${BASE_URL}/api/pickup-points`);
+    return response?.data;
+}
 export const addNewFeeGroup = async (payload) => {
     const response = await axios.post(`${BASE_URL}/api/add-fee-groups`, payload)
     return response?.data;
@@ -143,7 +269,6 @@ export const addNewFeeConcessionEntry = async (payload) => {
     const response = await axios.post(`${BASE_URL}/api/create-concession`, payload)
     return response?.data;
 }
-
 
 export const getAllInstallments = async () => {
     const response = await axios.get(`${BASE_URL}/api/all-installments`)

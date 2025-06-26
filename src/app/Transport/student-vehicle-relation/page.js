@@ -6,13 +6,11 @@ import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
 import { Container, Row, Col, Breadcrumb, Form, FormLabel, FormGroup, FormControl, FormSelect, Button } from 'react-bootstrap';
 import { CgAddR } from 'react-icons/cg';
 import BreadcrumbComp from "@/app/component/Breadcrumb";
-import axios from 'axios';
 import { copyContent, printContent } from '@/app/utils';
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { toast } from 'react-toastify';
+import { addNewStudentVehicle, deleteStudentVehicleById, getAllPickupPoints, getAllStudents, getAllStudentVehicles, getRoutes, updateStudentVehicleById } from '@/Services';
 
 const StudentVehicle = () => {
-  const API_BASE_URL = "https://erp-backend-fy3n.onrender.com/api";
   const [data, setData] = useState([]);
   const [students, setStudents] = useState([]);
   const [routes, setRoutes] = useState([]);
@@ -20,6 +18,8 @@ const StudentVehicle = () => {
   const [editRowId, setEditRowId] = useState(null);
   const [updatedData, setUpdatedData] = useState({});
   const [loading, setLoading] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
+
   const [showAddForm, setShowAddForm] = useState(false);
   const [formData, setFormData] = useState({
     student: '',
@@ -132,28 +132,28 @@ const StudentVehicle = () => {
   const fetchDropdownData = async () => {
     try {
       const [studentsRes, routesRes, pickupPointsRes] = await Promise.all([
-        axios.get(`${API_BASE_URL}/students/search`),
-        axios.get(`${API_BASE_URL}/routes`),
-        axios.get(`${API_BASE_URL}/pickup-points`)
+        getAllStudents(),
+        getRoutes(),
+        getAllPickupPoints()
       ]);
 
-      setStudents(studentsRes.data.data);
-      setRoutes(routesRes.data.data);
-      setPickupPoints(pickupPointsRes.data.data);
+      setStudents(studentsRes?.data);
+      setRoutes(routesRes?.data);
+      setPickupPoints(pickupPointsRes?.data);
     } catch (err) {
       console.error("Error fetching dropdown data:", err);
-      toast.error("Failed to fetch dropdown data", { position: "top-right" });
+      toast.error("Failed to fetch dropdown data");
     }
   };
 
   const fetchStudentVehicles = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${API_BASE_URL}/all-studentVehicle`);
-      setData(response.data.data.reverse()); // Newest entries first
+      const response = await getAllStudentVehicles()
+      setData(response?.data.reverse()); // Newest entries first
     } catch (err) {
       console.error("Error fetching student vehicles:", err);
-      toast.error(err.response?.data?.message || "Failed to fetch student vehicles", { position: "top-right" });
+      toast.error(err.response?.data?.message || "Failed to fetch student vehicles");
     } finally {
       setLoading(false);
     }
@@ -162,36 +162,53 @@ const StudentVehicle = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
+    if (formErrors[name]) {
+      setFormErrors(prev => ({ ...prev, [name]: null }));
+    }
   };
 
   const handleUpdateChange = (e, field) => {
     setUpdatedData({ ...updatedData, [field]: e.target.value });
   };
 
+  const validateForm = () => {
+    let newErrors = {};
+
+    if (!formData.student) newErrors.student = "Please select a student.";
+    if (!formData.vehicle_route) newErrors.vehicle_route = "Please select a vehicle route.";
+    if (!formData.pickUpPoint) newErrors.pickUpPoint = "Please select a pick-up point.";
+
+    setFormErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    try {
-      if (!formData.student || !formData.vehicle_route || !formData.pickUpPoint) {
-        throw new Error("Please fill all required fields");
-      }
 
-      const response = await axios.post(`${API_BASE_URL}/assign-studentVehicle`, {
+    if (!validateForm()) {
+      toast.warning("Please fill required fields.");
+      return;
+    }
+
+    try {
+      const response = await addNewStudentVehicle({
         student: formData.student,
         vehicle_route: formData.vehicle_route,
         pickUpPoint: formData.pickUpPoint
-      });
+      })
 
-      toast.success("Transport assignment created successfully!", { position: "top-right" });
-      setData([response.data.data, ...data]); // Add new record at the beginning
+      toast.success("Transport assignment created successfully!");
+      fetchStudentVehicles()
       setShowAddForm(false);
       setFormData({
         student: '',
         vehicle_route: '',
         pickUpPoint: ''
       });
+      setFormErrors({}); // Clear errors after successful submit
     } catch (err) {
       console.error("Error creating student vehicle relation:", err);
-      toast.error(err.response?.data?.message || err.message || "Failed to create relation", { position: "top-right" });
+      toast.error(err.response?.data?.message || err.message || "Failed to create relation");
     }
   };
 
@@ -210,38 +227,30 @@ const StudentVehicle = () => {
         throw new Error("Please fill all required fields");
       }
 
-      await axios.put(`${API_BASE_URL}/update-studentVehicle/${id}`, {
+      await updateStudentVehicleById(id, {
         student: updatedData.student,
         vehicle_route: updatedData.vehicle_route,
         pickUpPoint: updatedData.pickUpPoint
-      });
+      })
 
-      toast.success("Transport assignment updated successfully!", { position: "top-right" });
-      const updated = data.map(item => 
-        item._id === id ? { 
-          ...item, 
-          student: students.find(s => s._id === updatedData.student),
-          vehicle_route: routes.find(r => r._id === updatedData.vehicle_route),
-          pickUpPoint: pickupPoints.find(p => p._id === updatedData.pickUpPoint)
-        } : item
-      );
-      setData(updated);
+      toast.success("Transport assignment updated successfully!");
+      fetchStudentVehicles()
       setEditRowId(null);
     } catch (err) {
       console.error("Error updating student vehicle relation:", err);
-      toast.error(err.response?.data?.message || err.message || "Failed to update relation", { position: "top-right" });
+      toast.error(err.response?.data?.message || err.message || "Failed to update relation");
     }
   };
 
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this assignment?")) {
       try {
-        await axios.delete(`${API_BASE_URL}/student-vehicle/${id}`);
-        toast.success("Transport assignment deleted successfully!", { position: "top-right" });
-        setData(prevData => prevData.filter(item => item._id !== id));
+        await deleteStudentVehicleById(id)
+        toast.success("Transport assignment deleted successfully!");
+        fetchStudentVehicles()
       } catch (err) {
         console.error("Error deleting student vehicle relation:", err);
-        toast.error(err.response?.data?.message || "Failed to delete relation", { position: "top-right" });
+        toast.error(err.response?.data?.message || "Failed to delete relation");
       }
     }
   };
@@ -253,22 +262,22 @@ const StudentVehicle = () => {
       row.student ? `${row.student.first_name} ${row.student.last_name}` : 'N/A',
       row.vehicle_route ? `${row.vehicle_route.Route_name} (${row.vehicle_route.Vehicle_No})` : 'N/A',
       row.pickUpPoint ? row.pickUpPoint.PickupPoint : 'N/A',
-      row.Amount ? `₹${row.Amount}` : 
-        row.pickUpPoint?.Amount ? `₹${row.pickUpPoint.Amount}` : 
-        row.vehicle_route?.Amount ? `₹${row.vehicle_route.Amount}` : 'N/A'
+      row.Amount ? `₹${row.Amount}` :
+        row.pickUpPoint?.Amount ? `₹${row.pickUpPoint.Amount}` :
+          row.vehicle_route?.Amount ? `₹${row.vehicle_route.Amount}` : 'N/A'
     ]);
     printContent(headers, rows);
   };
 
   const handleCopy = () => {
     const headers = ["#", "Student Name", "Route", "Pickup Point", "Amount"];
-    const rows = data.map((row, index) => 
+    const rows = data.map((row, index) =>
       `${index + 1}\t${row.student ? `${row.student.first_name} ${row.student.last_name}` : 'N/A'}\t` +
       `${row.vehicle_route ? `${row.vehicle_route.Route_name} (${row.vehicle_route.Vehicle_No})` : 'N/A'}\t` +
       `${row.pickUpPoint ? row.pickUpPoint.PickupPoint : 'N/A'}\t` +
-      `${row.Amount ? `₹${row.Amount}` : 
-        row.pickUpPoint?.Amount ? `₹${row.pickUpPoint.Amount}` : 
-        row.vehicle_route?.Amount ? `₹${row.vehicle_route.Amount}` : 'N/A'}`
+      `${row.Amount ? `₹${row.Amount}` :
+        row.pickUpPoint?.Amount ? `₹${row.pickUpPoint.Amount}` :
+          row.vehicle_route?.Amount ? `₹${row.vehicle_route.Amount}` : 'N/A'}`
     );
     copyContent(headers, rows);
   };
@@ -310,28 +319,30 @@ const StudentVehicle = () => {
               <Form onSubmit={handleSubmit} className='formSheet'>
                 <Row className="mb-3">
                   <FormGroup as={Col} lg="6" controlId="studentSelect">
-                    <FormLabel className="labelForm">Student*</FormLabel>
+                    <FormLabel className="labelForm">Student<span className='text-danger'>*</span></FormLabel>
                     <FormSelect
                       name="student"
                       value={formData.student}
                       onChange={handleChange}
-                      required
+
+                      isInvalid={!!formErrors.student}
                     >
                       <option value="">Select Student</option>
                       {students.map(student => (
                         <option key={student._id} value={student._id}>
-                          {student.first_name} {student.last_name} ({student.adm_no})
+                          {student.first_name} {student.last_name} ({student?.class_name?.class_name})
                         </option>
                       ))}
                     </FormSelect>
+                    <Form.Control.Feedback type="invalid">{formErrors.student}</Form.Control.Feedback>
                   </FormGroup>
                   <FormGroup as={Col} lg="6" controlId="routeSelect">
-                    <FormLabel className="labelForm">Route*</FormLabel>
+                    <FormLabel className="labelForm">Route<span className='text-danger'>*</span></FormLabel>
                     <FormSelect
                       name="vehicle_route"
                       value={formData.vehicle_route}
                       onChange={handleChange}
-                      required
+                      isInvalid={!!formErrors.vehicle_route}
                     >
                       <option value="">Select Route</option>
                       {routes.map(route => (
@@ -340,16 +351,17 @@ const StudentVehicle = () => {
                         </option>
                       ))}
                     </FormSelect>
+                    <Form.Control.Feedback type="invalid">{formErrors.vehicle_route}</Form.Control.Feedback>
                   </FormGroup>
                 </Row>
                 <Row className="mb-3">
                   <FormGroup as={Col} lg="12" controlId="pickupPointSelect">
-                    <FormLabel className="labelForm">Pickup Point*</FormLabel>
+                    <FormLabel className="labelForm">Pickup Point<span className='text-danger'>*</span></FormLabel>
                     <FormSelect
                       name="pickUpPoint"
                       value={formData.pickUpPoint}
                       onChange={handleChange}
-                      required
+                      isInvalid={!!formErrors.pickUpPoint}
                     >
                       <option value="">Select Pickup Point</option>
                       {pickupPoints.map(point => (
@@ -358,6 +370,7 @@ const StudentVehicle = () => {
                         </option>
                       ))}
                     </FormSelect>
+                    <Form.Control.Feedback type="invalid">{formErrors.pickUpPoint}</Form.Control.Feedback>
                   </FormGroup>
                 </Row>
                 <Button type="submit" className='btn btn-primary mt-4'>
@@ -374,11 +387,11 @@ const StudentVehicle = () => {
                 {loading ? (
                   <p>Loading...</p>
                 ) : data.length > 0 ? (
-                  <Table 
-                    columns={columns} 
-                    data={data} 
-                    handleCopy={handleCopy} 
-                    handlePrint={handlePrint} 
+                  <Table
+                    columns={columns}
+                    data={data}
+                    handleCopy={handleCopy}
+                    handlePrint={handlePrint}
                   />
                 ) : (
                   <p>No student transport assignments available</p>
@@ -388,8 +401,6 @@ const StudentVehicle = () => {
           </Row>
         </Container>
       </section>
-
-      <ToastContainer />
     </>
   );
 };
