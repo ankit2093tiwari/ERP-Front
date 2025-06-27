@@ -4,9 +4,8 @@ import dynamic from "next/dynamic";
 import { FaTrashAlt, FaEdit } from "react-icons/fa";
 import { CgAddR } from "react-icons/cg";
 import { Form, Row, Col, Container, FormLabel, FormControl, Button, Breadcrumb, FormGroup, FormSelect, Table as BootstrapTable } from "react-bootstrap";
-import axios from "axios";
 import Table from "@/app/component/DataTable";
-import { getAllInstallments, getFeeGroups, getFeeStructures } from "@/Services";
+import { addNewFeeStructure, deleteFeeStructureById, getAllInstallments, getFeeGroups, getFeeStructures, updateFeeStructureById } from "@/Services";
 import { toast } from "react-toastify";
 
 const FeeStatement = () => {
@@ -18,6 +17,7 @@ const FeeStatement = () => {
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [currentId, setCurrentId] = useState(null);
+  const [fieldError, setFieldError] = useState("")
 
   const [newFeeSetting, setNewFeeSetting] = useState({
     group_name: "",
@@ -114,11 +114,9 @@ const FeeStatement = () => {
     }
   };
 
-
-
-
   const handleGroupChange = (e) => {
     const selectedGroup = e.target.value;
+    setFieldError("")
     setNewFeeSetting(prev => ({ ...prev, group_name: selectedGroup }));
   };
 
@@ -156,6 +154,17 @@ const FeeStatement = () => {
   };
 
   const handleDateChange = (monthId, date) => {
+    const monthEntry = installments.find(i => i._id === monthId);
+    if (!monthEntry) return;
+
+    // Get the month name and current year
+    const monthName = monthEntry.installment_name;
+    const currentYear = new Date().getFullYear();
+
+    // Create a date object for the 15th of the month
+    const monthIndex = new Date(`${monthName} 1, ${currentYear}`).getMonth();
+    const defaultDate = new Date(currentYear, monthIndex, 15);
+
     setNewFeeSetting(prev => {
       const newMonthlyFees = [...prev.monthly_fees];
       const monthIndex = newMonthlyFees.findIndex(m => m.month_name === monthId);
@@ -167,11 +176,11 @@ const FeeStatement = () => {
           annual_fee: 0,
           tuition_fee: 0,
           total_fee: 0,
-          fee_submission_last_date: date ? new Date(date) : new Date()
+          fee_submission_last_date: date ? new Date(date) : defaultDate
         });
       } else {
         const monthEntry = { ...newMonthlyFees[monthIndex] };
-        monthEntry.fee_submission_last_date = date ? new Date(date) : new Date();
+        monthEntry.fee_submission_last_date = date ? new Date(date) : defaultDate;
         newMonthlyFees[monthIndex] = monthEntry;
       }
 
@@ -189,8 +198,30 @@ const FeeStatement = () => {
 
   const getDateValue = (monthId) => {
     const monthEntry = newFeeSetting.monthly_fees.find(m => m.month_name === monthId);
-    if (!monthEntry || !monthEntry.fee_submission_last_date) return "";
-    return new Date(monthEntry.fee_submission_last_date).toISOString().split('T')[0];
+
+    if (!monthEntry || !monthEntry.fee_submission_last_date) {
+      const installEntry = installments.find(i => i._id === monthId);
+      if (installEntry) {
+        const monthName = installEntry.installment_name;
+        const currentYear = new Date().getFullYear();
+        const monthIndex = new Date(`${monthName} 1, ${currentYear}`).getMonth();
+        const defaultDate = new Date(currentYear, monthIndex, 15); // Keep 15 as intended
+
+        // Format manually to avoid timezone issues
+        const year = defaultDate.getFullYear();
+        const month = String(defaultDate.getMonth() + 1).padStart(2, '0');
+        const day = String(defaultDate.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`; // "2023-04-15" (correct)
+      }
+      return "";
+    }
+
+    // Format existing date correctly (without timezone conversion)
+    const date = new Date(monthEntry.fee_submission_last_date);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   };
 
   const resetForm = () => {
@@ -204,8 +235,13 @@ const FeeStatement = () => {
   };
 
   const handleAdd = async () => {
-    if (!newFeeSetting.group_name || newFeeSetting.total_amount === 0) {
-      alert("Please select a group and enter fee amounts.");
+    if (!newFeeSetting.group_name) {
+      toast.warn("Please select a group first.");
+      setFieldError("Please select a group!");
+      return;
+    }
+    if (newFeeSetting.total_amount === 0) {
+      toast.warn("Please enter fee amounts.");
       return;
     }
 
@@ -221,16 +257,14 @@ const FeeStatement = () => {
         })),
         total_amount: newFeeSetting.monthly_fees.reduce((sum, month) => sum + (month.total_fee || 0), 0)
       };
-
-      const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/create-fee-structure", payload);
-
-      if (response.data?.success) {
-        toast.success(response.data?.message || "Fee structure added successfully");
+      const response = await addNewFeeStructure(payload)
+      if (response?.success) {
+        toast.success(response?.message || "Fee structure added successfully");
         fetchData();
         resetForm();
         setIsPopoverOpen(false);
       } else {
-        throw new Error(response.data?.message || "Failed to add fee structure");
+        toast.error(response?.message || "Failed to add fee structure");
       }
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to add fee structure");
@@ -241,7 +275,7 @@ const FeeStatement = () => {
 
   const handleUpdate = async () => {
     if (!currentId || !newFeeSetting.group_name || newFeeSetting.total_amount === 0) {
-      alert("Please select a group and enter fee amounts.");
+      toast.warn("Please select a group and enter fee amounts.");
       return;
     }
 
@@ -260,12 +294,9 @@ const FeeStatement = () => {
         total_amount
       };
 
-      const response = await axios.put(
-        `https://erp-backend-fy3n.onrender.com/api/update-fee-structure/${currentId}`,
-        payload
-      );
-
-      if (response.data?.success) {
+      const response = await updateFeeStructureById(currentId, payload)
+      toast.success(response?.message || "fee structure updated successfully");
+      if (response?.success) {
         setData(prevData =>
           prevData.map(item =>
             item._id === currentId
@@ -287,12 +318,11 @@ const FeeStatement = () => {
         resetForm();
         setIsPopoverOpen(false);
       } else {
-        throw new Error(response.data?.message || "Failed to update fee structure");
+        toast.error(response?.message || "Failed to update fee structure");
       }
     } catch (err) {
       console.error("Update error:", err);
-      setError(err.response?.data?.message || "Failed to update fee structure");
-      fetchData();
+      toast.error(err.response?.data?.message || "Failed to update fee structure");
     }
   };
 
@@ -323,7 +353,8 @@ const FeeStatement = () => {
     if (!window.confirm("Are you sure you want to delete this fee structure?")) return;
 
     try {
-      await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-fee-structure/${id}`);
+      const response = await deleteFeeStructureById(id)
+      toast.success(response?.message || "fee structure deleted successfully");
       fetchData();
     } catch (err) {
       console.error("Delete error:", err);
@@ -431,6 +462,7 @@ const FeeStatement = () => {
                       as="select"
                       value={newFeeSetting.group_name}
                       onChange={handleGroupChange}
+                      isInvalid={!!fieldError}
                     >
                       <option value="">Select Group</option>
                       {feeGroups.map((group) => (
@@ -439,6 +471,7 @@ const FeeStatement = () => {
                         </option>
                       ))}
                     </FormControl>
+                    <Form.Control.Feedback type="invalid">{fieldError}</Form.Control.Feedback>
                   </Col>
                   <Col lg={6}>
                     <FormLabel className="labelForm">Total Amount</FormLabel>
@@ -566,7 +599,7 @@ const FeeStatement = () => {
           <div className="tableSheet">
             <h2>Fee Records</h2>
             {loading && <p>Loading...</p>}
-            {!loading && !error && data.length > 0 ? (
+            {!loading && data.length > 0 ? (
               <Table
                 columns={columns}
                 data={data}
@@ -575,7 +608,7 @@ const FeeStatement = () => {
                 responsive
               />
             ) : (
-              !loading && !error && <p>No data available.</p>
+              !loading && <p>No data available.</p>
             )}
           </div>
         </Container>

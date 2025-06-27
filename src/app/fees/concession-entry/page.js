@@ -231,9 +231,8 @@ const ConcessionEntry = () => {
             <div className="studentHeading">
               <h2>Fee Concession</h2>
             </div>
-            <div className='px-5'>
+            <div>
               <Form className="formSheet mb-4">
-                <Card className="shadow-sm p-3 mb-4">
                   <Row>
                     <Col lg={4}>
                       <FormLabel className={styles.labelForm}>Class</FormLabel>
@@ -282,7 +281,7 @@ const ConcessionEntry = () => {
                       </FormSelect>
                     </Col>
                   </Row>
-                </Card>
+
 
                 <Row>
                   <Col lg={12}>

@@ -9,7 +9,7 @@ import Table from "@/app/component/DataTable";
 import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { toast } from "react-toastify";
-import { deleteVendorRecordById, getAllVendors, getItemCategories, updateVendor } from "@/Services";
+import { deleteVendorRecordById, getAllVendors, getItemCategories, updateVendor, addNewVendor } from "@/Services";
 
 const VendorMaster = () => {
   const [data, setData] = useState([]);
@@ -19,6 +19,7 @@ const VendorMaster = () => {
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [editedValues, setEditedValues] = useState({});
+  const [errors, setErrors] = useState({});
   const [formData, setFormData] = useState({
     organizationName: "",
     organizationType: "",
@@ -264,7 +265,6 @@ const VendorMaster = () => {
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to update vendor");
       console.error("Error updating data:", error);
-      setError("Failed to update vendor. Please try again later.");
     }
   };
 
@@ -277,28 +277,14 @@ const VendorMaster = () => {
       } catch (error) {
         toast.error(error.response?.data?.message || "Failed to delete vendor");
         console.error("Error deleting data:", error);
-        setError("Failed to delete vendor. Please try again later.");
       }
     }
   };
 
   const handleAdd = async () => {
     // Validate required fields
-    if (!formData.organizationName || !formData.contactPersonName || !formData.contactNumber || !formData.email || !formData.itemCategory || !formData.organizationType || !formData.statusOfEnterprise || !formData.organizationAddress) {
+    if (!validateForm()) {
       toast.warn("Please fill all required fields");
-      setError("Please fill all required fields");
-      return;
-    }
-
-    // Validate contact number format
-    if (!/^[0-9]{10,15}$/.test(formData.contactNumber)) {
-      setError("Contact number must be 10-15 digits");
-      return;
-    }
-
-    // Validate email format
-    if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
-      setError("Please enter a valid email address");
       return;
     }
 
@@ -338,10 +324,60 @@ const VendorMaster = () => {
     } catch (error) {
       toast.error(error.response?.data?.message || "Failed to add vendor");
       console.error("Error adding data:", error);
-      setError("Failed to add vendor. Please try again later.");
     }
   };
+  const validateForm = () => {
+    const newErrors = {};
+    let isValid = true;
 
+    // Required fields validation
+    if (!formData.organizationName) {
+      newErrors.organizationName = "Organization name is required";
+      isValid = false;
+    }
+    if (!formData.itemCategory) {
+      newErrors.itemCategory = "Item Category is required";
+      isValid = false;
+    }
+    if (!formData.statusOfEnterprise) {
+      newErrors.statusOfEnterprise = "Enterpris Status is required";
+      isValid = false;
+    }
+    if (!formData.contactPersonName) {
+      newErrors.contactPersonName = "Contact PersonName is required";
+      isValid = false;
+    }
+    if (!formData.organizationType) {
+      newErrors.organizationType = "Organization Type is required";
+      isValid = false;
+    }
+    if (!formData.organizationAddress) {
+      newErrors.organizationAddress = "Organization Address is required";
+      isValid = false;
+    }
+
+    if (!formData.email) {
+      newErrors.email = "Email is required";
+      isValid = false;
+    } // Validate email format
+    else if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
+      newErrors.email = "Please enter a valid email address";
+      isValid = false;;
+    }
+
+    if (!formData.contactNumber) {
+      newErrors.contactNumber = "Contact Number is required";
+      isValid = false;
+    }
+    // Validate contact number format
+    else if (!/^[0-9]{10,15}$/.test(formData.contactNumber)) {
+      newErrors.contactNumber = "Contact number must be 10-15 digits";
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
   const handlePrint = () => {
     const tableHeaders = [["#", "Organization", "Type", "Status", "Category", "Contact Person"]];
     const tableRows = data.map((row, index) => [
@@ -366,6 +402,9 @@ const VendorMaster = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
+    if (errors[name]) {
+      setErrors((prev) => ({ ...prev, [name]: "" }));
+    }
   };
 
   useEffect(() => {
@@ -391,7 +430,6 @@ const VendorMaster = () => {
 
       <section>
         <Container>
-          {error && <Alert variant="danger">{error}</Alert>}
 
           <Button
             onClick={() => setIsPopoverOpen(true)}
@@ -417,21 +455,26 @@ const VendorMaster = () => {
               <Form className="formSheet">
                 <Row className="mb-3">
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Organization Name*</FormLabel>
+                    <FormLabel className="labelForm">Organization Name<span className="text-danger">*</span></FormLabel>
                     <FormControl
                       type="text"
                       name="organizationName"
                       value={formData.organizationName}
                       onChange={handleChange}
                       required
+                      isInvalid={errors.organizationName}
                     />
+                    <Form.Control.Feedback type="invalid">
+                      {errors.organizationName}
+                    </Form.Control.Feedback>
                   </Col>
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Organization Type</FormLabel>
+                    <FormLabel className="labelForm">Organization Type<span className="text-danger">*</span></FormLabel>
                     <FormSelect
                       name="organizationType"
                       value={formData.organizationType}
                       onChange={handleChange}
+                      isInvalid={!!errors.organizationType}
                     >
                       <option value="">Select</option>
                       {organizationTypeOptions.map(option => (
@@ -440,26 +483,34 @@ const VendorMaster = () => {
                         </option>
                       ))}
                     </FormSelect>
+                    <Form.Control.Feedback type="invalid">
+                      {errors.organizationType}
+                    </Form.Control.Feedback>
                   </Col>
                 </Row>
 
                 <Row className="mb-3">
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Contact Person Name*</FormLabel>
+                    <FormLabel className="labelForm">Contact Person Name<span className="text-danger">*</span></FormLabel>
                     <FormControl
                       type="text"
                       name="contactPersonName"
                       value={formData.contactPersonName}
                       onChange={handleChange}
                       required
+                      isInvalid={!!errors.contactPersonName}
                     />
+                    <Form.Control.Feedback type="invalid">
+                      {errors.contactPersonName}
+                    </Form.Control.Feedback>
                   </Col>
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Status Of Enterprise</FormLabel>
+                    <FormLabel className="labelForm">Status Of Enterprise<span className="text-danger">*</span></FormLabel>
                     <FormSelect
                       name="statusOfEnterprise"
                       value={formData.statusOfEnterprise}
                       onChange={handleChange}
+                      isInvalid={!!errors.statusOfEnterprise}
                     >
                       <option value="">Select</option>
                       {statusOfEnterpriseOptions.map(option => (
@@ -468,12 +519,15 @@ const VendorMaster = () => {
                         </option>
                       ))}
                     </FormSelect>
+                    <Form.Control.Feedback type="invalid">
+                      {errors.statusOfEnterprise}
+                    </Form.Control.Feedback>
                   </Col>
                 </Row>
 
                 <Row className="mb-3">
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Contact Number*</FormLabel>
+                    <FormLabel className="labelForm">Contact Number<span className="text-danger">*</span></FormLabel>
                     <FormControl
                       type="text"
                       name="contactNumber"
@@ -481,25 +535,31 @@ const VendorMaster = () => {
                       onChange={handleChange}
                       required
                       maxLength={10}
+                      isInvalid={!!errors.contactNumber}
                     />
-
-
+                    <Form.Control.Feedback type="invalid">
+                      {errors.contactNumber}
+                    </Form.Control.Feedback>
                   </Col>
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Email*</FormLabel>
+                    <FormLabel className="labelForm">Email<span className="text-danger">*</span></FormLabel>
                     <FormControl
                       type="email"
                       name="email"
                       value={formData.email}
                       onChange={handleChange}
                       required
+                      isInvalid={!!errors.email}
                     />
                   </Col>
+                  <Form.Control.Feedback type="invalid">
+                    {errors.email}
+                  </Form.Control.Feedback>
                 </Row>
 
                 <Row className="mb-3">
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Item Category</FormLabel>
+                    <FormLabel className="labelForm">Item Category<span className="text-danger">*</span></FormLabel>
                     <FormSelect
                       name="itemCategory"
                       value={formData.itemCategory}
@@ -514,7 +574,7 @@ const VendorMaster = () => {
                     </FormSelect>
                   </Col>
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Organization Address</FormLabel>
+                    <FormLabel className="labelForm">Organization Address<span className="text-danger">*</span></FormLabel>
                     <FormControl
                       as="textarea"
                       rows={2}

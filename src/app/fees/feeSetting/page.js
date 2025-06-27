@@ -1,41 +1,144 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
-import { CgAddR } from "react-icons/cg";
+import { FaEdit, FaTimes } from "react-icons/fa";
 import {
-  Form,
-  Row,
-  Col,
-  Container,
-  FormLabel,
-  FormControl,
-  Button,
-  Breadcrumb,
+  Form, Row, Col, Container, Button, Alert,
 } from "react-bootstrap";
-import axios from "axios";
 import Table from "@/app/component/DataTable";
-import styles from "@/app/medical/routine-check-up/page.module.css";
 import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import { toast } from "react-toastify";
+import { getAllFeeSetting, updateFeeSetting } from "@/Services";
 
 const FeeSetting = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [newFeeSetting, setNewFeeSetting] = useState({
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState({
     credit_card_charge: "",
     debit_card_charge: "",
     amex_charge: "",
   });
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const [editingId, setEditingId] = useState(null); // Track which row is being edited
-  const [editedData, setEditedData] = useState({
+  const [validationErrors, setValidationErrors] = useState({
     credit_card_charge: "",
     debit_card_charge: "",
     amex_charge: "",
   });
 
+  const validateField = (name, value) => {
+    if (!value) return "This field is required";
+    if (isNaN(value)) return "Must be a number";
+    const numValue = parseFloat(value);
+    if (numValue < 0) return "Cannot be negative";
+    if (numValue > 100) return "Cannot exceed 100%";
+    return "";
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    setValidationErrors(prev => ({
+      ...prev,
+      [name]: validateField(name, value)
+    }));
+  };
+
+  const fetchData = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      const response = await getAllFeeSetting();
+      if (response?.success && response.feeSetting) {
+        setData([response.feeSetting]);
+        setFormData({
+          credit_card_charge: response.feeSetting.credit_card_charge,
+          debit_card_charge: response.feeSetting.debit_card_charge,
+          amex_charge: response.feeSetting.amex_charge,
+        });
+      } else {
+        setData([]);
+        setError("No fee setting found");
+      }
+    } catch (err) {
+      console.error("Fetch error:", err);
+      setError("Failed to fetch fee settings");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmit = async () => {
+    const errors = {
+      credit_card_charge: validateField('credit_card_charge', formData.credit_card_charge),
+      debit_card_charge: validateField('debit_card_charge', formData.debit_card_charge),
+      amex_charge: validateField('amex_charge', formData.amex_charge),
+    };
+
+    setValidationErrors(errors);
+
+    if (Object.values(errors).some(error => error)) {
+      toast.error("Please fix validation errors");
+      return;
+    }
+
+    try {
+      const numericData = {
+        credit_card_charge: parseFloat(formData.credit_card_charge),
+        debit_card_charge: parseFloat(formData.debit_card_charge),
+        amex_charge: parseFloat(formData.amex_charge),
+      };
+
+      const response = await updateFeeSetting(numericData);
+      if (response?.success) {
+        toast.success("Fee settings updated successfully");
+        fetchData();
+        setIsEditing(false);
+      } else {
+        toast.error(response?.message || "Failed to update fee settings");
+      }
+    } catch (err) {
+      console.error("Update error:", err);
+      toast.error("Failed to update fee settings");
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const columns = [
+    { name: "#", selector: (row, index) => index + 1, width: "80px" },
+    { name: "Credit Card Charge", selector: (row) => `${row.credit_card_charge}%` },
+    { name: "Debit Card Charge", selector: (row) => `${row.debit_card_charge}%` },
+    { name: "AMEX Charge", selector: (row) => `${row.amex_charge}%` },
+    {
+      name: "Actions",
+      cell: (row) => (
+        <button
+          className="editButton"
+          onClick={() => setIsEditing(true)}
+          disabled={isEditing}
+        >
+          <FaEdit className="me-1" />
+          Edit
+        </button>
+      ),
+    },
+  ];
+
+  const breadcrumbItems = [
+    { label: "Settings", link: "/settings" },
+    { label: "Fee Setting", link: null }
+  ];
+
+  const handleCopy = () => {
+    const headers = ["#", "Credit Card Charge", "Debit Card Charge", "AMEX Charge"];
+    const rows = data.map((row, index) => `${index + 1}\t${row.credit_card_charge || "N/A"}\t${row.debit_card_charge || "N/A"}\t${row.amex_charge || "N/A"}`);
+
+    copyContent(headers, rows);
+  };
   const handlePrint = async () => {
     const tableHeaders = [["#", "Credit Card Charge", "Debit Card Charge", "AMEX Charge"]];
     const tableRows = data.map((row, index) => [
@@ -48,280 +151,134 @@ const FeeSetting = () => {
     printContent(tableHeaders, tableRows);
 
   };
-
-
-
-  const handleCopy = () => {
-    const headers = ["#", "Credit Card Charge", "Debit Card Charge", "AMEX Charge"];
-    const rows = data.map((row, index) => `${index + 1}\t${row.credit_card_charge || "N/A"}\t${row.debit_card_charge || "N/A"}\t${row.amex_charge || "N/A"}`);
-
-    copyContent(headers, rows);
-  };
-
-
-  // Fetch data from the API
-  const fetchData = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-fee-settings");
-      console.log("API Response:", response.data);
-
-      if (response.data && response.data.success && Array.isArray(response.data.feeSettings)) {
-        setData(response.data.feeSettings);
-      } else {
-        setData([]); // Set empty array instead of null
-        setError("No records found.");
-      }
-    } catch (err) {
-      console.error("Fetch error:", err);
-      setData([]);
-      setError("Failed to fetch fee settings.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Add a new fee setting
-  const handleAdd = async () => {
-    if (
-      newFeeSetting.credit_card_charge.trim() &&
-      newFeeSetting.debit_card_charge.trim() &&
-      newFeeSetting.amex_charge.trim()
-    ) {
-      try {
-        const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/add-fee-settings", newFeeSetting);
-        console.log("Added Fee Setting:", response.data);
-        fetchData(); // Refresh data
-        setNewFeeSetting({
-          credit_card_charge: "",
-          debit_card_charge: "",
-          amex_charge: "",
-        });
-        setIsPopoverOpen(false); // Close the popover
-      } catch (err) {
-        console.error("Add error:", err);
-        setError("Failed to add fee setting.");
-      }
-    } else {
-      alert("All fields are required.");
-    }
-  };
-
-  // Enter edit mode for a row
-  const handleEdit = (row) => {
-    setEditingId(row._id); // Set the ID of the row being edited
-    setEditedData({
-      credit_card_charge: row.credit_card_charge,
-      debit_card_charge: row.debit_card_charge,
-      amex_charge: row.amex_charge,
-    });
-  };
-
-  // Save changes for the edited row
-  const handleUpdate = async (id) => {
-    try {
-      await axios.put(
-        `https://erp-backend-fy3n.onrender.com/api/update-fee-settings/${id}`,
-        editedData
-      );
-
-      // Update the local state
-      setData((prevData) =>
-        prevData.map((row) =>
-          row._id === id
-            ? { ...row, ...editedData }
-            : row
-        )
-      );
-      fetchData();
-      setEditingId(null); // Exit edit mode
-    } catch (err) {
-      console.error("Update error:", err);
-      setError("Failed to update fee setting.");
-    }
-  };
-
-  // Delete a fee setting
-  const handleDelete = async (id) => {
-    if (confirm("Are you sure you want to delete this fee setting?")) {
-      try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-fee-settings/${id}`);
-        console.log("Deleted Fee Setting:", id);
-        fetchData(); // Refresh data
-      } catch (err) {
-        console.error("Delete error:", err);
-        setError("Failed to delete fee setting.");
-      }
-    }
-  };
-
-  // Fetch data on component mount
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  // Table columns definition
-  const columns = [
-    {
-      name: "#",
-      selector: (row, index) => index + 1,
-      sortable: false,
-      width: "80px",
-    },
-    {
-      name: "Credit Card Charge",
-      cell: (row) =>
-        editingId === row._id ? (
-          <FormControl
-            type="text"
-            value={editedData.credit_card_charge}
-            onChange={(e) =>
-              setEditedData({ ...editedData, credit_card_charge: e.target.value })
-            }
-          />
-        ) : (
-          row.credit_card_charge || "N/A"
-        ),
-      sortable: true,
-    },
-    {
-      name: "Debit Card Charge",
-      cell: (row) =>
-        editingId === row._id ? (
-          <FormControl
-            type="text"
-            value={editedData.debit_card_charge}
-            onChange={(e) =>
-              setEditedData({ ...editedData, debit_card_charge: e.target.value })
-            }
-          />
-        ) : (
-          row.debit_card_charge || "N/A"
-        ),
-      sortable: true,
-    },
-    {
-      name: "AMEX Charge",
-      cell: (row) =>
-        editingId === row._id ? (
-          <FormControl
-            type="text"
-            value={editedData.amex_charge}
-            onChange={(e) =>
-              setEditedData({ ...editedData, amex_charge: e.target.value })
-            }
-          />
-        ) : (
-          row.amex_charge || "N/A"
-        ),
-      sortable: true,
-    },
-    {
-      name: "Actions",
-      cell: (row) => (
-        <div className="d-flex gap-2">
-          {editingId === row._id ? (
-            <>
-              <button className="editButton" onClick={() => handleUpdate(row._id)}>
-                <FaSave />
-              </button>
-              <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
-                <FaTrashAlt />
-              </button>
-            </>
-          ) : (
-            <>
-              <button className="editButton" onClick={() => handleEdit(row)}>
-                <FaEdit />
-              </button>
-              <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
-                <FaTrashAlt />
-              </button>
-            </>
-          )}
-        </div>
-      ),
-    },
-  ];
-
-  const breadcrumbItems = [{ label: "Fee", link: "/fees/all-module" }, { label: "fee-Setting", link: "null" }]
-
   return (
     <>
       <div className="breadcrumbSheet position-relative">
         <Container>
-          <Row className="mt-1 mb-1">
+          <Row>
             <Col>
               <BreadcrumbComp items={breadcrumbItems} />
             </Col>
           </Row>
         </Container>
       </div>
+
       <section>
         <Container>
-
-          {/* Add Fee Setting Button */}
-          <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
-            <CgAddR /> Add Fee Setting
-          </Button>
-
-          {/* Add Fee Setting Popover */}
-          {isPopoverOpen && (
-            <div className="cover-sheet">
+          {isEditing && (
+            <div className="cover-sheet mt-4">
               <div className="studentHeading">
-                <h2>Add New Fee Setting</h2>
-                <button className="closeForm" onClick={() => setIsPopoverOpen(false)}>
+                <h5>Edit Fee Settings</h5>
+                <button
+                  className="closeForm"
+                  onClick={() => setIsEditing(false)}
+                >
                   X
                 </button>
               </div>
               <Form className="formSheet">
-                <Row>
-                  <Col lg={6}>
-                    <FormLabel className="labelForm">Credit Card Charge</FormLabel>
-                    <FormControl
-                      type="text"
-                      value={newFeeSetting.credit_card_charge}
-                      onChange={(e) =>
-                        setNewFeeSetting({ ...newFeeSetting, credit_card_charge: e.target.value })
-                      }
-                    />
+                <Row className="g-3">
+                  <Col md={4}>
+                    <Form.Group>
+                      <Form.Label className="labelForm">Credit Card Charge(%)<span className="text-danger">*</span></Form.Label>
+                      <Form.Control
+                        type="number"
+                        name="credit_card_charge"
+                        value={formData.credit_card_charge}
+                        onChange={handleInputChange}
+                        isInvalid={!!validationErrors.credit_card_charge}
+                        min="0"
+                        max="100"
+                        step="0.01"
+                        placeholder="Enter percentage"
+                      />
+                      <Form.Control.Feedback type="invalid">
+                        {validationErrors.credit_card_charge}
+                      </Form.Control.Feedback>
+                    </Form.Group>
                   </Col>
-                  <Col lg={6}>
-                    <FormLabel className="labelForm">Debit Card Charge</FormLabel>
-                    <FormControl
-                      type="text"
-                      value={newFeeSetting.debit_card_charge}
-                      onChange={(e) =>
-                        setNewFeeSetting({ ...newFeeSetting, debit_card_charge: e.target.value })
-                      }
-                    />
+
+                  <Col md={4}>
+                    <Form.Group>
+                      <Form.Label className="labelForm">Debit Card Charge(%)<span className="text-danger">*</span></Form.Label>
+                      <Form.Control
+                        type="number"
+                        name="debit_card_charge"
+                        value={formData.debit_card_charge}
+                        onChange={handleInputChange}
+                        isInvalid={!!validationErrors.debit_card_charge}
+                        min="0"
+                        max="100"
+                        step="0.01"
+                        placeholder="Enter percentage"
+                      />
+                      <Form.Control.Feedback type="invalid">
+                        {validationErrors.debit_card_charge}
+                      </Form.Control.Feedback>
+                    </Form.Group>
                   </Col>
-                  <Col lg={6}>
-                    <FormLabel className="labelForm">AMEX Charge</FormLabel>
-                    <FormControl
-                      type="text"
-                      value={newFeeSetting.amex_charge}
-                      onChange={(e) =>
-                        setNewFeeSetting({ ...newFeeSetting, amex_charge: e.target.value })
-                      }
-                    />
+
+                  <Col md={4}>
+                    <Form.Group>
+                      <Form.Label className="labelForm">AMEX Charge(%)<span className="text-danger">*</span></Form.Label>
+                      <Form.Control
+                        type="number"
+                        name="amex_charge"
+                        value={formData.amex_charge}
+                        onChange={handleInputChange}
+                        isInvalid={!!validationErrors.amex_charge}
+                        min="0"
+                        max="100"
+                        step="0.01"
+                        placeholder="Enter percentage"
+                      />
+                      <Form.Control.Feedback type="invalid">
+                        {validationErrors.amex_charge}
+                      </Form.Control.Feedback>
+                    </Form.Group>
                   </Col>
                 </Row>
-                <Button onClick={handleAdd} className="btn btn-primary mt-3">
-                  Add Fee Setting
-                </Button>
+
+                <div className="">
+                  <Button
+                    variant="outline-secondary"
+                    onClick={() => setIsEditing(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="primary"
+                    onClick={handleSubmit}
+                    disabled={Object.values(validationErrors).some(Boolean)}
+                  >
+                    Save Changes
+                  </Button>
+                </div>
               </Form>
             </div>
           )}
-
-          {/* Fee Setting Records Table */}
-          <div className="tableSheet">
-            <h2>Fee Setting Records</h2>
-            {loading && <p>Loading...</p>}
-            {error && <p>{error}</p>}
-            {!loading && !error && <Table columns={columns} data={data} handleCopy={handleCopy} handlePrint={handlePrint} />}
+          <div className="cover-sheet">
+            {loading ? (
+              <div className="text-center py-4">
+                <div className="spinner-border text-primary" role="status">
+                  <span className="visually-hidden">Loading...</span>
+                </div>
+              </div>
+            ) : error ? (
+              <Alert variant="danger">{error}</Alert>
+            ) : (
+              <div className="tableSheet text-start">
+                <h2>Current Fee Settings</h2>
+                <Table
+                  columns={columns}
+                  data={data}
+                  handleCopy={handleCopy}
+                  handlePrint={handlePrint}
+                />
+              </div>
+            )}
           </div>
+
         </Container>
       </section>
     </>

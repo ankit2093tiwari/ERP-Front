@@ -27,6 +27,7 @@ const FeeGroup = () => {
   const [classList, setClassList] = useState([]);
   const [sectionList, setSectionList] = useState([]);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [formErrors, setFormErrors] = useState({});
   const [newFeeGroup, setNewFeeGroup] = useState({
     group_name: "",
     section_name: [],
@@ -92,10 +93,30 @@ const FeeGroup = () => {
     fetchData();
   }, []);
 
+  const validateForm = () => {
+    let newErrors = {};
+
+    if (!newFeeGroup.group_name.trim()) {
+      newErrors.group_name = "Group name is required!";
+    }
+
+    if (!newFeeGroup.section_name || newFeeGroup.section_name.length === 0) {
+      newErrors.section_name = "Please select at least one section";
+    }
+
+    if (!newFeeGroup.late_fine_per_day || isNaN(newFeeGroup.late_fine_per_day)) {
+      newErrors.late_fine_per_day = "Please enter a valid fine amount";
+    }
+
+    setFormErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
 
   const handleAdd = async () => {
-    if (!newFeeGroup.group_name || !newFeeGroup.section_name || !newFeeGroup.late_fine_per_day) {
-      return toast.warn("All fields are required");
+    if (!validateForm()) {
+      toast.warning("Please fill required fields.");
+      return;
     }
     try {
       const response = await addNewFeeGroup(newFeeGroup);
@@ -308,39 +329,27 @@ const FeeGroup = () => {
               <Form className="formSheet">
                 <Row>
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Group Name</FormLabel>
+                    <FormLabel className="labelForm">
+                      Group Name <span className="text-danger">*</span>
+                    </FormLabel>
                     <FormControl
                       type="text"
+                      placeholder="Enter Group Name"
                       value={newFeeGroup.group_name}
-                      onChange={(e) =>
-                        setNewFeeGroup({
-                          ...newFeeGroup,
-                          group_name: e.target.value,
-                        })
-                      }
+                      onChange={(e) => {
+                        setNewFeeGroup({ ...newFeeGroup, group_name: e.target.value });
+                        // Clear error for group_name on change
+                        if (formErrors.group_name) {
+                          setFormErrors((prevErrors) => ({ ...prevErrors, group_name: "" }));
+                        }
+                      }}
+                      isInvalid={!!formErrors.group_name}
                     />
+                    <Form.Control.Feedback type="invalid">{formErrors.group_name}</Form.Control.Feedback>
                   </Col>
+
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Class & Section</FormLabel>
-                    {/* <Select
-                      isMulti
-                      options={sectionList.map((sectionItem) => ({
-                        value: sectionItem._id,
-                        label: `${sectionItem.class?.class_name}#${sectionItem.section_name}`,
-                      }))}
-                      value={sectionList
-                        .filter((s) => newFeeGroup.section_name.includes(s._id))
-                        .map((s) => ({
-                          value: s._id,
-                          label: `${s.class?.class_name}#${s.section_name}`,
-                        }))}
-                      onChange={(selectedOptions) =>
-                        setNewFeeGroup({
-                          ...newFeeGroup,
-                          section_name: selectedOptions.map((opt) => opt.value),
-                        })
-                      }
-                    /> */}
+                    <FormLabel className="labelForm">Class & Section<span className="text-danger">*</span></FormLabel>
                     <Select
                       isMulti
                       options={sectionList.map((sectionItem) => ({
@@ -353,11 +362,15 @@ const FeeGroup = () => {
                           value: s._id,
                           label: `${s.class?.class_name}#${s.section_name}`,
                         }))}
-                      onChange={(selectedOptions) =>
+                      onChange={(selectedOptions) => {
                         setNewFeeGroup({
                           ...newFeeGroup,
                           section_name: selectedOptions.map((opt) => opt.value),
                         })
+                        if (formErrors.section_name) {
+                          setFormErrors((prev) => ({ ...prev, section_name: "" }));
+                        }
+                      }
                       }
                       menuPortalTarget={document.body}
                       menuPosition="fixed"
@@ -365,20 +378,29 @@ const FeeGroup = () => {
                         menuPortal: (base) => ({ ...base, zIndex: 9999 }),
                       }}
                     />
+                    {formErrors.section_name && (
+                      <div className="text-danger mt-1">{formErrors.section_name}</div>
+                    )}
 
                   </Col>
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Late Fine Per Day</FormLabel>
+                    <FormLabel className="labelForm">Late Fine Per Day<span className="text-danger">*</span></FormLabel>
                     <FormControl
                       type="text"
+                      placeholder="Enter Late Fine"
                       value={newFeeGroup.late_fine_per_day}
-                      onChange={(e) =>
+                      onChange={(e) => {
                         setNewFeeGroup({
                           ...newFeeGroup,
                           late_fine_per_day: e.target.value,
                         })
-                      }
+                        if (formErrors.late_fine_per_day) {
+                          setFormErrors((prevErrors) => ({ ...prevErrors, late_fine_per_day: "" }));
+                        }
+                      }}
+                      isInvalid={!!formErrors.late_fine_per_day}
                     />
+                    <Form.Control.Feedback type="invalid">{formErrors.late_fine_per_day}</Form.Control.Feedback>
                   </Col>
                 </Row>
                 <Button onClick={handleAdd} className="btn btn-primary mt-3">

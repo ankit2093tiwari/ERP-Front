@@ -2,12 +2,12 @@
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
-import { CgAddR } from 'react-icons/cg';
 import { Form, Row, Col, Container, FormLabel, FormControl, Button } from "react-bootstrap";
-import axios from "axios";
 import Table from "@/app/component/DataTable";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { copyContent, printContent } from "@/app/utils";
+import { addNewSchoolAccount, getAllSchoolAccounts, updateSchoolAccountById } from "@/Services";
+import { toast } from "react-toastify";
 
 const SchoolAccount = () => {
   const [data, setData] = useState([]);
@@ -18,14 +18,13 @@ const SchoolAccount = () => {
   const [editingId, setEditingId] = useState(null);
   const [editedAccount, setEditedAccount] = useState("");
 
-  const API_BASE = "https://erp-backend-fy3n.onrender.com/api";
 
   const fetchData = async () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get(`${API_BASE}/all-schoolAccount`);
-      setData(response.data.data || []);
+      const response = await getAllSchoolAccounts()
+      setData(response.data || []);
     } catch (err) {
       console.error("Error fetching data:", err);
       setError("Failed to fetch school accounts. Please try again later.");
@@ -37,19 +36,22 @@ const SchoolAccount = () => {
   const handleAdd = async () => {
     if (!newAccount.trim()) {
       setError("School account name cannot be empty");
+      toast.warn("School account name cannot be empty");
       return;
     }
 
     try {
-      const response = await axios.post(`${API_BASE}/create-schoolAccount`, {
+      const response = await addNewSchoolAccount({
         school_account: newAccount,
-      });
+      })
+      toast.success("School Account added successfully")
       setNewAccount("");
       setIsPopoverOpen(false);
       fetchData();
     } catch (error) {
       console.error("Error adding account:", error);
       setError(error.response?.data?.message || "Failed to add school account");
+      toast.error(error.response?.data?.message || "Failed to add school account");
     }
   };
 
@@ -61,30 +63,21 @@ const SchoolAccount = () => {
   const handleUpdate = async (id) => {
     if (!editedAccount.trim()) {
       setError("School account name cannot be empty");
+      toast.warn("School account name cannot be empty");
       return;
     }
 
     try {
-      await axios.put(`${API_BASE}/update-schoolAccount/${id}`, {
+      await updateSchoolAccountById(id, {
         school_account: editedAccount,
-      });
+      })
+      toast.success("School account updated successfully.")
       setEditingId(null);
       fetchData();
     } catch (error) {
       console.error("Error updating account:", error);
       setError(error.response?.data?.message || "Failed to update school account");
-    }
-  };
-
-  const handleDelete = async (id) => {
-    if (confirm("Are you sure you want to delete this account?")) {
-      try {
-        await axios.delete(`${API_BASE}/delete-schoolAccount/${id}`);
-        fetchData();
-      } catch (error) {
-        console.error("Error deleting account:", error);
-        setError("Failed to delete school account");
-      }
+      toast.error(error.response?.data?.message || "Failed to update school account");
     }
   };
 
@@ -192,7 +185,7 @@ const SchoolAccount = () => {
             <h2>School Account Records</h2>
             {loading && <p>Loading...</p>}
             {error && <p className="text-danger">{error}</p>}
-            {!loading && !error && (
+            {!loading && (
               <Table
                 columns={columns}
                 data={data}

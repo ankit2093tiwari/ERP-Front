@@ -148,8 +148,28 @@ export const deleteTransferCertificateById = async (id) => {
     return response?.data;
 }
 
+export const getAllSchoolAccounts = async () => {
+    const response = await axios.get(`${BASE_URL}/api/all-schoolAccount`)
+    return response?.data;
+}
+export const addNewSchoolAccount = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/create-schoolAccount`, payload)
+    return response?.data;
+}
+export const updateSchoolAccountById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/update-schoolAccount/${id}`, payload)
+    return response?.data;
+}
 export const getFeeGroups = async () => {
     const response = await axios.get(`${BASE_URL}/api/all-fee-groups`)
+    return response?.data;
+}
+export const getAllFeeSetting = async () => {
+    const response = await axios.get(`${BASE_URL}/api/all-fee-settings`)
+    return response?.data;
+}
+export const updateFeeSetting = async (payload) => {
+    const response = await axios.put(`${BASE_URL}/api/add-fee-settings`, payload)
     return response?.data;
 }
 
@@ -159,6 +179,38 @@ export const getAllStudents = async () => {
 }
 export const getStudentByRegistrationId = async (studentId) => {
     const response = await axios.get(`${BASE_URL}/api/students/search?registration_id=${studentId}`)
+    return response?.data;
+}
+export const getAllBanks = async () => {
+    const response = await axios.get(`${BASE_URL}/api/all-banks`)
+    return response?.data;
+}
+export const addNewBank = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/add-banks`, payload)
+    return response?.data;
+}
+export const updateBankById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/update-banks/${id}`, payload)
+    return response?.data;
+}
+export const deleteBankById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/delete-banks/${id}`)
+    return response?.data;
+}
+export const getAllPettyHeads = async () => {
+    const response = await axios.get(`${BASE_URL}/api/all-petty-heads`)
+    return response?.data;
+}
+export const addNewPettyHead = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/add-petty-heads`, payload)
+    return response?.data;
+}
+export const updatePettyHeadById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/update-petty-heads/${id}`, payload)
+    return response?.data;
+}
+export const deletePettyHeadById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/delete-petty-heads/${id}`)
     return response?.data;
 }
 
@@ -312,6 +364,18 @@ export const getAllPaymentMode = async () => {
 
 export const getFeeStructures = async () => {
     const response = await axios.get(`${BASE_URL}/api/all-fee-structure`)
+    return response?.data;
+}
+export const addNewFeeStructure = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/create-fee-structure`, payload)
+    return response?.data;
+}
+export const updateFeeStructureById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/update-fee-structure/${id}`, payload)
+    return response?.data;
+}
+export const deleteFeeStructureById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/delete-fee-structure/${id}`)
     return response?.data;
 }
 

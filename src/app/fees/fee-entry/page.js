@@ -3,14 +3,10 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Table from "@/app/component/DataTable";
-import styles from "@/app/medical/routine-check-up/page.module.css";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import { Container, Row, Col, Breadcrumb, Button, Table as BootstrapTable, FormGroup, FormLabel, FormControl, FormSelect } from "react-bootstrap";
 import { toast } from "react-toastify";
-import { CgAddR } from "react-icons/cg";
-import Image from "next/image";
 import { FaSearch } from "react-icons/fa";
-import { FaPrint } from "react-icons/fa";
 import { addNewFeeEntry, deleteFeeEntryById, getAllPaymentMode, getClasses, getFeeGroupDataBySectionId, getFeeHistoryByStudentId, getFeeStructureByFeeGroupId, getFeeStructures, getSections, getStudentsByClassAndSection } from "@/Services";
 
 const FeeEntry = () => {
@@ -25,14 +21,12 @@ const FeeEntry = () => {
   const [sectionList, setSectionList] = useState([]);
   const [students, setStudents] = useState([]);
   const [selectedStudent, setSelectedStudent] = useState(null);
-  const [searchKeyword, setSearchKeyword] = useState("");
   const [payFeeData, setPayFeeData] = useState([]);
   const [paymentMode, setPaymentMode] = useState('')
   const [feeData, setFeeData] = useState([])
 
   useEffect(() => {
     fetchClasses();
-    // fetchFeeStructureData()
     if (feeGroupId) {
       getStructureDataByGroupId()
       fetchPaymentModes()
@@ -110,26 +104,6 @@ const FeeEntry = () => {
   const handleStudentSelect = (studentId) => {
     const student = students.find(s => s._id === studentId);
     setSelectedStudent(student);
-  };
-
-  const fetchFeeStructureData = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const response = await getFeeStructures();
-      if (response?.success) {
-        setData(response.feeSettings);
-      } else {
-        setData([]);
-        setError("No records found.");
-      }
-    } catch (err) {
-      console.error("Fetch error:", err);
-      setData([]);
-      setError("Failed to fetch fee settings.");
-    } finally {
-      setLoading(false);
-    }
   };
 
   const handleDeleteFeeRecord = async (id) => {
@@ -358,152 +332,178 @@ const FeeEntry = () => {
   };
 
   return (
-    <Container>
+    <>
       <div className="breadcrumbSheet">
-        <Row className="mt-1 mb-1">
-          <Col>
-            <Breadcrumb>
-              <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
-              <Breadcrumb.Item href="/fees/all-module">Fee</Breadcrumb.Item>
-              <Breadcrumb.Item active>Fee Entry</Breadcrumb.Item>
-            </Breadcrumb>
-          </Col>
-        </Row>
+        <Container>
+          <Row>
+            <Col>
+              <Breadcrumb>
+                <Breadcrumb.Item href="#">Home</Breadcrumb.Item>
+                <Breadcrumb.Item href="/fees/all-module">Fees</Breadcrumb.Item>
+                <Breadcrumb.Item active>Fee Entry</Breadcrumb.Item>
+              </Breadcrumb>
+            </Col>
+          </Row>
+        </Container>
       </div>
+      <section>
+        <Container>
+          <div className="cover-sheet">
+            <Row className="fromSheet">
+              <Col>
+                <div className="card shadow-none">
+                  <div className="studentHeading">
+                    <h2> <FaSearch /> Select Criteria </h2>
+                  </div>
+                  <div className="card-body">
+                    <Row className="text-start">
+                      <Col lg={4}>
+                        <FormGroup controlId="validationCustom08">
+                          <FormLabel className="labelForm">Select Class</FormLabel>
+                          <FormSelect
+                            value={selectedClass}
+                            onChange={(e) => setSelectedClass(e.target.value)}
+                          >
+                            <option value="">Select Class</option>
+                            {classList?.map((classItem) => (
+                              <option key={classItem?._id} value={classItem?._id}>
+                                {classItem?.class_name}
+                              </option>
+                            ))}
+                          </FormSelect>
+                        </FormGroup>
+                      </Col>
+                      <Col lg={4}>
+                        <FormGroup controlId="validationCustom09">
+                          <FormLabel className="labelForm">Select Section</FormLabel>
+                          <FormSelect
+                            value={selectedSection}
+                            onChange={(e) => setSelectedSection(e.target.value)}
+                            disabled={!selectedClass}
+                          >
+                            <option value="">Select Section</option>
+                            {sectionList?.map((sectionItem) => (
+                              <option key={sectionItem?._id} value={sectionItem?._id}>
+                                {sectionItem?.section_name} ({sectionItem?.section_code})
+                              </option>
+                            ))}
+                          </FormSelect>
+                        </FormGroup>
+                      </Col>
+                      <Col lg={4}>
+                        <FormGroup controlId="validationCustom10">
+                          <FormLabel className="labelForm">Select Student</FormLabel>
+                          <FormSelect
+                            value={selectedStudent?._id || ""}
+                            onChange={(e) => handleStudentSelect(e.target.value)}
+                            disabled={!selectedClass || !selectedSection || students.length === 0}
+                          >
+                            <option value="">Select Student</option>
+                            {students.map((student) => (
+                              <option key={student._id} value={student._id}>
+                                {student.first_name} {student.last_name} (Roll: {student.roll_no || 'N/A'})
+                              </option>
+                            ))}
+                          </FormSelect>
+                        </FormGroup>
+                      </Col>
+                    </Row>
+                  </div>
+                </div>
+              </Col>
+            </Row>
 
-      <Row>
-        <Col>
-          <div className="card shadow-none">
-            <div className="card-header text-start">
-              <h5> <FaSearch /> Select Criteria </h5>
-            </div>
-            <div className="card-body">
-              <Row className="text-start">
-                <Col lg={4}>
-                  <FormGroup controlId="validationCustom08">
-                    <FormLabel className="labelForm">Select Class</FormLabel>
-                    <FormSelect
-                      value={selectedClass}
-                      onChange={(e) => setSelectedClass(e.target.value)}
-                    >
-                      <option value="">Select Class</option>
-                      {classList?.map((classItem) => (
-                        <option key={classItem?._id} value={classItem?._id}>
-                          {classItem?.class_name}
-                        </option>
-                      ))}
-                    </FormSelect>
-                  </FormGroup>
-                </Col>
-                <Col lg={4}>
-                  <FormGroup controlId="validationCustom09">
-                    <FormLabel className="labelForm">Select Section</FormLabel>
-                    <FormSelect
-                      value={selectedSection}
-                      onChange={(e) => setSelectedSection(e.target.value)}
-                      disabled={!selectedClass}
-                    >
-                      <option value="">Select Section</option>
-                      {sectionList?.map((sectionItem) => (
-                        <option key={sectionItem?._id} value={sectionItem?._id}>
-                          {sectionItem?.section_name} ({sectionItem?.section_code})
-                        </option>
-                      ))}
-                    </FormSelect>
-                  </FormGroup>
-                </Col>
-                <Col lg={4}>
-                  <FormGroup controlId="validationCustom10">
-                    <FormLabel className="labelForm">Select Student</FormLabel>
-                    <FormSelect
-                      value={selectedStudent?._id || ""}
-                      onChange={(e) => handleStudentSelect(e.target.value)}
-                      disabled={!selectedClass || !selectedSection || students.length === 0}
-                    >
-                      <option value="">Select Student</option>
-                      {students.map((student) => (
-                        <option key={student._id} value={student._id}>
-                          {student.first_name} {student.last_name} (Roll: {student.roll_no || 'N/A'})
-                        </option>
-                      ))}
-                    </FormSelect>
-                  </FormGroup>
+
+            {loading && (
+              <Row className="mt-3">
+                <Col>
+                  <div className="text-center">
+                    <p>Loading students...</p>
+                  </div>
                 </Col>
               </Row>
-            </div>
+            )}
           </div>
-        </Col>
-      </Row>
 
-      {selectedStudent && (
-        <Row className="mt-3">
-          <Col>
-            <div className="tableSheet">
-              <h2> Fees Statement </h2>
-              <div className="card-body">
-                <Row>
-                  <Col lg={4}>
-                    <div className="idBox">
-                      <div className="profilePhoto">
-                        {selectedStudent.profile_Pic ? (
-                          <img
-                            src={selectedStudent.profile_Pic}
-                            alt="Profile Pic"
-                            width="100"
-                            height="100"
-                            style={{ borderRadius: '50%', objectFit: 'cover' }}
-                          />
-                        ) : (
-                          <img
-                            src="/user.png"
-                            alt="Default Pic"
-                            width="100"
-                            height="100"
-                            style={{ borderRadius: '50%', objectFit: 'cover' }}
-                          />
-                        )}
-                      </div>
+          <div className="cover-sheet">
+            {!loading && students.length === 0 && selectedClass && selectedSection && (
+              <Row className="mt-3">
+                <Col>
+                  <div className="alert alert-info">
+                    No students found for the selected class and section.
+                  </div>
+                </Col>
+              </Row>
+            )}
+            {selectedStudent && (
+              <Row className="mt-3">
+                <Col>
+                  <div className="tableSheet">
+                    <h2> Fees Statement </h2>
+                    <div className="card-body">
+                      <Row>
+                        <Col lg={4}>
+                          <div className="idBox">
+                            <div className="profilePhoto">
+                              {selectedStudent.profile_Pic ? (
+                                <img
+                                  src={selectedStudent.profile_Pic}
+                                  alt="Profile Pic"
+                                  width="100"
+                                  height="100"
+                                  style={{ borderRadius: '50%', objectFit: 'cover' }}
+                                />
+                              ) : (
+                                <img
+                                  src="/user.png"
+                                  alt="Default Pic"
+                                  width="100"
+                                  height="100"
+                                  style={{ borderRadius: '50%', objectFit: 'cover' }}
+                                />
+                              )}
+                            </div>
 
-                      <h4>{selectedStudent.first_name} {selectedStudent.last_name}</h4>
+                            <h4>{selectedStudent.first_name} {selectedStudent.last_name}</h4>
+                          </div>
+                        </Col>
+                        <Col lg={8}>
+                          <BootstrapTable striped bordered hover className="shadow-sm rounded" >
+                            <thead className="bg-primary text-white">
+                              <tr>
+                                <th colSpan={4} className="text-center fs-5">Student Details</th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              <tr>
+                                <td className="fw-bold text-uppercase bg-light">Name</td>
+                                <td>{selectedStudent.first_name} {selectedStudent.last_name}</td>
+                                <td className="fw-bold text-uppercase bg-light">Class / Section</td>
+                                <td>
+                                  {selectedStudent.class_name?.class_name || 'N/A'}
+                                  ({selectedStudent.section_name?.section_name || 'N/A'})
+                                </td>
+                              </tr>
+                              <tr>
+                                <td className="fw-bold text-uppercase bg-light">Father Name</td>
+                                <td>{selectedStudent.father_name || 'N/A'}</td>
+                                <td className="fw-bold text-uppercase bg-light">Admission No.</td>
+                                <td>{selectedStudent.registration_id || 'N/A'}</td>
+                              </tr>
+                              <tr>
+                                <td className="fw-bold text-uppercase bg-light">Mobile Number</td>
+                                <td>{selectedStudent.phone_no || 'N/A'}</td>
+                                <td className="fw-bold text-uppercase bg-light">Roll Number</td>
+                                <td>{selectedStudent.roll_no || 'N/A'}</td>
+                              </tr>
+                            </tbody>
+                          </BootstrapTable>
+
+                        </Col>
+                      </Row>
                     </div>
-                  </Col>
-                  <Col lg={8}>
-                    <BootstrapTable striped bordered hover className="shadow-sm rounded" >
-                      <thead className="bg-primary text-white">
-                        <tr>
-                          <th colSpan={4} className="text-center fs-5">Student Details</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td className="fw-bold text-uppercase bg-light">Name</td>
-                          <td>{selectedStudent.first_name} {selectedStudent.last_name}</td>
-                          <td className="fw-bold text-uppercase bg-light">Class / Section</td>
-                          <td>
-                            {selectedStudent.class_name?.class_name || 'N/A'}
-                            ({selectedStudent.section_name?.section_name || 'N/A'})
-                          </td>
-                        </tr>
-                        <tr>
-                          <td className="fw-bold text-uppercase bg-light">Father Name</td>
-                          <td>{selectedStudent.father_name || 'N/A'}</td>
-                          <td className="fw-bold text-uppercase bg-light">Admission No.</td>
-                          <td>{selectedStudent.registration_id || 'N/A'}</td>
-                        </tr>
-                        <tr>
-                          <td className="fw-bold text-uppercase bg-light">Mobile Number</td>
-                          <td>{selectedStudent.phone_no || 'N/A'}</td>
-                          <td className="fw-bold text-uppercase bg-light">Roll Number</td>
-                          <td>{selectedStudent.roll_no || 'N/A'}</td>
-                        </tr>
-                      </tbody>
-                    </BootstrapTable>
 
-                  </Col>
-                </Row>
-              </div>
-
-              {/* <Row className="justify-content-between mt-3 align-items-center">
+                    {/* <Row className="justify-content-between mt-3 align-items-center">
                 <Col lg={12}>
                   <div className="text-end">
                     <Button variant="primary" className="btn-action me-2">
@@ -522,59 +522,43 @@ const FeeEntry = () => {
                 </Col>
               </Row> */}
 
-              <hr />
+                    <hr />
 
-              <div className="card-title">
-                <h2>Fees History</h2>
-              </div>
-              <div className="card-body">
-                <div className="tableSheet">
-                  {feeData.length > 0 ? (
-                    <Table
-                      columns={feeColumns}
-                      data={feeData}
-                      key={feeData.length} // Force re-render when data changes
-                    />
-                  ) : (
-                    <p>No fee records found</p>
-                  )}
-                </div>
-              </div>
+                    <div className="card-title">
+                      <h2>Fees History</h2>
+                    </div>
+                    <div className="card-body">
+                      <div className="tableSheet">
+                        {feeData.length > 0 ? (
+                          <Table
+                            columns={feeColumns}
+                            data={feeData}
+                            key={feeData.length} // Force re-render when data changes
+                          />
+                        ) : (
+                          <p>No fee records found</p>
+                        )}
+                      </div>
+                    </div>
 
 
-              <hr />
-              <div className="card-title">
-                <h2>Pay Fee</h2>
-              </div>
-              <div className="card-body">
-                <Table columns={payFeeColumns} data={payFeeData} key={payFeeData.filter(item => item.selected).length} />
-              </div>
-              <div><button className="btn btn-secondary mt-2" onClick={assignStudentFee}>Pay Fee</button></div>
-            </div>
-          </Col>
-        </Row>
-      )}
-
-      {loading && (
-        <Row className="mt-3">
-          <Col>
-            <div className="text-center">
-              <p>Loading students...</p>
-            </div>
-          </Col>
-        </Row>
-      )}
-
-      {!loading && students.length === 0 && selectedClass && selectedSection && (
-        <Row className="mt-3">
-          <Col>
-            <div className="alert alert-info">
-              No students found for the selected class and section.
-            </div>
-          </Col>
-        </Row>
-      )}
-    </Container>
+                    <hr />
+                    <div className="card-title">
+                      <h2>Pay Fee</h2>
+                    </div>
+                    <div className="card-body">
+                      <Table columns={payFeeColumns} data={payFeeData} key={payFeeData.filter(item => item.selected).length} />
+                    </div>
+                    <div><button className="btn btn-secondary mt-2" onClick={assignStudentFee}>Pay Fee</button></div>
+                  </div>
+                </Col>
+              </Row>
+            )}
+            {!selectedStudent && <h5 className="p-5 text-center text-danger">Select Student to Get detail</h5>}
+          </div>
+        </Container>
+      </section>
+    </>
   );
 };
 
