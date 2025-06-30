@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
-import { FaEdit, FaTrashAlt, FaSave, FaTimes } from 'react-icons/fa';
+import { FaTrashAlt } from 'react-icons/fa';
 import { CgAddR } from 'react-icons/cg';
 import { Container, Row, Col, Breadcrumb, Form, FormLabel, FormGroup, FormControl, FormSelect, Button, Alert } from 'react-bootstrap';
 import axios from 'axios';
@@ -18,11 +18,13 @@ const QuotationMaster = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const [editingId, setEditingId] = useState(null);
   const [itemCategories, setItemCategories] = useState([]);
   const [vendors, setVendors] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]);
   const [allItems, setAllItems] = useState([]);
+  const [stores, setStores] = useState([]);
+  const [showPurchaseForm, setShowPurchaseForm] = useState(false);
+  const [selectedQuotation, setSelectedQuotation] = useState(null);
 
   const [formData, setFormData] = useState({
     itemCategory: '',
@@ -34,34 +36,20 @@ const QuotationMaster = () => {
     date: new Date()
   });
 
-  const [editedData, setEditedData] = useState({
-    itemCategory: '',
-    itemName: '',
-    pricePerUnit: '',
-    vendorName: '',
-    quotationNo: '',
-    remarks: '',
-    date: new Date()
-  });
-
-  const [showPurchaseForm, setShowPurchaseForm] = useState(false);
-  const [selectedQuotation, setSelectedQuotation] = useState(null);
-  const [stores, setStores] = useState([]);
   const [purchaseFormData, setPurchaseFormData] = useState({
-    quotation: '',  // Will store the quotation ID
+    quotation: '',
     quantity: '',
     store: '',
     purchaseDate: new Date()
   });
-  const fetchStores = async () => {
-    try {
-      const response = await getAllStores()
-      setStores(response.data || []);
-    } catch (err) {
-      console.error("Error fetching stores:", err);
-    }
-  };
 
+  const [validationErrors, setValidationErrors] = useState({
+    itemCategory: false,
+    itemName: false,
+    vendorName: false,
+    quotationNo: false,
+    pricePerUnit: false
+  });
 
   const columns = [
     {
@@ -74,81 +62,25 @@ const QuotationMaster = () => {
       name: 'Item Name',
       cell: (row) => {
         const item = allItems.find(i => i._id === row.itemName) || {};
-        return editingId === row._id ? (
-          <FormSelect
-            value={editedData.itemName || ''}
-            onChange={(e) => setEditedData({ ...editedData, itemName: e.target.value })}
-            required
-            disabled={!editedData.itemCategory}
-          >
-            <option value="">Select Item</option>
-            {filteredItems.map(item => (
-              <option key={item._id} value={item._id}>
-                {item.itemName}
-              </option>
-            ))}
-          </FormSelect>
-        ) : (
-          item.itemName || 'N/A'
-        );
+        return item.itemName || 'N/A';
       },
       sortable: true,
     },
     {
       name: 'Item Category',
-      cell: (row) =>
-        editingId === row._id ? (
-          <FormSelect
-            value={editedData.itemCategory || ''}
-            onChange={(e) => {
-              const newCategory = e.target.value;
-              setEditedData({
-                ...editedData,
-                itemCategory: newCategory,
-                itemName: ''
-              });
-              fetchItemsByCategory(newCategory);
-            }}
-            required
-          >
-            <option value="">Select Category</option>
-            {itemCategories.map(category => (
-              <option key={category._id} value={category._id}>
-                {category.categoryName}
-              </option>
-            ))}
-          </FormSelect>
-        ) : (
-          row.itemCategory?.categoryName || 'N/A'
-        ),
+      cell: (row) => row.itemCategory?.categoryName || 'N/A',
       sortable: true,
     },
     {
       name: 'Vendor',
       cell: (row) => (
         <div>
-          {editingId === row._id ? (
-            <FormSelect
-              value={editedData.vendorName || ''}
-              onChange={(e) => setEditedData({ ...editedData, vendorName: e.target.value })}
-            >
-              <option value="">Select Vendor</option>
-              {vendors.map(vendor => (
-                <option key={vendor._id} value={vendor._id}>
-                  {vendor.organizationName}
-                </option>
-              ))}
-            </FormSelect>
-          ) : (
-            <div>
-              <strong>{row.vendorName?.organizationName || 'N/A'}</strong>
-              {row.vendorName?.contactPersonName && (
-                <div className="text-muted small">{row.vendorName.contactPersonName}</div>
-              )}
-              {row.vendorName?.contactNumber && (
-                <div className="text-muted small">{row.vendorName.contactNumber}</div>
-              )}
-            </div>
+          <strong>{row.vendorName?.organizationName || 'N/A'}</strong>
+          {row.vendorName?.contactPersonName && (
+            <div className="text-muted small">{row.vendorName.contactPersonName}</div>
+          )}
+          {row.vendorName?.contactNumber && (
+            <div className="text-muted small">{row.vendorName.contactNumber}</div>
           )}
         </div>
       ),
@@ -156,90 +88,24 @@ const QuotationMaster = () => {
     },
     {
       name: 'Quotation Price/Unit',
-      cell: (row) => (
-        <div>
-          {editingId === row._id ? (
-            <FormControl
-              type="number"
-              value={editedData.pricePerUnit || ''}
-              onChange={(e) => setEditedData({ ...editedData, pricePerUnit: e.target.value })}
-              min="0"
-              step="0.01"
-            />
-          ) : (
-            row.pricePerUnit ? `${parseFloat(row.pricePerUnit).toFixed(2)}` : 'N/A'
-          )}
-        </div>
-      ),
+      cell: (row) => row.pricePerUnit ? `${parseFloat(row.pricePerUnit).toFixed(2)}` : 'N/A',
       sortable: true,
     },
     {
       name: 'Quotation No',
-      cell: (row) => (
-        <div>
-          {editingId === row._id ? (
-            <FormControl
-              type="text"
-              value={editedData.quotationNo || ''}
-              onChange={(e) => setEditedData({ ...editedData, quotationNo: e.target.value })}
-              required
-            />
-          ) : (
-            row.quotationNo || 'N/A'
-          )}
-        </div>
-      ),
+      cell: (row) => row.quotationNo || 'N/A',
       sortable: true,
     },
-    // {
-    //   name: 'Actions',
-    //   cell: (row) => (
-    //     <div className="d-flex gap-2">
-    //       {editingId === row._id ? (
-    //         <>
-    //           <Button variant="success" size="sm" onClick={() => handleUpdate(row._id)}>
-    //             <FaSave /> Save
-    //           </Button>
-    //           <Button variant="secondary" size="sm" onClick={() => setEditingId(null)}>
-    //             <FaTimes /> Cancel
-    //           </Button>
-    //         </>
-    //       ) : (
-    //         <>
-    //           <Button variant="info" size="sm" onClick={() => handlePurchase(row._id)}>
-    //             Purchase
-    //           </Button>
-    //         </>
-    //       )}
-    //     </div>
-    //   ),
-    // }
     {
       name: 'Actions',
       cell: (row) => (
         <div className="d-flex gap-2">
-          {editingId === row._id ? (
-            <>
-              <Button variant="success" size="sm" onClick={() => handleUpdate(row._id)}>
-                <FaSave /> Save
-              </Button>
-              <Button variant="secondary" size="sm" onClick={() => setEditingId(null)}>
-                <FaTimes /> Cancel
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button variant="info" size="sm" onClick={() => handlePurchase(row)} style={{ whiteSpace: 'nowrap' }}>
-                Purchase
-              </Button>
-              <Button variant="warning" size="sm" onClick={() => handleEdit(row)}>
-                <FaEdit />
-              </Button>
-              <Button variant="danger" size="sm" onClick={() => handleDelete(row._id)}>
-                <FaTrashAlt />
-              </Button>
-            </>
-          )}
+          <Button variant="info" size="sm" onClick={() => handlePurchase(row)} style={{ whiteSpace: 'nowrap' }}>
+            Purchase
+          </Button>
+          <Button variant="danger" size="sm" onClick={() => handleDelete(row._id)}>
+            <FaTrashAlt />
+          </Button>
         </div>
       ),
     }
@@ -300,39 +166,26 @@ const QuotationMaster = () => {
     }
   };
 
-  const handleEdit = (quotation) => {
-    setEditingId(quotation._id);
-    setEditedData({
-      itemCategory: quotation.itemCategory || '',
-      itemName: quotation.itemName || '',
-      pricePerUnit: quotation.pricePerUnit || '',
-      vendorName: quotation.vendorName || '',
-      quotationNo: quotation.quotationNo || '',
-      remarks: quotation.remarks || '',
-      // date: quotation.date ? new Date(quotation.date) : new Date()
-    });
-    if (quotation.itemCategory) {
-      fetchItemsByCategory(quotation.itemCategory);
+  const fetchStores = async () => {
+    try {
+      const response = await getAllStores()
+      setStores(response.data || []);
+    } catch (err) {
+      console.error("Error fetching stores:", err);
     }
   };
 
-  const handleUpdate = async (id) => {
-    try {
-      if (!editedData.itemCategory || !editedData.itemName || !editedData.quotationNo) {
-        setError("Please fill in all required fields.");
-        return;
-      }
+  const validateForm = (formData) => {
+    const errors = {
+      itemCategory: !formData.itemCategory,
+      itemName: !formData.itemName,
+      quotationNo: !formData.quotationNo,
+      vendorName: !formData.vendorName,
+      pricePerUnit: !formData.pricePerUnit || isNaN(formData.pricePerUnit) || parseFloat(formData.pricePerUnit) <= 0
+    };
 
-      const response = await updateQuotationStockById(id, editedData)
-      toast.success(response.message || "Quotation updated successfully!");
-      fetchData();
-      setEditingId(null);
-      setEditedData({});
-      setError("");
-    } catch (error) {
-      console.error("Error updating data:", error);
-      setError(error.response?.data?.message || "Failed to update data. Please try again later.");
-    }
+    setValidationErrors(errors);
+    return !Object.values(errors).some(error => error);
   };
 
   const handleDelete = async (id) => {
@@ -340,8 +193,6 @@ const QuotationMaster = () => {
       try {
         await deleteQuotationStockById(id);
         toast.success("Quotation deleted successfully!");
-        setEditingId(null);
-        setEditedData({});
         fetchData();
       } catch (error) {
         console.error("Error deleting data:", error);
@@ -353,7 +204,7 @@ const QuotationMaster = () => {
   const handlePurchase = (quotation) => {
     setSelectedQuotation(quotation);
     setPurchaseFormData({
-      quotation: quotation._id,  // Store the quotation ID
+      quotation: quotation._id,
       quantity: '',
       store: '',
       purchaseDate: new Date()
@@ -362,9 +213,8 @@ const QuotationMaster = () => {
   };
 
   const handleAdd = async () => {
-    if (!formData.itemCategory || !formData.itemName || !formData.quotationNo) {
-      toast.error("Please fill all required fields.");
-      setError("Please fill all required fields.");
+    if (!validateForm(formData)) {
+      toast.error("Please fill in all required fields.");
       return;
     }
 
@@ -376,15 +226,7 @@ const QuotationMaster = () => {
       if (response?.success) {
         toast.success(response?.message || "Quotation added successfully!");
         fetchData();
-        setFormData({
-          itemCategory: '',
-          itemName: '',
-          pricePerUnit: '',
-          vendorName: '',
-          quotationNo: '',
-          remarks: '',
-          date: new Date()
-        });
+        resetForm();
         setIsPopoverOpen(false);
         setError("");
       }
@@ -395,8 +237,29 @@ const QuotationMaster = () => {
     }
   };
 
+  const resetForm = () => {
+    setFormData({
+      itemCategory: '',
+      itemName: '',
+      pricePerUnit: '',
+      vendorName: '',
+      quotationNo: '',
+      remarks: '',
+      date: new Date()
+    });
+    setValidationErrors({
+      itemCategory: false,
+      itemName: false,
+      vendorName: false,
+      quotationNo: false,
+      pricePerUnit: false
+    });
+  };
+
   const handleChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type } = e.target;
+
+    // Update form data
     if (name === "itemCategory") {
       setFormData({
         ...formData,
@@ -405,18 +268,32 @@ const QuotationMaster = () => {
       });
       fetchItemsByCategory(value);
     } else {
-      setFormData({ ...formData, [name]: value });
+      // Handle number fields specifically
+      const processedValue = type === 'number' ?
+        (value === "" ? "" : parseFloat(value) || 0) :
+        value;
+
+      setFormData({
+        ...formData,
+        [name]: processedValue
+      });
+    }
+
+    // Clear validation error for all field types
+    if (validationErrors[name]) {
+      setValidationErrors(prev => ({
+        ...prev,
+        [name]: false
+      }));
     }
   };
 
   const handlePrint = () => {
     const tableHeaders = [["#", "Item Name", "Item Category", "Vendor", "Quotation Price/Unit", "Quotation No", "Actions"]];
     const tableRows = data.map((row, index) => {
-      // Find the actual item, category, and vendor objects
       const item = allItems.find(i => i._id === row.itemName) || {};
       const category = itemCategories.find(c => c._id === row.itemCategory) || {};
       const vendor = vendors.find(v => v._id === row.vendorName) || {};
-      // const date = row.date ? new Date(row.date) : null;
 
       return [
         index + 1,
@@ -425,7 +302,6 @@ const QuotationMaster = () => {
         vendor.organizationName || row.vendorName?.organizationName || row.vendorName || 'N/A',
         row.pricePerUnit ? `${parseFloat(row.pricePerUnit).toFixed(2)}` : 'N/A',
         row.quotationNo || 'N/A',
-        // date ? date.toLocaleDateString('en-GB') : 'N/A',
         "Purchase"
       ];
     });
@@ -438,7 +314,6 @@ const QuotationMaster = () => {
       const item = allItems.find(i => i._id === row.itemName) || {};
       const category = itemCategories.find(c => c._id === row.itemCategory) || {};
       const vendor = vendors.find(v => v._id === row.vendorName) || {};
-      const date = row.date ? new Date(row.date) : null;
 
       return `${index + 1}\t${item.itemName || row.itemName || 'N/A'}\t${category.categoryName || row.itemCategory?.categoryName || row.itemCategory || 'N/A'}\t${vendor.organizationName || row.vendorName?.organizationName || row.vendorName || 'N/A'}\t${row.pricePerUnit ? `${parseFloat(row.pricePerUnit).toFixed(2)}` : 'N/A'}\t${row.quotationNo || 'N/A'}\tPurchase`;
     });
@@ -457,6 +332,7 @@ const QuotationMaster = () => {
     { label: "Stock", link: "/stock/all-module" },
     { label: "Quotation Master", link: "null" }
   ];
+
   const PurchaseForm = () => {
     const handleSubmit = async (e) => {
       e.preventDefault();
@@ -469,7 +345,7 @@ const QuotationMaster = () => {
         });
         toast.success(response?.data?.message || "Purchase order created successfully!");
         setShowPurchaseForm(false);
-        fetchData(); // Refresh the quotation list
+        fetchData();
       } catch (error) {
         toast.error(error.response?.data?.message || "Failed to create purchase order");
       }
@@ -580,6 +456,7 @@ const QuotationMaster = () => {
       </Container>
     );
   };
+
   return (
     <>
       <div className="breadcrumbSheet position-relative">
@@ -596,7 +473,6 @@ const QuotationMaster = () => {
       <section>
         <Container>
           {error && <Alert variant="danger">{error}</Alert>}
-
           <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
             <CgAddR /> Add Quotation
           </Button>
@@ -610,6 +486,7 @@ const QuotationMaster = () => {
                   onClick={() => {
                     setIsPopoverOpen(false);
                     setError("");
+                    resetForm();
                   }}
                 >
                   X
@@ -618,12 +495,13 @@ const QuotationMaster = () => {
               <Form className="formSheet">
                 <Row className="mb-3">
                   <FormGroup as={Col} md="6" controlId="itemCategory">
-                    <FormLabel className="labelForm">Item category*</FormLabel>
+                    <FormLabel className="labelForm">Item category<span className='text-danger'>*</span></FormLabel>
                     <FormSelect
                       name="itemCategory"
                       value={formData.itemCategory}
                       onChange={handleChange}
                       required
+                      isInvalid={validationErrors.itemCategory}
                     >
                       <option value="">Select</option>
                       {itemCategories.map(category => (
@@ -632,15 +510,21 @@ const QuotationMaster = () => {
                         </option>
                       ))}
                     </FormSelect>
+                    {validationErrors.itemCategory && (
+                      <FormControl.Feedback type="invalid">
+                        Please select an item category
+                      </FormControl.Feedback>
+                    )}
                   </FormGroup>
                   <FormGroup as={Col} md="6" controlId="itemName">
-                    <FormLabel className="labelForm">Item Name*</FormLabel>
+                    <FormLabel className="labelForm">Item Name<span className='text-danger'>*</span></FormLabel>
                     {formData.itemCategory ? (
                       <FormSelect
                         name="itemName"
                         value={formData.itemName}
                         onChange={handleChange}
                         required
+                        isInvalid={validationErrors.itemName}
                       >
                         <option value="">Select Item</option>
                         {filteredItems.map(item => (
@@ -658,28 +542,41 @@ const QuotationMaster = () => {
                         type="text"
                         placeholder="Select category first"
                         disabled
+                        isInvalid={validationErrors.itemName}
                       />
+                    )}
+                    {validationErrors.itemName && (
+                      <FormControl.Feedback type="invalid">
+                        Please select an item
+                      </FormControl.Feedback>
                     )}
                   </FormGroup>
                 </Row>
                 <Row className="mb-3">
                   <FormGroup as={Col} md="6" controlId="pricePerUnit">
-                    <FormLabel className="labelForm">Price Per Unit (₹)</FormLabel>
+                    <FormLabel className="labelForm">Price Per Unit (₹)<span className='text-danger'>*</span></FormLabel>
                     <FormControl
                       name="pricePerUnit"
                       value={formData.pricePerUnit}
                       onChange={handleChange}
                       type="number"
-                      min="0"
+                      min="0.01"
                       step="0.01"
+                      isInvalid={validationErrors.pricePerUnit}
                     />
+                    {validationErrors.pricePerUnit && (
+                      <FormControl.Feedback type="invalid">
+                        Please enter a valid positive price
+                      </FormControl.Feedback>
+                    )}
                   </FormGroup>
                   <FormGroup as={Col} md="6" controlId="vendorName">
-                    <FormLabel className="labelForm">Vendor Name</FormLabel>
+                    <FormLabel className="labelForm">Vendor Name<span className='text-danger'>*</span></FormLabel>
                     <FormSelect
                       name="vendorName"
                       value={formData.vendorName}
                       onChange={handleChange}
+                      isInvalid={validationErrors.vendorName}
                     >
                       <option value="">Select</option>
                       {vendors.map(vendor => (
@@ -689,18 +586,29 @@ const QuotationMaster = () => {
                         </option>
                       ))}
                     </FormSelect>
+                    {validationErrors.vendorName && (
+                      <FormControl.Feedback type="invalid">
+                        Please select a vendor
+                      </FormControl.Feedback>
+                    )}
                   </FormGroup>
                 </Row>
                 <Row className='mb-3'>
                   <FormGroup as={Col} md="6" controlId="quotationNo">
-                    <FormLabel className="labelForm">Quotation No*</FormLabel>
+                    <FormLabel className="labelForm">Quotation No<span className='text-danger'>*</span></FormLabel>
                     <FormControl
                       name="quotationNo"
                       value={formData.quotationNo}
                       onChange={handleChange}
                       required
                       type="text"
+                      isInvalid={validationErrors.quotationNo}
                     />
+                    {validationErrors.quotationNo && (
+                      <FormControl.Feedback type="invalid">
+                        Please enter quotation number
+                      </FormControl.Feedback>
+                    )}
                   </FormGroup>
                   <FormGroup as={Col} md="6" controlId="remarks">
                     <FormLabel className="labelForm">Remarks</FormLabel>

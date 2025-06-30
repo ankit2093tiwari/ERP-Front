@@ -13,17 +13,50 @@ import {
 } from "react-bootstrap";
 import axios from "axios";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import { toast } from "react-toastify";
+import { addNewNotice } from "@/Services";
 
 const AddNotice = () => {
+  const today = new Date().toISOString().split("T")[0];
   const [newNotice, setNewNotice] = useState({
-    date: "",
+    date: today,
     short_text: "",
     image: null,
   });
-  const [error, setError] = useState("");
+
+  const [errors, setErrors] = useState({});
   const [successMessage, setSuccessMessage] = useState("");
 
+  const validateForm = () => {
+    let formErrors = {};
+    let isValid = true;
+
+    if (!newNotice.short_text.trim()) {
+      formErrors.short_text = "Notice text is required!";
+      isValid = false;
+    }
+
+    if (newNotice.image) {
+      const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif"];
+      if (!allowedTypes.includes(newNotice.image.type)) {
+        formErrors.image = "Invalid image format (jpeg/jpg/png/gif allowed)";
+        isValid = false;
+      } else if (newNotice.image.size > 5 * 1024 * 1024) {
+        formErrors.image = "File size should be less than 5MB.";
+        isValid = false;
+      }
+    }
+
+    setErrors(formErrors);
+    return isValid;
+  };
+
   const handleAdd = async () => {
+    if (!validateForm()) {
+      toast.warn("Please fix form errors before submitting.");
+      return;
+    }
+
     const formData = new FormData();
     formData.append("date", newNotice.date || "");
     formData.append("short_text", newNotice.short_text || "");
@@ -31,31 +64,17 @@ const AddNotice = () => {
       formData.append("image", newNotice.image);
     }
 
-    // Debug: log formData contents
-    for (let [key, value] of formData.entries()) {
-      console.log(`${key}:`, value);
-    }
-
     try {
-      const response = await axios.post(
-        "https://erp-backend-fy3n.onrender.com/api/notices",
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
-
-      setNewNotice({ date: "", short_text: "", image: null });
-      setSuccessMessage("Notice added successfully!");
-      setError("");
-      console.log("Notice created:", response.data);
+      const response = await addNewNotice(formData)
+      setNewNotice({ date: today, short_text: "", image: null });
+      setErrors({});
+      toast.success("Notice added successfully!");
     } catch (error) {
-      console.error("Error adding notice:", error);
-      setError(
+      const errorMsg =
         error.response?.data?.message ||
-          "Failed to add notice. Please try again."
-      );
-      setSuccessMessage("");
+        "Failed to add notice. Please try again.";
+      toast.error(errorMsg);
+      console.error("Error adding notice:", error);
     }
   };
 
@@ -97,21 +116,23 @@ const AddNotice = () => {
                 </Col>
                 <Col lg={6}>
                   <FormLabel className="labelForm">
-                    Short Text (Optional, max 200 chars)
+                    Short Text <span className="text-danger">*</span>
                   </FormLabel>
                   <FormControl
                     as="textarea"
                     rows={3}
                     maxLength={200}
                     value={newNotice.short_text}
-                    onChange={(e) =>
-                      setNewNotice({
-                        ...newNotice,
-                        short_text: e.target.value,
-                      })
-                    }
+                    onChange={(e) => {
+                      setNewNotice({ ...newNotice, short_text: e.target.value });
+                      setErrors((prev) => ({ ...prev, short_text: "" }));
+                    }}
                     placeholder="Enter notice text"
+                    isInvalid={!!errors.short_text}
                   />
+                  {errors.short_text && (
+                    <div className="text-danger mt-1">{errors.short_text}</div>
+                  )}
                 </Col>
               </Row>
 
@@ -125,40 +146,21 @@ const AddNotice = () => {
                     accept="image/jpeg, image/jpg, image/png, image/gif"
                     onChange={(e) => {
                       const file = e.target.files?.[0];
-                      if (file) {
-                        if (file.size > 5 * 1024 * 1024) {
-                          setError("File size should be less than 5MB.");
-                          return;
-                        }
-                        setNewNotice({ ...newNotice, image: file });
-                        setError("");
-                      }
+                      setNewNotice({ ...newNotice, image: file });
+                      setErrors((prev) => ({ ...prev, image: "" }));
                     }}
+                    isInvalid={!!errors.image}
                   />
                   <small className="text-muted">Max file size: 5MB</small>
+                  {errors.image && (
+                    <div className="text-danger mt-1">{errors.image}</div>
+                  )}
                 </Col>
               </Row>
 
               <div className="d-flex justify-content-between mt-3">
-                <Button
-                  variant="primary"
-                  onClick={handleAdd}
-                  disabled={
-                    !newNotice.date &&
-                    !newNotice.short_text.trim() &&
-                    !newNotice.image
-                  }
-                >
+                <Button variant="primary" onClick={handleAdd}>
                   Add Notice
-                </Button>
-
-                <Button
-                  variant="outline-secondary"
-                  onClick={() =>
-                    setNewNotice({ date: "", short_text: "", image: null })
-                  }
-                >
-                  Clear Form
                 </Button>
               </div>
 
@@ -166,10 +168,6 @@ const AddNotice = () => {
                 <div className="alert alert-success mt-3">
                   {successMessage}
                 </div>
-              )}
-
-              {error && (
-                <div className="alert alert-danger mt-3">{error}</div>
               )}
             </Form>
           </div>

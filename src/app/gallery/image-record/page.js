@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
+import { FaEdit, FaTrashAlt, FaSave, FaTimes } from "react-icons/fa";
 import { Row, Col, Container, Button, FormControl } from "react-bootstrap";
 import Image from "next/image";
 import Table from "@/app/component/DataTable";
@@ -120,41 +120,26 @@ const ImageRecord = () => {
         <div className="d-flex gap-2">
           {editingId === row._id ? (
             <>
-              <Button
-                variant="success"
-                size="sm"
+              <button className="editButton"
                 onClick={() => handleUpdate(row._id)}
                 disabled={loading}
               >
                 <FaSave />
-              </Button>
-              <Button
-                // variant="danger"
-                className="editButton btn-danger"
-                size="sm"
+              </button>
+              <button className="editButton btn-danger"
                 onClick={() => setEditingId(null)}
               >
-                <FaTrashAlt />
-              </Button>
+                <FaTimes />
+              </button>
             </>
           ) : (
             <>
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={() => handleEdit(row)}
-              >
+              <button className="editButton" onClick={() => handleEdit(row)}>
                 <FaEdit />
-              </Button>
-              <Button
-                // variant="danger"
-                size="sm"
-                className="editButton btn-danger"
-                onClick={() => handleDelete(row._id)}
-                disabled={loading}
-              >
+              </button>
+              <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
                 <FaTrashAlt />
-              </Button>
+              </button>
             </>
           )}
         </div>
@@ -197,7 +182,7 @@ const ImageRecord = () => {
 
   const handleUpdate = async (id) => {
     if (!editFormData.image || !editFormData.shortText.trim() || !editFormData.date) {
-      alert("Please fill all required fields.");
+      toast.warn("Please fill all required fields.");
       return;
     }
     const formData = new FormData();

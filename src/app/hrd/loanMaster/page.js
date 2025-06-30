@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
-import { CgAddR } from 'react-icons/cg';
+import { FaEdit, FaTrashAlt, FaSave, FaTimes } from "react-icons/fa";
+import { CgAddR } from "react-icons/cg";
 import {
   Form,
   Row,
@@ -11,27 +11,122 @@ import {
   Container,
   FormLabel,
   FormControl,
-  Button
+  Button,
 } from "react-bootstrap";
 import axios from "axios";
 import Table from "@/app/component/DataTable";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { copyContent, printContent } from "@/app/utils";
+import { toast } from "react-toastify";
+import { addNewLoan, deleteLoanById, getAllLoans, updateLoanById } from "@/Services";
 
 const LoanMasterPage = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [editError, setEditError] = useState("");
   const [newLoanName, setNewLoanName] = useState("");
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [editedName, setEditedName] = useState("");
 
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const response = await getAllLoans()
+      setData(response.data || []);
+    } catch (err) {
+      toast.error("Failed to fetch data.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const handleAdd = async () => {
+    if (!newLoanName.trim()) {
+      setError("Loan name is required");
+      return;
+    }
+
+    const duplicate = data.find(
+      (item) => item.LoanName.toLowerCase() === newLoanName.trim().toLowerCase()
+    );
+    if (duplicate) {
+      setError("Loan name already exists");
+      return;
+    }
+
+    try {
+      await addNewLoan({
+        LoanName: newLoanName.trim(),
+      })
+      toast.success("Loan added successfully");
+      setNewLoanName("");
+      setIsPopoverOpen(false);
+      fetchData();
+    } catch (err) {
+      console.log("failed to add load!", err)
+      toast.error("Failed to add loan. Try again.");
+    }
+  };
+
+  const handleEdit = (id, name) => {
+    setEditingId(id);
+    setEditedName(name);
+    setEditError("");
+  };
+
+  const handleSave = async (id) => {
+    if (!editedName.trim()) {
+      setEditError("Loan name is required");
+      toast.warn("Loan name is required");
+      return;
+    }
+
+    const duplicate = data.find(
+      (item) =>
+        item._id !== id &&
+        item.LoanName.toLowerCase() === editedName.trim().toLowerCase()
+    );
+    if (duplicate) {
+      setEditError("Loan name already exists");
+      toast.warn("Loan name already exists");
+      return;
+    }
+
+    try {
+      await updateLoanById(id, {
+        LoanName: editedName.trim(),
+      })
+      toast.success("Loan updated successfully");
+      setEditingId(null);
+      fetchData();
+    } catch (err) {
+      toast.error("Failed to update loan. Try again.");
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (confirm("Are you sure you want to delete this loan?")) {
+      try {
+        await deleteLoanById(id)
+        toast.success("Loan deleted successfully");
+        fetchData();
+      } catch (err) {
+        toast.error("Failed to delete loan. Try again.");
+      }
+    }
+  };
+
   const columns = [
     {
       name: "#",
       selector: (row, index) => index + 1,
-      width: "80px",
+      width: "60px",
     },
     {
       name: "Loan Name",
@@ -40,41 +135,52 @@ const LoanMasterPage = () => {
           <FormControl
             type="text"
             value={editedName}
-            onChange={(e) => setEditedName(e.target.value)}
+            onChange={(e) => {
+              setEditedName(e.target.value);
+              setEditError("");
+            }}
+            isInvalid={!!editError}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleSave(row._id);
+              if (e.key === "Escape") setEditingId(null);
+            }}
           />
         ) : (
           row.LoanName || "N/A"
         ),
-      sortable: true,
     },
     {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
           {editingId === row._id ? (
-            <button className="editButton" onClick={() => handleSave(row._id)}>
-              <FaSave />
-            </button>
+            <>
+              <button className="editButton" onClick={() => handleSave(row._id)}>
+                <FaSave />
+              </button>
+              <button className="editButton btn-danger" onClick={() => setEditingId(null)}>
+                <FaTimes />
+              </button>
+            </>
           ) : (
-            <button className="editButton" onClick={() => handleEdit(row._id, row.LoanName)}>
-              <FaEdit />
-            </button>
+            <>
+              <button className="editButton" onClick={() => handleEdit(row._id, row.LoanName)}>
+                <FaEdit />
+              </button>
+              <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
+                <FaTrashAlt />
+              </button>
+            </>
           )}
-          <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
-            <FaTrashAlt />
-          </button>
         </div>
       ),
     },
   ];
 
   const handlePrint = () => {
-    const tableHeaders = [["#", "Loan Name"]];
-    const tableRows = data.map((row, index) => [
-      index + 1,
-      row.LoanName || "N/A",
-    ]);
-    printContent(tableHeaders, tableRows);
+    const headers = [["#", "Loan Name"]];
+    const rows = data.map((row, index) => [index + 1, row.LoanName || "N/A"]);
+    printContent(headers, rows);
   };
 
   const handleCopy = () => {
@@ -82,91 +188,6 @@ const LoanMasterPage = () => {
     const rows = data.map((row, index) => `${index + 1}\t${row.LoanName || "N/A"}`);
     copyContent(headers, rows);
   };
-
-  const fetchData = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-loans");
-      setData(response.data.data || []);
-    } catch (err) {
-      console.error("Fetch error:", err);
-      setError("Failed to fetch data. Please try again later.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleEdit = (id, name) => {
-    setEditingId(id);
-    setEditedName(name);
-  };
-
-  const handleSave = async (id) => {
-    if (!editedName.trim()) {
-      setError("Loan name cannot be empty");
-      return;
-    }
-    try {
-      await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-loan/${id}`, {
-        LoanName: editedName,
-      });
-      fetchData();
-      setEditingId(null);
-    } catch (err) {
-      if (err.response?.status === 409) {
-        setError("Loan name already exists");
-      } else {
-        setError("Failed to update loan name. Try again.");
-      }
-    }
-  };
-
-  const handleDelete = async (id) => {
-    if (confirm("Are you sure you want to delete this loan?")) {
-      try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-loan/${id}`);
-        fetchData();
-      } catch (err) {
-        console.error("Delete error:", err);
-        setError("Failed to delete loan. Try again.");
-      }
-    }
-  };
-
-  const handleAdd = async () => {
-    if (!newLoanName.trim()) {
-      setError("Loan name cannot be empty");
-      return;
-    }
-
-    try {
-      const existing = data.find(
-        (item) => item.LoanName.toLowerCase() === newLoanName.toLowerCase()
-      );
-      if (existing) {
-        setError("Loan name already exists");
-        return;
-      }
-
-      await axios.post("https://erp-backend-fy3n.onrender.com/api/create-loan", {
-        LoanName: newLoanName,
-      });
-      setNewLoanName("");
-      setIsPopoverOpen(false);
-      fetchData();
-    } catch (err) {
-      if (err.response?.status === 409) {
-        setError("Loan name already exists");
-      } else {
-        setError("Failed to add loan. Try again.");
-      }
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
 
   const breadcrumbItems = [
     { label: "HRD", link: "/hrd/allModule" },
@@ -208,7 +229,9 @@ const LoanMasterPage = () => {
               <Form className="formSheet">
                 <Row className="mb-3">
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Loan Name*</FormLabel>
+                    <FormLabel className="labelForm">
+                      Loan Name <span className="text-danger">*</span>
+                    </FormLabel>
                     <FormControl
                       type="text"
                       placeholder="Enter Loan Name"
@@ -217,7 +240,9 @@ const LoanMasterPage = () => {
                         setNewLoanName(e.target.value);
                         setError("");
                       }}
+                      isInvalid={!!error}
                     />
+                    {error && <div className="text-danger mt-1 small">{error}</div>}
                   </Col>
                 </Row>
                 <Button onClick={handleAdd} className="btn btn-primary">
@@ -229,14 +254,14 @@ const LoanMasterPage = () => {
 
           <div className="tableSheet">
             <h2>Loan Records</h2>
-            {loading && <p>Loading...</p>}
-            {error && <p style={{ color: "red" }}>{error}</p>}
-            {!loading && !error && (
-              <Table 
-                columns={columns} 
-                data={data} 
-                handleCopy={handleCopy} 
-                handlePrint={handlePrint} 
+            {loading ? (
+              <p>Loading...</p>
+            ) : (
+              <Table
+                columns={columns}
+                data={data}
+                handleCopy={handleCopy}
+                handlePrint={handlePrint}
               />
             )}
           </div>

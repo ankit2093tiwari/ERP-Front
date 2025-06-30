@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
-import { CgAddR } from 'react-icons/cg';
+import { CgAddR } from "react-icons/cg";
 import {
   Form,
   Row,
@@ -13,16 +13,21 @@ import {
   FormControl,
   Button,
   FormSelect,
+  Spinner,
 } from "react-bootstrap";
-import axios from "axios";
 import Table from "@/app/component/DataTable";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { copyContent, printContent } from "@/app/utils";
+import { toast } from "react-toastify";
+import { addNewDesignation, deleteDesignationById, getAllDesignations, updateDesignationById } from "@/Services";
 
 const DesignationMasterPage = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [buttonLoading, setButtonLoading] = useState(false);
+  const [addError, setAddError] = useState("");
+  const [editError, setEditError] = useState("");
+
   const [newName, setNewName] = useState("");
   const [newType, setNewType] = useState("Teaching");
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
@@ -43,8 +48,13 @@ const DesignationMasterPage = () => {
           <FormControl
             type="text"
             value={editedName}
-            onChange={(e) => setEditedName(e.target.value)}
+            onChange={(e) => {
+              setEditedName(e.target.value);
+              setEditError("");
+            }}
+            isInvalid={!!editError}
           />
+
         ) : (
           row.designation_name || "N/A"
         ),
@@ -70,15 +80,23 @@ const DesignationMasterPage = () => {
       cell: (row) => (
         <div className="d-flex gap-2">
           {editingId === row._id ? (
-            <button className="editButton" onClick={() => handleSave(row._id)}>
-              <FaSave />
+            <button
+              className="editButton"
+              onClick={() => handleSave(row._id)}
+              disabled={buttonLoading}
+            >
+              {buttonLoading ? <Spinner size="sm" animation="border" /> : <FaSave />}
             </button>
           ) : (
             <button className="editButton" onClick={() => handleEdit(row)}>
               <FaEdit />
             </button>
           )}
-          <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
+          <button
+            className="editButton btn-danger"
+            onClick={() => handleDelete(row._id)}
+            disabled={buttonLoading}
+          >
             <FaTrashAlt />
           </button>
         </div>
@@ -88,13 +106,12 @@ const DesignationMasterPage = () => {
 
   const fetchData = async () => {
     setLoading(true);
-    setError("");
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-designations");
-      setData(response.data.data || []);
+      const response = await getAllDesignations()
+      setData(response.data || []);
     } catch (err) {
       console.error("Error fetching data:", err);
-      setError("Failed to fetch data. Please try again later.");
+      toast.error("Failed to fetch data. Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -108,69 +125,94 @@ const DesignationMasterPage = () => {
 
   const handleSave = async (id) => {
     if (!editedName.trim()) {
-      setError("Designation name cannot be empty");
+      setEditError("Designation name cannot be empty.");
+      toast.warn("Designation name cannot be empty.");
+      return;
+    }
+
+    const duplicate = data.find(
+      (item) =>
+        item._id !== id &&
+        item.designation_name.toLowerCase() === editedName.toLowerCase()
+    );
+
+    if (duplicate) {
+      setEditError("Designation name already exists.");
       return;
     }
 
     try {
-      await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-designations/${id}`, {
+      setButtonLoading(true);
+      await updateDesignationById(id, {
         designation_name: editedName,
         designation_type: editedType,
-      });
+      })
+      toast.success("Designation updated successfully");
       setEditingId(null);
       fetchData();
     } catch (error) {
-      if (error.response?.status === 409) {
-        setError("Designation name already exists");
-      } else {
-        setError("Failed to update designation. Try again later.");
-      }
+      toast.error("Failed to update designation.");
+    } finally {
+      setButtonLoading(false);
     }
   };
+
 
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this designation?")) {
       try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-designations/${id}`);
+        setButtonLoading(true);
+        await deleteDesignationById(id)
+        toast.success("Designation deleted successfully");
         fetchData();
       } catch (error) {
-        setError("Failed to delete designation.");
+        toast.error("Failed to delete designation.");
+      } finally {
+        setButtonLoading(false);
       }
     }
   };
 
   const handleAdd = async () => {
     if (!newName.trim()) {
-      setError("Designation name cannot be empty");
+      setAddError("Designation name cannot be empty");
       return;
     }
 
     try {
+      setButtonLoading(true);
       const existing = data.find(
-        (item) => item.designation_name.toLowerCase() === newName.toLowerCase()
+        (item) =>
+          item.designation_name.toLowerCase() === newName.toLowerCase()
       );
       if (existing) {
-        setError("Designation name already exists");
+        setAddError("Designation name already exists");
         return;
       }
 
-      await axios.post("https://erp-backend-fy3n.onrender.com/api/create-designations", {
+      await addNewDesignation({
         designation_name: newName,
         designation_type: newType,
-      });
-
+      })
+      toast.success("Designation added successfully");
       setNewName("");
       setNewType("Teaching");
       setIsPopoverOpen(false);
       fetchData();
     } catch (error) {
-      setError("Failed to add designation.");
+      console.error("Add Error:", error);
+      toast.error("Failed to add designation.");
+    } finally {
+      setButtonLoading(false);
     }
   };
 
   const handleCopy = () => {
     const headers = ["#", "Designation Name", "Designation Type"];
-    const rows = data.map((row, index) => `${index + 1}\t${row.designation_name}\t${row.designation_type}`);
+    const rows = data.map(
+      (row, index) =>
+        `${index + 1}\t${row.designation_name}\t${row.designation_type}`
+    );
     copyContent(headers, rows);
   };
 
@@ -219,7 +261,7 @@ const DesignationMasterPage = () => {
                   className="closeForm"
                   onClick={() => {
                     setIsPopoverOpen(false);
-                    setError("");
+                    setAddError("");
                   }}
                 >
                   X
@@ -229,19 +271,24 @@ const DesignationMasterPage = () => {
               <Form className="formSheet">
                 <Row className="mb-3">
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Designation Name*</FormLabel>
+                    <FormLabel className="labelForm">
+                      Designation Name<span className="text-danger">*</span>
+                    </FormLabel>
                     <FormControl
                       type="text"
                       placeholder="Enter Designation Name"
                       value={newName}
                       onChange={(e) => {
                         setNewName(e.target.value);
-                        setError("");
+                        setAddError("");
                       }}
                     />
+                    {addError && <p style={{ color: "red" }}>{addError}</p>}
                   </Col>
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Designation Type*</FormLabel>
+                    <FormLabel className="labelForm">
+                      Designation Type<span className="text-danger">*</span>
+                    </FormLabel>
                     <FormSelect
                       value={newType}
                       onChange={(e) => setNewType(e.target.value)}
@@ -251,8 +298,12 @@ const DesignationMasterPage = () => {
                     </FormSelect>
                   </Col>
                 </Row>
-                <Button onClick={handleAdd} className="btn btn-primary">
-                  Add Designation
+                <Button
+                  onClick={handleAdd}
+                  className="btn btn-primary"
+                  disabled={buttonLoading}
+                >
+                  {buttonLoading ? "Saving..." : "Add Designation"}
                 </Button>
               </Form>
             </div>
@@ -260,9 +311,11 @@ const DesignationMasterPage = () => {
 
           <div className="tableSheet">
             <h2>Designation Records</h2>
-            {loading && <p>Loading...</p>}
-            {error && <p style={{ color: "red" }}>{error}</p>}
-            {!loading && !error && (
+            {loading ? (
+              <div className="text-center my-4">
+                <Spinner animation="border" variant="primary" />
+              </div>
+            ) : (
               <Table
                 columns={columns}
                 data={data}
@@ -277,4 +330,4 @@ const DesignationMasterPage = () => {
   );
 };
 
-export default dynamic(() => Promise.resolve(DesignationMasterPage), { ssr: false });
+export default dynamic(() => Promise.resolve(DesignationMasterPage), { ssr: false, });

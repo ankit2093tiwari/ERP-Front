@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
+import { FaEdit, FaTrashAlt, FaSave, FaTimes } from "react-icons/fa";
 import { CgAddR } from "react-icons/cg";
 import {
   Form,
@@ -13,71 +13,118 @@ import {
   FormControl,
   Button,
 } from "react-bootstrap";
-import axios from "axios";
 import Table from "@/app/component/DataTable";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { copyContent, printContent } from "@/app/utils";
+import { toast } from "react-toastify";
+import { addNewGrade, deleteGradeById, getAllGrades, updateGradeById } from "@/Services";
 
 const GradeMasterPage = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [editError, setEditError] = useState("");
   const [newGradeName, setNewGradeName] = useState("");
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [editedName, setEditedName] = useState("");
 
-  const columns = [
-    {
-      name: "#",
-      selector: (row, index) => index + 1,
-      width: "80px",
-    },
-    {
-      name: "Grade Name",
-      cell: (row) =>
-        editingId === row._id ? (
-          <FormControl
-            type="text"
-            value={editedName}
-            onChange={(e) => setEditedName(e.target.value)}
-          />
-        ) : (
-          row.grade_name || "N/A"
-        ),
-      sortable: true,
-    },
-    {
-      name: "Actions",
-      cell: (row) => (
-        <div className="d-flex gap-2">
-          {editingId === row._id ? (
-            <button className="editButton" onClick={() => handleSave(row._id)}>
-              <FaSave />
-            </button>
-          ) : (
-            <button
-              className="editButton"
-              onClick={() => handleEdit(row._id, row.grade_name)}
-            >
-              <FaEdit />
-            </button>
-          )}
-          <button
-            className="editButton btn-danger"
-            onClick={() => handleDelete(row._id)}
-          >
-            <FaTrashAlt />
-          </button>
-        </div>
-      ),
-    },
-  ];
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const res = await getAllGrades()
+      setData(res.data || []);
+    } catch (err) {
+      toast.error("Failed to fetch data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const handleAdd = async () => {
+    if (!newGradeName.trim()) {
+      setError("Grade name is required");
+      return;
+    }
+
+    const exists = data.find(
+      (g) => g.grade_name.toLowerCase() === newGradeName.trim().toLowerCase()
+    );
+    if (exists) {
+      setError("Grade name already exists");
+      return;
+    }
+
+    try {
+      await addNewGrade({
+        grade_name: newGradeName.trim(),
+      })
+      toast.success("Grade added successfully");
+      setNewGradeName("");
+      setIsPopoverOpen(false);
+      fetchData();
+    } catch (err) {
+      console.log('failed to add grade!', err)
+      toast.error("Failed to add grade");
+    }
+  };
+
+  const handleEdit = (id, name) => {
+    setEditingId(id);
+    setEditedName(name);
+    setEditError("");
+  };
+
+  const handleSave = async (id) => {
+    if (!editedName.trim()) {
+      setEditError("Grade name is required");
+      toast.warn("Grade name is required");
+      return;
+    }
+
+    const exists = data.find(
+      (g) =>
+        g._id !== id && g.grade_name.toLowerCase() === editedName.trim().toLowerCase()
+    );
+    if (exists) {
+      setEditError("Grade name already exists");
+      toast.warn("Grade name already exists");
+      return;
+    }
+
+    try {
+      await updateGradeById(id, {
+        grade_name: editedName.trim(),
+      })
+      toast.success("Grade updated successfully");
+      setEditingId(null);
+      fetchData();
+    } catch (err) {
+      console.log('failed to update grade!', err)
+      toast.error("Failed to update grade");
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (confirm("Are you sure you want to delete this grade?")) {
+      try {
+        await deleteGradeById(id)
+        toast.success("Grade deleted successfully");
+        fetchData();
+      } catch (err) {
+        toast.error("Failed to delete grade");
+      }
+    }
+  };
 
   const handlePrint = () => {
-    const tableHeaders = [["#", "Grade Name"]];
-    const tableRows = data.map((row, index) => [index + 1, row.grade_name || "N/A"]);
-    printContent(tableHeaders, tableRows);
+    const headers = [["#", "Grade Name"]];
+    const rows = data.map((row, index) => [index + 1, row.grade_name || "N/A"]);
+    printContent(headers, rows);
   };
 
   const handleCopy = () => {
@@ -86,90 +133,60 @@ const GradeMasterPage = () => {
     copyContent(headers, rows);
   };
 
-  const fetchData = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-grade");
-      setData(response.data.data || []);
-    } catch (err) {
-      console.error("Fetch error:", err);
-      setError("Failed to fetch data. Please try again later.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleEdit = (id, name) => {
-    setEditingId(id);
-    setEditedName(name);
-  };
-
-  const handleSave = async (id) => {
-    if (!editedName.trim()) {
-      setError("Grade name cannot be empty");
-      return;
-    }
-    try {
-      await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-grade/${id}`, {
-        grade_name: editedName,
-      });
-      fetchData();
-      setEditingId(null);
-    } catch (err) {
-      if (err.response?.status === 409) {
-        setError("Grade name already exists");
-      } else {
-        setError("Failed to update grade. Try again.");
-      }
-    }
-  };
-
-  const handleDelete = async (id) => {
-    if (confirm("Are you sure you want to delete this grade?")) {
-      try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-grade/${id}`);
-        fetchData();
-      } catch (err) {
-        console.error("Delete error:", err);
-        setError("Failed to delete grade. Try again.");
-      }
-    }
-  };
-
-  const handleAdd = async () => {
-    if (!newGradeName.trim()) {
-      setError("Grade name cannot be empty");
-      return;
-    }
-
-    const existing = data.find(
-      (item) => item.grade_name.toLowerCase() === newGradeName.toLowerCase()
-    );
-    if (existing) {
-      setError("Grade name already exists");
-      return;
-    }
-
-    try {
-      await axios.post("https://erp-backend-fy3n.onrender.com/api/create-grade", {
-        grade_name: newGradeName,
-      });
-      setNewGradeName("");
-      setIsPopoverOpen(false);
-      fetchData();
-    } catch (err) {
-      if (err.response?.status === 409) {
-        setError("Grade name already exists");
-      } else {
-        setError("Failed to add grade. Try again.");
-      }
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
+  const columns = [
+    {
+      name: "#",
+      selector: (row, index) => index + 1,
+      width: "60px",
+    },
+    {
+      name: "Grade Name",
+      cell: (row) =>
+        editingId === row._id ? (
+          <FormControl
+            type="text"
+            value={editedName}
+            onChange={(e) => {
+              setEditedName(e.target.value);
+              setEditError("");
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleSave(row._id);
+              if (e.key === "Escape") setEditingId(null);
+            }}
+            isInvalid={!!editError}
+          />
+        ) : (
+          row.grade_name || "N/A"
+        ),
+    },
+    {
+      name: "Actions",
+      cell: (row) => (
+        <div className="d-flex gap-2">
+          {editingId === row._id ? (
+            <>
+              <button className="editButton" onClick={() => handleSave(row._id)}>
+                <FaSave />
+              </button>
+              <button className="editButton btn-danger" onClick={() => setEditingId(null)}>
+                <FaTimes />
+              </button>
+            </>
+          ) : (
+            <>
+              <button className="editButton" onClick={() => handleEdit(row._id, row.grade_name)}>
+                <FaEdit />
+              </button>
+              <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
+                <FaTrashAlt />
+              </button>
+            </>
+          )}
+        </div>
+      ),
+    },
+  ];
 
   const breadcrumbItems = [
     { label: "HRD", link: "/hrd/allModule" },
@@ -211,7 +228,9 @@ const GradeMasterPage = () => {
               <Form className="formSheet">
                 <Row className="mb-3">
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Grade Name*</FormLabel>
+                    <FormLabel className="labelForm">
+                      Grade Name <span className="text-danger">*</span>
+                    </FormLabel>
                     <FormControl
                       type="text"
                       placeholder="Enter Grade Name"
@@ -220,7 +239,9 @@ const GradeMasterPage = () => {
                         setNewGradeName(e.target.value);
                         setError("");
                       }}
+                      isInvalid={!!error}
                     />
+                    {error && <div className="text-danger small mt-1">{error}</div>}
                   </Col>
                 </Row>
                 <Button onClick={handleAdd} className="btn btn-primary">
@@ -232,9 +253,9 @@ const GradeMasterPage = () => {
 
           <div className="tableSheet">
             <h2>Grade Records</h2>
-            {loading && <p>Loading...</p>}
-            {error && <p style={{ color: "red" }}>{error}</p>}
-            {!loading && !error && (
+            {loading ? (
+              <p>Loading...</p>
+            ) : (
               <Table
                 columns={columns}
                 data={data}

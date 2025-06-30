@@ -1,6 +1,5 @@
 "use client";
-import { useState, useEffect } from "react";
-import axios from "axios";
+import { useState, useEffect, useRef } from "react";
 import {
   Form,
   Row,
@@ -10,11 +9,12 @@ import {
   FormControl,
   Button,
 } from "react-bootstrap";
-import { ToastContainer, toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
+import { toast } from "react-toastify";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import { addNewGalleryImage, getAllGalleryGroups } from "@/Services";
 
 const AddImage = () => {
+  const fileInputRef = useRef(null)
   const today = new Date().toISOString().split("T")[0];
 
   const [imageData, setImageData] = useState({
@@ -23,6 +23,8 @@ const AddImage = () => {
     groupName: "",
     shortText: "",
   });
+
+  const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [galleryGroups, setGalleryGroups] = useState([]);
   const [preview, setPreview] = useState("");
@@ -30,10 +32,8 @@ const AddImage = () => {
   useEffect(() => {
     const fetchGalleryGroups = async () => {
       try {
-        const response = await axios.get(
-          "https://erp-backend-fy3n.onrender.com/api/galleryGroups"
-        );
-        setGalleryGroups(response.data.data || []);
+        const response = await getAllGalleryGroups();
+        setGalleryGroups(response.data || []);
       } catch (err) {
         toast.error("Failed to fetch gallery groups.");
       }
@@ -42,26 +42,27 @@ const AddImage = () => {
     fetchGalleryGroups();
   }, []);
 
+  const validate = () => {
+    const newErrors = {};
+    if (!imageData.image) newErrors.image = "Please select an image.";
+    if (!imageData.groupName) newErrors.groupName = "Please select a gallery group.";
+    return newErrors;
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setImageData((prevData) => ({
-      ...prevData,
-      [name]: value,
-    }));
+    setImageData((prev) => ({ ...prev, [name]: value }));
+    setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setImageData((prevData) => ({
-        ...prevData,
-        image: file,
-      }));
+      setImageData((prev) => ({ ...prev, image: file }));
+      setErrors((prev) => ({ ...prev, image: "" }));
 
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreview(reader.result);
-      };
+      reader.onloadend = () => setPreview(reader.result);
       reader.readAsDataURL(file);
     }
   };
@@ -70,13 +71,9 @@ const AddImage = () => {
     e.preventDefault();
     setLoading(true);
 
-    if (!imageData.image) {
-      toast.warning("Please select an image.");
-      setLoading(false);
-      return;
-    }
-    if (!imageData.groupName) {
-      toast.warning("Please select a gallery group.");
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
       setLoading(false);
       return;
     }
@@ -87,23 +84,12 @@ const AddImage = () => {
       formData.append("shortText", imageData.shortText);
       formData.append("groupName", imageData.groupName);
       formData.append("image", imageData.image);
-
-      const response = await axios.post(
-        "https://erp-backend-fy3n.onrender.com/api/images",
-        formData,
-        {
-          headers: { "Content-Type": "multipart/form-data" },
-        }
-      );
-
+      await addNewGalleryImage(formData)
       toast.success("Image added successfully!");
-      setImageData({
-        date: today,
-        image: null,
-        groupName: "",
-        shortText: "",
-      });
+      fileInputRef.current.value = null;
+      setImageData({ date: today, image: null, groupName: "", shortText: "" });
       setPreview("");
+      setErrors({});
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to upload image.");
     } finally {
@@ -148,14 +134,18 @@ const AddImage = () => {
 
                 <Col lg={6}>
                   <FormLabel className="labelForm">
-                    Image (jpeg, jpg, png, gif)
+                    Upload Image
                   </FormLabel>
                   <FormControl
                     type="file"
                     name="image"
                     accept="image/*"
+                    ref={fileInputRef}
                     onChange={handleFileChange}
                   />
+                  {errors.image && (
+                    <div className="text-danger mt-1">{errors.image}</div>
+                  )}
                   {preview && (
                     <div className="mt-2">
                       <img
@@ -183,6 +173,9 @@ const AddImage = () => {
                       </option>
                     ))}
                   </Form.Select>
+                  {errors.groupName && (
+                    <div className="text-danger mt-1">{errors.groupName}</div>
+                  )}
                 </Col>
 
                 <Col lg={6}>
@@ -204,8 +197,6 @@ const AddImage = () => {
           </div>
         </Container>
       </section>
-
-      <ToastContainer />
     </>
   );
 };

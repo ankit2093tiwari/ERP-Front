@@ -17,6 +17,8 @@ import axios from "axios";
 import Table from "@/app/component/DataTable";
 import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import { toast } from "react-toastify";
+import { addNewCheckupType, deleteCheckupTypeById, getAllCheckupTypes, updateCheckupTypeById } from "@/Services";
 
 const AddCheckUp = () => {
   const [data, setData] = useState([]);
@@ -25,9 +27,8 @@ const AddCheckUp = () => {
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [editedName, setEditedName] = useState("");
-  const [formData, setFormData] = useState({
-    check_up_type: ""
-  });
+  const [formData, setFormData] = useState({ check_up_type: "" });
+  const [fieldError, setFieldError] = useState({});
 
   const columns = [
     {
@@ -56,31 +57,19 @@ const AddCheckUp = () => {
         <div className="d-flex gap-2">
           {editingId === row._id ? (
             <>
-              <button
-                className="editButton"
-                onClick={() => handleUpdate(row._id)}
-              >
+              <button className="editButton" onClick={() => handleUpdate(row._id)}>
                 <FaSave />
               </button>
-              <button
-                className="editButton btn-danger"
-                onClick={() => handleDelete(row._id)}
-              >
-                <FaTrashAlt />
+              <button className="editButton btn-danger" onClick={() => setEditingId(null)}>
+                Cancel
               </button>
             </>
           ) : (
             <>
-              <button
-                className="editButton"
-                onClick={() => handleEdit(row)}
-              >
+              <button className="editButton" onClick={() => handleEdit(row)}>
                 <FaEdit />
               </button>
-              <button
-                className="editButton btn-danger"
-                onClick={() => handleDelete(row._id)}
-              >
+              <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
                 <FaTrashAlt />
               </button>
             </>
@@ -94,10 +83,10 @@ const AddCheckUp = () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/checkup-types");
-      setData(response.data.data || []);
+      const res = await getAllCheckupTypes()
+      setData(res.data || []);
     } catch (err) {
-      console.error("Error fetching data:", err);
+      console.error(err);
       setError("Failed to fetch check-up types. Please try again later.");
     } finally {
       setLoading(false);
@@ -110,70 +99,80 @@ const AddCheckUp = () => {
   };
 
   const handleUpdate = async (id) => {
+    if (!editedName.trim()) {
+      toast.error("Check-up type cannot be empty");
+      return;
+    }
     try {
-      await axios.put(`https://erp-backend-fy3n.onrender.com/api/checkup-types/${id}`, {
+      await updateCheckupTypeById(id, {
         check_up_type: editedName,
-      });
+      })
+      toast.success("Check-up type updated successfully");
       fetchData();
       setEditingId(null);
-    } catch (error) {
-      console.error("Error updating data:", error);
-      setError("Failed to update check-up type. Please try again later.");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to update check-up type");
     }
   };
 
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this check-up type?")) {
       try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/checkup-types/${id}`);
+        await deleteCheckupTypeById(id)
+        toast.success("Check-up type deleted successfully");
         fetchData();
-      } catch (error) {
-        console.error("Error deleting data:", error);
-        setError("Failed to delete check-up type. Please try again later.");
+      } catch (err) {
+        console.error(err);
+        toast.error("Failed to delete check-up type");
       }
     }
   };
 
   const handleAdd = async () => {
-    if (formData.check_up_type.trim()) {
-      try {
-        const existingCheckUp = data.find(
-          (checkUp) => checkUp.check_up_type === formData.check_up_type
-        );
-        if (existingCheckUp) {
-          setError("Check-up type already exists.");
-          return;
-        }
+    const { check_up_type } = formData;
+    let errors = {};
+    if (!check_up_type.trim()) {
+      errors.check_up_type = "Check-up type is required";
+    }
 
-        await axios.post("https://erp-backend-fy3n.onrender.com/api/checkup-types", {
-          check_up_type: formData.check_up_type,
-        });
-        fetchData();
-        setFormData({ check_up_type: "" });
-        setIsPopoverOpen(false);
-      } catch (error) {
-        console.error("Error adding data:", error);
-        setError("Failed to add check-up type. Please try again later.");
-      }
-    } else {
-      alert("Please enter a valid check-up type.");
+    if (Object.keys(errors).length > 0) {
+      setFieldError(errors);
+      return;
+    }
+
+    const alreadyExists = data.some(
+      (item) => item.check_up_type.toLowerCase() === check_up_type.trim().toLowerCase()
+    );
+    if (alreadyExists) {
+      toast.error("Check-up type already exists.");
+      return;
+    }
+
+    try {
+      await addNewCheckupType({
+        check_up_type: check_up_type.trim(),
+      })
+      toast.success("Check-up type added successfully");
+      fetchData();
+      setFormData({ check_up_type: "" });
+      setFieldError({});
+      setIsPopoverOpen(false);
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to add check-up type");
     }
   };
 
   const handlePrint = () => {
-    const tableHeaders = [["#", "Check-Up Type"]];
-    const tableRows = data.map((row, index) => [
-      index + 1,
-      row.check_up_type || "N/A",
-    ]);
-    printContent(tableHeaders, tableRows);
+    const headers = [["#", "Check-Up Type"]];
+    const rows = data.map((row, index) => [index + 1, row.check_up_type || "N/A"]);
+    printContent(headers, rows);
   };
 
   const handleCopy = () => {
     const headers = ["#", "Check-Up Type"];
-    const rows = data.map((row, index) =>
-      `${index + 1}\t${row.check_up_type || "N/A"}`
-    );
+    const rows = data.map((row, index) => `${index + 1}\t${row.check_up_type || "N/A"}`);
     copyContent(headers, rows);
   };
 
@@ -201,11 +200,8 @@ const AddCheckUp = () => {
       <section>
         <Container>
           {error && <Alert variant="danger">{error}</Alert>}
-          
-          <Button
-            onClick={() => setIsPopoverOpen(true)}
-            className="btn-add"
-          >
+
+          <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
             <CgAddR /> Add Check-Up Type
           </Button>
 
@@ -217,7 +213,8 @@ const AddCheckUp = () => {
                   className="closeForm"
                   onClick={() => {
                     setIsPopoverOpen(false);
-                    setError("");
+                    setFormData({ check_up_type: "" });
+                    setFieldError({});
                   }}
                 >
                   X
@@ -231,10 +228,17 @@ const AddCheckUp = () => {
                       type="text"
                       placeholder="Enter Check-Up Type"
                       value={formData.check_up_type}
-                      onChange={(e) =>
-                        setFormData({ check_up_type: e.target.value })
-                      }
+                      onChange={(e) => {
+                        setFormData({ check_up_type: e.target.value });
+                        if (fieldError.check_up_type) {
+                          setFieldError((prev) => ({ ...prev, check_up_type: "" }));
+                        }
+                      }}
+                      isInvalid={!!fieldError.check_up_type}
                     />
+                    <Form.Control.Feedback type="invalid">
+                      {fieldError.check_up_type}
+                    </Form.Control.Feedback>
                   </Col>
                 </Row>
                 <Button onClick={handleAdd} className="btn btn-primary">

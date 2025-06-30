@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
-import { CgAddR } from 'react-icons/cg';
+import { FaEdit, FaTrashAlt, FaSave, FaTimes } from "react-icons/fa";
+import { CgAddR } from "react-icons/cg";
 import {
   Form,
   Row,
@@ -11,28 +11,133 @@ import {
   Container,
   FormLabel,
   FormControl,
-  Button
+  Button,
 } from "react-bootstrap";
-import axios from "axios";
 import Table from "@/app/component/DataTable";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { copyContent, printContent } from "@/app/utils";
+import { toast } from "react-toastify";
+import { addNewDepartment, deleteDepartmentById, getAllDepartments, updateDepartmentById } from "@/Services";
 
 const DepartmentMasterPage = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [editError, setEditError] = useState("");
   const [newDepartmentName, setNewDepartmentName] = useState("");
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [editedName, setEditedName] = useState("");
 
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const response = await getAllDepartments()
+      setData(response.data || []);
+    } catch (err) {
+      toast.error("Failed to fetch data");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const handleAdd = async () => {
+    if (!newDepartmentName.trim()) {
+      setError("Department name is required");
+      return;
+    }
+
+    const duplicate = data.find(
+      (item) => item.department_name.toLowerCase() === newDepartmentName.trim().toLowerCase()
+    );
+    if (duplicate) {
+      setError("Department name already exists");
+      return;
+    }
+
+    try {
+      await addNewDepartment({
+        department_name: newDepartmentName.trim(),
+      })
+      toast.success("Department added successfully");
+      setNewDepartmentName("");
+      setIsPopoverOpen(false);
+      fetchData();
+    } catch (err) {
+      console.error('failed to add department!', err)
+      toast.error("Failed to add department");
+    }
+  };
+
+  const handleEdit = (id, name) => {
+    setEditingId(id);
+    setEditedName(name);
+    setEditError("");
+  };
+
+  const handleSave = async (id) => {
+    if (!editedName.trim()) {
+      setEditError("Department name is required");
+      toast.warn("Department name is required");
+      return;
+    }
+
+    const duplicate = data.find(
+      (item) =>
+        item._id !== id &&
+        item.department_name.toLowerCase() === editedName.trim().toLowerCase()
+    );
+    if (duplicate) {
+      setEditError("Department name already exists");
+      toast.warn("Department name already exists");
+      return;
+    }
+
+    try {
+      await updateDepartmentById(id, {
+        department_name: editedName.trim(),
+      })
+      toast.success("Department updated successfully");
+      setEditingId(null);
+      fetchData();
+    } catch (err) {
+      toast.error("Failed to update department");
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (confirm("Are you sure you want to delete this department?")) {
+      try {
+        await deleteDepartmentById(id)
+        toast.success("Deleted successfully");
+        fetchData();
+      } catch (err) {
+        toast.error("Failed to delete department");
+      }
+    }
+  };
+
+  const handlePrint = () => {
+    const headers = [["#", "Department Name"]];
+    const rows = data.map((row, i) => [i + 1, row.department_name || "N/A"]);
+    printContent(headers, rows);
+  };
+
+  const handleCopy = () => {
+    const headers = ["#", "Department Name"];
+    const rows = data.map((row, i) => `${i + 1}\t${row.department_name || "N/A"}`);
+    copyContent(headers, rows);
+  };
+
   const columns = [
     {
       name: "#",
       selector: (row, index) => index + 1,
-      sortable: false,
-      width: "80px",
+      width: "60px",
     },
     {
       name: "Department Name",
@@ -41,152 +146,51 @@ const DepartmentMasterPage = () => {
           <FormControl
             type="text"
             value={editedName}
-            onChange={(e) => setEditedName(e.target.value)}
+            onChange={(e) => {
+              setEditedName(e.target.value);
+              setEditError("");
+            }}
+            isInvalid={!!editError}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleSave(row._id);
+              if (e.key === "Escape") setEditingId(null);
+            }}
           />
         ) : (
           row.department_name || "N/A"
         ),
-      sortable: true,
     },
     {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
           {editingId === row._id ? (
-            <button className="editButton" onClick={() => handleSave(row._id)}>
-              <FaSave />
-            </button>
+            <>
+              <button className="editButton" onClick={() => handleSave(row._id)}>
+                <FaSave />
+              </button>
+              <button className="editButton btn-danger" onClick={() => setEditingId(null)}>
+                <FaTimes />
+              </button>
+            </>
           ) : (
-            <button className="editButton" onClick={() => handleEdit(row._id, row.department_name)}>
-              <FaEdit />
-            </button>
+            <>
+              <button className="editButton" onClick={() => handleEdit(row._id, row.department_name)}>
+                <FaEdit />
+              </button>
+              <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
+                <FaTrashAlt />
+              </button>
+            </>
           )}
-          <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
-            <FaTrashAlt />
-          </button>
         </div>
       ),
     },
   ];
 
-  const handlePrint = async () => {
-    const tableHeaders = [["#", "Department Name"]];
-    const tableRows = data.map((row, index) => [
-      index + 1,
-      row.department_name || "N/A",
-    ]);
-
-    printContent(tableHeaders, tableRows);
-  };
-
-  const handleCopy = () => {
-    const headers = ["#", "Department Name"];
-    const rows = data.map((row, index) => `${index + 1}\t${row.department_name || "N/A"}`);
-
-    copyContent(headers, rows);
-  };
-
-  const fetchData = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-departments");
-      const fetchedData = response.data.data || [];
-      const normalizedData = fetchedData.map((item) => ({
-        ...item,
-        department_name: item.department_name || "N/A",
-      }));
-      setData(normalizedData);
-    } catch (err) {
-      console.error("Error fetching data:", err);
-      setError("Failed to fetch data. Please try again later.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleEdit = (id, name) => {
-    setEditingId(id);
-    setEditedName(name);
-  };
-
-  const handleSave = async (id) => {
-    if (!editedName.trim()) {
-      setError("Department name cannot be empty");
-      return;
-    }
-
-    try {
-      await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-departments/${id}`, {
-        department_name: editedName,
-      });
-      setData((prevData) =>
-        prevData.map((row) =>
-          row._id === id ? { ...row, department_name: editedName } : row
-        )
-      );
-      fetchData();
-      setEditingId(null);
-    } catch (error) {
-      if (error.response?.status === 409) {
-        setError("Department name already exists");
-      } else {
-        setError("Failed to update data. Please try again later.");
-      }
-    }
-  };
-
-  const handleDelete = async (id) => {
-    if (confirm("Are you sure you want to delete this department?")) {
-      try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-departments/${id}`);
-        setData((prevData) => prevData.filter((row) => row._id !== id));
-        fetchData();
-      } catch (error) {
-        console.error("Error deleting data:", error);
-        setError("Failed to delete data. Please try again later.");
-      }
-    }
-  };
-
-  const handleAdd = async () => {
-    if (!newDepartmentName.trim()) {
-      setError("Department name cannot be empty");
-      return;
-    }
-
-    try {
-      const existingDepartment = data.find(
-        (dept) => dept.department_name.toLowerCase() === newDepartmentName.toLowerCase()
-      );
-      if (existingDepartment) {
-        setError("Department name already exists");
-        return;
-      }
-
-      const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/create-departments", {
-        department_name: newDepartmentName,
-      });
-      setData((prevData) => [...prevData, response.data]);
-      setNewDepartmentName("");
-      setIsPopoverOpen(false);
-      fetchData();
-    } catch (error) {
-      if (error.response?.status === 409) {
-        setError("Department name already exists");
-      } else {
-        setError("Failed to add data. Please try again later.");
-      }
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
   const breadcrumbItems = [
-    { label: "HRD", link: "/hrd/allModule" }, 
-    { label: "Department Master", link: "null" }
+    { label: "HRD", link: "/hrd/allModule" },
+    { label: "Department Master", link: null },
   ];
 
   return (
@@ -200,6 +204,7 @@ const DepartmentMasterPage = () => {
           </Row>
         </Container>
       </div>
+
       <section>
         <Container>
           <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
@@ -223,7 +228,7 @@ const DepartmentMasterPage = () => {
               <Form className="formSheet">
                 <Row className="mb-3">
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Department Name*</FormLabel>
+                    <FormLabel className="labelForm">Department Name <span className="text-danger">*</span></FormLabel>
                     <FormControl
                       type="text"
                       placeholder="Enter Department Name"
@@ -232,8 +237,9 @@ const DepartmentMasterPage = () => {
                         setNewDepartmentName(e.target.value);
                         setError("");
                       }}
-                      required
+                      isInvalid={!!error}
                     />
+                    {error && <div className="text-danger mt-1 small">{error}</div>}
                   </Col>
                 </Row>
                 <Button onClick={handleAdd} className="btn btn-primary">
@@ -245,14 +251,14 @@ const DepartmentMasterPage = () => {
 
           <div className="tableSheet">
             <h2>Department Records</h2>
-            {loading && <p>Loading...</p>}
-            {error && <p style={{ color: "red" }}>{error}</p>}
-            {!loading && !error && (
-              <Table 
-                columns={columns} 
-                data={data} 
-                handleCopy={handleCopy} 
-                handlePrint={handlePrint} 
+            {loading ? (
+              <p>Loading...</p>
+            ) : (
+              <Table
+                columns={columns}
+                data={data}
+                handleCopy={handleCopy}
+                handlePrint={handlePrint}
               />
             )}
           </div>

@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
-import { CgAddR } from 'react-icons/cg';
+import { FaEdit, FaTrashAlt, FaSave, FaTimes } from "react-icons/fa";
+import { CgAddR } from "react-icons/cg";
 import {
   Form,
   Row,
@@ -14,37 +14,145 @@ import {
   Button,
   FormSelect,
 } from "react-bootstrap";
-import axios from "axios";
 import Table from "@/app/component/DataTable";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { copyContent, printContent } from "@/app/utils";
+import { toast } from "react-toastify";
+import { addnewAllowance, deleteAllowanceById, getAllAllowances, updateAllowanceById } from "@/Services";
 
 const AllowanceMasterPage = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [editError, setEditError] = useState("");
   const [newAllowanceName, setNewAllowanceName] = useState("");
   const [newCategory, setNewCategory] = useState("ADDITION");
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
   const [editedName, setEditedName] = useState("");
-  const [editedCategory, setEditedCategory] = useState("");
+  const [editedCategory, setEditedCategory] = useState("ADDITION");
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const res = await getAllAllowances()
+      setData(res.data || []);
+    } catch (err) {
+      toast.error("Failed to fetch data.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const handleAdd = async () => {
+    if (!newAllowanceName.trim()) {
+      setError("Allowance name is required");
+      return;
+    }
+
+    const duplicate = data.find(
+      (item) =>
+        item.allowance_name.toLowerCase() === newAllowanceName.trim().toLowerCase()
+    );
+    if (duplicate) {
+      setError("Allowance name already exists");
+      return;
+    }
+
+    try {
+      await addnewAllowance({
+        allowance_name: newAllowanceName.trim(),
+        category: newCategory,
+      })
+      toast.success("Allowance added successfully");
+      setNewAllowanceName("");
+      setNewCategory("ADDITION");
+      setIsPopoverOpen(false);
+      setEditingId(null);
+      fetchData();
+    } catch (err) {
+      console.error("Failed to add allowance", err)
+      toast.error("Failed to add allowance.");
+    }
+  };
+
+  const handleEdit = (id, name, category) => {
+    setEditingId(id);
+    setEditedName(name);
+    setEditedCategory(category);
+    setEditError("");
+  };
+
+  const handleSave = async (id) => {
+    if (!editedName.trim()) {
+      setEditError("Allowance name is required");
+      toast.warn("Allowance name is required");
+      return;
+    }
+
+    const duplicate = data.find(
+      (item) =>
+        item._id !== id &&
+        item.allowance_name.toLowerCase() === editedName.trim().toLowerCase()
+    );
+    if (duplicate) {
+      setEditError("Allowance name already exists");
+      toast.warn("Allowance name already exists");
+      return;
+    }
+
+    try {
+      await updateAllowanceById(id, {
+        allowance_name: editedName.trim(),
+        category: editedCategory,
+      })
+      toast.success("Allowance updated successfully");
+      setEditingId(null);
+      fetchData();
+    } catch (err) {
+      console.error("Failed to update allowance", err)
+      toast.error("Failed to update allowance.");
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (confirm("Are you sure you want to delete this allowance?")) {
+      try {
+        await deleteAllowanceById(id);
+        toast.success("Deleted successfully");
+        fetchData();
+      } catch (err) {
+        toast.error("Failed to delete allowance.");
+      }
+    }
+  };
 
   const columns = [
     {
       name: "#",
       selector: (row, index) => index + 1,
-      width: "80px",
+      width: "60px",
     },
     {
       name: "Allowance Name",
       cell: (row) =>
         editingId === row._id ? (
-          <FormControl
-            type="text"
-            value={editedName}
-            onChange={(e) => setEditedName(e.target.value)}
-          />
+          <>
+            <FormControl
+              type="text"
+              value={editedName}
+              onChange={(e) => {
+                setEditedName(e.target.value);
+                setEditError("");
+              }}
+              isInvalid={!!editError}
+            />
+
+          </>
         ) : (
           row.allowance_name || "N/A"
         ),
@@ -69,129 +177,44 @@ const AllowanceMasterPage = () => {
       cell: (row) => (
         <div className="d-flex gap-2">
           {editingId === row._id ? (
-            <button className="editButton" onClick={() => handleSave(row._id)}>
-              <FaSave />
-            </button>
+            <>
+              <button className="editButton" onClick={() => handleSave(row._id)}>
+                <FaSave />
+              </button>
+              <button className="editButton btn-danger" onClick={() => setEditingId(null)}>
+                <FaTimes />
+              </button>
+            </>
           ) : (
-            <button className="editButton" onClick={() => handleEdit(row._id, row.allowance_name, row.category)}>
-              <FaEdit />
-            </button>
+            <>
+              <button
+                className="editButton"
+                onClick={() => handleEdit(row._id, row.allowance_name, row.category)}
+              >
+                <FaEdit />
+              </button>
+              <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
+                <FaTrashAlt />
+              </button>
+            </>
           )}
-          <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
-            <FaTrashAlt />
-          </button>
+
         </div>
       ),
     },
   ];
 
-  const fetchData = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-allowances");
-      const fetchedData = response.data.data || [];
-      setData(fetchedData);
-    } catch (err) {
-      setError("Failed to fetch data. Please try again later.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAdd = async () => {
-    if (!newAllowanceName.trim()) {
-      setError("Allowance name cannot be empty");
-      return;
-    }
-
-    try {
-      const existing = data.find(
-        (item) => item.allowance_name.toLowerCase() === newAllowanceName.toLowerCase()
-      );
-      if (existing) {
-        setError("Allowance name already exists");
-        return;
-      }
-
-      const response = await axios.post("https://erp-backend-fy3n.onrender.com/api/create-allowance", {
-        allowance_name: newAllowanceName,
-        category: newCategory,
-      });
-      setData((prev) => [...prev, response.data]);
-      setNewAllowanceName("");
-      setNewCategory("ADDITION");
-      setIsPopoverOpen(false);
-      fetchData();
-    } catch (err) {
-      if (err.response?.status === 409) {
-        setError("Allowance name already exists");
-      } else {
-        setError("Failed to add data. Please try again.");
-      }
-    }
-  };
-
-  const handleEdit = (id, name, category) => {
-    setEditingId(id);
-    setEditedName(name);
-    setEditedCategory(category);
-  };
-
-  const handleSave = async (id) => {
-    if (!editedName.trim()) {
-      setError("Allowance name cannot be empty");
-      return;
-    }
-
-    try {
-      await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-allowance/${id}`, {
-        allowance_name: editedName,
-        category: editedCategory,
-      });
-      setEditingId(null);
-      fetchData();
-    } catch (error) {
-      if (error.response?.status === 409) {
-        setError("Allowance name already exists");
-      } else {
-        setError("Failed to update data. Please try again later.");
-      }
-    }
-  };
-
-  const handleDelete = async (id) => {
-    if (confirm("Are you sure you want to delete this allowance?")) {
-      try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-allowance/${id}`);
-        fetchData();
-      } catch (error) {
-        setError("Failed to delete data. Please try again later.");
-      }
-    }
-  };
-
   const handleCopy = () => {
     const headers = ["#", "Allowance Name", "Category"];
-    const rows = data.map((row, index) =>
-      `${index + 1}\t${row.allowance_name || "N/A"}\t${row.category || "N/A"}`
-    );
+    const rows = data.map((row, i) => `${i + 1}\t${row.allowance_name}\t${row.category}`);
     copyContent(headers, rows);
   };
 
   const handlePrint = () => {
-    const tableHeaders = [["#", "Allowance Name", "Category"]];
-    const tableRows = data.map((row, index) => [
-      index + 1,
-      row.allowance_name || "N/A",
-      row.category || "N/A",
-    ]);
-    printContent(tableHeaders, tableRows);
+    const headers = [["#", "Allowance Name", "Category"]];
+    const rows = data.map((row, i) => [i + 1, row.allowance_name, row.category]);
+    printContent(headers, rows);
   };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
 
   const breadcrumbItems = [
     { label: "HRD", link: "/hrd/allModule" },
@@ -209,6 +232,7 @@ const AllowanceMasterPage = () => {
           </Row>
         </Container>
       </div>
+
       <section>
         <Container>
           <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
@@ -232,7 +256,9 @@ const AllowanceMasterPage = () => {
               <Form className="formSheet">
                 <Row className="mb-3">
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Allowance Name*</FormLabel>
+                    <FormLabel className="labelForm">
+                      Allowance Name <span className="text-danger">*</span>
+                    </FormLabel>
                     <FormControl
                       type="text"
                       placeholder="Enter Allowance Name"
@@ -241,11 +267,12 @@ const AllowanceMasterPage = () => {
                         setNewAllowanceName(e.target.value);
                         setError("");
                       }}
-                      required
+                      isInvalid={!!error}
                     />
+                    {error && <div className="text-danger mt-1 small">{error}</div>}
                   </Col>
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Category*</FormLabel>
+                    <FormLabel className="labelForm">Category <span className="text-danger">*</span></FormLabel>
                     <FormSelect
                       value={newCategory}
                       onChange={(e) => setNewCategory(e.target.value)}
@@ -264,9 +291,9 @@ const AllowanceMasterPage = () => {
 
           <div className="tableSheet">
             <h2>Allowance Records</h2>
-            {loading && <p>Loading...</p>}
-            {error && <p style={{ color: "red" }}>{error}</p>}
-            {!loading && !error && (
+            {loading ? (
+              <p>Loading...</p>
+            ) : (
               <Table
                 columns={columns}
                 data={data}

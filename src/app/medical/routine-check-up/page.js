@@ -15,9 +15,11 @@ import {
   FormSelect,
 } from "react-bootstrap";
 import axios from "axios";
+import { toast } from "react-toastify";
 import Table from "@/app/component/DataTable";
 import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import { addNewRoutineCheckup, deleteRoutineCheckupById, getAllDoctors, getAllRoutineCheckups, updateRoutineCheckupById } from "@/Services";
 
 const RoutineCheckUp = () => {
   const [data, setData] = useState([]);
@@ -33,6 +35,8 @@ const RoutineCheckUp = () => {
     check_up_for: "",
     doctor: "",
   });
+  const [formErrors, setFormErrors] = useState({});
+
   const [editFormData, setEditFormData] = useState({
     form_no: "",
     remark: "",
@@ -40,17 +44,27 @@ const RoutineCheckUp = () => {
     doctor: "",
   });
 
+  const validateForm = () => {
+    const errors = {};
+    if (!formData.check_up_for) errors.check_up_for = "Please select check-up type.";
+    if (!formData.doctor) errors.doctor = "Please select doctor.";
+    return errors;
+  };
+
+  const handleChange = (field, value) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    setFormErrors((prev) => ({ ...prev, [field]: "" }));
+  };
+
   const columns = [
     {
       name: "#",
-      selector: (row, index) => index + 1,
+      selector: (_, index) => index + 1,
       width: "80px",
-      sortable: false,
     },
     {
       name: "Date",
-      selector: (row) => new Date(row.date).toLocaleDateString() || "N/A",
-      sortable: true,
+      selector: (row) => new Date(row.date).toLocaleDateString(),
     },
     {
       name: "Doctor Name",
@@ -58,12 +72,13 @@ const RoutineCheckUp = () => {
         editingId === row._id ? (
           <FormSelect
             value={editFormData.doctor}
-            onChange={(e) => setEditFormData({...editFormData, doctor: e.target.value})}
+            onChange={(e) =>
+              setEditFormData({ ...editFormData, doctor: e.target.value })
+            }
           >
-            <option value="">Select</option>
-            {doctors.map((doctor) => (
-              <option key={doctor._id} value={doctor._id}>
-                {doctor.doctor_name}
+            {doctors.map((doc) => (
+              <option key={doc._id} value={doc._id}>
+                {doc.doctor_name}
               </option>
             ))}
           </FormSelect>
@@ -72,14 +87,15 @@ const RoutineCheckUp = () => {
         ),
     },
     {
-      name: "Checkup For",
+      name: "Check-Up For",
       cell: (row) =>
         editingId === row._id ? (
           <FormSelect
             value={editFormData.check_up_for}
-            onChange={(e) => setEditFormData({...editFormData, check_up_for: e.target.value})}
+            onChange={(e) =>
+              setEditFormData({ ...editFormData, check_up_for: e.target.value })
+            }
           >
-            <option value="">Select</option>
             <option value="student">Student</option>
             <option value="staff">Staff</option>
           </FormSelect>
@@ -87,7 +103,6 @@ const RoutineCheckUp = () => {
           row.check_up_for || "N/A"
         ),
     },
-    
     {
       name: "Remarks",
       cell: (row) =>
@@ -95,7 +110,9 @@ const RoutineCheckUp = () => {
           <FormControl
             type="text"
             value={editFormData.remark}
-            onChange={(e) => setEditFormData({...editFormData, remark: e.target.value})}
+            onChange={(e) =>
+              setEditFormData({ ...editFormData, remark: e.target.value })
+            }
           />
         ) : (
           row.remark || "N/A"
@@ -103,41 +120,32 @@ const RoutineCheckUp = () => {
     },
     {
       name: "Actions",
-      cell: (row) => (
-        <div className="d-flex gap-2">
-          {editingId === row._id ? (
-            <>
-              <button
-                className="editButton"
-                onClick={() => handleUpdate(row._id)}
-              >
-                <FaSave />
-              </button>
-              <button
-                className="editButton btn-danger"
-                onClick={() => setEditingId(null)}
-              >
-                Cancel
-              </button>
-            </>
-          ) : (
-            <>
-              <button
-                className="editButton"
-                onClick={() => handleEdit(row)}
-              >
-                <FaEdit />
-              </button>
-              <button
-                className="editButton btn-danger"
-                onClick={() => handleDelete(row._id)}
-              >
-                <FaTrashAlt />
-              </button>
-            </>
-          )}
-        </div>
-      ),
+      cell: (row) =>
+        editingId === row._id ? (
+          <>
+            <button className="editButton" onClick={() => handleUpdate(row._id)}>
+              <FaSave />
+            </button>
+            <button
+              className="editButton btn-danger"
+              onClick={() => setEditingId(null)}
+            >
+              Cancel
+            </button>
+          </>
+        ) : (
+          <>
+            <button className="editButton" onClick={() => handleEdit(row)}>
+              <FaEdit />
+            </button>
+            <button
+              className="editButton btn-danger"
+              onClick={() => handleDelete(row._id)}
+            >
+              <FaTrashAlt />
+            </button>
+          </>
+        ),
     },
   ];
 
@@ -145,24 +153,12 @@ const RoutineCheckUp = () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/routine-checkups");
-      const sortedData = response.data.data.sort((a, b) => {
-        const numA = parseInt(a.form_no) || 0;
-        const numB = parseInt(b.form_no) || 0;
-        return numA - numB;
-      });
-      setData(sortedData || []);
-      
-      // Calculate the next form number
-      if (sortedData.length > 0) {
-        const lastFormNo = parseInt(sortedData[sortedData.length - 1].form_no) || 0;
-        setNextFormNo(lastFormNo + 1);
-      } else {
-        setNextFormNo(1);
-      }
+      const res = await getAllRoutineCheckups()
+      const sorted = res.data.sort((a, b) => +a.form_no - +b.form_no);
+      setData(sorted || []);
+      setNextFormNo(sorted.length ? +sorted[sorted.length - 1].form_no + 1 : 1);
     } catch (err) {
-      console.error("Error fetching data:", err);
-      setError("Failed to fetch routine check-ups. Please try again later.");
+      setError("Failed to fetch routine check-ups.");
     } finally {
       setLoading(false);
     }
@@ -170,102 +166,85 @@ const RoutineCheckUp = () => {
 
   const fetchDoctors = async () => {
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/doctors");
-      setDoctors(response.data.data || []);
+      const res = await getAllDoctors()
+      setDoctors(res.data || []);
     } catch (err) {
-      console.error("Error fetching doctors:", err);
-      setError("Failed to load doctor options.");
+      setError("Failed to fetch doctors.");
     }
   };
 
-  const handleEdit = (checkUp) => {
-    setEditingId(checkUp._id);
+  const handleEdit = (item) => {
+    setEditingId(item._id);
     setEditFormData({
-      form_no: checkUp.form_no || "",
-      remark: checkUp.remark || "",
-      check_up_for: checkUp.check_up_for || "",
-      doctor: checkUp.doctor?._id || "",
+      form_no: item.form_no,
+      remark: item.remark,
+      check_up_for: item.check_up_for,
+      doctor: item.doctor?._id || "",
     });
   };
 
   const handleUpdate = async (id) => {
     try {
-      await axios.put(`https://erp-backend-fy3n.onrender.com/api/routine-checkups/${id}`, editFormData);
+      await updateRoutineCheckupById(id, editFormData)
+      toast.success("Check-up updated");
       fetchData();
       setEditingId(null);
-    } catch (error) {
-      console.error("Error updating data:", error);
-      setError("Failed to update routine check-up. Please try again later.");
+    } catch (err) {
+      toast.error("Failed to update");
     }
   };
 
   const handleDelete = async (id) => {
-    if (confirm("Are you sure you want to delete this routine check-up?")) {
+    if (confirm("Are you sure?")) {
       try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/routine-checkups/${id}`);
+        await deleteRoutineCheckupById(id)
+        toast.success("Deleted successfully");
         fetchData();
-      } catch (error) {
-        console.error("Error deleting data:", error);
-        setError("Failed to delete routine check-up. Please try again later.");
+      } catch (err) {
+        toast.error("Failed to delete");
       }
     }
   };
 
   const handleAdd = async () => {
-    const { form_no, check_up_for, doctor } = formData;
-    if (check_up_for && doctor) {
-      try {
-        // Auto-generate form number
-        const generatedFormNo = nextFormNo.toString();
-        
-        const existingCheckUp = data.find(
-          (checkUp) => checkUp.form_no === generatedFormNo
-        );
-        if (existingCheckUp) {
-          setError("Check-up with this form number already exists.");
-          return;
-        }
+    const errors = validateForm();
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
+    }
 
-        const payload = {
-          ...formData,
-          form_no: generatedFormNo
-        };
-
-        await axios.post("https://erp-backend-fy3n.onrender.com/api/routine-checkups", payload);
-        fetchData();
-        setFormData({
-          form_no: "",
-          remark: "",
-          check_up_for: "",
-          doctor: "",
-        });
-        setIsPopoverOpen(false);
-      } catch (error) {
-        console.error("Error adding data:", error);
-        setError("Failed to add routine check-up. Please try again later.");
-      }
-    } else {
-      alert("Please fill out all required fields.");
+    try {
+      const payload = {
+        ...formData,
+        form_no: nextFormNo.toString(),
+      };
+      await addNewRoutineCheckup(payload)
+      toast.success("Routine Check-Up Added");
+      fetchData();
+      setFormData({ form_no: "", remark: "", check_up_for: "", doctor: "" });
+      setFormErrors({});
+      setIsPopoverOpen(false);
+    } catch (err) {
+      toast.error("Failed to add");
     }
   };
 
   const handlePrint = () => {
-    const tableHeaders = [["#", "Date", "Checkup For", "Doctor", "Remarks"]];
-    const tableRows = data.map((row, index) => [
-      index + 1,
-      new Date(row.date).toLocaleDateString(),
-      // row.form_no || "N/A",
-      row.check_up_for || "N/A",
-      row.doctor?.doctor_name || "N/A",
-      row.remark || "N/A",
+    const headers = [["#", "Date", "Check-Up For", "Doctor", "Remarks"]];
+    const rows = data.map((r, i) => [
+      i + 1,
+      new Date(r.date).toLocaleDateString(),
+      r.check_up_for,
+      r.doctor?.doctor_name,
+      r.remark || "N/A",
     ]);
-    printContent(tableHeaders, tableRows);
+    printContent(headers, rows);
   };
 
   const handleCopy = () => {
-    const headers = ["#", "Date", "Checkup For", "Doctor", "Remarks"];
-    const rows = data.map((row, index) =>
-      `${index + 1}\t${new Date(row.date).toLocaleDateString()}\t${row.check_up_for || "N/A"}\t${row.doctor?.doctor_name || "N/A"}\t${row.remark || "N/A"}`
+    const headers = ["#", "Date", "Check-Up For", "Doctor", "Remarks"];
+    const rows = data.map((r, i) =>
+      `${i + 1}\t${new Date(r.date).toLocaleDateString()}\t${r.check_up_for}\t${r.doctor?.doctor_name}\t${r.remark || "N/A"}`
     );
     copyContent(headers, rows);
   };
@@ -295,15 +274,11 @@ const RoutineCheckUp = () => {
       <section>
         <Container>
           {error && <Alert variant="danger">{error}</Alert>}
-          
+
           <Button
             onClick={() => {
               setIsPopoverOpen(true);
-              // Set the next form number in the form data when opening the popover
-              setFormData(prev => ({
-                ...prev,
-                form_no: nextFormNo.toString()
-              }));
+              setFormData((prev) => ({ ...prev, form_no: nextFormNo.toString() }));
             }}
             className="btn-add"
           >
@@ -318,6 +293,7 @@ const RoutineCheckUp = () => {
                   className="closeForm"
                   onClick={() => {
                     setIsPopoverOpen(false);
+                    setFormErrors({});
                     setError("");
                   }}
                 >
@@ -327,49 +303,49 @@ const RoutineCheckUp = () => {
               <Form className="formSheet">
                 <Row className="mb-3">
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Form No</FormLabel>
-                    <FormControl
-                      type="text"
-                      value={formData.form_no}
-                      readOnly
-                    />
+                    <FormLabel>Form No<span className="text-danger">*</span></FormLabel>
+                    <FormControl value={formData.form_no} readOnly />
                   </Col>
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Checkup For</FormLabel>
+                    <FormLabel>Check-Up For<span className="text-danger">*</span></FormLabel>
                     <FormSelect
                       value={formData.check_up_for}
-                      onChange={(e) => setFormData({...formData, check_up_for: e.target.value})}
-                      required
+                      onChange={(e) => handleChange("check_up_for", e.target.value)}
                     >
                       <option value="">Select</option>
                       <option value="student">Student</option>
                       <option value="staff">Staff</option>
                     </FormSelect>
+                    {formErrors.check_up_for && (
+                      <small className="text-danger">{formErrors.check_up_for}</small>
+                    )}
                   </Col>
                 </Row>
                 <Row className="mb-3">
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Doctor</FormLabel>
+                    <FormLabel>Doctor<span className="text-danger">*</span></FormLabel>
                     <FormSelect
                       value={formData.doctor}
-                      onChange={(e) => setFormData({...formData, doctor: e.target.value})}
-                      required
+                      onChange={(e) => handleChange("doctor", e.target.value)}
                     >
                       <option value="">Select</option>
-                      {doctors.map((doctor) => (
-                        <option key={doctor._id} value={doctor._id}>
-                          {doctor.doctor_name}
+                      {doctors.map((d) => (
+                        <option key={d._id} value={d._id}>
+                          {d.doctor_name}
                         </option>
                       ))}
                     </FormSelect>
+                    {formErrors.doctor && (
+                      <small className="text-danger">{formErrors.doctor}</small>
+                    )}
                   </Col>
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Remarks</FormLabel>
+                    <FormLabel>Remarks</FormLabel>
                     <FormControl
                       type="text"
                       placeholder="Enter Remarks"
                       value={formData.remark}
-                      onChange={(e) => setFormData({...formData, remark: e.target.value})}
+                      onChange={(e) => handleChange("remark", e.target.value)}
                     />
                   </Col>
                 </Row>
@@ -384,8 +360,6 @@ const RoutineCheckUp = () => {
             <h2>Routine Check-Up Records</h2>
             {loading ? (
               <p>Loading...</p>
-            ) : error ? (
-              <p style={{ color: "red" }}>{error}</p>
             ) : (
               <Table
                 columns={columns}

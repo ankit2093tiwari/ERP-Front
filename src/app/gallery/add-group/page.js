@@ -13,10 +13,11 @@ import {
   Button,
   Alert,
 } from "react-bootstrap";
-import axios from "axios";
 import Table from "@/app/component/DataTable";
 import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import { toast } from "react-toastify";
+import { addNewGalleryGroup, deleteGalleryGroupById, getAllGalleryGroups, updateGalleryGroupById } from "@/Services";
 
 const AddGalleryGroup = () => {
   const [data, setData] = useState([]);
@@ -25,6 +26,7 @@ const AddGalleryGroup = () => {
   const [successMessage, setSuccessMessage] = useState("");
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
+  const [fieldError, setFieldError] = useState("")
   const [formData, setFormData] = useState({
     groupName: ""
   });
@@ -46,7 +48,7 @@ const AddGalleryGroup = () => {
           <FormControl
             type="text"
             value={editFormData.groupName}
-            onChange={(e) => setEditFormData({...editFormData, groupName: e.target.value})}
+            onChange={(e) => setEditFormData({ ...editFormData, groupName: e.target.value })}
           />
         ) : (
           row.groupName || "N/A"
@@ -95,13 +97,12 @@ const AddGalleryGroup = () => {
 
   const fetchData = async () => {
     setLoading(true);
-    setError("");
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/galleryGroups");
-      setData(response.data.data || []);
+      const response = await getAllGalleryGroups()
+      setData(response.data || []);
     } catch (err) {
       console.error("Error fetching data:", err);
-      setError("Failed to fetch gallery groups. Please try again later.");
+      toast.error("Failed to fetch gallery groups. Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -116,37 +117,39 @@ const AddGalleryGroup = () => {
 
   const handleUpdate = async (id) => {
     if (!editFormData.groupName.trim()) {
-      alert("Please enter a group name.");
+      toast.warn("Please enter a group name.");
+      setFieldError("Please enter a group name.");
       return;
     }
-    
+
     try {
-      await axios.put(`https://erp-backend-fy3n.onrender.com/api/galleryGroups/${id}`, editFormData);
+      await updateGalleryGroupById(id, editFormData)
       fetchData();
       setEditingId(null);
-      // setSuccessMessage("Group updated successfully!");
+      toast.success("Group updated successfully!");
     } catch (error) {
       console.error("Error updating data:", error);
-      setError("Failed to update gallery group. Please try again later.");
+      toast.error("Failed to update gallery group. Please try again later.");
     }
   };
 
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this gallery group?")) {
       try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/galleryGroups/${id}`);
+        await deleteGalleryGroupById(id)
         fetchData();
-        // setSuccessMessage("Group deleted successfully!");
+        toast.success("Group deleted successfully!");
       } catch (error) {
         console.error("Error deleting data:", error);
-        setError("Failed to delete gallery group. Please try again later.");
+        toast.error("Failed to delete gallery group. Please try again later.");
       }
     }
   };
 
   const handleAdd = async () => {
     if (!formData.groupName.trim()) {
-      alert("Please enter a group name.");
+      toast.warn("Please enter a group name.");
+      setFieldError("Please enter a group name.");
       return;
     }
 
@@ -155,20 +158,21 @@ const AddGalleryGroup = () => {
         (group) => group.groupName.toLowerCase() === formData.groupName.toLowerCase()
       );
       if (existingGroup) {
-        setError("Group with this name already exists.");
+        setFieldError("Group with this name already exists.");
+        toast.warn("Group with this name already exists.");
         return;
       }
 
-      await axios.post("https://erp-backend-fy3n.onrender.com/api/galleryGroups", formData);
+      await addNewGalleryGroup(formData)
       fetchData();
+      toast.success("Group added successfully!")
       setFormData({
         groupName: ""
       });
       setIsPopoverOpen(false);
-      // setSuccessMessage("Group added successfully!");
     } catch (error) {
       console.error("Error adding data:", error);
-      setError("Failed to add gallery group. Please try again later.");
+      toast.error("Failed to add gallery group. Please try again later.");
     }
   };
 
@@ -214,7 +218,7 @@ const AddGalleryGroup = () => {
         <Container>
           {successMessage && <Alert variant="success">{successMessage}</Alert>}
           {error && <Alert variant="danger">{error}</Alert>}
-          
+
           <Button
             onClick={() => setIsPopoverOpen(true)}
             className="btn-add"
@@ -244,8 +248,10 @@ const AddGalleryGroup = () => {
                       type="text"
                       placeholder="Enter Group Name"
                       value={formData.groupName}
-                      onChange={(e) => setFormData({...formData, groupName: e.target.value})}
+                      onChange={(e) => { setFormData({ ...formData, groupName: e.target.value }); if (fieldError) setFieldError("") }}
+                      isInvalid={!!fieldError}
                     />
+                    <Form.Control.Feedback type="invalid">{fieldError}</Form.Control.Feedback>
                   </Col>
                 </Row>
                 <Button onClick={handleAdd} className="btn btn-primary">

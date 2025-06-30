@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
+import { FaEdit, FaTrashAlt, FaSave, FaTimes } from "react-icons/fa";
 import { Row, Col, Container, Button, Alert, FormControl } from "react-bootstrap";
 import Image from "next/image";
 import Table from "@/app/component/DataTable";
@@ -13,8 +13,6 @@ import { toast } from "react-toastify";
 const NoticeRecord = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
   const [editingId, setEditingId] = useState(null);
   const [editFormData, setEditFormData] = useState({
     short_text: "",
@@ -118,39 +116,39 @@ const NoticeRecord = () => {
         <div className="d-flex gap-2">
           {editingId === row._id ? (
             <>
-              <Button
-                variant="success"
-                size="sm"
+              <button
+                className="editButton"
                 onClick={() => handleUpdate(row._id)}
                 disabled={loading}
               >
-                <FaSave />
-              </Button>
-              <Button
+                {loading ? "Saving..." : <FaSave />}
+              </button>
+              <button
                 className="editButton btn-danger"
-                size="sm"
-                onClick={() => setEditingId(null)}
+                onClick={() => {
+                  setEditingId(null);
+                  setEditFormData({ short_text: "", image: null, previewImage: "" });
+                }}
               >
-                <FaTrashAlt />
-              </Button>
+                <FaTimes />
+              </button>
+
             </>
           ) : (
             <>
-              <Button
-                variant="primary"
-                size="sm"
+              <button
+                className="editButton"
                 onClick={() => handleEdit(row)}
               >
                 <FaEdit />
-              </Button>
-              <Button
-                size="sm"
+              </button>
+              <button
                 className="editButton btn-danger"
                 onClick={() => handleDelete(row._id)}
                 disabled={loading}
               >
                 <FaTrashAlt />
-              </Button>
+              </button>
             </>
           )}
         </div>
@@ -160,13 +158,12 @@ const NoticeRecord = () => {
 
   const fetchData = async () => {
     setLoading(true);
-    setError("");
     try {
       const response = await getAllNotices()
       setData(response?.data || []);
     } catch (err) {
       console.error("Error fetching notices:", err);
-      setError("Failed to fetch notices. Please try again later.");
+      toast.error("Failed to fetch notices. Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -183,8 +180,19 @@ const NoticeRecord = () => {
 
   const handleUpdate = async (id) => {
     if (!editFormData.short_text.trim()) {
-      alert("Please enter a short text.");
+      toast.warn("Please enter a short text.");
       return;
+    }
+    if (editFormData.image) {
+      const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/gif"];
+      if (!allowedTypes.includes(editFormData.image.type)) {
+        toast.warn("Invalid file format.");
+        return;
+      }
+      if (editFormData.image.size > 5 * 1024 * 1024) {
+        toast.warn("Image must be smaller than 5MB.");
+        return;
+      }
     }
 
     const formData = new FormData();
@@ -199,11 +207,9 @@ const NoticeRecord = () => {
       toast.success(response?.message || "Notice Record Updated Successfully")
       fetchData();
       setEditingId(null);
-      // setSuccess("Notice updated successfully.");
-      // setTimeout(() => setSuccess(""), 3000);
     } catch (error) {
       console.error("Error updating notice:", error);
-      setError("Failed to update notice. Please try again later.");
+      toast.error("Failed to update notice. Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -214,14 +220,11 @@ const NoticeRecord = () => {
       try {
         setLoading(true);
         const response = await deleteNoticeById(id);
-        toast.success(response?.message || "Notice Record Updated Successfully")
-        toast.success
+        toast.success(response?.message || "Notice deleted successfully!");
         fetchData()
-        setSuccess("Notice deleted successfully.");
-        setTimeout(() => setSuccess(""), 3000);
       } catch (error) {
         console.error("Error deleting notice:", error);
-        setError("Failed to delete notice. Please try again later.");
+        toast.error("Failed to delete notice. Please try again later.");
       } finally {
         setLoading(false);
       }
@@ -251,9 +254,6 @@ const NoticeRecord = () => {
 
       <section>
         <Container>
-          {error && <Alert variant="danger">{error}</Alert>}
-          {success && <Alert variant="success">{success}</Alert>}
-
           <div className="tableSheet">
             <h2>Notice Records</h2>
             {loading ? (

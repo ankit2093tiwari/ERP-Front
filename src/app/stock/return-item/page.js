@@ -2,6 +2,7 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import Table from '@/app/component/DataTable';
 import { FaEdit, FaUndo, FaTrashAlt } from "react-icons/fa";
+import { copyContent, printContent } from "@/app/utils";
 import { Container, Row, Col, Form, FormLabel, FormGroup, FormControl, FormSelect, Button } from 'react-bootstrap';
 import { CgAddR } from 'react-icons/cg';
 import BreadcrumbComp from "@/app/component/Breadcrumb";
@@ -133,6 +134,28 @@ const ReturnItem = () => {
     if (selectedCategory) fetchItemsByCategory(selectedCategory);
   }, [selectedCategory]);
 
+  // Add these functions to your ReturnItem component
+const handlePrint = () => {
+  const tableHeaders = [["#", "Item Category", "Item Name", "Issued To", "Quantity", "Remarks", "Date & Time"]];
+  const tableRows = formattedData.map((row, index) => [
+    index + 1,
+    row.itemCategory,
+    row.itemName,
+    row.issuedTo,
+    row.quantity,
+    row.remarks,
+    row.dateAndTime
+  ]);
+  printContent(tableHeaders, tableRows);
+};
+
+const handleCopy = () => {
+  const headers = ["#", "Item Category", "Item Name", "Issued To", "Quantity", "Remarks", "Date & Time"];
+  const rows = formattedData.map((row, index) =>
+    `${index + 1}\t${row.itemCategory}\t${row.itemName}\t${row.issuedTo}\t${row.quantity}\t${row.remarks}\t${row.dateAndTime}`
+  );
+  copyContent(headers, rows);
+};
   return (
     <>
       <div className="breadcrumbSheet position-relative">
@@ -194,7 +217,7 @@ const ReturnItem = () => {
 
                     <Row className="mb-3">
                       <FormGroup as={Col} md="6">
-                        <FormLabel>Condition</FormLabel>
+                        <FormLabel>Condition<span className='text-danger'>*</span></FormLabel>
                         <FormSelect
                           value={condition}
                           onChange={(e) => setCondition(e.target.value)}
@@ -207,7 +230,7 @@ const ReturnItem = () => {
                       </FormGroup>
 
                       <FormGroup as={Col} md="6">
-                        <FormLabel>Return Quantity</FormLabel>
+                        <FormLabel>Return Quantity <span className='text-danger'>*</span></FormLabel>
                         <FormControl
                           type="number"
                           required
@@ -218,7 +241,7 @@ const ReturnItem = () => {
                     </Row>
                     <Row>
                       <FormGroup as={Col} md="12">
-                        <FormLabel>Remarks</FormLabel>
+                        <FormLabel>Remarks<span className='text-danger'>*</span></FormLabel>
                         <FormControl
                           required
                           type="text"
@@ -242,7 +265,8 @@ const ReturnItem = () => {
             <Col>
               <div className="tableSheet">
                 <h2>Issued Items Records</h2>
-                <Table columns={columns} data={formattedData} />
+                <Table columns={columns} data={formattedData} handleCopy={handleCopy}
+                handlePrint={handlePrint} />
               </div>
             </Col>
           </Row>
