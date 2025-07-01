@@ -6,7 +6,7 @@ import Table from "@/app/component/DataTable";
 import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
 import { Form, Row, Col, Container, FormLabel, FormControl, Button, Breadcrumb, Alert } from "react-bootstrap";
 import { CgAddR } from 'react-icons/cg';
-import { copyContent,printContent } from "@/app/utils";
+import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { addNewBookCategory, deleteBookCategoryById, getBookCategories, updateBookCategoryById } from "@/Services";
 import { toast } from "react-toastify";
@@ -19,6 +19,8 @@ const BookCategory = () => {
   const [editId, setEditId] = useState(null);
   const [editGroupName, setEditGroupName] = useState("");
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [fieledError, setFieldError] = useState("")
+  const [editfieledError, seteditFieldError] = useState("")
 
   const fetchData = async () => {
     setLoading(true);
@@ -36,21 +38,49 @@ const BookCategory = () => {
   const handleEdit = (row) => {
     setEditId(row._id);
     setEditGroupName(row.groupName);
+    seteditFieldError("")
   };
 
   const handleSave = async (id) => {
+    const trimmedName = editGroupName.trim();
+
+    // 💡 Validation
+    if (!trimmedName) {
+      toast.error("Category name is required.");
+      seteditFieldError("Category name is required.");
+      return;
+    }
+
+    if (trimmedName.length > 50) {
+      toast.error("Category name must be under 50 characters.");
+      seteditFieldError("Category name must be under 50 characters.");
+      return;
+    }
+
+    const duplicate = data.some(
+      (item) =>
+        item._id !== id &&
+        item.groupName.toLowerCase() === trimmedName.toLowerCase()
+    );
+    if (duplicate) {
+      toast.error("Category name already exists.");
+      seteditFieldError("Category name already exists.");
+      return;
+    }
+
     try {
       const response = await updateBookCategoryById(id, {
-        groupName: editGroupName,
-      })
-      toast.success(response?.message || "BookCategory Updated successfully!")
+        groupName: trimmedName,
+      });
+      toast.success(response?.message || "BookCategory Updated successfully!");
       fetchData();
       setEditId(null);
     } catch (err) {
-      toast.error(err?.response?.data?.message || "Failed to update category..")
+      toast.error(err?.response?.data?.message || "Failed to update category.");
       setError("Failed to update book group.");
     }
   };
+
 
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this group?")) {
@@ -70,12 +100,14 @@ const BookCategory = () => {
 
     // 💡 Validation
     if (!trimmedName) {
-      toast.error("Group name is required.");
+      toast.error("Category name is required.");
+      setFieldError("Category name is required.");
       return;
     }
 
     if (trimmedName.length > 50) {
-      toast.error("Group name must be under 50 characters.");
+      toast.error("Category name must be under 50 characters.");
+      setFieldError("Category name must be under 50 characters.");
       return;
     }
 
@@ -83,7 +115,8 @@ const BookCategory = () => {
       (item) => item.groupName.toLowerCase() === trimmedName.toLowerCase()
     );
     if (exists) {
-      toast.error("Group name already exists.");
+      toast.error("Category name already exists.");
+      setFieldError("Category name already exists.");
       return;
     }
 
@@ -124,13 +157,17 @@ const BookCategory = () => {
   const columns = [
     { name: "#", selector: (row, index) => index + 1, width: "80px" },
     {
-      name: "Group Name",
+      name: "Category Name",
       selector: (row) =>
         editId === row._id ? (
           <FormControl
             type="text"
             value={editGroupName}
-            onChange={(e) => setEditGroupName(e.target.value)}
+            isInvalid={!!editfieledError}
+            onChange={(e) => {
+              setEditGroupName(e.target.value);
+              if (editfieledError) seteditFieldError("");
+            }}
           />
         ) : (
           row.groupName || "N/A"
@@ -175,7 +212,7 @@ const BookCategory = () => {
         <Container>
 
           <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
-            <CgAddR /> Add Book Group
+            <CgAddR /> Add Book Category
           </Button>
           {isPopoverOpen && (
             <div className="cover-sheet">
@@ -186,14 +223,18 @@ const BookCategory = () => {
               <Form className="formSheet">
                 <Row>
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Group Name</FormLabel>
+                    <FormLabel className="labelForm">Category Name</FormLabel>
                     <FormControl
                       required
                       type="text"
-                      placeholder="Enter Group Name"
+                      placeholder="Enter Category Name"
                       value={newGroupName}
-                      onChange={(e) => setNewGroupName(e.target.value)}
+                      isInvalid={!!fieledError}
+                      onChange={(e) => { setNewGroupName(e.target.value); if (fieledError) setFieldError("") }}
                     />
+                    <Form.Control.Feedback type="invalid">
+                      {fieledError}
+                    </Form.Control.Feedback>
                   </Col>
                 </Row>
                 <Button onClick={handleAdd} className="btn btn-success mt-2">Add Group</Button>
@@ -202,7 +243,7 @@ const BookCategory = () => {
           )}
 
           <div className="tableSheet">
-            <h2>Book Group Records</h2>
+            <h2>Book Category Records</h2>
             {loading && <p>Loading...</p>}
             {error && <Alert variant="danger">{error}</Alert>}
             {!loading && (

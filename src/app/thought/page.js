@@ -4,11 +4,20 @@ import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
 import { CgAddR } from "react-icons/cg";
-import { Form, Row, Col, Container, FormLabel, FormControl, Button } from "react-bootstrap";
-import axios from "axios";
+import {
+  Form,
+  Row,
+  Col,
+  Container,
+  FormLabel,
+  FormControl,
+  Button,
+} from "react-bootstrap";
 import Table from "@/app/component/DataTable";
 import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import { toast } from "react-toastify";
+import { addNewThought, deleteThoughtById, getAllThoughts, updateThoughtById } from "@/Services";
 
 const Thought = () => {
   const today = new Date().toISOString().split("T")[0];
@@ -16,17 +25,29 @@ const Thought = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
+
   const [newThought, setNewThought] = useState({ date: today, thought_name: "" });
+  const [newErrors, setNewErrors] = useState({});
 
   const [editRowId, setEditRowId] = useState(null);
   const [editValues, setEditValues] = useState({ date: today, thought_name: "" });
+  const [editErrors, setEditErrors] = useState({});
+
+  const validate = (values) => {
+    const errors = {};
+    if (!values.date) errors.date = "Date is required";
+    if (!values.thought_name || values.thought_name.trim() === "")
+      errors.thought_name = "Thought name is required";
+    return errors;
+  };
 
   const handleInputChange = (e, field) => {
     setEditValues({ ...editValues, [field]: e.target.value });
+    setEditErrors({ ...editErrors, [field]: "" });
   };
 
   const columns = [
-    { name: "#", selector: (row, index) => index + 1, sortable: false, width: "80px" },
+    { name: "#", selector: (row, index) => index + 1, width: "80px" },
     {
       name: "Date",
       selector: (row) =>
@@ -39,21 +60,25 @@ const Thought = () => {
         ) : (
           new Date(row.date).toLocaleDateString("en-GB")
         ),
-      sortable: true,
     },
     {
       name: "Thought Name",
       selector: (row) =>
         editRowId === row._id ? (
-          <FormControl
-            type="text"
-            value={editValues.thought_name}
-            onChange={(e) => handleInputChange(e, "thought_name")}
-          />
+          <>
+            <FormControl
+              type="text"
+              value={editValues.thought_name}
+              onChange={(e) => handleInputChange(e, "thought_name")}
+              isInvalid={!!editErrors.thought_name}
+            />
+            {editErrors.thought_name && (
+              <div className="text-danger">{editErrors.thought_name}</div>
+            )}
+          </>
         ) : (
           row.thought_name || "N/A"
         ),
-      sortable: true,
     },
     {
       name: "Actions",
@@ -80,8 +105,8 @@ const Thought = () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/thoughts");
-      setData(response.data.data || []);
+      const response = await getAllThoughts()
+      setData(response.data || []);
     } catch (err) {
       setError("Failed to fetch data.");
     } finally {
@@ -90,64 +115,80 @@ const Thought = () => {
   };
 
   const handleAdd = async () => {
-    if (newThought.thought_name && newThought.date) {
-      try {
-        await axios.post("https://erp-backend-fy3n.onrender.com/api/thoughts", newThought);
-        setNewThought({ date: today, thought_name: "" });
-        setShowAddForm(false);
-        fetchData();
-      } catch {
-        setError("Failed to add thought.");
-      }
+    const errors = validate(newThought);
+    if (Object.keys(errors).length > 0) {
+      setNewErrors(errors);
+      toast.warn("Please fill in all required fields.");
+      return;
+    }
+
+    try {
+      await addNewThought(newThought)
+      toast.success("Thought added successfully!");
+      setNewThought({ date: today, thought_name: "" });
+      setShowAddForm(false);
+      setNewErrors({});
+      fetchData();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to add thought.");
     }
   };
 
   const handleEdit = (thought) => {
     setEditRowId(thought._id);
-    setEditValues({ 
+    setEditValues({
       date: thought.date || today,
-      thought_name: thought.thought_name || ""
+      thought_name: thought.thought_name || "",
     });
+    setEditErrors({});
   };
 
   const handleSave = async (id) => {
+    const errors = validate(editValues);
+    if (Object.keys(errors).length > 0) {
+      setEditErrors(errors);
+      toast.warn("Please fix the errors.");
+      return;
+    }
+
     try {
-      await axios.put(`https://erp-backend-fy3n.onrender.com/api/thoughts/${id}`, {
-        thought_name: editValues.thought_name,
-        date: editValues.date,
-      });
+      await updateThoughtById(id, { ...editValues, })
+      toast.success("Thought updated successfully!");
       setEditRowId(null);
       fetchData();
-    } catch {
-      setError("Failed to update thought.");
+    } catch (err) {
+      toast.error("Failed to update thought.");
     }
   };
 
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this thought?")) {
       try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/thoughts/${id}`);
+        await deleteThoughtById(id)
+        toast.success("Thought deleted successfully!");
         fetchData();
-      } catch {
-        setError("Failed to delete thought.");
+      } catch (err) {
+        toast.error("Failed to delete thought.");
       }
     }
   };
 
   const handlePrint = () => {
-    const tableHeaders = [["#", "Date", "Thought Name"]];
-    const tableRows = data.map((row, index) => [
+    const headers = [["#", "Date", "Thought Name"]];
+    const rows = data.map((row, index) => [
       index + 1,
       new Date(row.date).toLocaleDateString("en-GB"),
       row.thought_name || "N/A",
     ]);
-    printContent(tableHeaders, tableRows);
+    printContent(headers, rows);
   };
 
   const handleCopy = () => {
     const headers = ["#", "Date", "Thought Name"];
-    const rows = data.map((row, index) => 
-      `${index + 1}\t${new Date(row.date).toLocaleDateString("en-GB")}\t${row.thought_name || "N/A"}`
+    const rows = data.map(
+      (row, index) =>
+        `${index + 1}\t${new Date(row.date).toLocaleDateString("en-GB")}\t${row.thought_name || "N/A"
+        }`
     );
     copyContent(headers, rows);
   };
@@ -169,6 +210,7 @@ const Thought = () => {
           </Row>
         </Container>
       </div>
+
       <section>
         <Container>
           <Button onClick={() => setShowAddForm(true)} className="btn-add">
@@ -188,8 +230,12 @@ const Thought = () => {
                     <FormControl
                       type="date"
                       value={newThought.date}
-                      onChange={(e) => setNewThought({ ...newThought, date: e.target.value })}
+                      onChange={(e) =>
+                        setNewThought({ ...newThought, date: e.target.value }) ||
+                        setNewErrors({ ...newErrors, date: "" })
+                      }
                     />
+                    {newErrors.date && <div className="text-danger">{newErrors.date}</div>}
                   </Col>
                   <Col lg={6}>
                     <FormLabel className="labelForm">Thought Name</FormLabel>
@@ -197,11 +243,19 @@ const Thought = () => {
                       type="text"
                       placeholder="Enter Thought Name"
                       value={newThought.thought_name}
-                      onChange={(e) => setNewThought({ ...newThought, thought_name: e.target.value })}
+                      onChange={(e) =>
+                        setNewThought({ ...newThought, thought_name: e.target.value }) ||
+                        setNewErrors({ ...newErrors, thought_name: "" })
+                      }
                     />
+                    {newErrors.thought_name && (
+                      <div className="text-danger">{newErrors.thought_name}</div>
+                    )}
                   </Col>
                 </Row>
-                <Button onClick={handleAdd} className="btn btn-primary">Add Thought</Button>
+                <Button onClick={handleAdd} className="btn btn-primary">
+                  Add Thought
+                </Button>
               </Form>
             </div>
           )}
@@ -209,11 +263,11 @@ const Thought = () => {
           <div className="tableSheet">
             <h2>Thought Records</h2>
             {loading && <p>Loading...</p>}
-            {error && <p style={{ color: "red" }}>{error}</p>}
+            {error && <p className="text-danger">{error}</p>}
             {!loading && !error && (
-              <Table 
-                columns={columns} 
-                data={data} 
+              <Table
+                columns={columns}
+                data={data}
                 handleCopy={handleCopy}
                 handlePrint={handlePrint}
               />

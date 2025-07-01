@@ -5,26 +5,140 @@ import dynamic from "next/dynamic";
 import styles from "@/app/medical/routine-check-up/page.module.css";
 import Table from "@/app/component/DataTable";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
-import { CgAddR } from 'react-icons/cg';
-import { Form, Row, Col, Container, FormLabel, FormControl, Button, Alert, } from "react-bootstrap";
-import axios from "axios";
-import BreadcrumbComp from "@/app/component/Breadcrumb";
+import { CgAddR } from "react-icons/cg";
+import {
+  Form,
+  Row,
+  Col,
+  Container,
+  FormLabel,
+  FormControl,
+  Button,
+} from "react-bootstrap";
 import { toast } from "react-toastify";
-import { addDailyDiaryRecord, deleteDailyDiaryRecord, getAllTeachers, getDailyDiaryRecords, updateDailyDiaryRecord } from "@/Services";
+import {
+  addDailyDiaryRecord,
+  deleteDailyDiaryRecord,
+  getAllTeachers,
+  getDailyDiaryRecords,
+  updateDailyDiaryRecord,
+} from "@/Services";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const DailyDiary = () => {
   const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
-  const [showAddForm, setShowAddForm] = useState(false);
   const [teachers, setTeachers] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [showAddForm, setShowAddForm] = useState(false);
+
   const [newEntry, setNewEntry] = useState({
     entryDate: "",
     teacherName: "",
     workDetails: "",
   });
   const [editEntry, setEditEntry] = useState(null);
+
+  const [fieldErrors, setFieldErrors] = useState({});
+
+  const breadcrumbItems = [{ label: "Daily Diary", link: "/dailyDiary" }];
+
+  const validateForm = (entry) => {
+    const errors = {};
+    if (!entry.entryDate) errors.entryDate = "Entry date is required";
+    if (!entry.teacherName) errors.teacherName = "Teacher name is required";
+    if (!entry.workDetails.trim()) errors.workDetails = "Work details are required";
+    return errors;
+  };
+
+  const fetchTeachers = async () => {
+    try {
+      const response = await getAllTeachers();
+      setTeachers(response?.data || []);
+    } catch (err) {
+      toast.error("Failed to fetch teachers");
+    }
+  };
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const response = await getDailyDiaryRecords();
+      setData(response?.data || []);
+    } catch (err) {
+      toast.error("Failed to fetch diary records");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchTeachers();
+    fetchData();
+  }, []);
+
+  const handleAdd = async () => {
+    const errors = validateForm(newEntry);
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      toast.warn("Please fix the errors in the form.");
+      return;
+    }
+
+    try {
+      const response = await addDailyDiaryRecord(newEntry);
+      toast.success(response?.message || "Entry added successfully!");
+      setNewEntry({ entryDate: "", teacherName: "", workDetails: "" });
+      setFieldErrors({});
+      setShowAddForm(false);
+      fetchData();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to add entry.");
+    }
+  };
+
+  const handleEdit = (entry) => {
+    setEditEntry({
+      ...entry,
+      teacherName: entry.teacherName?._id || "",
+    });
+    setFieldErrors({});
+  };
+
+  const handleUpdate = async () => {
+    const errors = validateForm(editEntry);
+    if (Object.keys(errors).length > 0) {
+      setFieldErrors(errors);
+      toast.warn("Please fix the errors in the form.");
+      return;
+    }
+
+    try {
+      const { _id, entryDate, teacherName, workDetails } = editEntry;
+      const response = await updateDailyDiaryRecord(_id, {
+        entryDate,
+        teacherName,
+        workDetails,
+      });
+      toast.success(response?.message || "Entry updated successfully!");
+      setEditEntry(null);
+      setFieldErrors({});
+      fetchData();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to update entry.");
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (confirm("Are you sure you want to delete this entry?")) {
+      try {
+        const response = await deleteDailyDiaryRecord(id);
+        toast.success(response?.message || "Entry deleted successfully");
+        fetchData();
+      } catch (err) {
+        toast.error(err.response?.data?.message || "Failed to delete entry.");
+      }
+    }
+  };
 
   const columns = [
     {
@@ -34,7 +148,8 @@ const DailyDiary = () => {
     },
     {
       name: "Entry Date",
-      selector: (row) => new Date(row.entryDate).toLocaleDateString() || "N/A",
+      selector: (row) =>
+        row.entryDate ? new Date(row.entryDate).toLocaleDateString() : "N/A",
     },
     {
       name: "Teacher Name",
@@ -52,113 +167,13 @@ const DailyDiary = () => {
           <button className="editButton" onClick={() => handleEdit(row)}>
             <FaEdit />
           </button>
-          <button
-            className="editButton btn-danger"
-            onClick={() => handleDelete(row._id)}
-          >
+          <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
             <FaTrashAlt />
           </button>
         </div>
       ),
     },
   ];
-
-  const fetchTeachers = async () => {
-    try {
-      const response = await getAllTeachers()
-      setTeachers(response?.data || []);
-    } catch (err) {
-      console.error("Error fetching teachers:", err);
-    }
-  };
-
-  const fetchData = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const response = await getDailyDiaryRecords()
-      setData(response?.data || []);
-    } catch (err) {
-      console.error("Error fetching data:", err);
-      setError("Failed to fetch data. Please try again later.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleAdd = async () => {
-    const { entryDate, teacherName, workDetails } = newEntry;
-
-    if (!entryDate || !teacherName || !workDetails) {
-      toast.warn("Please fill in all fields.");
-      return;
-    }
-
-    try {
-      const response = await addDailyDiaryRecord(newEntry)
-      setNewEntry({ entryDate: "", teacherName: "", workDetails: "" });
-      setShowAddForm(false);
-      // setSuccess("Entry added successfully.");
-      toast.success(response?.message || "Entery added Successfully!")
-      fetchData();
-    } catch (err) {
-      console.error("Error adding data:", err);
-      toast.error(err.response?.data?.message || "Failed to add Entry.");
-      // setError("Failed to add entry. Please try again later.");
-    }
-  };
-
-  const handleEdit = (entry) => {
-    setEditEntry({ ...entry, teacherName: entry.teacherName?._id || "" });
-  };
-
-
-  const handleDelete = async (id) => {
-    if (confirm("Are you sure you want to delete this entry?")) {
-      try {
-        const response = await deleteDailyDiaryRecord(id)
-        toast.success(response?.message || "Entry Deleted Successfully")
-        fetchData()
-        // setSuccess("Entry deleted successfully.");
-      } catch (err) {
-        console.error("Error deleting data:", err);
-        toast.error(err.response?.data?.message || "Failed to delete entry. Please try again later.");
-        // setError("Failed to delete entry. Please try again later.");
-      }
-    }
-  };
-
-  const handleUpdate = async () => {
-    const { _id, entryDate, teacherName, workDetails } = editEntry;
-
-    if (!entryDate || !teacherName || !workDetails) {
-      toast.warn("Please fill in all fields.");
-      return;
-    }
-
-    try {
-      const response = await updateDailyDiaryRecord(_id, {
-        entryDate,
-        teacherName,
-        workDetails,
-      })
-      toast.success(response?.message || "Entry Updated Successfully")
-      fetchData()
-      setEditEntry(null);
-      // setSuccess("Entry updated successfully.");
-    } catch (err) {
-      console.error("Error updating entry:", err);
-      toast.error(err.response?.data?.message)
-      // setError("Failed to update entry. Please try again later.");
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-    fetchTeachers();
-  }, []);
-
-  const breadcrumbItems = [{ label: "Daily Diary", link: "/dailyDiary" }]
 
   return (
     <>
@@ -171,14 +186,12 @@ const DailyDiary = () => {
           </Row>
         </Container>
       </div>
+
       <section>
         <Container>
           <Button onClick={() => setShowAddForm(true)} className="btn-add">
             <CgAddR /> Add Entry
           </Button>
-
-          {success && <Alert variant="success" className="mt-3">{success}</Alert>}
-          {error && <Alert variant="danger" className="mt-3">{error}</Alert>}
 
           {showAddForm && (
             <div className="cover-sheet">
@@ -188,6 +201,7 @@ const DailyDiary = () => {
                   X
                 </button>
               </div>
+
               <Form className="formSheet">
                 <Row>
                   <Col lg={6}>
@@ -199,6 +213,9 @@ const DailyDiary = () => {
                         setNewEntry({ ...newEntry, entryDate: e.target.value })
                       }
                     />
+                    {fieldErrors.entryDate && (
+                      <div className="text-danger">{fieldErrors.entryDate}</div>
+                    )}
                   </Col>
                   <Col lg={6}>
                     <FormLabel className="labelForm">Teacher Name</FormLabel>
@@ -210,12 +227,15 @@ const DailyDiary = () => {
                       }
                     >
                       <option value="">Select Teacher</option>
-                      {teachers.map((teacher) => (
-                        <option key={teacher._id} value={teacher._id}>
-                          {teacher.first_name} {teacher.last_name}
+                      {teachers.map((t) => (
+                        <option key={t._id} value={t._id}>
+                          {t.first_name} {t.last_name}
                         </option>
                       ))}
                     </FormControl>
+                    {fieldErrors.teacherName && (
+                      <div className="text-danger">{fieldErrors.teacherName}</div>
+                    )}
                   </Col>
                 </Row>
                 <Row>
@@ -230,6 +250,9 @@ const DailyDiary = () => {
                         setNewEntry({ ...newEntry, workDetails: e.target.value })
                       }
                     />
+                    {fieldErrors.workDetails && (
+                      <div className="text-danger">{fieldErrors.workDetails}</div>
+                    )}
                   </Col>
                 </Row>
                 <Button onClick={handleAdd} className="btn btn-primary mt-3">
@@ -238,6 +261,7 @@ const DailyDiary = () => {
               </Form>
             </div>
           )}
+
           {editEntry && (
             <div className="cover-sheet">
               <div className="studentHeading">
@@ -246,18 +270,25 @@ const DailyDiary = () => {
                   X
                 </button>
               </div>
+
               <Form className="formSheet">
                 <Row>
                   <Col lg={6}>
                     <FormLabel className="labelForm">Entry Date</FormLabel>
                     <FormControl
                       type="date"
-                      value={new Date(editEntry.entryDate).toISOString().split("T")[0]}
-
+                      value={
+                        editEntry.entryDate
+                          ? new Date(editEntry.entryDate).toISOString().split("T")[0]
+                          : ""
+                      }
                       onChange={(e) =>
                         setEditEntry({ ...editEntry, entryDate: e.target.value })
                       }
                     />
+                    {fieldErrors.entryDate && (
+                      <div className="text-danger">{fieldErrors.entryDate}</div>
+                    )}
                   </Col>
                   <Col lg={6}>
                     <FormLabel className="labelForm">Teacher Name</FormLabel>
@@ -269,12 +300,15 @@ const DailyDiary = () => {
                       }
                     >
                       <option value="">Select Teacher</option>
-                      {teachers.map((teacher) => (
-                        <option key={teacher._id} value={teacher._id}>
-                          {teacher.first_name} {teacher.last_name}
+                      {teachers.map((t) => (
+                        <option key={t._id} value={t._id}>
+                          {t.first_name} {t.last_name}
                         </option>
                       ))}
                     </FormControl>
+                    {fieldErrors.teacherName && (
+                      <div className="text-danger">{fieldErrors.teacherName}</div>
+                    )}
                   </Col>
                 </Row>
                 <Row>
@@ -288,6 +322,9 @@ const DailyDiary = () => {
                         setEditEntry({ ...editEntry, workDetails: e.target.value })
                       }
                     />
+                    {fieldErrors.workDetails && (
+                      <div className="text-danger">{fieldErrors.workDetails}</div>
+                    )}
                   </Col>
                 </Row>
                 <Button onClick={handleUpdate} className="btn btn-success mt-3">
@@ -299,8 +336,7 @@ const DailyDiary = () => {
 
           <div className="tableSheet mt-4">
             <h2>Daily Diary Records</h2>
-            {loading && <p>Loading...</p>}
-            {!loading && <Table columns={columns} data={data} />}
+            {loading ? <p>Loading...</p> : <Table columns={columns} data={data} />}
           </div>
         </Container>
       </section>

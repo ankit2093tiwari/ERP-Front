@@ -10,7 +10,7 @@ import { motherTongueOptions } from '@/app/utils';
 import Table from "@/app/component/DataTable";
 import { FaEdit, FaTrashAlt, FaEye } from "react-icons/fa";
 import { CgAddR } from 'react-icons/cg';
-import { addNewEmployee, deleteEmployeeById, getAllEmployee, getCastes, getCategories, getReligions, updateEmployeeById } from '@/Services';
+import { addNewEmployee, deleteEmployeeById, getAllDepartments, getAllDesignations, getAllEmployee, getCastes, getCategories, getReligions, updateEmployeeById } from '@/Services';
 import { toast } from 'react-toastify';
 
 // Validation Schema
@@ -28,8 +28,10 @@ const schema = yup.object().shape({
     // caste: yup.string().required("Caste is required"),
     aadhar_number: yup.string().required("Aadhar number is required").matches(/^\d{12}$/, "Aadhar number must be exactly 12 digits"),
     permanent_address: yup.string().required("Permanent Address is required"),
-    profile_image: yup.mixed().test("required", "Profile Image is required", value => value && value.length > 0),
-    aadhar_card_image: yup.mixed().test("required", "Aadhar Card Image is required", value => value && value.length > 0),
+    profile_image: yup.mixed().notRequired(),
+    // .test("required", "Profile Image is required", value => value && value.length > 0),
+    aadhar_card_image: yup.mixed().notRequired()
+    // .test("required", "Aadhar Card Image is required", value => value && value.length > 0),
 });
 
 const Employee = () => {
@@ -58,6 +60,8 @@ const Employee = () => {
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [editMode, setEditMode] = useState(false);
     const [currentEmployeeId, setCurrentEmployeeId] = useState(null);
+    const [designations, setDesignations] = useState([])
+    const [departments, setdepartments] = useState([])
 
     // Function to generate employee code
     // const generateEmployeeCode = async () => {
@@ -192,14 +196,33 @@ const Employee = () => {
     const handleEditEmployee = (employee) => {
         setEditMode(true);
         setCurrentEmployeeId(employee._id);
-        reset(employee);
+
+        // Prepare the data for the form
+        const formData = {
+            ...employee,
+            // Handle nested objects
+            department_name: employee.department_name?._id || "",
+            designation_name: employee.designation_name?._id || "",
+            religion: employee.religion?._id || "",
+            caste: employee.caste?._id || "",
+            social_category: employee.social_category?._id || "",
+            // Handle file fields - you might need a different approach for these
+            profile_image: null, // Reset file fields since we can't prefill them
+            aadhar_card_image: null
+        };
+
+        reset(formData);
         setIsFormOpen(true);
     };
 
-    const handleViewEmployee = (employee) => {
-        // Implement view functionality if needed
-        console.log("View employee:", employee);
-    };
+    const fetchDesignations = async () => {
+        const response = await getAllDesignations();
+        setDesignations(response?.data)
+    }
+    const fetchDepartments = async () => {
+        const response = await getAllDepartments();
+        setdepartments(response?.data)
+    }
 
     const columns = [
         {
@@ -248,6 +271,8 @@ const Employee = () => {
         fetchReligions();
         fetchCastes();
         fetchEmployees();
+        fetchDesignations()
+        fetchDepartments()
     }, []);
     const resetForm = () => {
         const defaultValues = {
@@ -866,13 +891,19 @@ const Employee = () => {
 
                                             <FormGroup as={Col} md="3" controlId="department">
                                                 <FormLabel className="labelForm">Department</FormLabel>
-                                                <FormSelect {...register("department")} isInvalid={!!errors.department}>
+                                                <FormSelect
+                                                    {...register("department_name")}
+                                                    isInvalid={!!errors.department}
+                                                    value={watch("department_name")} // Ensure the current value is displayed
+                                                >
                                                     <option value="">Select</option>
-                                                    <option value="Teaching">Teaching</option>
-                                                    <option value="Non-Teaching">Non-Teaching</option>
-                                                    <option value="Computer">Computer</option>
+                                                    {departments?.map((dp) => (
+                                                        <option key={dp?._id} value={dp?._id}>{dp?.department_name}</option>
+                                                    ))}
                                                 </FormSelect>
-                                                <FormControl.Feedback type="invalid">{errors.department?.message}</FormControl.Feedback>
+                                                <FormControl.Feedback type="invalid">
+                                                    {errors.department?.message}
+                                                </FormControl.Feedback>
                                             </FormGroup>
 
                                             <FormGroup as={Col} md="3" controlId="department_from">
@@ -885,7 +916,7 @@ const Employee = () => {
                                                 <FormLabel className="labelForm">Category</FormLabel>
                                                 <FormSelect {...register("category")} isInvalid={!!errors.category}>
                                                     <option value="">Select</option>
-                                                    <option value="teaching">Tecahing</option>
+                                                    <option value="teaching">Teaching</option>
                                                     <option value="non-teaching">Non-Teaching</option>
                                                 </FormSelect>
                                                 <FormControl.Feedback type="invalid">{errors.category?.message}</FormControl.Feedback>
@@ -900,11 +931,11 @@ const Employee = () => {
 
                                             <FormGroup as={Col} md="3" controlId="designation">
                                                 <FormLabel className="labelForm">Designation</FormLabel>
-                                                <FormSelect {...register("designation")} isInvalid={!!errors.designation}>
+                                                <FormSelect {...register("designation_name")} isInvalid={!!errors.designation}>
                                                     <option value="">Select</option>
-                                                    <option value="Principal">Principal</option>
-                                                    <option value="Teacher">Teacher</option>
-                                                    <option value="Clerk">Clerk</option>
+                                                    {designations?.map((des) => (
+                                                        <option key={des?._id} value={des?._id}>{des?.designation_name}</option>
+                                                    ))}
                                                 </FormSelect>
                                                 <FormControl.Feedback type="invalid">{errors.designation?.message}</FormControl.Feedback>
                                             </FormGroup>

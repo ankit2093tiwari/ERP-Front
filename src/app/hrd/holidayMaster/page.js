@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
+import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import { CgAddR } from "react-icons/cg";
 import {
   Form,
@@ -13,90 +13,152 @@ import {
   FormControl,
   Button,
 } from "react-bootstrap";
-import axios from "axios";
+import { toast } from "react-toastify";
 import Table from "@/app/component/DataTable";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { copyContent, printContent } from "@/app/utils";
+import {
+  addNewHoliday,
+  deleteHolidayById,
+  getAllHolydays,
+  updateHolidayById,
+} from "@/Services";
 
 const HolidayMasterPage = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [newHolidayName, setNewHolidayName] = useState("");
-  const [newFromDate, setNewFromDate] = useState("");
-  const [newToDate, setNewToDate] = useState("");
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+
+  // Form state
+  const [holidayName, setHolidayName] = useState("");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+  const [formError, setFormError] = useState({});
+  const [isFormVisible, setIsFormVisible] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [editedHolidayName, setEditedHolidayName] = useState("");
-  const [editedFromDate, setEditedFromDate] = useState("");
-  const [editedToDate, setEditedToDate] = useState("");
+
+  // Fetch holiday data
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const response = await getAllHolydays();
+      setData(response.data || []);
+    } catch (err) {
+      toast.error("Failed to fetch holidays.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const resetForm = () => {
+    setHolidayName("");
+    setFromDate("");
+    setToDate("");
+    setFormError({});
+    setEditingId(null);
+    setIsFormVisible(false);
+  };
+
+  const handleEdit = (row) => {
+    setEditingId(row._id);
+    setHolidayName(row.holiday_name);
+    setFromDate(row.from_date?.substring(0, 10));
+    setToDate(row.to_date?.substring(0, 10));
+    setFormError({});
+    setIsFormVisible(true);
+  };
+
+  const handleDelete = async (id) => {
+    if (confirm("Are you sure you want to delete this holiday?")) {
+      try {
+        await deleteHolidayById(id);
+        toast.success("Holiday deleted successfully.");
+        fetchData();
+      } catch {
+        toast.error("Failed to delete holiday.");
+      }
+    }
+  };
+
+  const validateForm = () => {
+    const errors = {};
+    if (!holidayName.trim()) errors.holiday_name = "Holiday name is required.";
+    if (!fromDate) errors.from_date = "From date is required.";
+    if (!toDate) errors.to_date = "To date is required.";
+    if (fromDate && toDate && new Date(fromDate) > new Date(toDate)) {
+      errors.to_date = "To Date must be after From Date.";
+    }
+    setFormError(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleSubmit = async () => {
+    if (!validateForm()) return;
+
+    try {
+      const formData = {
+        holiday_name: holidayName.trim(),
+        from_date: fromDate,
+        to_date: toDate,
+      };
+
+      if (editingId) {
+        await updateHolidayById(editingId, formData);
+        toast.success("Holiday updated successfully.");
+      } else {
+        const exists = data.find(
+          (item) =>
+            item.holiday_name.toLowerCase() === holidayName.trim().toLowerCase()
+        );
+        if (exists) {
+          toast.warning("Holiday already exists.");
+          return;
+        }
+        await addNewHoliday(formData);
+        toast.success("Holiday added successfully.");
+      }
+
+      resetForm();
+      fetchData();
+    } catch (err) {
+      console.error("Error:", err);
+      toast.error("Something went wrong. Please try again.");
+    }
+  };
 
   const columns = [
     {
       name: "#",
       selector: (row, index) => index + 1,
-      width: "80px",
+      width: "70px",
     },
     {
       name: "Holiday Name",
-      cell: (row) =>
-        editingId === row._id ? (
-          <FormControl
-            type="text"
-            value={editedHolidayName}
-            onChange={(e) => setEditedHolidayName(e.target.value)}
-          />
-        ) : (
-          row.holiday_name || "N/A"
-        ),
+      selector: (row) => row.holiday_name || "N/A",
       sortable: true,
     },
     {
       name: "From Date",
-      cell: (row) =>
-        editingId === row._id ? (
-          <FormControl
-            type="date"
-            value={editedFromDate}
-            onChange={(e) => setEditedFromDate(e.target.value)}
-          />
-        ) : (
-          row.from_date ? new Date(row.from_date).toLocaleDateString() : "N/A"
-        ),
+      selector: (row) =>
+        row.from_date ? new Date(row.from_date).toLocaleDateString() : "N/A",
       sortable: true,
     },
     {
       name: "To Date",
-      cell: (row) =>
-        editingId === row._id ? (
-          <FormControl
-            type="date"
-            value={editedToDate}
-            onChange={(e) => setEditedToDate(e.target.value)}
-          />
-        ) : (
-          row.to_date ? new Date(row.to_date).toLocaleDateString() : "N/A"
-        ),
+      selector: (row) =>
+        row.to_date ? new Date(row.to_date).toLocaleDateString() : "N/A",
       sortable: true,
     },
     {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
-          {editingId === row._id ? (
-            <button className="editButton" onClick={() => handleSave(row._id)}>
-              <FaSave />
-            </button>
-          ) : (
-            <button
-              className="editButton"
-              onClick={() =>
-                handleEdit(row._id, row.holiday_name, row.from_date, row.to_date)
-              }
-            >
-              <FaEdit />
-            </button>
-          )}
+          <button className="editButton" onClick={() => handleEdit(row)}>
+            <FaEdit />
+          </button>
           <button
             className="editButton btn-danger"
             onClick={() => handleDelete(row._id)}
@@ -108,10 +170,18 @@ const HolidayMasterPage = () => {
     },
   ];
 
+  const handleCopy = () => {
+    const headers = ["#", "Holiday Name", "From Date", "To Date"];
+    const rows = data.map((row, index) =>
+      `${index + 1}\t${row.holiday_name || "N/A"}\t${
+        row.from_date ? new Date(row.from_date).toLocaleDateString() : "N/A"
+      }\t${row.to_date ? new Date(row.to_date).toLocaleDateString() : "N/A"}`
+    );
+    copyContent(headers, rows);
+  };
+
   const handlePrint = () => {
-    const tableHeaders = [
-      ["#", "Holiday Name", "From Date", "To Date"],
-    ];
+    const tableHeaders = [["#", "Holiday Name", "From Date", "To Date"]];
     const tableRows = data.map((row, index) => [
       index + 1,
       row.holiday_name || "N/A",
@@ -121,114 +191,18 @@ const HolidayMasterPage = () => {
     printContent(tableHeaders, tableRows);
   };
 
-  const handleCopy = () => {
-    const headers = ["#", "Holiday Name", "From Date", "To Date"];
-    const rows = data.map(
-      (row, index) =>
-        `${index + 1}\t${row.holiday_name || "N/A"}\t${
-          row.from_date ? new Date(row.from_date).toLocaleDateString() : "N/A"
-        }\t${row.to_date ? new Date(row.to_date).toLocaleDateString() : "N/A"}`
-    );
-    copyContent(headers, rows);
-  };
-
-  const fetchData = async () => {
-    setLoading(true);
-    setError("");
-    try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-holiday");
-      setData(response.data.data || []);
-    } catch (err) {
-      console.error("Fetch error:", err);
-      setError("Failed to fetch data. Please try again later.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleEdit = (id, holiday_name, from_date, to_date) => {
-    setEditingId(id);
-    setEditedHolidayName(holiday_name);
-    setEditedFromDate(from_date);
-    setEditedToDate(to_date);
-  };
-
-  const handleSave = async (id) => {
-    if (!editedHolidayName.trim() || !editedFromDate || !editedToDate) {
-      setError("All fields are required.");
-      return;
-    }
-
-    try {
-      await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-holiday/${id}`, {
-        holiday_name: editedHolidayName,
-        from_date: editedFromDate,
-        to_date: editedToDate,
-      });
-      fetchData();
-      setEditingId(null);
-    } catch (err) {
-      setError("Failed to update holiday. Try again.");
-    }
-  };
-
-  const handleDelete = async (id) => {
-    if (confirm("Are you sure you want to delete this holiday?")) {
-      try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-holiday/${id}`);
-        fetchData();
-      } catch (err) {
-        setError("Failed to delete holiday. Try again.");
-      }
-    }
-  };
-
-  const handleAdd = async () => {
-    if (!newHolidayName.trim() || !newFromDate || !newToDate) {
-      setError("All fields are required.");
-      return;
-    }
-
-    const existing = data.find(
-      (item) => item.holiday_name.toLowerCase() === newHolidayName.toLowerCase()
-    );
-    if (existing) {
-      setError("Holiday name already exists");
-      return;
-    }
-
-    try {
-      await axios.post("https://erp-backend-fy3n.onrender.com/api/create-holiday", {
-        holiday_name: newHolidayName,
-        from_date: newFromDate,
-        to_date: newToDate,
-      });
-      setNewHolidayName("");
-      setNewFromDate("");
-      setNewToDate("");
-      setIsPopoverOpen(false);
-      fetchData();
-    } catch (err) {
-      setError("Failed to add holiday. Try again.");
-    }
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const breadcrumbItems = [
-    { label: "HRD", link: "/hrd/allModule" },
-    { label: "Holiday Master", link: null },
-  ];
-
   return (
     <>
       <div className="breadcrumbSheet position-relative">
         <Container>
           <Row className="mt-1 mb-1">
             <Col>
-              <BreadcrumbComp items={breadcrumbItems} />
+              <BreadcrumbComp
+                items={[
+                  { label: "HRD", link: "/hrd/allModule" },
+                  { label: "Holiday Master", link: null },
+                ]}
+              />
             </Col>
           </Row>
         </Container>
@@ -236,65 +210,93 @@ const HolidayMasterPage = () => {
 
       <section>
         <Container>
-          <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
+          <Button
+            onClick={() => {
+              resetForm();
+              setIsFormVisible(true);
+            }}
+            className="btn-add"
+          >
             <CgAddR /> Add Holiday
           </Button>
 
-          {isPopoverOpen && (
-            <div className="cover-sheet">
+          {isFormVisible && (
+            <div className="cover-sheet mt-3 mb-4">
               <div className="studentHeading">
-                <h2>Add New Holiday</h2>
-                <button
-                  className="closeForm"
-                  onClick={() => {
-                    setIsPopoverOpen(false);
-                    setError("");
-                  }}
-                >
+                <h2>{editingId ? "Edit Holiday" : "Add Holiday"}</h2>
+                <button className="closeForm" onClick={resetForm}>
                   X
                 </button>
               </div>
+
               <Form className="formSheet">
                 <Row className="mb-3">
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Holiday Name*</FormLabel>
+                    <FormLabel className="labelForm">
+                      Holiday Name<span className="text-danger">*</span>
+                    </FormLabel>
                     <FormControl
                       type="text"
-                      placeholder="Enter Holiday Name"
-                      value={newHolidayName}
+                      value={holidayName}
                       onChange={(e) => {
-                        setNewHolidayName(e.target.value);
-                        setError("");
+                        setHolidayName(e.target.value);
+                        setFormError((prev) => ({ ...prev, holiday_name: "" }));
                       }}
+                      isInvalid={!!formError.holiday_name}
+                      placeholder="Enter Holiday Name"
                     />
+                    {formError.holiday_name && (
+                      <div className="text-danger mt-1">
+                        {formError.holiday_name}
+                      </div>
+                    )}
                   </Col>
                 </Row>
+
                 <Row className="mb-3">
                   <Col lg={6}>
-                    <FormLabel className="labelForm">From Date*</FormLabel>
+                    <FormLabel className="labelForm">
+                      From Date<span className="text-danger">*</span>
+                    </FormLabel>
                     <FormControl
                       type="date"
-                      value={newFromDate}
+                      value={fromDate}
                       onChange={(e) => {
-                        setNewFromDate(e.target.value);
-                        setError("");
+                        setFromDate(e.target.value);
+                        setFormError((prev) => ({ ...prev, from_date: "" }));
                       }}
+                      isInvalid={!!formError.from_date}
                     />
+                    {formError.from_date && (
+                      <div className="text-danger mt-1">
+                        {formError.from_date}
+                      </div>
+                    )}
                   </Col>
+
                   <Col lg={6}>
-                    <FormLabel className="labelForm">To Date*</FormLabel>
+                    <FormLabel className="labelForm">
+                      To Date<span className="text-danger">*</span>
+                    </FormLabel>
                     <FormControl
                       type="date"
-                      value={newToDate}
+                      value={toDate}
                       onChange={(e) => {
-                        setNewToDate(e.target.value);
-                        setError("");
+                        setToDate(e.target.value);
+                        setFormError((prev) => ({ ...prev, to_date: "" }));
                       }}
+                      isInvalid={!!formError.to_date}
                     />
+                    {formError.to_date && (
+                      <div className="text-danger mt-1">
+                        {formError.to_date}
+                      </div>
+                    )}
                   </Col>
                 </Row>
-                <Button onClick={handleAdd} className="btn btn-primary">
-                  Add Holiday
+
+                <Button onClick={handleSubmit} className="btn btn-primary">
+                  {editingId ? "Update Holiday" : "Add Holiday"}
                 </Button>
               </Form>
             </div>
@@ -302,9 +304,9 @@ const HolidayMasterPage = () => {
 
           <div className="tableSheet">
             <h2>Holiday Records</h2>
-            {loading && <p>Loading...</p>}
-            {error && <p style={{ color: "red" }}>{error}</p>}
-            {!loading && !error && (
+            {loading ? (
+              <p>Loading...</p>
+            ) : (
               <Table
                 columns={columns}
                 data={data}

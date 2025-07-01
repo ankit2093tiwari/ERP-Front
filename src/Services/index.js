@@ -21,6 +21,22 @@ axios.interceptors.response.use(
     }
 );
 
+export const getSessions = async () => {
+    const response = await axios.get(`${BASE_URL}/api/all-session`);
+    return response?.data;
+};
+export const addNewSession = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/create-session`,payload);
+    return response?.data;
+};
+export const updateSessionById = async (id,payload) => {
+    const response = await axios.put(`${BASE_URL}/api/update-session/${id}`,payload);
+    return response?.data;
+};
+export const deleteSessionById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/delete-session/${id}`);
+    return response?.data;
+};
 export const getClasses = async () => {
     const response = await axios.get(`${BASE_URL}/api/all-classes`);
     return response?.data;
@@ -792,11 +808,11 @@ export const getAllHolydays = async () => {
     return response?.data;
 }
 export const addNewHoliday = async (payload) => {
-    const response = await axios.post(`${BASE_URL}/api/create-holiday`,payload)
+    const response = await axios.post(`${BASE_URL}/api/create-holiday`, payload)
     return response?.data;
 }
-export const updateHolidayById = async (id,payload) => {
-    const response = await axios.put(`${BASE_URL}/api/update-holiday/${id}`,payload)
+export const updateHolidayById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/update-holiday/${id}`, payload)
     return response?.data;
 }
 export const deleteHolidayById = async (id) => {
@@ -836,6 +852,11 @@ export const addWriteOffEntry = async (payload) => {
 }
 export const getAllWriteOffItems = async () => {
     const response = await axios.get(`${BASE_URL}/api/write-off-items`)
+    return response?.data;
+}
+
+export const createFacultyAttendance = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/faculty-attendance`, payload)
     return response?.data;
 }
 
@@ -1047,5 +1068,21 @@ export const deleteIssuedBook = async (id) => {
 }
 export const returnIssueBookById = async (id, payload) => {
     const response = await axios.put(`${BASE_URL}/api/return-book/${id}`, payload)
+    return response?.data;
+}
+export const getAllThoughts = async () => {
+    const response = await axios.get(`${BASE_URL}/api/thoughts`)
+    return response?.data;
+}
+export const addNewThought = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/thoughts`,payload)
+    return response?.data;
+}
+export const updateThoughtById = async (id,payload) => {
+    const response = await axios.put(`${BASE_URL}/api/thoughts/${id}`,payload)
+    return response?.data;
+}
+export const deleteThoughtById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/thoughts/${id}`)
     return response?.data;
 }
