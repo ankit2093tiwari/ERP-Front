@@ -13,6 +13,7 @@ export default function Sidebar({ isOpen }) {
     const [activeKey, setActiveKey] = useState(null);
     const [sidebarHover, setSidebarHover] = useState(false);
     const [userName, setUserName] = useState("User Name");
+    const [profilePic, setProfilePic] = useState("");
 
     useEffect(() => {
         const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
@@ -21,6 +22,7 @@ export default function Sidebar({ isOpen }) {
             // console.log(decoded);
             const userName = decoded.data?.username;
             setUserName(userName);
+            setProfilePic(decoded.data?.profile_pic)
         }
     }, [])
 
@@ -326,7 +328,7 @@ export default function Sidebar({ isOpen }) {
             >
                 <div className="sidebar-profile d-flex align-items-center flex-column">
                     <div className="position-relative">
-                        <Image src="/user4.png" className="img-shadow img-5x mb-2 rounded-circle" alt="Gym Admin Templates" />
+                        <Image src={profilePic ? profilePic : "/user4.png"} className="img-shadow img-5x mb-2 rounded-circle" alt="Gym Admin Templates" />
                         <span className="count-dot"></span>
                     </div>
                     <div className="text-center">

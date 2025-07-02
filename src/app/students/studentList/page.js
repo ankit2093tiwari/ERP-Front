@@ -6,9 +6,12 @@ import styles from "@/app/medical/routine-check-up/page.module.css";
 import Table from "@/app/component/DataTable";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import { Container, Row, Col, Breadcrumb, Button } from "react-bootstrap";
-import axios from "axios";
 import { CgAddR } from "react-icons/cg";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import { copyContent, printContent } from "@/app/utils";
+
+import { deleteStudentById, getStudentsData } from "@/Services";
+import { toast } from "react-toastify";
 
 
 const Studentlist = () => {
@@ -17,20 +20,19 @@ const Studentlist = () => {
   const [error, setError] = useState("");
 
   const router = useRouter();
-  const BASE_URL = "https://erp-backend-fy3n.onrender.com/api/";
 
   // Fetch student data
   const fetchData = async () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get(`${BASE_URL}students`);
-      const students = response.data.data || [];
+      const response = await getStudentsData()
+      const students = response.data || [];
       // Reverse to show newest first
       setData(students.reverse());
     } catch (err) {
       console.error("Error fetching data:", err);
-      setError("Failed to fetch data. Please try again later.");
+      toast.error("Failed to fetch data. Please try again later.");
     } finally {
       setLoading(false);
     }
@@ -47,14 +49,14 @@ const Studentlist = () => {
     const confirmDelete = confirm("Are you sure you want to delete this student?");
     if (confirmDelete) {
       try {
-        await axios.delete(`${BASE_URL}students/${id}`);
+        await deleteStudentById(id)
         setData((prevData) => prevData.filter((row) => row._id !== id));
         // fetchData();
-        alert("Student deleted successfully!");
+        toast.success("Student deleted successfully!");
         fetchData();
       } catch (error) {
         console.error("Error deleting student:", error);
-        alert("Failed to delete student.");
+        toast.error("Failed to delete student.");
       }
     }
   };
@@ -90,6 +92,29 @@ const Studentlist = () => {
       ),
     },
   ];
+  const handlePrint = () => {
+    const headers = [["#", "Reg. ID", "First Name", "Last Name", "Father's Name", "Gender", "Phone", "DOB",]];
+    const rows = data.map((row, index) => [
+      index + 1,
+      row.registration_id || "N/A",
+      row.first_name || "N/A",
+      row.last_name || "N/A",
+      row.father_name || "N/A",
+      row.gender_name || "N/A",
+      row.phone_no || "N/A",
+      new Date(row.date_of_birth).toLocaleDateString() || "N/A",
+      // row.aadhar_card_no || "N/A",
+    ]);
+    printContent(headers, rows);
+  };
+
+  const handleCopy = () => {
+    const headers = ["#", "Reg. ID", "First Name", "Last Name", "Father's Name", "Gender", "Phone", "DOB", "Country"];
+    const rows = data.map((row, index) =>
+      `${index + 1}\t${row.registration_id || "N/A"}\t${row.first_name || "N/A"}\t${row.last_name || "N/A"}\t${row.father_name || "N/A"}\t${row.gender_name || "N/A"}\t${row.phone_no || "N/A"}\t${new Date(row.date_of_birth).toLocaleDateString() || "N/A"}\t${row.residence_address?.country || "N/A"}`
+    );
+    copyContent(headers, rows);
+  };
 
   const breadcrumbItems = [{ label: "students", link: "/students/all-module" }, { label: "studentList", link: "null" }]
 
@@ -108,10 +133,10 @@ const Studentlist = () => {
         <Container className={styles.vehicle}>
 
           <div className="d-flex justify-content-between mb-3">
-            <Button href="/students/add-new-student" className="btn-add">
+            <Button onClick={() => router.push('/students/add-new-student')} className="btn-add">
               <CgAddR /> Add New Student
             </Button>
-            <Button href="/students/update-student" className="btn-add">
+            <Button onClick={() => router.push("/students/update-student")} className="btn-add">
               <CgAddR /> Update Student
             </Button>
           </div>
@@ -121,7 +146,13 @@ const Studentlist = () => {
               <div className="tableSheet">
                 <h2>Student Records</h2>
                 {error && <p style={{ color: "red" }}>{error}</p>}
-                {!loading && !error && <Table columns={columns} data={data} />}
+                {!loading && <Table
+                  columns={columns}
+                  data={data}
+                  handleCopy={handleCopy}
+                  handlePrint={handlePrint}
+                />
+                }
               </div>
             </Col>
           </Row>

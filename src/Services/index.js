@@ -26,11 +26,11 @@ export const getSessions = async () => {
     return response?.data;
 };
 export const addNewSession = async (payload) => {
-    const response = await axios.post(`${BASE_URL}/api/create-session`,payload);
+    const response = await axios.post(`${BASE_URL}/api/create-session`, payload);
     return response?.data;
 };
-export const updateSessionById = async (id,payload) => {
-    const response = await axios.put(`${BASE_URL}/api/update-session/${id}`,payload);
+export const updateSessionById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/update-session/${id}`, payload);
     return response?.data;
 };
 export const deleteSessionById = async (id) => {
@@ -191,6 +191,10 @@ export const updateFeeSetting = async (payload) => {
 
 export const getAllStudents = async () => {
     const response = await axios.get(`${BASE_URL}/api/students/search`)
+    return response?.data;
+}
+export const getStudentsData = async () => {
+    const response = await axios.get(`${BASE_URL}/api/students`)
     return response?.data;
 }
 export const getStudentByRegistrationId = async (studentId) => {
@@ -434,11 +438,11 @@ export const getStudentsByClassAndSection = async (classId, sectionId) => {
 }
 
 export const updateStudent = async (studentId, payload) => {
-    const response = await axios.put(`${BASE_URL}/api/students/${studentId}`, payload, {
-        headers: {
-            "Content-Type": "multipart/form-data",
-        }
-    })
+    const response = await axios.put(`${BASE_URL}/api/students/${studentId}`, payload)
+    return response?.data;
+}
+export const deleteStudentById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/students/${id}`)
     return response?.data;
 }
 
@@ -1075,14 +1079,19 @@ export const getAllThoughts = async () => {
     return response?.data;
 }
 export const addNewThought = async (payload) => {
-    const response = await axios.post(`${BASE_URL}/api/thoughts`,payload)
+    const response = await axios.post(`${BASE_URL}/api/thoughts`, payload)
     return response?.data;
 }
-export const updateThoughtById = async (id,payload) => {
-    const response = await axios.put(`${BASE_URL}/api/thoughts/${id}`,payload)
+export const updateThoughtById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/thoughts/${id}`, payload)
     return response?.data;
 }
 export const deleteThoughtById = async (id) => {
     const response = await axios.delete(`${BASE_URL}/api/thoughts/${id}`)
+    return response?.data;
+}
+
+export const createStudentsAttendance = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/students/takeAttendance`, payload);
     return response?.data;
 }
