@@ -6,6 +6,8 @@ import { Form, Row, Col, Container, FormLabel, Button, Breadcrumb, FormSelect } 
 import Table from "@/app/component/DataTable";
 import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import { BASE_URL, getActiveSession, getClasses, getSections, getSessions, getStudentsByClassAndSection, promoteStudents } from "@/Services";
+import { toast } from "react-toastify";
 
 const PromoteStudentPage = () => {
   const [classList, setClassList] = useState([]);
@@ -21,25 +23,38 @@ const PromoteStudentPage = () => {
   const [sessionList, setSessionList] = useState([]);
   const [currentSessionId, setCurrentSessionId] = useState("");
   const [promotionSessionId, setPromotionSessionId] = useState("");
+  const [promotedClassList, setPromotedClassList] = useState([]);
+
 
   useEffect(() => {
-    fetchClasses();
     fetchSessions();
+    fetchCurrentSession()
   }, []);
-
-  const fetchClasses = async () => {
-    try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-classes");
-      setClassList(response.data.data || []);
-    } catch (error) {
-      console.error("Failed to fetch classes", error);
+  useEffect(() => {
+    if (currentSessionId) {
+      getClassesBySessionId();
     }
-  };
+  }, [currentSessionId]);
+
+
+  const getClassesBySessionId = async () => {
+    const response = await axios.get(`${BASE_URL}/api/all-classes/${currentSessionId}`)
+    setClassList(response?.data.data)
+  }
 
   const fetchSessions = async () => {
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-session");
-      setSessionList(response.data.data || []);
+      const response = await getSessions()
+      setSessionList(response.data || []);
+    } catch (error) {
+      console.error("Failed to fetch sessions", error);
+    }
+  };
+  const fetchCurrentSession = async () => {
+    try {
+      const response = await getActiveSession()
+      setCurrentSessionId(response?.data._id);
+
     } catch (error) {
       console.error("Failed to fetch sessions", error);
     }
@@ -47,8 +62,8 @@ const PromoteStudentPage = () => {
 
   const fetchSections = async (classId, setSectionState) => {
     try {
-      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/sections/class/${classId}`);
-      setSectionState(Array.isArray(response.data.data) ? response.data.data : []);
+      const response = await getSections(classId)
+      setSectionState(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error("Failed to fetch sections", error);
     }
@@ -56,16 +71,14 @@ const PromoteStudentPage = () => {
 
   const fetchStudents = async () => {
     if (!selectedClass || !selectedSection || !currentSessionId) {
-      alert("Please select class, section, and current session");
+      toast.warn("Please select class, section, and current session");
       return;
     }
     setStudents([]);
     setSelectedStudents([]);
     try {
-      const response = await axios.get(
-        `https://erp-backend-fy3n.onrender.com/api/students/search?class_name=${selectedClass}&section_name=${selectedSection}&session_id=${currentSessionId}`
-      );
-      setStudents(response.data.data || []);
+      const response = await getStudentsByClassAndSection(selectedClass, selectedSection)
+      setStudents(response.data || []);
     } catch (error) {
       console.error("Failed to fetch students", error);
     }
@@ -73,26 +86,35 @@ const PromoteStudentPage = () => {
 
   const handlePromote = async () => {
     if (!promotedClass || !promotedSection || selectedStudents.length === 0 || !promotionSessionId) {
-      alert("Please select students, promoted class, promoted section, and promotion session");
+      toast.warn("Please select students, promoted class, promoted section, and promotion session");
       return;
     }
     try {
-      await axios.post("https://erp-backend-fy3n.onrender.com/api/students/promote", {
+      await promoteStudents({
         student_ids: selectedStudents,
         new_class_id: promotedClass,
         new_section_id: promotedSection,
-        session_id: promotionSessionId
-      });
-      alert("Students promoted successfully");
+        new_session_id: promotionSessionId
+      })
+      toast.success("Students promoted successfully");
       fetchStudents();
     } catch (error) {
       console.error("Failed to promote students", error);
-      alert(error.response?.data?.message || "Failed to promote students");
+      toast.error(error.response?.data?.message || "Failed to promote students");
+    }
+  };
+  const fetchPromotedClasses = async (sessionId) => {
+    if (!sessionId) return;
+    try {
+      const response = await axios.get(`${BASE_URL}/api/all-classes/${sessionId}`);
+      setPromotedClassList(response?.data?.data || []);
+    } catch (error) {
+      console.error("Failed to fetch promoted session classes", error);
     }
   };
 
-  // ... (other handler functions remain the same)
-   const handlePrint = async () => {
+
+  const handlePrint = async () => {
 
     const tableHeaders = [["#", "Student Name", "Father Name", "Adm No", "Gender", "Roll No"]];
 
@@ -115,8 +137,6 @@ const PromoteStudentPage = () => {
     printContent(tableHeaders, tableRows);
 
   };
-
-
 
   const handleCopy = () => {
 
@@ -142,8 +162,6 @@ const PromoteStudentPage = () => {
 
   };
 
-
-
   const handleSelectAll = () => {
 
     if (selectAll) {
@@ -160,8 +178,6 @@ const PromoteStudentPage = () => {
 
   };
 
-
-
   const handleStudentSelect = (studentId) => {
 
     setSelectedStudents((prevSelected) =>
@@ -175,8 +191,6 @@ const PromoteStudentPage = () => {
     );
 
   };
-
-
 
   const columns = [
 
@@ -234,8 +248,6 @@ const PromoteStudentPage = () => {
 
   ];
 
-
-
   const breadcrumbItems = [
 
     { label: "students", link: "/students/all-module" },
@@ -243,7 +255,6 @@ const PromoteStudentPage = () => {
     { label: "promote-student", link: "null" }
 
   ];
-
 
 
   return (
@@ -270,25 +281,24 @@ const PromoteStudentPage = () => {
                 <Row>
                   <Col lg={4}>
                     <FormLabel className="labelForm">Current Session</FormLabel>
-                    <FormSelect 
-                      value={currentSessionId} 
-                      onChange={(e) => setCurrentSessionId(e.target.value)}
-                    >
-                      <option value="">Select Current Session</option>
-                      {sessionList.map((session) => (
-                        <option key={session._id} value={session._id}>
-                          {session.sessionName}
-                        </option>
-                      ))}
+                    <FormSelect disabled value={currentSessionId}>
+                      {sessionList
+                        .filter((s) => s._id === currentSessionId)
+                        .map((session) => (
+                          <option key={session._id} value={session._id}>
+                            {session.sessionName}
+                          </option>
+                        ))}
                     </FormSelect>
+
                   </Col>
                   <Col lg={4}>
                     <FormLabel className="labelForm">Current Class</FormLabel>
-                    <FormSelect 
-                      value={selectedClass} 
-                      onChange={(e) => { 
-                        setSelectedClass(e.target.value); 
-                        fetchSections(e.target.value, setSectionList); 
+                    <FormSelect
+                      value={selectedClass}
+                      onChange={(e) => {
+                        setSelectedClass(e.target.value);
+                        fetchSections(e.target.value, setSectionList);
                       }}
                     >
                       <option value="">Select Current Class</option>
@@ -299,8 +309,8 @@ const PromoteStudentPage = () => {
                   </Col>
                   <Col lg={4}>
                     <FormLabel className="labelForm">Current Section</FormLabel>
-                    <FormSelect 
-                      value={selectedSection} 
+                    <FormSelect
+                      value={selectedSection}
                       onChange={(e) => setSelectedSection(e.target.value)}
                     >
                       <option value="">Select Current Section</option>
@@ -323,9 +333,13 @@ const PromoteStudentPage = () => {
                 <Row>
                   <Col lg={4}>
                     <FormLabel className="labelForm">Promotion Session</FormLabel>
-                    <FormSelect 
-                      value={promotionSessionId} 
-                      onChange={(e) => setPromotionSessionId(e.target.value)}
+                    <FormSelect
+                      value={promotionSessionId}
+                      onChange={(e) => {
+                        const selectedId = e.target.value;
+                        setPromotionSessionId(selectedId);
+                        fetchPromotedClasses(selectedId);
+                      }}
                     >
                       <option value="">Select Promotion Session</option>
                       {sessionList.map((session) => (
@@ -334,26 +348,28 @@ const PromoteStudentPage = () => {
                         </option>
                       ))}
                     </FormSelect>
+
                   </Col>
                   <Col lg={4}>
                     <FormLabel className="labelForm">Promoted Class</FormLabel>
-                    <FormSelect 
-                      value={promotedClass} 
-                      onChange={(e) => { 
-                        setPromotedClass(e.target.value); 
-                        fetchSections(e.target.value, setPromotedSectionList); 
+                    <FormSelect
+                      value={promotedClass}
+                      onChange={(e) => {
+                        setPromotedClass(e.target.value);
+                        fetchSections(e.target.value, setPromotedSectionList);
                       }}
                     >
                       <option value="">Select Promoted Class</option>
-                      {classList.map((cls) => (
+                      {promotedClassList.map((cls) => (
                         <option key={cls._id} value={cls._id}>{cls.class_name}</option>
                       ))}
                     </FormSelect>
+
                   </Col>
                   <Col lg={4}>
                     <FormLabel className="labelForm">Promoted Section</FormLabel>
-                    <FormSelect 
-                      value={promotedSection} 
+                    <FormSelect
+                      value={promotedSection}
                       onChange={(e) => setPromotedSection(e.target.value)}
                     >
                       <option value="">Select Promoted Section</option>
@@ -365,12 +381,12 @@ const PromoteStudentPage = () => {
                 </Row>
                 <Row className="mt-3">
                   <Col>
-                    <Button 
-                      onClick={handlePromote} 
+                    <Button
+                      onClick={handlePromote}
                       disabled={
-                        !selectedStudents.length || 
-                        !promotedClass || 
-                        !promotedSection || 
+                        !selectedStudents.length ||
+                        !promotedClass ||
+                        !promotedSection ||
                         !promotionSessionId
                       }
                     >
@@ -388,11 +404,11 @@ const PromoteStudentPage = () => {
               <div className="tableSheet">
                 <h2>Students Records</h2>
                 {students.length > 0 ? (
-                  <Table 
-                    columns={columns} 
-                    data={students} 
-                    handlePrint={handlePrint} 
-                    handleCopy={handleCopy} 
+                  <Table
+                    columns={columns}
+                    data={students}
+                    handlePrint={handlePrint}
+                    handleCopy={handleCopy}
                   />
                 ) : (
                   <p className="text-center">No students found.</p>

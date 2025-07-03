@@ -1,13 +1,31 @@
 import axios from "axios";
 
-export const BASE_URL = 'https://erp-backend-fy3n.onrender.com'
-// export const BASE_URL = 'http://localhost:8000'
+// export const BASE_URL = 'https://erp-backend-fy3n.onrender.com'
+export const BASE_URL = 'http://localhost:8000'
+
+
+axios.interceptors.request.use((config) => {
+    const token = localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
+    const selectedSessionId = localStorage.getItem("selectedSessionId");
+
+    if (token) {
+        config.headers["Authorization"] = `Bearer ${token}`;
+    }
+
+    if (selectedSessionId) {
+        config.headers["active-session"] = selectedSessionId;
+    }
+
+    return config;
+}, (error) => Promise.reject(error));
+
+// ✅ Global Response Interceptor
 axios.interceptors.response.use(
     (response) => {
         if (response.data?.error === "Token expired") {
             localStorage.removeItem("authToken");
             sessionStorage.removeItem("authToken");
-            window.location.href = "/login"; // or "/"
+            window.location.href = "/login";
         }
         return response;
     },
@@ -15,7 +33,7 @@ axios.interceptors.response.use(
         if (error.response?.data?.error === "Token expired") {
             localStorage.removeItem("authToken");
             sessionStorage.removeItem("authToken");
-            window.location.href = "/login"; // or "/"
+            window.location.href = "/login";
         }
         return Promise.reject(error);
     }
@@ -23,6 +41,10 @@ axios.interceptors.response.use(
 
 export const getSessions = async () => {
     const response = await axios.get(`${BASE_URL}/api/all-session`);
+    return response?.data;
+};
+export const getActiveSession = async () => {
+    const response = await axios.get(`${BASE_URL}/api/active-session`);
     return response?.data;
 };
 export const addNewSession = async (payload) => {
@@ -199,6 +221,15 @@ export const getStudentsData = async () => {
 }
 export const getStudentByRegistrationId = async (studentId) => {
     const response = await axios.get(`${BASE_URL}/api/students/search?registration_id=${studentId}`)
+    return response?.data;
+}
+
+export const assignStudentsRollNo = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/students/roll-number-assigned-Students`, payload)
+    return response?.data;
+}
+export const promoteStudents = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/students/promote`, payload)
     return response?.data;
 }
 export const getAllBanks = async () => {

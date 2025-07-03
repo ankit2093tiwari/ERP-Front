@@ -26,11 +26,14 @@ import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import axios from "axios";
+import { BASE_URL } from "@/Services";
+import { useSession } from "./context/SessionContext";
 
 // Dynamically import ReactApexChart with SSR disabled
 const ReactApexChart = dynamic(() => import('react-apexcharts'), { ssr: false });
 
 const Dashboard = () => {
+  const { selectedSessionId } = useSession()
   const router = useRouter();
   const [dashboardData, setDashboardData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -48,13 +51,17 @@ const Dashboard = () => {
       fetchDashboardData();
       fetchThoughtOfTheDay();
     }
-  }, [router]);
+  }, [router,selectedSessionId]);
 
   // Fetch thought of the day
   const fetchThoughtOfTheDay = async () => {
     try {
       const today = new Date().toISOString().split('T')[0];
-      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/thoughts?date=${today}`);
+
+      const response = await axios.get(
+        `${BASE_URL}/api/thoughts?date=${today}`
+      );
+
       if (response.data.data && response.data.data.length > 0) {
         setThoughtOfTheDay(response.data.data[0].thought_name);
       } else {
@@ -66,14 +73,13 @@ const Dashboard = () => {
     }
   };
 
+
   // Fetch student count data from API
   const fetchStudentData = async () => {
     try {
-      const response = await fetch('https://erp-backend-fy3n.onrender.com/api/students-total');
-      if (!response.ok) {
-        throw new Error('Failed to fetch student data');
-      }
-      const data = await response.json();
+      const response = await axios.get(`${BASE_URL}/api/students-total`);
+      const data = response.data;
+
       if (data.success) {
         setStudentCount(data.data.totalStudents);
         setStudentsByClass(data.data.studentsByClass);
@@ -360,17 +366,12 @@ const Dashboard = () => {
                 </div>
                 <div className="card bgPurple overflow-hidden mb-3 pb-0 shadow-none">
                   <div className="card-body p-2 bgPurple thought-of-day">
-                    <div className="thought-content">
-                      <p className="notice-title mb-1 text-white fw-bold">ALWAYS BE HAPPY ALWAYS BE HAPPY</p>
-                      <div className="thought-date">Wednesday, June 4, 2025</div>
+                    <div className="thought-content d-flex flex-column justify-contend-center align-items-center ">
+                      <p className="notice-title mb-1 text-white fw-bold">{thoughtOfTheDay || "ALWAYS BE HAPPY"}  </p>
+                      <div className="thought-date">Thursday, July 3, 2025</div>
                     </div>
                   </div>
                 </div>
-                {/* <button className="card btn-primary w-100 py-4 text-white mx-0">
-                  <div className="">
-                    Dummy Button
-                  </div>
-                </button> */}
               </Col>
             </Row>
             <Row>

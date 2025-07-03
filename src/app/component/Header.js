@@ -1,4 +1,5 @@
 "use client";
+import { useSession } from '../context/SessionContext';
 import React, { useState, useEffect } from 'react';
 import { Row, Col, Container, Nav, Navbar, NavDropdown, Modal, Button, Form } from "react-bootstrap";
 import { DarkModeSwitch } from 'react-toggle-dark-mode';
@@ -6,6 +7,7 @@ import Image from "next/image";
 import { GiHamburgerMenu } from "react-icons/gi";
 
 export default function Header({ toggleSidebar, onLogout }) {
+  const { selectedSessionId, changeSession } = useSession();
   const [isDarkMode, setDarkMode] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [sessions, setSessions] = useState([]);
@@ -42,6 +44,15 @@ export default function Header({ toggleSidebar, onLogout }) {
           }
 
           setSessions(allSessions);
+
+          // ✅ Read session ID from localStorage
+          const storedSessionId = localStorage.getItem("selectedSessionId");
+          if (storedSessionId) {
+            const matched = allSessions.find(s => s._id === storedSessionId);
+            if (matched) {
+              setSelectedSession(matched);
+            }
+          }
         }
       } catch (error) {
         console.error("Error fetching sessions:", error);
@@ -50,6 +61,7 @@ export default function Header({ toggleSidebar, onLogout }) {
 
     fetchSessions();
   }, []);
+
 
   const toggleDarkMode = (checked) => {
     setDarkMode(checked);
@@ -99,11 +111,13 @@ export default function Header({ toggleSidebar, onLogout }) {
   };
 
   const handleSessionChange = (sessionId) => {
-    const session = sessions.find(s => s._id === sessionId);
+    const session = sessions.find((s) => s._id === sessionId);
     if (session) {
       setSelectedSession(session);
+      changeSession(session._id); //  this updates both state + localStorage
     }
   };
+
 
   return (
     <>
@@ -125,7 +139,7 @@ export default function Header({ toggleSidebar, onLogout }) {
                   {/* Session Dropdown */}
                   <NavDropdown
                     title={
-                      <span className="d-flex align-items-center">
+                      <span className="d-flex align-items-center text-white">
                         {selectedSession ? (
                           <strong>{selectedSession.sessionName}</strong>
                         ) : (
@@ -134,7 +148,7 @@ export default function Header({ toggleSidebar, onLogout }) {
                       </span>
                     }
                     id="session-dropdown"
-                    className="me-2"
+                    className="me-2 "
                   >
                     {sessions.length > 0 ? (
                       sessions.map((session) => (

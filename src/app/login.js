@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { BASE_URL } from "@/Services";
+import axios from "axios";
 
 const SpeechRecognition =
   typeof window !== "undefined"
@@ -12,6 +13,8 @@ const SpeechRecognition =
 export default function LoginPage({ onLogin }) {
   const [username, setUSERNAME] = useState("");
   const [password, setPassword] = useState("");
+  const [sessions, setSessions] = useState([]);
+  const [sessionId, setSessionId] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -61,14 +64,29 @@ export default function LoginPage({ onLogin }) {
     };
   }, [isListening]);
 
+  useEffect(() => {
+    const fetchSessions = async () => {
+      const response = await axios.get(`${BASE_URL}/api/all-session`);
+      const sessionData = response?.data?.data || [];
+      setSessions(sessionData);
+
+      if (sessionData.length > 0) {
+        setSessionId(sessionData[0]._id);
+      }
+    };
+
+    fetchSessions();
+  }, []);
+
+
   // Handle login
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
     setIsLoading(true);
 
-    if (!username || !password) {
-      setError("username and Password are required");
+    if (!username || !password || !sessionId) {
+      setError("username Password and Session are required");
       setIsLoading(false);
       return;
     }
@@ -77,7 +95,7 @@ export default function LoginPage({ onLogin }) {
       const response = await fetch(`${BASE_URL}/api/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({ username, password, sessionId }),
       });
 
       const data = await response.json();
@@ -107,7 +125,7 @@ export default function LoginPage({ onLogin }) {
 
         <form onSubmit={handleLogin} className="loginForm">
           <div className="formGroup">
-            <label htmlFor="username">User Name *</label>
+            <label htmlFor="username">User Name<span className="text-danger">*</span></label>
             <input
               id="username"
               type="text"
@@ -119,7 +137,7 @@ export default function LoginPage({ onLogin }) {
           </div>
 
           <div className="formGroup">
-            <label htmlFor="password">PASSWORD *</label>
+            <label htmlFor="password">PASSWORD<span className="text-danger">*</span></label>
             <input
               id="password"
               type="password"
@@ -129,7 +147,16 @@ export default function LoginPage({ onLogin }) {
               required
             />
           </div>
-
+          <div className="formGroup">
+            <label htmlFor="">Session<span className="text-danger">*</span></label>
+            <select value={sessionId} onChange={(e) => setSessionId(e.target.value)}>
+              {
+                sessions?.map((s) => (
+                  <option key={s._id} value={s._id}>{s.sessionName}</option>
+                ))
+              }
+            </select>
+          </div>
           <div className="rememberMe">
             <input
               id="rememberMe"
@@ -141,7 +168,7 @@ export default function LoginPage({ onLogin }) {
             <label htmlFor="rememberMe">REMEMBER ME</label>
           </div>
 
-          {error && <div className="errorMessage">{error}</div>}
+          {error && <div className="errorMessage text-danger">{error}</div>}
 
           <button
             type="submit"

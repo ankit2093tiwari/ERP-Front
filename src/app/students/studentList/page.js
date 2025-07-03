@@ -9,12 +9,14 @@ import { Container, Row, Col, Breadcrumb, Button } from "react-bootstrap";
 import { CgAddR } from "react-icons/cg";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { copyContent, printContent } from "@/app/utils";
+import { useSession } from "@/app/context/SessionContext";
 
 import { deleteStudentById, getStudentsData } from "@/Services";
 import { toast } from "react-toastify";
 
 
 const Studentlist = () => {
+  const { selectedSessionId } = useSession()
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -64,6 +66,12 @@ const Studentlist = () => {
   useEffect(() => {
     fetchData();
   }, []);
+
+  useEffect(() => {
+    if (selectedSessionId) {
+      fetchData()
+    }
+  }, [selectedSessionId])
 
   const columns = [
     { name: "#", selector: (row, index) => index + 1, width: "50px" },
