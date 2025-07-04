@@ -19,20 +19,24 @@ axios.interceptors.request.use((config) => {
     return config;
 }, (error) => Promise.reject(error));
 
-// ✅ Global Response Interceptor
+const removeAuthLocalStorage = () => {
+    localStorage.removeItem("authToken");
+    sessionStorage.removeItem("authToken");
+    localStorage.removeItem("selectedSessionId");
+}
+
+// Global Response Interceptor
 axios.interceptors.response.use(
     (response) => {
         if (response.data?.error === "Token expired") {
-            localStorage.removeItem("authToken");
-            sessionStorage.removeItem("authToken");
-            window.location.href = "/login";
+            removeAuthLocalStorage()
+            window.location.href = "/login";  //I've to use router.push/replace here
         }
         return response;
     },
     (error) => {
         if (error.response?.data?.error === "Token expired") {
-            localStorage.removeItem("authToken");
-            sessionStorage.removeItem("authToken");
+            removeAuthLocalStorage()
             window.location.href = "/login";
         }
         return Promise.reject(error);
@@ -41,6 +45,10 @@ axios.interceptors.response.use(
 
 export const getSessions = async () => {
     const response = await axios.get(`${BASE_URL}/api/all-session`);
+    return response?.data;
+};
+export const getAllUsers = async () => {
+    const response = await axios.get(`${BASE_URL}/api/all-users`);
     return response?.data;
 };
 export const getActiveSession = async () => {
@@ -146,6 +154,34 @@ export const deleteCasteById = async (id) => {
 
 export const getStates = async () => {
     const response = await axios.get(`${BASE_URL}/api/all-states`)
+    return response?.data;
+}
+export const addNewState = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/add-states`, payload)
+    return response?.data;
+}
+export const updateStateById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/update-states/${id}`, payload)
+    return response?.data;
+}
+export const deleteStateById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/delete-states/${id}`)
+    return response?.data;
+}
+export const deleteCityById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/delete-cities/${id}`)
+    return response?.data;
+}
+export const updateCityById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/update-cities/${id}`, payload)
+    return response?.data;
+}
+export const addNewCity = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/add-cities`, payload)
+    return response?.data;
+}
+export const getCities = async () => {
+    const response = await axios.get(`${BASE_URL}/api/all-cities`)
     return response?.data;
 }
 export const getAllSubjetcs = async () => {

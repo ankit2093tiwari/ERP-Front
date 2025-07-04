@@ -7,11 +7,14 @@ import styles from "@/app/students/assign-roll-no/page.module.css";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { getClasses, getSections, getStudentsByClassAndSection, updateBulkStudents } from "@/Services";
 import { toast } from 'react-toastify'
+import useSessionId from "@/hooks/useSessionId";
 const SpeechRecognition =
   typeof window !== "undefined"
     ? window.SpeechRecognition || window.webkitSpeechRecognition
     : null;
 const StudentBulkUpdate = () => {
+  const selectedSessionId = useSessionId();
+
   const [classList, setClassList] = useState([]);
   const [sectionList, setSectionList] = useState([]);
   const [selectedClass, setSelectedClass] = useState("");
@@ -26,7 +29,7 @@ const StudentBulkUpdate = () => {
 
   useEffect(() => {
     fetchClasses();
-  }, []);
+  }, [selectedSessionId]);
 
   useEffect(() => {
     if (selectedClass) {

@@ -15,8 +15,11 @@ import Select from 'react-select';
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { toast } from 'react-toastify';
 import { getAllStudents, getCastes, getCategories, getClasses, getReligions, getSections, getStates, updateStudent } from "@/Services";
+import useSessionId from "@/hooks/useSessionId";
 
 const UpdatePage = () => {
+  const selectedSessionId = useSessionId();
+
   const router = useRouter();
   const [data, setData] = useState([]); // Table data
   const [error, setError] = useState(""); // Error state
@@ -75,14 +78,13 @@ const UpdatePage = () => {
   const [stateList, setStateList] = useState([]);
 
   useEffect(() => {
-
     fetchClasses();
     getAllStudent()
     fetchReligion();
     fetchCategory();
     fetchCaste();
     fetchState();
-  }, []);
+  }, [selectedSessionId]);
 
 
   const fetchClasses = async () => {

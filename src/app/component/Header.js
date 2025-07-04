@@ -1,13 +1,16 @@
 "use client";
-import { useSession } from '../context/SessionContext';
 import React, { useState, useEffect } from 'react';
 import { Row, Col, Container, Nav, Navbar, NavDropdown, Modal, Button, Form } from "react-bootstrap";
 import { DarkModeSwitch } from 'react-toggle-dark-mode';
 import Image from "next/image";
 import { GiHamburgerMenu } from "react-icons/gi";
+import { useDispatch } from 'react-redux';
+import { setSessionId } from '@/Redux/Slices/sessionSlice';
+import { BASE_URL, getSessions } from '@/Services';
+import axios from 'axios';
 
 export default function Header({ toggleSidebar, onLogout }) {
-  const { selectedSessionId, changeSession } = useSession();
+  const dispatch = useDispatch()
   const [isDarkMode, setDarkMode] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [sessions, setSessions] = useState([]);
@@ -20,11 +23,11 @@ export default function Header({ toggleSidebar, onLogout }) {
   });
   const [message, setMessage] = useState("");
 
+
   useEffect(() => {
     const fetchSessions = async () => {
       try {
-        const response = await fetch("https://erp-backend-fy3n.onrender.com/api/all-session");
-        const data = await response.json();
+        const data = await getSessions()
 
         if (data.success && data.data) {
           let allSessions = [];
@@ -63,6 +66,7 @@ export default function Header({ toggleSidebar, onLogout }) {
   }, []);
 
 
+
   const toggleDarkMode = (checked) => {
     setDarkMode(checked);
   };
@@ -86,35 +90,40 @@ export default function Header({ toggleSidebar, onLogout }) {
     }
 
     try {
-      const response = await fetch("https://erp-backend-fy3n.onrender.com/api/change-password", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: formData.email,
-          currentPassword: formData.currentPassword,
-          newPassword: formData.newPassword,
-        }),
+      const response = await axios.post(`${BASE_URL}/api/change-password`, {
+        email: formData.email,
+        currentPassword: formData.currentPassword,
+        newPassword: formData.newPassword,
       });
 
-      const result = await response.json();
+      const result = response.data;
       setMessage(result.message);
+
       if (result.success) {
         setTimeout(() => {
           setShowModal(false);
-          setFormData({ email: "", currentPassword: "", newPassword: "", confirmPassword: "" });
+          setFormData({
+            email: "",
+            currentPassword: "",
+            newPassword: "",
+            confirmPassword: "",
+          });
           setMessage("");
         }, 1500);
       }
     } catch (error) {
-      setMessage("Something went wrong. Try again.");
+      setMessage(
+        error?.response?.data?.message || "Something went wrong. Try again."
+      );
     }
+
   };
 
   const handleSessionChange = (sessionId) => {
     const session = sessions.find((s) => s._id === sessionId);
     if (session) {
       setSelectedSession(session);
-      changeSession(session._id); //  this updates both state + localStorage
+      dispatch(setSessionId(session._id));
     }
   };
 

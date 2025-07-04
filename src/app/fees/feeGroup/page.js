@@ -18,11 +18,13 @@ import {
 } from "react-bootstrap";
 import { toast } from "react-toastify";
 import { addNewFeeGroup, deleteFeeGroupById, getAllSections, getClasses, getFeeGroups, updateFeeGroupById } from "@/Services";
+import useSessionId from "@/hooks/useSessionId";
 const breadcrumbItems = [
   { label: "Fee", link: "/fees/all-module" },
   { label: "fee-Group", link: "null" },
 ];
 const FeeGroup = () => {
+  const selectedSessionId=useSessionId()
   const [loading, setLoading] = useState(false);
   const [classList, setClassList] = useState([]);
   const [sectionList, setSectionList] = useState([]);
@@ -91,7 +93,7 @@ const FeeGroup = () => {
     fetchClasses();
     fetchAllSections();
     fetchData();
-  }, []);
+  }, [selectedSessionId]);
 
   const validateForm = () => {
     let newErrors = {};

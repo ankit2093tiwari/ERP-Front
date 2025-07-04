@@ -12,11 +12,11 @@ import {
   FormControl,
   Button,
 } from "react-bootstrap";
-import axios from "axios";
 import Table from "@/app/component/DataTable";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { toast } from "react-toastify";
 import { copyContent, printContent } from "@/app/utils";
+import { addNewCity, addNewState, deleteCityById, deleteStateById, getCities, getStates, updateCityById, updateStateById } from "@/Services";
 
 const StateCityMaster = () => {
   const [states, setStates] = useState([]);
@@ -84,11 +84,11 @@ const StateCityMaster = () => {
     setLoading(true);
     try {
       const [stateRes, cityRes] = await Promise.all([
-        axios.get("https://erp-backend-fy3n.onrender.com/api/all-states"),
-        axios.get("https://erp-backend-fy3n.onrender.com/api/all-cities"),
+        getStates(),
+        getCities()
       ]);
-      setStates(stateRes.data.data || []);
-      setCities(cityRes.data.data || []);
+      setStates(stateRes.data || []);
+      setCities(cityRes.data || []);
     } catch (err) {
       toast.error("Failed to fetch data");
     } finally {
@@ -104,9 +104,9 @@ const StateCityMaster = () => {
     if (!validateStateForm()) return;
 
     try {
-      await axios.post("https://erp-backend-fy3n.onrender.com/api/add-states", {
+      await addNewState({
         state_name: formData.state_name.trim()
-      });
+      })
       toast.success("State added successfully");
       setFormData({ ...formData, state_name: "" });
       setIsStateFormOpen(false);
@@ -120,10 +120,10 @@ const StateCityMaster = () => {
     if (!validateCityForm()) return;
 
     try {
-      await axios.post("https://erp-backend-fy3n.onrender.com/api/add-cities", {
+      await addNewCity({
         city_name: formData.city_name.trim(),
         state: formData.state_id,
-      });
+      })
       toast.success("City added successfully");
       setFormData({ ...formData, city_name: "", state_id: "" });
       setIsCityFormOpen(false);
@@ -143,9 +143,9 @@ const StateCityMaster = () => {
     if (!validateStateForm()) return;
 
     try {
-      await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-states/${id}`, {
+      await updateStateById(id, {
         state_name: formData.state_name.trim(),
-      });
+      })
       toast.success("State updated successfully");
       setEditingState(null);
       setFormData({ ...formData, state_name: "" });
@@ -158,7 +158,7 @@ const StateCityMaster = () => {
   const handleDeleteState = async (id) => {
     if (window.confirm("Are you sure you want to delete this state and all its cities?")) {
       try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-states/${id}`);
+        await deleteStateById(id)
         toast.success("State deleted successfully");
         fetchData();
       } catch (err) {
@@ -181,10 +181,10 @@ const StateCityMaster = () => {
     if (!validateCityForm()) return;
 
     try {
-      await axios.put(`https://erp-backend-fy3n.onrender.com/api/update-cities/${id}`, {
+      await updateCityById(id, {
         city_name: formData.city_name.trim(),
         state: formData.state_id,
-      });
+      })
       toast.success("City updated successfully");
       setEditingCity(null);
       setFormData({ ...formData, city_name: "", state_id: "" });
@@ -197,7 +197,7 @@ const StateCityMaster = () => {
   const handleDeleteCity = async (id) => {
     if (window.confirm("Are you sure you want to delete this city?")) {
       try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/delete-cities/${id}`);
+        await deleteCityById(id)
         toast.success("City deleted successfully");
         fetchData();
       } catch (err) {

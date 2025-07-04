@@ -10,8 +10,11 @@ import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { addNewClass, addNewSection, deleteClassById, deleteSectionById, getAllSections, getClasses, updateClassById, updateSectionById } from "@/Services";
 import { toast } from "react-toastify";
+import useSessionId from "@/hooks/useSessionId";
 
 const ClassMasterPage = () => {
+  const selectedSessionId = useSessionId();
+
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -328,7 +331,7 @@ const ClassMasterPage = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [selectedSessionId]);
 
   const breadcrumbItems = [
     { label: "Master Entry", link: "/master-entry/all-module" },

@@ -9,8 +9,11 @@ import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { addNewSubject, deleteSubjectById, getAllEmployee, getAllSubjetcs, getClasses, getSections, updateSubjectById } from "@/Services";
 import { toast } from "react-toastify";
+import useSessionId from "@/hooks/useSessionId";
 
 const SubjectMaster = () => {
+  const selectedSessionId = useSessionId();
+
   const [classList, setClassList] = useState([]);
   const [sectionList, setSectionList] = useState([]);
   const [employeeList, setEmployeeList] = useState([]);
@@ -186,7 +189,7 @@ const SubjectMaster = () => {
     fetchClasses();
     fetchEmployees();
     fetchSubjects();
-  }, []);
+  }, [selectedSessionId]);
 
   const fetchClasses = async () => {
     try {

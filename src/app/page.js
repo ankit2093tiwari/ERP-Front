@@ -27,13 +27,15 @@ import 'react-calendar/dist/Calendar.css';
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import axios from "axios";
 import { BASE_URL } from "@/Services";
-import { useSession } from "./context/SessionContext";
+import useSessionId from "@/hooks/useSessionId";
+
 
 // Dynamically import ReactApexChart with SSR disabled
 const ReactApexChart = dynamic(() => import('react-apexcharts'), { ssr: false });
 
 const Dashboard = () => {
-  const { selectedSessionId } = useSession()
+  const selectedSessionId = useSessionId();
+
   const router = useRouter();
   const [dashboardData, setDashboardData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -51,7 +53,7 @@ const Dashboard = () => {
       fetchDashboardData();
       fetchThoughtOfTheDay();
     }
-  }, [router,selectedSessionId]);
+  }, [router, selectedSessionId]);
 
   // Fetch thought of the day
   const fetchThoughtOfTheDay = async () => {

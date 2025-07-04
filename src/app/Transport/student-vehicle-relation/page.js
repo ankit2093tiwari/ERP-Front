@@ -9,8 +9,11 @@ import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { copyContent, printContent } from '@/app/utils';
 import { toast } from 'react-toastify';
 import { addNewStudentVehicle, deleteStudentVehicleById, getAllPickupPoints, getAllStudents, getAllStudentVehicles, getRoutes, updateStudentVehicleById } from '@/Services';
+import useSessionId from '@/hooks/useSessionId';
 
 const StudentVehicle = () => {
+  const selectedSessionId = useSessionId();
+
   const [data, setData] = useState([]);
   const [students, setStudents] = useState([]);
   const [routes, setRoutes] = useState([]);
@@ -285,7 +288,7 @@ const StudentVehicle = () => {
   useEffect(() => {
     fetchDropdownData();
     fetchStudentVehicles();
-  }, []);
+  }, [selectedSessionId]);
 
   const breadcrumbItems = [
     { label: "Transport", link: "/Transport/all-module" },

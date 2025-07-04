@@ -9,14 +9,14 @@ import { Container, Row, Col, Breadcrumb, Button } from "react-bootstrap";
 import { CgAddR } from "react-icons/cg";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { copyContent, printContent } from "@/app/utils";
-import { useSession } from "@/app/context/SessionContext";
 
 import { deleteStudentById, getStudentsData } from "@/Services";
 import { toast } from "react-toastify";
-
+import useSessionId from "@/hooks/useSessionId";
 
 const Studentlist = () => {
-  const { selectedSessionId } = useSession()
+ const selectedSessionId = useSessionId();
+
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -38,12 +38,6 @@ const Studentlist = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-
-  // Handle Edit (Redirect to update page)
-  const handleEdit = (id) => {
-    router.push(`/students/update-student?id=${id}`);
   };
 
   // Handle Delete Operation

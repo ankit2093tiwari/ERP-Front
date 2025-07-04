@@ -16,11 +16,14 @@ import {
   Modal,
 } from "react-bootstrap";
 import DataTable from "@/app/component/DataTable";
-import styles from "@/app/students/assign-roll-no/page.module.css";
 import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import { BASE_URL, getClasses, getSections, getStudentsByClassAndSection } from "@/Services";
+import useSessionId from "@/hooks/useSessionId";
 
 const GenerateIdCard = () => {
+  const selectedSessionId = useSessionId();
+
   const [classList, setClassList] = useState([]);
   const [sectionList, setSectionList] = useState([]);
   const [selectedClass, setSelectedClass] = useState("");
@@ -36,7 +39,7 @@ const GenerateIdCard = () => {
 
   useEffect(() => {
     fetchClasses();
-  }, []);
+  }, [selectedSessionId]);
 
   useEffect(() => {
     if (selectedClass) {
@@ -60,8 +63,8 @@ const GenerateIdCard = () => {
 
   const fetchClasses = async () => {
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-classes");
-      setClassList(response.data.data || []);
+      const response = await getClasses()
+      setClassList(response.data || []);
     } catch (error) {
       console.error("Failed to fetch classes", error);
     }
@@ -69,8 +72,8 @@ const GenerateIdCard = () => {
 
   const fetchSections = async (classId) => {
     try {
-      const response = await axios.get(`https://erp-backend-fy3n.onrender.com/api/sections/class/${classId}`);
-      setSectionList(response.data.data || []);
+      const response = await getSections(classId)
+      setSectionList(response.data || []);
     } catch (error) {
       console.error("Failed to fetch sections", error);
     }
@@ -80,11 +83,10 @@ const GenerateIdCard = () => {
     setLoading(true);
     setNoRecordsFound(false);
     try {
-      const response = await axios.get(
-        `https://erp-backend-fy3n.onrender.com/api/students/search?class_name=${selectedClass}&section_name=${selectedSection}`
-      );
-      if (response.data.data?.length > 0) {
-        setStudents(response.data.data);
+      const response = await getStudentsByClassAndSection(selectedClass, selectedSection)
+      if (response.data?.length > 0) {
+
+        setStudents(response.data);
       } else {
         setStudents([]);
         setNoRecordsFound(true);
@@ -113,7 +115,7 @@ const GenerateIdCard = () => {
   };
 
   const generatePDFBuffer = async () => {
-    const schoolResponse = await axios.get("https://erp-backend-fy3n.onrender.com/api/schools/all");
+    const schoolResponse = await axios.get(`${BASE_URL}/api/schools/all`);
     const schoolData = schoolResponse.data.data || [];
     const schoolName = schoolData[0]?.school_name || "R.D.S. MEMORIAL PUBLIC SCHOOL (English Medium)";
 

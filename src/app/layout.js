@@ -1,6 +1,7 @@
 // app/layout.js
 "use client";
-import { SessionProvider } from "./context/SessionContext";
+import { Provider } from "react-redux";
+import { store } from "@/Redux/store";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Script from "next/script";
@@ -56,6 +57,7 @@ export default function RootLayout({ children }) {
   };
 
   const handleLogout = () => {
+    localStorage.removeItem("selectedSessionId");
     localStorage.removeItem("authToken");
     sessionStorage.removeItem("authToken");
     setIsAuthenticated(false);
@@ -85,24 +87,24 @@ export default function RootLayout({ children }) {
           src="https://cdn.jsdelivr.net/npm/react-bootstrap@next/dist/react-bootstrap.min.js"
           strategy="beforeInteractive"
         />
-        <SessionProvider>
-          {isAuthenticated ? (
-            <>
-              <div className="layout">
-                <SideBar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
-                <div className={`main-content ${isSidebarOpen ? "with-sidebar" : "full-width"}`}>
-                  <Header toggleSidebar={toggleSidebar} onLogout={handleLogout} />
-                  <main>{children}</main>
-                  <Footer />
+        <Provider store={store}>
+            {isAuthenticated ? (
+              <>
+                <div className="layout">
+                  <SideBar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
+                  <div className={`main-content ${isSidebarOpen ? "with-sidebar" : "full-width"}`}>
+                    <Header toggleSidebar={toggleSidebar} onLogout={handleLogout} />
+                    <main>{children}</main>
+                    <Footer />
+                  </div>
                 </div>
-              </div>
-              <ToastContainer position="top-right" autoClose={5000} />
-              <SpeechRecognitionProvider onCommand={handleCommand} />
-            </>
-          ) : (
-            <LoginPage onLogin={handleLogin} />
-          )}
-        </SessionProvider>
+                <ToastContainer position="top-right" autoClose={5000} />
+                <SpeechRecognitionProvider onCommand={handleCommand} />
+              </>
+            ) : (
+              <LoginPage onLogin={handleLogin} />
+            )}
+        </Provider>
 
       </body>
     </html>

@@ -7,8 +7,10 @@ import { Form, Row, Col, Container, FormLabel, FormControl, Button, Breadcrumb, 
 import Table from "@/app/component/DataTable";
 import { addNewFeeStructure, deleteFeeStructureById, getAllInstallments, getFeeGroups, getFeeStructures, updateFeeStructureById } from "@/Services";
 import { toast } from "react-toastify";
+import useSessionId from "@/hooks/useSessionId";
 
 const FeeStatement = () => {
+  const selectedSessionId=useSessionId()
   const [data, setData] = useState([]);
   const [feeGroups, setFeeGroups] = useState([]);
   const [installments, setInstallments] = useState([]);
@@ -366,7 +368,7 @@ const FeeStatement = () => {
     fetchData();
     fetchFeeGroups();
     fetchInstallments();
-  }, []);
+  }, [selectedSessionId]);
 
   const columns = [
     {

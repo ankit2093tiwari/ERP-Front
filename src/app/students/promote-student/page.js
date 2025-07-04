@@ -8,8 +8,11 @@ import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { BASE_URL, getActiveSession, getClasses, getSections, getSessions, getStudentsByClassAndSection, promoteStudents } from "@/Services";
 import { toast } from "react-toastify";
+import useSessionId from "@/hooks/useSessionId";
 
 const PromoteStudentPage = () => {
+  const selectedSessionId = useSessionId();
+
   const [classList, setClassList] = useState([]);
   const [sectionList, setSectionList] = useState([]);
   const [promotedSectionList, setPromotedSectionList] = useState([]);
@@ -29,7 +32,7 @@ const PromoteStudentPage = () => {
   useEffect(() => {
     fetchSessions();
     fetchCurrentSession()
-  }, []);
+  }, [selectedSessionId]);
   useEffect(() => {
     if (currentSessionId) {
       getClassesBySessionId();

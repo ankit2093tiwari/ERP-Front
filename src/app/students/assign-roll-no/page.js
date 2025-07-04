@@ -22,8 +22,10 @@ import {
   getStudentsByClassAndSection,
 } from "@/Services";
 import { toast } from "react-toastify";
+import useSessionId from "@/hooks/useSessionId";
 
 const AssignRollNo = () => {
+  const selectedSessionId = useSessionId()
   const [classList, setClassList] = useState([]);
   const [sectionList, setSectionList] = useState([]);
   const [selectedClass, setSelectedClass] = useState("");
@@ -38,7 +40,7 @@ const AssignRollNo = () => {
 
   useEffect(() => {
     fetchClasses();
-  }, []);
+  }, [selectedSessionId]);
 
   useEffect(() => {
     if (selectedClass) {
@@ -346,7 +348,7 @@ const AssignRollNo = () => {
                   <Alert variant="info">No students found for the selected class and section.</Alert>
                 ) : (
                   <DataTable columns={columns} data={students} key={tableKey} handleCopy={handleCopy}
-                  handlePrint={handlePrint} />
+                    handlePrint={handlePrint} />
                 )}
               </div>
             </Col>

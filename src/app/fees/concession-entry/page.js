@@ -6,8 +6,10 @@ import BreadcrumbComp from "@/app/component/Breadcrumb";
 import styles from "@/app/medical/routine-check-up/page.module.css";
 import { addNewFeeConcessionEntry, BASE_URL, getClasses, getFeeGroupDataBySectionId, getFeeStructureByFeeGroupId, getSections, getStudentsByClassAndSection } from "@/Services";
 import axios from 'axios';
+import useSessionId from '@/hooks/useSessionId';
 
 const ConcessionEntry = () => {
+  const selectedSessionId = useSessionId()
   const [isLoading, setIsLoading] = useState(false);
   const [classList, setClassList] = useState([]);
   const [sectionList, setSectionList] = useState([]);
@@ -93,7 +95,7 @@ const ConcessionEntry = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [selectedSessionId]);
 
   useEffect(() => {
     const fetchStudents = async () => {
@@ -233,54 +235,54 @@ const ConcessionEntry = () => {
             </div>
             <div>
               <Form className="formSheet mb-4">
-                  <Row>
-                    <Col lg={4}>
-                      <FormLabel className={styles.labelForm}>Class</FormLabel>
-                      <FormSelect
-                        value={selectedClass}
-                        onChange={handleClassChange}
-                        className={styles.formControl}
-                        disabled={isLoading}
-                      >
-                        <option value="">Select Class</option>
-                        {classList.map((cls) => (
-                          <option key={cls._id} value={cls._id}>{cls.class_name}</option>
-                        ))}
-                      </FormSelect>
-                    </Col>
+                <Row>
+                  <Col lg={4}>
+                    <FormLabel className={styles.labelForm}>Class</FormLabel>
+                    <FormSelect
+                      value={selectedClass}
+                      onChange={handleClassChange}
+                      className={styles.formControl}
+                      disabled={isLoading}
+                    >
+                      <option value="">Select Class</option>
+                      {classList.map((cls) => (
+                        <option key={cls._id} value={cls._id}>{cls.class_name}</option>
+                      ))}
+                    </FormSelect>
+                  </Col>
 
-                    <Col lg={4}>
-                      <FormLabel className={styles.labelForm}>Section</FormLabel>
-                      <FormSelect
-                        value={selectedSection}
-                        onChange={(e) => setSelectedSection(e.target.value)}
-                        className={styles.formControl}
-                        disabled={!selectedClass || isLoading}
-                      >
-                        <option value="">Select Section</option>
-                        {sectionList.map((sec) => (
-                          <option key={sec._id} value={sec._id}>{sec.section_name}</option>
-                        ))}
-                      </FormSelect>
-                    </Col>
+                  <Col lg={4}>
+                    <FormLabel className={styles.labelForm}>Section</FormLabel>
+                    <FormSelect
+                      value={selectedSection}
+                      onChange={(e) => setSelectedSection(e.target.value)}
+                      className={styles.formControl}
+                      disabled={!selectedClass || isLoading}
+                    >
+                      <option value="">Select Section</option>
+                      {sectionList.map((sec) => (
+                        <option key={sec._id} value={sec._id}>{sec.section_name}</option>
+                      ))}
+                    </FormSelect>
+                  </Col>
 
-                    <Col lg={4}>
-                      <FormLabel className={styles.labelForm}>Student</FormLabel>
-                      <FormSelect
-                        value={selectedStudent}
-                        onChange={(e) => setSelectedStudent(e.target.value)}
-                        className={styles.formControl}
-                        disabled={!selectedSection || isLoading}
-                      >
-                        <option value="">Select Student</option>
-                        {students?.map((std) => (
-                          <option key={std._id} value={std._id}>
-                            {`${std.first_name || ''} ${std.last_name || ''}`.trim()}
-                          </option>
-                        ))}
-                      </FormSelect>
-                    </Col>
-                  </Row>
+                  <Col lg={4}>
+                    <FormLabel className={styles.labelForm}>Student</FormLabel>
+                    <FormSelect
+                      value={selectedStudent}
+                      onChange={(e) => setSelectedStudent(e.target.value)}
+                      className={styles.formControl}
+                      disabled={!selectedSection || isLoading}
+                    >
+                      <option value="">Select Student</option>
+                      {students?.map((std) => (
+                        <option key={std._id} value={std._id}>
+                          {`${std.first_name || ''} ${std.last_name || ''}`.trim()}
+                        </option>
+                      ))}
+                    </FormSelect>
+                  </Col>
+                </Row>
 
 
                 <Row>
@@ -324,32 +326,34 @@ const ConcessionEntry = () => {
               </Form>
 
 
-              {installments.length > 0 && (
-                <>
-                  <h5><strong>Installments Amount</strong></h5>
-                  <Row className="mb-2">
-                    <Col md={2}></Col>
-                    <Col md={3}><strong>Actual Tuition Fee</strong></Col>
-                    <Col md={3}><strong>Discount Amount</strong></Col>
-                    <Col md={3}><strong>Total Amount</strong></Col>
-                  </Row>
-
-                  {installments.map((item, index) => (
-                    <Row key={index} className="mb-2 align-items-center">
-                      <Col md={2}><strong>{item.month}</strong></Col>
-                      <Col md={3}>
-                        <Form.Control type="text" value={item.actualFee} disabled />
-                      </Col>
-                      <Col md={3}>
-                        <Form.Control type="text" value={item.discountAmount || ""} disabled />
-                      </Col>
-                      <Col md={3}>
-                        <Form.Control type="text" value={item.totalAmount || ""} disabled />
-                      </Col>
+              <div className='px-4'>
+                {installments.length > 0 && (
+                  <>
+                    <h5><strong>Installments Amount</strong></h5>
+                    <Row className="mb-2">
+                      <Col md={2}></Col>
+                      <Col md={3}><strong>Actual Tuition Fee</strong></Col>
+                      <Col md={3}><strong>Discount Amount</strong></Col>
+                      <Col md={3}><strong>Total Amount</strong></Col>
                     </Row>
-                  ))}
-                </>
-              )}
+
+                    {installments.map((item, index) => (
+                      <Row key={index} className="mb-2 align-items-center">
+                        <Col md={2}><strong>{item.month}</strong></Col>
+                        <Col md={3}>
+                          <Form.Control type="text" value={item.actualFee} disabled />
+                        </Col>
+                        <Col md={3}>
+                          <Form.Control type="text" value={item.discountAmount || ""} disabled />
+                        </Col>
+                        <Col md={3}>
+                          <Form.Control type="text" value={item.totalAmount || ""} disabled />
+                        </Col>
+                      </Row>
+                    ))}
+                  </>
+                )}
+              </div>
 
 
 

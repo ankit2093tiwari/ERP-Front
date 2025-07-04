@@ -19,6 +19,7 @@ import axios from "axios";
 import Table from "@/app/component/DataTable";
 import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import { BASE_URL, getAllUsers } from "@/Services";
 
 const ExisitingUser = () => {
   const [data, setData] = useState([]);
@@ -41,8 +42,6 @@ const ExisitingUser = () => {
       // Add all other authority fields here
     }
   });
-
-  const baseURL = "https://erp-backend-fy3n.onrender.com/api";
 
   const columns = [
     {
@@ -100,8 +99,8 @@ const ExisitingUser = () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get(`${baseURL}/all-users`);
-      setData(response.data.data || []);
+      const response = await getAllUsers()
+      setData(response.data || []);
     } catch (err) {
       console.error("Error fetching data:", err);
       setError("Failed to fetch data. Please try again later.");
@@ -114,7 +113,7 @@ const ExisitingUser = () => {
     setEditingId(user._id);
     setFormData({
       username: user.username || "",
-      password: "", 
+      password: "",
       usertype: user.usertype || "",
       status: user.status || "",
       userfullname: user.userfullname || "",
@@ -140,7 +139,7 @@ const ExisitingUser = () => {
       if (formData.userimg) formDataObj.append("userimg", formData.userimg);
       formDataObj.append("authorities", JSON.stringify(formData.authorities));
 
-      await axios.put(`${baseURL}/update-user/${id}`, formDataObj);
+      await axios.put(`${BASE_URL}/api/update-user/${id}`, formDataObj);
       setSuccess("User updated successfully");
       setError("");
       fetchData();
@@ -170,7 +169,7 @@ const ExisitingUser = () => {
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this user?")) {
       try {
-        await axios.delete(`${baseURL}/delete-user/${id}`);
+        await axios.delete(`${BASE_URL}/api/delete-user/${id}`);
         setSuccess("User deleted successfully");
         setError("");
         fetchData();
@@ -199,7 +198,7 @@ const ExisitingUser = () => {
       if (userimg) formDataObj.append("userimg", userimg);
       formDataObj.append("authorities", JSON.stringify(formData.authorities));
 
-      const response = await axios.post(`${baseURL}/create-user`, formDataObj);
+      const response = await axios.post(`${BASE_URL}/api/create-user`, formDataObj);
       setSuccess("User added successfully");
       setError("");
       fetchData();
@@ -227,7 +226,7 @@ const ExisitingUser = () => {
 
   const handleChange = (e) => {
     const { name, value, files, type, checked } = e.target;
-    
+
     if (name.startsWith("authorities.")) {
       const field = name.split(".")[1];
       setFormData(prev => ({
@@ -259,7 +258,7 @@ const ExisitingUser = () => {
 
   const handleCopy = () => {
     const headers = ["#", "UserName", "Full Name", "User Type", "Status"];
-    const rows = data.map((row, index) => 
+    const rows = data.map((row, index) =>
       `${index + 1}\t${row.username || "N/A"}\t${row.userfullname || "N/A"}\t${row.usertype || "N/A"}\t${row.status || "N/A"}`
     );
     copyContent(headers, rows);
@@ -352,9 +351,9 @@ const ExisitingUser = () => {
                 <Row className="mb-3">
                   <Col lg={6}>
                     <FormLabel className="labelForm">User Type</FormLabel>
-                    <FormSelect 
-                      name="usertype" 
-                      value={formData.usertype} 
+                    <FormSelect
+                      name="usertype"
+                      value={formData.usertype}
                       onChange={handleChange}
                     >
                       <option value="">Select</option>
@@ -364,9 +363,9 @@ const ExisitingUser = () => {
                   </Col>
                   <Col lg={6}>
                     <FormLabel className="labelForm">Status</FormLabel>
-                    <FormSelect 
-                      name="status" 
-                      value={formData.status} 
+                    <FormSelect
+                      name="status"
+                      value={formData.status}
                       onChange={handleChange}
                     >
                       <option value="">Select</option>
@@ -387,14 +386,14 @@ const ExisitingUser = () => {
                   </Col>
                   <Col lg={6}>
                     <FormLabel className="labelForm">Upload User Image</FormLabel>
-                    <FormControl 
-                      type="file" 
-                      name="userimg" 
-                      onChange={handleChange} 
+                    <FormControl
+                      type="file"
+                      name="userimg"
+                      onChange={handleChange}
                     />
                   </Col>
                 </Row>
-                
+
                 {/* Authorities Section - you can expand this with all authority fields */}
                 <Row className="mb-3">
                   <Col lg={12}>
@@ -430,8 +429,8 @@ const ExisitingUser = () => {
                   {/* Add more authority checkboxes as needed */}
                 </Row>
 
-                <Button 
-                  onClick={editingId ? () => handleUpdate(editingId) : handleAdd} 
+                <Button
+                  onClick={editingId ? () => handleUpdate(editingId) : handleAdd}
                   className="btn btn-primary"
                 >
                   {editingId ? "Update User" : "Add User"}
@@ -442,10 +441,9 @@ const ExisitingUser = () => {
 
           <div className="tableSheet">
             <h2>Existing User Records</h2>
+            {error && (<p style={{ color: "red" }}>{error}</p>)}
             {loading ? (
               <p>Loading...</p>
-            ) : error ? (
-              <p style={{ color: "red" }}>{error}</p>
             ) : (
               <Table
                 columns={columns}

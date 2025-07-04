@@ -7,8 +7,10 @@ import { FaSave } from "react-icons/fa";
 import styles from "@/app/medical/routine-check-up/page.module.css";
 import { addNewFixedAmount, getAllInstallments, getClasses, getHeadsByInstallmentName, getSections, getStudentsByClassAndSection } from "@/Services";
 import { toast } from "react-toastify";
+import useSessionId from "@/hooks/useSessionId";
 
 const FixedAmount = () => {
+    const selectedSessionId = useSessionId()
     const [classList, setClassList] = useState([]);
     const [sectionList, setSectionList] = useState([]);
     const [installmentList, setInstallmentList] = useState([]);
@@ -18,24 +20,45 @@ const FixedAmount = () => {
     const [heads, setHeads] = useState([]);
     const [transDate, setTransDate] = useState(new Date().toISOString().split("T")[0]);
     const [loading, setLoading] = useState(false);
-    const [viewType, setViewType] = useState("installmentWise");
     const [students, setStudents] = useState([]);
     const [selectedStudent, setSelectedStudent] = useState("");
     const [errors, setErrors] = useState({});
 
     useEffect(() => {
-        fetchData();
-    }, []);
+        if (!selectedSessionId) return;
+
+        // Reset all dependent fields
+        setSelectedClass("");
+        setSelectedSection("");
+        setSelectedStudent("");
+        setSelectedInstallment("");
+        setSectionList([]);
+        setStudents([]);
+        setHeads([]);
+        setErrors({});
+
+        fetchData(); 
+    }, [selectedSessionId]);
+
 
     useEffect(() => {
-        const AllStudents = async () => {
-            if (selectedClass && selectedSection) {
+        if (!selectedClass || !selectedSection) {
+            setStudents([]);
+            return;
+        }
+
+        const fetchStudents = async () => {
+            try {
                 const response = await getStudentsByClassAndSection(selectedClass, selectedSection);
                 setStudents(response.data || []);
+            } catch (error) {
+                console.error("Failed to fetch students:", error);
             }
         };
-        AllStudents();
+
+        fetchStudents();
     }, [selectedClass, selectedSection]);
+
 
     const fetchData = async () => {
         try {
@@ -73,8 +96,13 @@ const FixedAmount = () => {
         setSelectedClass(val);
         setErrors(prev => ({ ...prev, selectedClass: "" }));
         setSelectedSection("");
-        fetchSections(val);
+        setSectionList([]);
+
+        if (val) {
+            fetchSections(val);
+        }
     };
+
 
     const handleInputChange = (index, field, value) => {
         setHeads((prevHeads) =>

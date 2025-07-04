@@ -12,8 +12,11 @@ import { copyContent, printContent } from "@/app/utils";
 import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
 import { deleteTransferCertificateById, generateTransferCertificate, getAllTCRecords, getLastTCNumber, getStudentByRegistrationId, updateTransferCertificateById } from '@/Services';
 import { toast } from 'react-toastify';
+import useSessionId from '@/hooks/useSessionId';
 
 const TransferCertificate = () => {
+  const selectedSessionId = useSessionId();
+
   const [studentData, setStudentData] = useState(null);
   const [studentId, setStudentId] = useState("");
   const [showPreview, setShowPreview] = useState(false);
@@ -119,7 +122,7 @@ const TransferCertificate = () => {
   useEffect(() => {
     fetchTcRecords();
     fetchLastTcNumber();
-  }, []);
+  }, [selectedSessionId]);
 
   const fetchLastTcNumber = async () => {
     try {
