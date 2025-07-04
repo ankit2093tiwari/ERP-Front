@@ -1,15 +1,12 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { Form, Row, Col, Container, FormLabel, Button, Breadcrumb, FormSelect } from "react-bootstrap";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
-
-import styles from "@/app/students/assign-roll-no/page.module.css";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { toast } from "react-toastify";
-import { getClasses, getSections } from "@/Services";
+import { getClasses, getSections, getStudentsByClassAndSection } from "@/Services";
 
 const MonthlyReport = () => {
   const [classList, setClassList] = useState([]);
@@ -51,14 +48,12 @@ const MonthlyReport = () => {
     }
     setLoading(true);
     try {
-      const response = await axios.get(
-        `https://erp-backend-fy3n.onrender.com/api/attendance?class_name=${selectedClass}&section_name=${selectedSection}&attendance_date=${attendanceDate}`
-      );
-      if (response.data.success) {
-        setAttendanceReports(response.data.data || []);
-        generatePDF(response.data.data); // Pass the fetched data to generatePDF
+      const response = await getStudentsByClassAndSection(selectedClass, selectedSection)
+      if (response.success) {
+        setAttendanceReports(response.data || []);
+        generatePDF(response.data); // Pass the fetched data to generatePDF
       } else {
-        toast.warn(response.data.message || "No attendance records found.");
+        toast.warn(response.message || "No attendance records found.");
       }
     } catch (error) {
       toast.error(error.response?.data.message || "Failed to fetch attendance reports. Please try again.");

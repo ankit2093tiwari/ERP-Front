@@ -15,8 +15,10 @@ import Table from "@/app/component/DataTable";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { BASE_URL, getClasses, getSections } from "@/Services";
 import { toast } from "react-toastify";
+import useSessionId from "@/hooks/useSessionId";
 
 const AttendanceReport = () => {
+  const selectedSessionId=useSessionId()
   const [classList, setClassList] = useState([]);
   const [sectionList, setSectionList] = useState([]);
   const [selectedClass, setSelectedClass] = useState("");
@@ -30,7 +32,7 @@ const AttendanceReport = () => {
     fetchClasses();
     const today = new Date().toISOString().split("T")[0];
     setAttendanceDate(today);
-  }, []);
+  }, [selectedSessionId]);
 
   useEffect(() => {
     if (selectedClass && selectedSection && attendanceDate) {

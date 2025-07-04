@@ -8,8 +8,10 @@ import { Container, Row, Col, Breadcrumb, Button, Table as BootstrapTable, FormG
 import { toast } from "react-toastify";
 import { FaSearch } from "react-icons/fa";
 import { addNewFeeEntry, deleteFeeEntryById, getAllPaymentMode, getClasses, getFeeGroupDataBySectionId, getFeeHistoryByStudentId, getFeeStructureByFeeGroupId, getFeeStructures, getSections, getStudentsByClassAndSection } from "@/Services";
+import useSessionId from "@/hooks/useSessionId";
 
 const FeeEntry = () => {
+  const selectedSessionId = useSessionId()
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
@@ -25,8 +27,11 @@ const FeeEntry = () => {
   const [paymentMode, setPaymentMode] = useState('')
   const [feeData, setFeeData] = useState([])
 
+
   useEffect(() => {
-    fetchClasses();
+    fetchClasses()
+  }, [selectedSessionId])
+  useEffect(() => {
     if (feeGroupId) {
       getStructureDataByGroupId()
       fetchPaymentModes()
