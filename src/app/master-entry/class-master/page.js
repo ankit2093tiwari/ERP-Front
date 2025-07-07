@@ -39,6 +39,7 @@ const ClassMasterPage = () => {
     },
     {
       name: "Class Name",
+      selector: (row) => row.class_name,
       cell: (row) => (
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
           <div>

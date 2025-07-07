@@ -893,7 +893,7 @@ const UpdatePage = () => {
                     <Row>
                       <Col>
                         <div className='buttons1'>
-                          <Button type="button" className='btn btn-primary mt-4'>Preview</Button>
+                          {/* <Button type="button" className='btn btn-primary mt-4'>Preview</Button> */}
                           <Button type="button" className="btn btn-primary mt-4" onClick={(e) => handleSubmit(e)}>Submit form</Button>
                         </div>
                       </Col>

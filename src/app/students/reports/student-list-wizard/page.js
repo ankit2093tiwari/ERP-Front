@@ -5,79 +5,58 @@ import axios from "axios";
 import { Form, Row, Col, Container, FormLabel, FormSelect, Button, Breadcrumb, Table, FormGroup, FormCheck } from "react-bootstrap";
 import * as XLSX from "xlsx";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import { BASE_URL, getCategories, getClasses, getReligions, getSections } from "@/Services";
+import { toast } from "react-toastify";
 
+//  Only these fields will be exported if defined in fieldPathMap below
 const Catalogues = [
-  { id: "01", name: "Adm.No." },
-  { id: "02", name: "Fee Id." },
-  { id: "03", name: "Parent ID" },
-  { id: "04", name: "Student Name" },
-  { id: "05", name: "Father Name" },
-  { id: "06", name: "Mother Name" },
-  { id: "07", name: "Class" },
-  { id: "08", name: "Section" },
-  { id: "09", name: "Student Roll No" },
-  { id: "10", name: "Fee Group" },
-  { id: "11", name: "Fee Apply. From" },
-  { id: "12", name: "Mobile No" },
-  { id: "13", name: "Date of Birth" },
-  { id: "14", name: "Admitted Class" },
-  { id: "15", name: "Gender" },
-  { id: "16", name: "Religion" },
-  { id: "17", name: "Cast" },
-  { id: "18", name: "Social Catogary." },
-  { id: "19", name: "House" },
-  { id: "20", name: "Date Of Admission" },
-  { id: "21", name: "Date of Join" },
-  { id: "22", name: "Mother Tongue" },
-  { id: "23", name: "Nationality" },
-  { id: "24", name: "Name of School Last Attended" },
-  { id: "25", name: "Reason for leaving the school" },
-  { id: "26", name: "Boarding Category" },
-  { id: "27", name: "Board" },
-  { id: "28", name: "Unique ID" },
-  { id: "29", name: "Residence Address" },
-  { id: "30", name: "City/ District" },
-  { id: "31", name: "State" },
-  { id: "32", name: "Country & Pin No" },
-  { id: "33", name: "Permanent Address" },
-  { id: "34", name: "City/ District" },
-  { id: "35", name: "State" },
-  { id: "36", name: "Country & Pin No" },
-  { id: "37", name: "Hobbies" },
-  { id: "38", name: "Health" },
-  { id: "39", name: "Blood Group" },
-  { id: "40", name: "Samagra ID." },
-  { id: "41", name: "Bank A/C No." },
-  { id: "42", name: "A/C Name" },
-  { id: "43", name: "Bank" },
-  { id: "44", name: "IFSC Code" },
-  { id: "45", name: "Aadhar Card No." },
-  { id: "46", name: "Language 1" },
-  { id: "47", name: "Language 2" },
-  { id: "48", name: "Language 3" },
-  { id: "49", name: "Parent Or Guardian Phone No" },
-  { id: "50", name: "Father Birth date" },
-  { id: "51", name: "Father Occupation" },
-  { id: "52", name: "Father Income" },
-  { id: "53", name: "Father Office Address" },
-  { id: "54", name: "Father Mobile No." },
-  { id: "55", name: "Father Aadhar" },
-  { id: "56", name: "Father Email" },
-  { id: "57", name: "Father Qualification" },
-  { id: "58", name: "Mother Birth date" },
-  { id: "59", name: "Mother Occupation" },
-  { id: "60", name: "Mother Income" },
-  { id: "61", name: "Mother Office Address" },
-  { id: "62", name: "Mother Mobile No." },
-  { id: "63", name: "Mother Aadhar" },
-  { id: "64", name: "Mother Email" },
-  { id: "65", name: "Userlogin" },
-  { id: "66", name: "Userpass" },
-  { id: "67", name: "Scholar No" },
-  { id: "68", name: "Fee Book No" },
-  { id: "69", name: "Guardian Name" },
-  { id: "70", name: "Guardian MobileNo" }
+  { id: "01", name: "Student Name" },
+  { id: "02", name: "First Name" },
+  { id: "03", name: "Last Name" },
+  { id: "04", name: "Father Name" },
+  { id: "05", name: "Mother Name" },
+  { id: "06", name: "Class" },
+  { id: "07", name: "Section" },
+  { id: "08", name: "Date of Birth" },
+  { id: "09", name: "Gender" },
+  { id: "10", name: "Religion" },
+  { id: "11", name: "Social Category" },
+  { id: "12", name: "Cast" },
+  { id: "13", name: "Fee Book No" },
+  { id: "14", name: "Aadhar Card No." },
+  { id: "15", name: "Mobile No" },
+  { id: "16", name: "Residence Address" },
+  { id: "17", name: "Date Of Admission" },
+  { id: "18", name: "Date of Joining" },
+  { id: "19", name: "Roll No" },
+  { id: "20", name: "Father Mobile No." },
+  { id: "21", name: "Gender" },
+  { id: "22", name: "Registration No." }
 ];
+
+const fieldPathMap = {
+  "Student Name": (s) => `${s.first_name || ""} ${s.last_name || ""}`.trim(),
+  "First Name": (s) => s.first_name || "",
+  "Last Name": (s) => s.last_name || "",
+  "Father Name": (s) => s.father_name || "",
+  "Mother Name": (s) => s.mother_name || "",
+  "Class": (s) => s.class_name?.class_name || "",
+  "Section": (s) => s.section_name?.section_name || "",
+  "Date of Birth": (s) => s.date_of_birth?.split("T")[0] || "",
+  "Religion": (s) => s.religion_name?.religion_name || "",
+  "Social Category": (s) => s.category_name?.category_name || "",
+  "Cast": (s) => s.caste_name?.caste_name || "",
+  "Fee Book No": (s) => s.fee_book_no || "",
+  "Aadhar Card No.": (s) => s.aadhar_card_no || "",
+  "Mobile No": (s) => s.phone_no || "",
+  "Residence Address": (s) => s.residence_address || "",
+  "Date Of Admission": (s) => s.date_of_admission?.split("T")[0] || "",
+  "Date of Joining": (s) => s.date_of_joining?.split("T")[0] || "",
+  "Roll No": (s) => s.roll_no || "",
+  "Father Mobile No.": (s) => s.father_mobile_no || "",
+  "Gender": (s) => s.gender_name || "",
+  "Registration No.": (s) => s.registration_id || ""
+};
 
 const StudentListWizard = () => {
   const [student, setStudent] = useState({ class_name: "", section_name: "", category_name: "", religion_name: "" });
@@ -87,12 +66,9 @@ const StudentListWizard = () => {
   const [categoryList, setCategoryList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [responseMessage, setResponseMessage] = useState("");
-  const [errors, setErrors] = useState({});
   const [isCheckAll, setIsCheckAll] = useState(false);
   const [isCheck, setIsCheck] = useState([]);
   const [list] = useState(Catalogues);
-
-
 
   useEffect(() => {
     fetchClasses();
@@ -101,41 +77,23 @@ const StudentListWizard = () => {
   }, []);
 
   const fetchClasses = async () => {
-    try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_SITE_URL}/api/all-classes`);
-      setClassList(response.data?.data || []);
-    } catch {
-      console.error("Failed to fetch classes.");
-    }
+    const res = await getClasses();
+    setClassList(res?.data || []);
   };
 
   const fetchSections = async (classId) => {
-    try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_SITE_URL}/api/sections/class/${classId}`);
-      setSectionList(response.data?.data || []);
-    } catch {
-      console.error("Failed to fetch sections.");
-    }
+    const res = await getSections(classId);
+    setSectionList(res?.data || []);
   };
 
   const fetchReligion = async () => {
-    try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_SITE_URL}/api/religions`);
-      const resp = response.data;
-      setReligionList(resp.data || []);
-    } catch (err) {
-      setError("Failed to fetch religions.");
-    }
+    const res = await getReligions();
+    setReligionList(res?.data || []);
   };
 
   const fetchCategory = async () => {
-    try {
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_SITE_URL}/api/categories`);
-      const resp = response.data;
-      setCategoryList(resp.data || []);
-    } catch (err) {
-      setError("Failed to fetch Categories.");
-    }
+    const res = await getCategories();
+    setCategoryList(res?.data || []);
   };
 
   const handleClassChange = (e) => {
@@ -151,21 +109,20 @@ const StudentListWizard = () => {
 
   const handleSelectAll = () => {
     setIsCheckAll(!isCheckAll);
-    setIsCheck(isCheckAll ? [] : list.map(li => li.id));
+    setIsCheck(isCheckAll ? [] : list.map((li) => li.id));
   };
 
   const handleClick = (e) => {
     const { id, checked } = e.target;
-    setIsCheck(prevState =>
-      checked ? [...prevState, id] : prevState.filter(item => item !== id)
+    setIsCheck((prev) =>
+      checked ? [...prev, id] : prev.filter((item) => item !== id)
     );
   };
 
   const handleDownload = async () => {
     setLoading(true);
     try {
-      // Fetch filtered data based on the selected criteria
-      const response = await axios.get(`${process.env.NEXT_PUBLIC_SITE_URL}/api/students/search`, {
+      const response = await axios.get(`${BASE_URL}/api/students/search`, {
         params: {
           class_name: student.class_name,
           section_name: student.section_name,
@@ -175,32 +132,38 @@ const StudentListWizard = () => {
 
       const filteredData = response.data?.data || [];
 
-      // Prepare the data for the Excel sheet
-      const selectedColumns = list.filter(item => isCheck.includes(item.id)).map(item => item.name);
-      const excelData = filteredData.map(student => {
+      const selectedColumns = list
+        .filter((item) => isCheck.includes(item.id) && fieldPathMap[item.name])
+        .map((item) => item.name);
+
+      const excelData = filteredData.map((s) => {
         const row = {};
-        selectedColumns.forEach(column => {
-          row[column] = student[column.toLowerCase().replace(/ /g, '_')] || '';
+        selectedColumns.forEach((col) => {
+          const getter = fieldPathMap[col];
+          row[col] = getter ? getter(s) : "";
         });
         return row;
       });
 
-      // Generate Excel sheet
       const ws = XLSX.utils.json_to_sheet(excelData);
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, "Students");
       XLSX.writeFile(wb, "filtered_students.xlsx");
 
-      setResponseMessage("Download successful!");
-    } catch (error) {
-      console.error("Failed to download data:", error);
-      setResponseMessage("Failed to download data.");
+      toast.success("Download successful!");
+    } catch (err) {
+      console.error("Download error", err);
+      toast.error("Failed to download data.");
     } finally {
       setLoading(false);
     }
   };
 
-  const breadcrumbItems = [{ label: "students", link: "/students/reports/all-reports" }, { label: "student-list-wizard", link: "null" }]
+
+  const breadcrumbItems = [
+    { label: "students", link: "/students/reports/all-reports" },
+    { label: "student-list-wizard", link: "null" },
+  ];
 
   return (
     <>
@@ -222,152 +185,86 @@ const StudentListWizard = () => {
             <Form className="formSheet">
               <Row>
                 <Form.Group as={Col} md="6">
-                  <FormLabel className="labelForm">Class</FormLabel>
+                  <FormLabel>Class</FormLabel>
                   <FormSelect value={student.class_name} onChange={handleClassChange}>
                     <option value="">Select Class</option>
-                    {classList.map((item) => (
-                      <option key={item._id} value={item._id}>{item.class_name}</option>
+                    {classList.map((cls) => (
+                      <option key={cls._id} value={cls._id}>{cls.class_name}</option>
                     ))}
                   </FormSelect>
                 </Form.Group>
                 <Form.Group as={Col} md="6">
-                  <FormLabel className="labelForm">Section</FormLabel>
+                  <FormLabel>Section</FormLabel>
                   <FormSelect value={student.section_name} onChange={(e) => setStudent({ ...student, section_name: e.target.value })}>
                     <option value="">Select Section</option>
-                    {sectionList.map((item) => (
-                      <option key={item._id} value={item._id}>{item.section_name}</option>
+                    {sectionList.map((sec) => (
+                      <option key={sec._id} value={sec._id}>{sec.section_name}</option>
                     ))}
                   </FormSelect>
                 </Form.Group>
               </Row>
-              <Row>
+
+              <Row className="mt-2">
                 <FormGroup as={Col} md="6">
-                  <FormLabel className="labelForm">Select Social Category</FormLabel>
-                  <FormSelect
-                    value={student?.category_name}
-                    onChange={handleChange}
-                    name="category_name"
-                  >
+                  <FormLabel>Social Category</FormLabel>
+                  <FormSelect name="category_name" value={student.category_name} onChange={handleChange}>
                     <option value="">Select Category</option>
-                    {categoryList?.map((categoryItem) => (
-                      <option key={categoryItem?._id} value={categoryItem?._id}>
-                        {categoryItem?.category_name}
-                      </option>
+                    {categoryList.map((cat) => (
+                      <option key={cat._id} value={cat._id}>{cat.category_name}</option>
                     ))}
                   </FormSelect>
                 </FormGroup>
-                <Form.Group as={Col} md="6">
-                  <FormLabel className="labelForm">Select Religion</FormLabel>
-                  <FormSelect
-                    value={student?.religion_name}
-                    onChange={handleChange}
-                    name="religion_name"
-                  >
+                <FormGroup as={Col} md="6">
+                  <FormLabel>Religion</FormLabel>
+                  <FormSelect name="religion_name" value={student.religion_name} onChange={handleChange}>
                     <option value="">Select Religion</option>
-                    {religionList?.map((religionItem) => (
-                      <option key={religionItem?._id} value={religionItem?._id}>
-                        {religionItem?.religion_name}
-                      </option>
+                    {religionList.map((rel) => (
+                      <option key={rel._id} value={rel._id}>{rel.religion_name}</option>
                     ))}
                   </FormSelect>
-                </Form.Group>
+                </FormGroup>
               </Row>
-              <Row>
-                <Form.Group as={Col} md="6">
-                  <FormLabel className="labelForm">Select Active/Inactive Status</FormLabel>
-                  <FormSelect name="class_name" >
-                    <option value="">Active</option>
-                    <option value="">Inactive</option>
 
-                  </FormSelect>
-                </Form.Group>
-                <Form.Group as={Col} md="6">
-                  <FormLabel className="labelForm">  Select Student Type</FormLabel>
-                  <FormSelect name="class_name" >
-                    <option value="">All</option>
-                    <option value="">Day Scholar</option>
-                    <option value="">PG</option>
-                    <option value="">BUS</option>
-                    <option value="">Hostle</option>
-
-                  </FormSelect>
-                </Form.Group>
-              </Row>
-              <Row>
-                <Form.Group as={Col} md="6">
-                  <FormLabel className="labelForm">Select OrderBy</FormLabel>
-                  <FormSelect name="class_name" >
-                    <option value="">First Name</option>
-                    <option value="">RollNO</option>
-                    <option value="">Section</option>
-
-                  </FormSelect>
-                </Form.Group>
-                <Form.Group as={Col} md="6">
-                  <FormLabel className="labelForm">Select Student Gender</FormLabel>
-                  <FormSelect name="class_name" >
-                    <option value="">All</option>
-                    <option value="">Boy</option>
-                    <option value="">Girl</option>
-
-                  </FormSelect>
-                </Form.Group>
-              </Row>
-              <Row>
-                <Form.Group as={Col} md="6">
-                  <FormLabel className="labelForm">Select TC Submitted</FormLabel>
-                  <FormSelect name="class_name" >
-                    <option value="">Both</option>
-                    <option value="">Yes</option>
-                    <option value="">No</option>
-
-                  </FormSelect>
-                </Form.Group>
-                <Form.Group as={Col} md="6">
-                  <FormLabel className="labelForm">Cast</FormLabel>
-                  <FormSelect name="class_name" >
-                    <option value="">Select</option>
-                  </FormSelect>
-                </Form.Group>
-              </Row>
-              <Button className="mt-4" onClick={handleDownload} disabled={loading}>
+              <Button
+                className="mt-4"
+                onClick={handleDownload}
+                disabled={
+                  loading ||
+                  isCheck.length === 0
+                }
+              >
                 {loading ? "Downloading..." : "Download"}
               </Button>
-              {responseMessage && <p className="mt-3">{responseMessage}</p>}
+
             </Form>
 
             <div className="p-2">
-              <FormGroup>
-                <FormCheck
-                  type="checkbox"
-                  label="Select All"
-                  id="selectAll"
-                  onChange={handleSelectAll}
-                  checked={isCheckAll}
-                />
-              </FormGroup>
+              <FormCheck
+                type="checkbox"
+                label="Select All"
+                id="selectAll"
+                onChange={handleSelectAll}
+                checked={isCheckAll}
+              />
             </div>
+
             <Table bordered className="TableWizard">
               <tbody>
                 {list.reduce((rows, { id, name }, index) => {
                   if (index % 4 === 0) rows.push([]);
                   rows[rows.length - 1].push(
-                    <td key={id} width="25%">
-                      <FormGroup>
-                        <FormCheck
-                          type="checkbox"
-                          label={name}
-                          id={id}
-                          onChange={handleClick}
-                          checked={isCheck.includes(id)}
-                        />
-                      </FormGroup>
+                    <td key={id}>
+                      <FormCheck
+                        type="checkbox"
+                        label={name}
+                        id={id}
+                        onChange={handleClick}
+                        checked={isCheck.includes(id)}
+                      />
                     </td>
                   );
                   return rows;
-                }, []).map((row, i) => (
-                  <tr key={i}>{row}</tr>
-                ))}
+                }, []).map((row, idx) => <tr key={idx}>{row}</tr>)}
               </tbody>
             </Table>
           </div>

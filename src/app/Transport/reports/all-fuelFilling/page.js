@@ -2,14 +2,12 @@
 import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import Table from '@/app/component/DataTable';
-import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import { Container, Row, Col, Breadcrumb, Button } from 'react-bootstrap';
-import { CgAddR } from 'react-icons/cg';
 import BreadcrumbComp from "@/app/component/Breadcrumb";
-import axios from 'axios';
+import { getAllFuelFillings } from '@/Services';
+import { copyContent, printContent } from '@/app/utils';
 
 const FuelFilling = () => {
-  const API_BASE_URL = "https://erp-backend-fy3n.onrender.com/api";
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -31,25 +29,25 @@ const FuelFilling = () => {
       sortable: true,
     },
     {
-        name: 'AmountPerLiter',
-        selector: row => row.Amount_per_Liter,
-        sortable: true,
-      },
-      {
-        name: 'Quantity Of Diseal/Petrol/CNG',
-        selector: row => row.Quantity_of_diesel,
-        sortable: true,
-      },
-      {
-        name: 'Previous Reading',
-        selector: row => row.PreviousReading,
-        sortable: true,
-      },
-      {
-        name: 'New Reading',
-        selector: row => row.NewReading,
-        sortable: true,
-      },
+      name: 'AmountPerLiter',
+      selector: row => row.Amount_per_Liter,
+      sortable: true,
+    },
+    {
+      name: 'Quantity Of Diseal/Petrol/CNG',
+      selector: row => row.Quantity_of_diesel,
+      sortable: true,
+    },
+    {
+      name: 'Previous Reading',
+      selector: row => row.PreviousReading,
+      sortable: true,
+    },
+    {
+      name: 'New Reading',
+      selector: row => row.NewReading,
+      sortable: true,
+    },
     {
       name: 'Petrol Pump',
       selector: row => row.Filled_Station,
@@ -65,8 +63,8 @@ const FuelFilling = () => {
   const fetchFuelFillings = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${API_BASE_URL}/all-fuel-fillings`);
-      setData(response.data.data);
+      const response = await getAllFuelFillings()
+      setData(response.data);
     } catch (err) {
       console.error("Error fetching fuel fillings:", err);
       setError(err.response?.data?.message || "Failed to fetch fuel fillings");
@@ -75,29 +73,60 @@ const FuelFilling = () => {
     }
   };
 
-  const handleEdit = (id) => {
-    // Implement edit functionality if needed
-    console.log("Edit fuel filling with id:", id);
-  };
-
-  const handleDelete = async (id) => {
-    if (confirm("Are you sure you want to delete this fuel filling record?")) {
-      try {
-        await axios.delete(`${API_BASE_URL}/delete-fuel-fillings/${id}`);
-        setData(data.filter(item => item._id !== id));
-      } catch (err) {
-        console.error("Error deleting fuel filling:", err);
-        setError(err.response?.data?.message || "Failed to delete fuel filling");
-      }
-    }
-  };
-
   useEffect(() => {
     fetchFuelFillings();
   }, []);
 
+  const handlePrint = () => {
+    const headers = [[
+      "#",
+      "Date",
+      "Vehicle No",
+      "Amount Per Liter",
+      "Quantity",
+      "Previous Reading",
+      "New Reading",
+      "Petrol Pump",
+      "Total Amount"
+    ]];
+
+    const rows = data.map((row, index) => [
+      index + 1,
+      new Date(row.date).toLocaleDateString(),
+      row.Vehicle_No || "N/A",
+      row.Amount_per_Liter || 0,
+      row.Quantity_of_diesel || 0,
+      row.PreviousReading || 0,
+      row.NewReading || 0,
+      row.Filled_Station || "N/A",
+      (row.Quantity_of_diesel * row.Amount_per_Liter).toFixed(2) || 0
+    ]);
+
+    printContent(headers, rows);
+  };
+  const handleCopy = () => {
+    const headers = [
+      "#",
+      "Date",
+      "Vehicle No",
+      "Amount Per Liter",
+      "Quantity",
+      "Previous Reading",
+      "New Reading",
+      "Petrol Pump",
+      "Total Amount"
+    ];
+
+    const rows = data.map((row, index) =>
+      `${index + 1}\t${new Date(row.date).toLocaleDateString()}\t${row.Vehicle_No || "N/A"}\t${row.Amount_per_Liter || 0}\t${row.Quantity_of_diesel || 0}\t${row.PreviousReading || 0}\t${row.NewReading || 0}\t${row.Filled_Station || "N/A"}\t${(row.Quantity_of_diesel * row.Amount_per_Liter).toFixed(2) || 0}`
+    );
+
+    copyContent(headers, rows);
+  };
+
+
   const breadcrumbItems = [
-    { label: "Transport", link: "/Transport/all-module" }, 
+    { label: "Transport", link: "/Transport/all-module" },
     { label: "Fuel Filling", link: "null" }
   ];
 
@@ -112,7 +141,7 @@ const FuelFilling = () => {
           </Row>
         </Container>
       </div>
-      
+
       <section>
         <Container>
           <Row>
@@ -121,15 +150,18 @@ const FuelFilling = () => {
                 <div className="d-flex justify-content-between align-items-center mb-3">
                   <h2>Fuel Filling Records</h2>
                 </div>
-                
+                {
+                  error && (<p className='text-danger'>{error}</p>)
+                }
+
                 {loading ? (
                   <p>Loading...</p>
-                ) : error ? (
-                  <p style={{ color: "red" }}>{error}</p>
                 ) : data.length > 0 ? (
-                  <Table 
-                    columns={columns} 
+                  <Table
+                    columns={columns}
                     data={data}
+                    handleCopy={handleCopy}
+                    handlePrint={handlePrint}
                     responsive
                     highlightOnHover
                     pagination

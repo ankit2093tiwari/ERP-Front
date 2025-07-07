@@ -14,7 +14,7 @@ export default function LoginPage({ onLogin }) {
   const [username, setUSERNAME] = useState("");
   const [password, setPassword] = useState("");
   const [sessions, setSessions] = useState([]);
-  const [sessionId, setSessionId] = useState("");
+  // const [sessionId, setSessionId] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -64,19 +64,19 @@ export default function LoginPage({ onLogin }) {
     };
   }, [isListening]);
 
-  useEffect(() => {
-    const fetchSessions = async () => {
-      const response = await axios.get(`${BASE_URL}/api/all-session`);
-      const sessionData = response?.data?.data || [];
-      setSessions(sessionData);
+  // useEffect(() => {
+  //   const fetchSessions = async () => {
+  //     const response = await axios.get(`${BASE_URL}/api/all-session`);
+  //     const sessionData = response?.data?.data || [];
+  //     setSessions(sessionData);
 
-      if (sessionData.length > 0) {
-        setSessionId(sessionData[0]._id);
-      }
-    };
+  //     if (sessionData.length > 0) {
+  //       setSessionId(sessionData[0]._id);   //by default selected recent/current sesssion
+  //     }
+  //   };
 
-    fetchSessions();
-  }, []);
+  //   fetchSessions();
+  // }, []);
 
 
   // Handle login
@@ -85,29 +85,28 @@ export default function LoginPage({ onLogin }) {
     setError("");
     setIsLoading(true);
 
-    if (!username || !password || !sessionId) {
-      setError("username Password and Session are required");
+    if (!username || !password) {
+      setError("Username and Password are required");
       setIsLoading(false);
       return;
     }
 
     try {
-      const response = await fetch(`${BASE_URL}/api/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, password, sessionId }),
+      const res = await axios.post(`${BASE_URL}/api/login`, {
+        username,
+        password,
       });
 
-      const data = await response.json();
+      const data = res.data;
       if (data.success) {
         onLogin && onLogin(data.token, rememberMe);
         router.push("/");
       } else {
         setError(data.message || "Invalid credentials");
       }
-    } catch (error) {
-      setError("Something went wrong. Please try again.");
-      console.error("Login error:", error);
+    } catch (err) {
+      console.error("Login error:", err);
+      setError(err.response?.data?.message || "Something went wrong. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -147,7 +146,7 @@ export default function LoginPage({ onLogin }) {
               required
             />
           </div>
-          <div className="formGroup">
+          {/* <div className="formGroup">
             <label htmlFor="">Session<span className="text-danger">*</span></label>
             <select value={sessionId} onChange={(e) => setSessionId(e.target.value)}>
               {
@@ -156,7 +155,7 @@ export default function LoginPage({ onLogin }) {
                 ))
               }
             </select>
-          </div>
+          </div> */}
           <div className="rememberMe">
             <input
               id="rememberMe"

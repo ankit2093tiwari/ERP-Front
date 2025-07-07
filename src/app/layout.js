@@ -56,10 +56,13 @@ export default function RootLayout({ children }) {
     router.replace("/");
   };
 
+  const removeAuthLocalStorage = () => {
+      localStorage.removeItem("authToken");
+      sessionStorage.removeItem("authToken");
+      localStorage.removeItem("selectedSessionId"); 
+  }
   const handleLogout = () => {
-    localStorage.removeItem("selectedSessionId");
-    localStorage.removeItem("authToken");
-    sessionStorage.removeItem("authToken");
+    removeAuthLocalStorage()
     setIsAuthenticated(false);
     router.replace("/login");
   };

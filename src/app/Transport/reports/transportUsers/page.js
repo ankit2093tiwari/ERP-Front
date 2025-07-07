@@ -2,19 +2,14 @@
 import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import Table from '@/app/component/DataTable';
-import { Container, Row, Col, Breadcrumb, Form, FormLabel, FormGroup, FormSelect, Button } from 'react-bootstrap';
+import { Container, Row, Col } from 'react-bootstrap';
 import BreadcrumbComp from "@/app/component/Breadcrumb";
-import axios from 'axios';
+import { getAllStudentVehicles } from '@/Services';
+import { copyContent, printContent } from '@/app/utils';
 
 const StudentVehicle = () => {
-  const API_BASE_URL = "https://erp-backend-fy3n.onrender.com/api";
   const [data, setData] = useState([]);
-  const [students, setStudents] = useState([]);
-  const [routes, setRoutes] = useState([]);
-  const [pickupPoints, setPickupPoints] = useState([]);
-  const [formData, setFormData] = useState({ student: '', vehicle_route: '', pickUpPoint: '' });
   const [error, setError] = useState("");
-  const [showAddForm, setShowAddForm] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const columns = [
@@ -41,29 +36,12 @@ const StudentVehicle = () => {
     }
   ];
 
-  const fetchDropdownData = async () => {
-    try {
-      const [studentsRes, routesRes, pickupPointsRes] = await Promise.all([
-        axios.get(`${API_BASE_URL}/students/search`),
-        axios.get(`${API_BASE_URL}/routes`),
-        axios.get(`${API_BASE_URL}/pickup-points`)
-      ]);
-      setStudents(studentsRes.data.data);
-      setRoutes(routesRes.data.data);
-      setPickupPoints(pickupPointsRes.data.data);
-    } catch (err) {
-      console.error("Error fetching dropdown data:", err);
-      setError("Failed to fetch dropdown data");
-    }
-  };
-
   const fetchStudentVehicles = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${API_BASE_URL}/all-studentVehicle`);
-      const rawData = response.data.data;
+      const response = await getAllStudentVehicles();
+      const rawData = response.data;
 
-      // Grouping students by vehicle_no
       const grouped = rawData.reduce((acc, curr) => {
         const vehicle_no = curr.vehicle_route?.Vehicle_No || "Unknown";
         const studentName = curr.student ? `${curr.student.first_name} ${curr.student.last_name}` : "N/A";
@@ -87,34 +65,27 @@ const StudentVehicle = () => {
     }
   };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      if (!formData.student || !formData.vehicle_route || !formData.pickUpPoint) {
-        throw new Error("Please fill all required fields");
-      }
-
-      await axios.post(`${API_BASE_URL}/assign-studentVehicle`, formData);
-
-      setFormData({ student: '', vehicle_route: '', pickUpPoint: '' });
-      setShowAddForm(false);
-      fetchStudentVehicles();
-      setError("");
-    } catch (err) {
-      console.error("Error creating assignment:", err);
-      setError(err.response?.data?.message || err.message || "Failed to assign transport");
-    }
-  };
-
   useEffect(() => {
-    fetchDropdownData();
     fetchStudentVehicles();
   }, []);
+
+  const handlePrint = () => {
+    const headers = [["#", "Vehicle No", "Student Names"]];
+    const rows = data.map((row, index) => [
+      index + 1,
+      row.vehicle_no,
+      row.students.join(", ")
+    ]);
+    printContent(headers, rows);
+  };
+
+  const handleCopy = () => {
+    const headers = ["#", "Vehicle No", "Student Names"];
+    const rows = data.map((row, index) =>
+      `${index + 1}\t${row.vehicle_no}\t${row.students.join(", ")}`
+    );
+    copyContent(headers, rows);
+  };
 
   const breadcrumbItems = [
     { label: "Transport", link: "/Transport/all-module" },
@@ -137,67 +108,19 @@ const StudentVehicle = () => {
         <Container>
           <Row>
             <Col>
-              {error && <div className="alert alert-danger mt-3">{error}</div>}
-
-              {showAddForm && (
-                <div className="cover-sheet">
-                  <div className="studentHeading">
-                    <h2>Add Student Transport Assignment</h2>
-                    <button className='closeForm' onClick={() => setShowAddForm(false)}>X</button>
-                  </div>
-                  <Form onSubmit={handleSubmit} className='formSheet'>
-                    <Row className="mb-3">
-                      <FormGroup as={Col} lg="6">
-                        <FormLabel>Student*</FormLabel>
-                        <FormSelect name="student" value={formData.student} onChange={handleChange} required>
-                          <option value="">Select Student</option>
-                          {students.map(student => (
-                            <option key={student._id} value={student._id}>
-                              {student.first_name} {student.last_name} ({student.adm_no})
-                            </option>
-                          ))}
-                        </FormSelect>
-                      </FormGroup>
-                      <FormGroup as={Col} lg="6">
-                        <FormLabel>Route*</FormLabel>
-                        <FormSelect name="vehicle_route" value={formData.vehicle_route} onChange={handleChange} required>
-                          <option value="">Select Route</option>
-                          {routes.map(route => (
-                            <option key={route._id} value={route._id}>
-                              {route.Route_name} ({route.Vehicle_No})
-                            </option>
-                          ))}
-                        </FormSelect>
-                      </FormGroup>
-                    </Row>
-                    <Row className="mb-3">
-                      <FormGroup as={Col} lg="12">
-                        <FormLabel>Pickup Point*</FormLabel>
-                        <FormSelect name="pickUpPoint" value={formData.pickUpPoint} onChange={handleChange} required>
-                          <option value="">Select Pickup Point</option>
-                          {pickupPoints.map(point => (
-                            <option key={point._id} value={point._id}>{point.PickupPoint}</option>
-                          ))}
-                        </FormSelect>
-                      </FormGroup>
-                    </Row>
-                    <Button type="submit" className='btn btn-primary mt-4'>Submit</Button>
-                  </Form>
-                </div>
-              )}
-            </Col>
-          </Row>
-
-          <Row>
-            <Col>
               <div className="tableSheet">
-                 <h2>Transport User</h2>
+                <h2>Transport User</h2>
+                {error && <p style={{ color: "red" }}>{error}</p>}
+
                 {loading ? (
                   <p>Loading...</p>
-                ) : error ? (
-                  <p style={{ color: "red" }}>{error}</p>
                 ) : data.length > 0 ? (
-                  <Table columns={columns} data={data} />
+                  <Table
+                    columns={columns}
+                    data={data}
+                    handleCopy={handleCopy}
+                    handlePrint={handlePrint}
+                  />
                 ) : (
                   <p>No student transport assignments available</p>
                 )}

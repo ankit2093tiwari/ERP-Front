@@ -2,8 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { FaTrashAlt } from "react-icons/fa";
-import { CgAddR } from "react-icons/cg";
 import {
   Container,
   Row,
@@ -11,17 +9,15 @@ import {
   Button,
   Alert,
 } from "react-bootstrap";
-import axios from "axios";
 import Table from "@/app/component/DataTable";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { copyContent, printContent } from "@/app/utils";
+import { getAllVendors } from "@/Services";
 
 const VendorMaster = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-
   const columns = [
     {
       name: "#",
@@ -59,14 +55,14 @@ const VendorMaster = () => {
       )
     }
   ];
-  
+
 
   const fetchData = async () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/vendors");
-      setData(response.data.data || []);
+      const response = await getAllVendors()
+      setData(response.data || []);
     } catch (err) {
       console.error("Error fetching data:", err);
       setError("Failed to fetch vendors. Please try again later.");
@@ -75,17 +71,6 @@ const VendorMaster = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (confirm("Are you sure you want to delete this vendor?")) {
-      try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/vendor/${id}`);
-        fetchData();
-      } catch (error) {
-        console.error("Error deleting data:", error);
-        setError("Failed to delete vendor. Please try again later.");
-      }
-    }
-  };
 
   const handlePrint = () => {
     const tableHeaders = [["#", "Organization", "Type", "Address", "Contact Person", "Phone", "Email"]];
@@ -138,8 +123,6 @@ const VendorMaster = () => {
             <h2>Vendor Records</h2>
             {loading ? (
               <p>Loading...</p>
-            ) : error ? (
-              <p style={{ color: "red" }}>{error}</p>
             ) : (
               <Table
                 columns={columns}

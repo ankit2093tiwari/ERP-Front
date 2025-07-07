@@ -18,6 +18,7 @@ import axios from "axios";
 import Table from "@/app/component/DataTable";
 import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import { BASE_URL, getAllUsers } from "@/Services";
 
 const AddUser = () => {
   const [data, setData] = useState([]);
@@ -75,8 +76,6 @@ const AddUser = () => {
     authorities: initialAuthorities,
   });
 
-  const baseURL = "https://erp-backend-fy3n.onrender.com/api";
-
   const columns = [
     {
       name: "#",
@@ -129,8 +128,8 @@ const AddUser = () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get(`${baseURL}/all-users`);
-      setData(response.data.data || []);
+      const response = await getAllUsers()
+      setData(response.data || []);
     } catch (err) {
       console.error("Error fetching data:", err);
       setError("Failed to fetch data. Please try again later.");
@@ -164,7 +163,7 @@ const AddUser = () => {
       if (formData.userimg) formDataObj.append("userimg", formData.userimg);
       formDataObj.append("authorities", JSON.stringify(formData.authorities));
 
-      await axios.put(`${baseURL}/update-user/${id}`, formDataObj);
+      await axios.put(`${BASE_URL}/api/update-user/${id}`, formDataObj);
       setSuccess("User updated successfully");
       setError("");
       fetchData();
@@ -180,7 +179,7 @@ const AddUser = () => {
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this user?")) {
       try {
-        await axios.delete(`${baseURL}/delete-user/${id}`);
+        await axios.delete(`${BASE_URL}/api/delete-user/${id}`);
         setSuccess("User deleted successfully");
         setError("");
         fetchData();
@@ -209,7 +208,7 @@ const AddUser = () => {
       if (userimg) formDataObj.append("userimg", userimg);
       formDataObj.append("authorities", JSON.stringify(formData.authorities));
 
-      await axios.post(`${baseURL}/create-user`, formDataObj);
+      await axios.post(`${BASE_URL}/api/create-user`, formDataObj);
       setSuccess("User added successfully");
       setError("");
       fetchData();
@@ -377,8 +376,8 @@ const AddUser = () => {
 
                 <Row className="mb-3">
                   <Col lg={12} className="d-flex">
-                    <Button 
-                      onClick={editingId ? () => handleUpdate(editingId) : handleAdd} 
+                    <Button
+                      onClick={editingId ? () => handleUpdate(editingId) : handleAdd}
                       className="btn btn-primary"
                     >
                       {editingId ? "Update User" : "Add User"}

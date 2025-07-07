@@ -114,96 +114,123 @@ const GenerateIdCard = () => {
     );
   };
 
+  const toBase64 = async (url) => {
+    const res = await fetch(url);
+    const blob = await res.blob();
+    return await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  };
+
   const generatePDFBuffer = async () => {
     const schoolResponse = await axios.get(`${BASE_URL}/api/schools/all`);
     const schoolData = schoolResponse.data.data || [];
-    const schoolName = schoolData[0]?.school_name || "R.D.S. MEMORIAL PUBLIC SCHOOL (English Medium)";
+    const schoolName = schoolData[0]?.school_name || "R.D.S. MEMORIAL PUBLIC SCHOOL";
+    const schoolSub = schoolName.includes("(") ? `(${schoolName.split("(")[1]}` : "English Medium";
+    const schoolPhone = schoolData[0]?.phone_no || "9876543210";
+    const schoolCity = schoolData[0]?.city || "Lucknow";
+
+    //  Convert principal signature to Base64
+    const principalSignBase64 = await toBase64("/principal_sign.png");
 
     const pdf = new jsPDF({
-      orientation: "portrait",
+      orientation: "landscape",
       unit: "mm",
-      format: [90, 90],
+      format: [90, 65],
     });
 
-    selectedStudents.forEach((studentId, index) => {
+    for (let index = 0; index < selectedStudents.length; index++) {
+      const studentId = selectedStudents[index];
       const student = students.find((s) => s._id === studentId);
-      if (student) {
-        if (index !== 0) pdf.addPage();
+      if (!student) continue;
+      if (index !== 0) pdf.addPage();
 
-        const marginX = 8;
-        const marginY = 8;
-        const cardWidth = 90 - 2 * marginX;
-        const contentPadding = 3;
-        const centerX = marginX + cardWidth / 2;
+      const marginX = 6;
+      const cardWidth = 90 - marginX * 2;
+      const centerX = marginX + cardWidth / 2;
 
-        pdf.setDrawColor(0);
-        pdf.rect(marginX, marginY, cardWidth, 90 - 2 * marginY);
+      // Border
+      pdf.setDrawColor(0);
+      pdf.rect(marginX, marginX, cardWidth, 60 - marginX * 2);
 
-        pdf.setFontSize(10);
-        pdf.setFont("helvetica", "bold");
-        const schoolNameParts = schoolName.split("(");
-        pdf.text(schoolNameParts[0].trim(), centerX, marginY + contentPadding + 4, { align: "center" });
-        if (schoolNameParts[1]) {
-          pdf.text(`(${schoolNameParts[1].trim()}`, centerX, marginY + contentPadding + 9, { align: "center" });
+      // Header
+      pdf.setFont("helvetica", "bold");
+      pdf.setFontSize(9);
+      pdf.text(schoolName.split("(")[0].trim(), centerX, 10, { align: "center" });
+
+      pdf.setFontSize(7.5);
+      pdf.text(schoolSub, centerX, 14, { align: "center" });
+
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(6.5);
+      pdf.text(`${schoolCity} | Phone: ${schoolPhone}`, centerX, 18, { align: "center" });
+
+      // Header divider
+      pdf.line(marginX + 2, 20, marginX + cardWidth - 2, 20);
+
+      // Photo position
+      const imgX = marginX + 4;
+      const imgY = 23;
+      const imgW = 22;
+      const imgH = 28;
+
+      try {
+        if (student?.profile_Pic) {
+          const imgBase64 = await toBase64(student.profile_Pic);
+          pdf.addImage(imgBase64, "JPEG", imgX, imgY, imgW, imgH);
+        } else {
+          throw new Error("No Image");
         }
-
-        pdf.setFontSize(7);
-        pdf.setFont("helvetica", "normal");
-        pdf.text("Delhi", centerX, marginY + contentPadding + 14, { align: "center" });
-        pdf.text("9898989898", centerX, marginY + contentPadding + 18, { align: "center" });
-
-        pdf.setFontSize(9);
-        pdf.setFont("helvetica", "bold");
-        pdf.text("IDENTITY CARD", centerX, marginY + contentPadding + 24, { align: "center" });
-
-        pdf.line(marginX + 2, marginY + contentPadding + 26, marginX + cardWidth - 2, marginY + contentPadding + 26);
-
-        const imgX = marginX + 4;
-        const imgY = marginY + contentPadding + 30;
-        const imgW = 22;
-        const imgH = 28;
+      } catch (error) {
+        // Placeholder if image fails
         pdf.setDrawColor(150);
-        pdf.setFillColor(230, 230, 230);
+        pdf.setFillColor(235);
         pdf.roundedRect(imgX, imgY, imgW, imgH, 2, 2, "FD");
-        pdf.setTextColor(100);
         pdf.setFontSize(6);
-        pdf.text("Image not found", imgX + imgW / 2, imgY + 12, { align: "center" });
-        pdf.text("or type unknown", imgX + imgW / 2, imgY + 16, { align: "center" });
-
-        const detailsX = imgX + imgW + 4;
-        let detailsY = imgY;
-
-        pdf.setFont("helvetica", "normal");
-        pdf.setFontSize(7.5);
+        pdf.setTextColor(120);
+        pdf.text("Image", imgX + imgW / 2, imgY + 11, { align: "center" });
+        pdf.text("Not Available", imgX + imgW / 2, imgY + 15, { align: "center" });
         pdf.setTextColor(0);
-
-        pdf.text("STUDENT'S NAME:", detailsX, detailsY);
-        pdf.setFont("helvetica", "bold");
-        pdf.text(`${student.first_name} ${student.last_name}`, detailsX, detailsY + 4);
-
-        detailsY += 10;
-        pdf.setFont("helvetica", "normal");
-        pdf.text("FATHER'S NAME:", detailsX, detailsY);
-        pdf.setFont("helvetica", "bold");
-        pdf.text(`${student.father_name || "N/A"}`, detailsX, detailsY + 4);
-
-        detailsY += 10;
-        pdf.setFont("helvetica", "normal");
-        pdf.text("CLASS:", detailsX, detailsY);
-        pdf.setFont("helvetica", "bold");
-        pdf.text(`${student.class_name?.class_name || "N/A"}`, detailsX, detailsY + 4);
-
-        detailsY += 10;
-        pdf.setFont("helvetica", "normal");
-        pdf.text("SECTION:", detailsX, detailsY);
-        pdf.setFont("helvetica", "bold");
-        pdf.text(`${student.section_name?.section_name || "N/A"}`, detailsX, detailsY + 4);
-
-        pdf.setFontSize(7);
-        pdf.setFont("helvetica", "normal");
-        pdf.text("PRINCIPAL SIGN", marginX + cardWidth - 3, marginY + 90 - 2 * marginY - 2, { align: "right" });
       }
-    });
+
+      // Student Info
+      const infoX = imgX + imgW + 4;
+      let infoY = imgY + 2;
+      const spacing = 6;
+
+      const labelValue = (label, value) => {
+        pdf.setFont("helvetica", "normal");
+        pdf.setFontSize(6.5);
+        pdf.text(`${label}:`, infoX, infoY);
+        pdf.setFont("helvetica", "bold");
+        pdf.text(`${value || "N/A"}`, infoX + 18, infoY);
+        infoY += spacing;
+      };
+
+      labelValue("Name", `${student.first_name} ${student.last_name}`);
+      labelValue("Father's", student.father_name);
+      labelValue("Class", student.class_name?.class_name);
+      labelValue("Section", student.section_name?.section_name);
+      labelValue("Roll No", student.roll_no);
+
+      // Footer line
+      pdf.line(marginX + 2, 54, marginX + cardWidth - 2, 54);
+
+      // Signature Image
+      const signW = 14;
+      const signH = 5;
+      const signX = marginX + cardWidth - signW - 2;
+      const signY = 54; // top of the image
+      pdf.addImage(principalSignBase64, "PNG", signX, signY, signW, signH);
+
+      // Signature Label (just below image)
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(6.5);
+      pdf.text("Signature", signX + signW - 1, signY + signH + 4, { align: "right" });
+    }
 
     return pdf.output("blob");
   };

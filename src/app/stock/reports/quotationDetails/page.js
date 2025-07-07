@@ -2,10 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { Container, Row, Col, Alert } from 'react-bootstrap';
-import axios from 'axios';
 import Table from '@/app/component/DataTable';
 import { copyContent, printContent } from '@/app/utils';
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import { getQuotationStocks } from '@/Services';
 
 const QuotationMaster = () => {
   const [data, setData] = useState([]);
@@ -60,8 +60,8 @@ const QuotationMaster = () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/quotation-stocks");
-      setData(response.data.data || []);
+      const response = await getQuotationStocks()
+      setData(response.data || []);
     } catch (err) {
       console.error("Error fetching data:", err);
       setError("Failed to fetch data. Please try again later.");

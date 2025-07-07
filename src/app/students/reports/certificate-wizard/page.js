@@ -5,6 +5,7 @@ import { Container, Row, Col, Form, FormGroup, Button, Alert } from "react-boots
 import axios from "axios";
 import { jsPDF } from "jspdf";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import { getSchools, getStudentByRegistrationId } from "@/Services";
 
 const CertificateWizard = () => {
   const [student, setStudent] = useState(null);
@@ -31,9 +32,9 @@ const CertificateWizard = () => {
 
   const fetchSchoolData = async () => {
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/schools/all");
-      if (response?.data?.success) {
-        setSchoolData(response.data.data[0] || {});
+      const response = await getSchools()
+      if (response?.success) {
+        setSchoolData(response.data[0] || {});
       }
     } catch (error) {
       console.error("Error fetching school data:", error);
@@ -47,12 +48,10 @@ const CertificateWizard = () => {
     setLoading(true);
 
     try {
-      const response = await axios.get(
-        `https://erp-backend-fy3n.onrender.com/api/students/search?search_term=${registrationId}`
-      );
+      const response = await getStudentByRegistrationId(registrationId)
 
-      if (response?.data?.success) {
-        const studentData = response.data.data.find(
+      if (response?.success) {
+        const studentData = response.data.find(
           (student) => student.registration_id === registrationId
         );
         if (studentData) {
@@ -89,10 +88,10 @@ const CertificateWizard = () => {
 
     try {
       const doc = new jsPDF();
-      const { 
-        first_name, 
-        last_name, 
-        father_name, 
+      const {
+        first_name,
+        last_name,
+        father_name,
         mother_name,
         class_name,
         section_name,
@@ -131,7 +130,7 @@ const CertificateWizard = () => {
         // Bonafide Certificate Format
         doc.setFontSize(14);
         doc.text(mainSchoolName, 105, 20, { align: 'center' });
-        
+
         if (schoolType) {
           doc.setFontSize(12);
           doc.text(schoolType, 105, 26, { align: 'center' });
@@ -172,7 +171,7 @@ const CertificateWizard = () => {
         doc.text("CHARACTER CERTIFICATE", 105, 30, { align: 'center' });
 
         const today = new Date();
-        const formattedDate = `${today.getDate()}-${today.getMonth()+1}-${today.getFullYear()}`;
+        const formattedDate = `${today.getDate()}-${today.getMonth() + 1}-${today.getFullYear()}`;
         doc.setFontSize(12);
         doc.text(`Date: ${formattedDate}`, 105, 40, { align: 'center' });
 
@@ -201,8 +200,8 @@ const CertificateWizard = () => {
       } else if (selectedCertificate === "Date of Birth Confirmation") {
         // Date of Birth Certificate Format (Second Image)
         const today = new Date();
-        const formattedDate = `${today.getDate()}-${today.getMonth()+1}-${today.getFullYear()}`;
-        
+        const formattedDate = `${today.getDate()}-${today.getMonth() + 1}-${today.getFullYear()}`;
+
         doc.setFontSize(12);
         doc.text(`Adm.No : ${studentRegId}    Date: ${formattedDate}`, 105, 20, { align: 'center' });
 
@@ -244,7 +243,7 @@ const CertificateWizard = () => {
   };
 
   const breadcrumbItems = [
-    { label: "students", link: "/students/reports/all-reports" }, 
+    { label: "students", link: "/students/reports/all-reports" },
     { label: "certificate-wizard", link: "null" }
   ];
 
@@ -317,7 +316,7 @@ const CertificateWizard = () => {
                     </Col>
                   </Row>
                   <Button
-                    className="btn btn-warning mt-3 ms-2"
+                    className="mt-3 ms-2"
                     onClick={generateCertificatePDF}
                     disabled={!student || !selectedCertificate || loading}
                   >

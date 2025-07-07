@@ -6,6 +6,7 @@ import axios from 'axios';
 import Table from '@/app/component/DataTable';
 import { copyContent, printContent } from '@/app/utils';
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import { getQuotationStocks } from '@/Services';
 
 const QuotationMaster = () => {
   const [data, setData] = useState([]);
@@ -30,20 +31,20 @@ const QuotationMaster = () => {
       sortable: true,
     },
     {
-        name: 'Vendor',
-        cell: row => (
-          <div>
-            <strong>{row.vendorName?.organizationName || 'N/A'}</strong>
-            {row.vendorName?.contactPersonName && (
-              <div className="text-muted small">{row.vendorName.contactPersonName}</div>
-            )}
-            {row.vendorName?.contactNumber && (
-              <div className="text-muted small">{row.vendorName.contactNumber}</div>
-            )}
-          </div>
-        ),
-        sortable: true,
-      },
+      name: 'Vendor',
+      cell: row => (
+        <div>
+          <strong>{row.vendorName?.organizationName || 'N/A'}</strong>
+          {row.vendorName?.contactPersonName && (
+            <div className="text-muted small">{row.vendorName.contactPersonName}</div>
+          )}
+          {row.vendorName?.contactNumber && (
+            <div className="text-muted small">{row.vendorName.contactNumber}</div>
+          )}
+        </div>
+      ),
+      sortable: true,
+    },
     {
       name: 'Quotation Price/Unit',
       selector: row => row.pricePerUnit ? `₹${row.pricePerUnit}` : 'N/A',
@@ -65,8 +66,8 @@ const QuotationMaster = () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/quotation-stocks");
-      setData(response.data.data || []);
+      const response = await getQuotationStocks()
+      setData(response.data || []);
     } catch (err) {
       console.error("Error fetching data:", err);
       setError("Failed to fetch data. Please try again later.");
@@ -126,8 +127,6 @@ const QuotationMaster = () => {
             <h2>Purchase Order Records</h2>
             {loading ? (
               <p>Loading...</p>
-            ) : error ? (
-              <p style={{ color: "red" }}>{error}</p>
             ) : (
               <Table
                 columns={columns}

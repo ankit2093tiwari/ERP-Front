@@ -79,7 +79,7 @@ const Studentlist = () => {
     // { name: "Religion", selector: (row) => row.religion_name || "N/A" },
     { name: "Aadhar No", selector: (row) => row.aadhar_card_no || "N/A" },
     // { name: "Last School", selector: (row) => row.last_school_attended || "N/A" },
-    { name: "Country", selector: (row) => row.residence_address?.country || "N/A" },
+    { name: "Country", selector: (row) => row.residence_address?.country || "India" },
     {
       name: "Actions",
       cell: (row) => (

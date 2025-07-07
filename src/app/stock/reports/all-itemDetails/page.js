@@ -11,17 +11,15 @@ import {
   Button,
   Alert,
 } from "react-bootstrap";
-import axios from "axios";
-import { CgAddR } from 'react-icons/cg';
 import Table from "@/app/component/DataTable";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { copyContent, printContent } from "@/app/utils";
+import { getAllItems } from "@/Services";
 
 const ItemMaster = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
 
   const columns = [
     {
@@ -61,8 +59,8 @@ const ItemMaster = () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/itemMasters");
-      setData(response.data.data || []);
+      const response = await getAllItems()
+      setData(response.data || []);
     } catch (err) {
       console.error("Error fetching data:", err);
       setError("Failed to fetch data. Please try again later.");
@@ -71,17 +69,6 @@ const ItemMaster = () => {
     }
   };
 
-  const handleDelete = async (id) => {
-    if (confirm("Are you sure you want to delete this entry?")) {
-      try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/itemMaster/${id}`);
-        fetchData();
-      } catch (error) {
-        console.error("Error deleting data:", error);
-        setError("Failed to delete item. Please try again later.");
-      }
-    }
-  };
 
   const handlePrint = () => {
     const tableHeaders = [["#", "Date", "Category", "Item Type", "Item Name", "Minimum Stock", "Description"]];

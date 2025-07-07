@@ -14,6 +14,8 @@ import {
 } from "react-bootstrap";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { useRouter } from "next/navigation";
+import { BASE_URL, getSchools } from "@/Services";
+import { toast } from "react-toastify";
 
 const SchoolInfo = () => {
   const router = useRouter();
@@ -42,9 +44,9 @@ const SchoolInfo = () => {
   useEffect(() => {
     const fetchSchoolData = async () => {
       try {
-        const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/schools/all");
-        if (response.data.success && response.data.data?.length > 0) {
-          const schoolData = response.data.data[0];
+        const response = await getSchools()
+        if (response.success && response.data?.length > 0) {
+          const schoolData = response.data[0];
           const logoUrl = schoolData.logo_image?.data;
           setHasExistingSchool(true);
           setSchool({
@@ -143,27 +145,19 @@ const SchoolInfo = () => {
         formData.append("logo_image", school.logo_file);
       }
 
-      const url = "https://erp-backend-fy3n.onrender.com/api/schools";
+      const url = `${BASE_URL}/api/schools`;
       const method = hasExistingSchool ? "put" : "post";
 
       const response = await axios[method](url, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-
-      setMessage({
-        text: response.data.message || (hasExistingSchool ? "School info updated" : "School info created"),
-        variant: "success",
-      });
-
+      toast.success(response?.message || (hasExistingSchool ? "School info updated" : "School info created"))
       setHasExistingSchool(true);
       setIsEditMode(false);
       router.refresh();
     } catch (error) {
       console.error("Error saving school:", error);
-      setMessage({
-        text: error.response?.data?.message || "Failed to save school information",
-        variant: "danger",
-      });
+      toast.error(error.response?.data?.message || "Failed to save school information",)
     } finally {
       setLoading(false);
     }
@@ -361,8 +355,8 @@ const SchoolInfo = () => {
                       <Button type="submit" variant="primary" disabled={loading}>
                         {loading ? "Saving..." : hasExistingSchool ? "Update" : "Create"}
                       </Button>
-                      <Button
-                        variant="secondary"
+                      <button
+                        className="editButton btn-danger fs-6"
                         onClick={() => {
                           setIsEditMode(false);
                           setErrors({});
@@ -370,7 +364,7 @@ const SchoolInfo = () => {
                         disabled={loading}
                       >
                         Cancel
-                      </Button>
+                      </button>
                     </div>
                   ) : !hasExistingSchool ? (
                     <div className="mt-4">

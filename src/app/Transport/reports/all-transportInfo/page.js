@@ -4,8 +4,8 @@ import dynamic from "next/dynamic";
 import Table from "@/app/component/DataTable";
 import { copyContent, printContent } from '@/app/utils';
 import { Container, Row, Col, Breadcrumb } from "react-bootstrap";
-import axios from "axios";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import { getAllVehicles } from "@/Services";
 const AllTransportInfo = () => {
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -87,34 +87,13 @@ const AllTransportInfo = () => {
     const fetchData = async () => {
         setLoading(true);
         try {
-            const res = await axios.get(
-                "https://erp-backend-fy3n.onrender.com/api/all-vehicles"
-            );
-            setData(res.data.data);
+            const res = await getAllVehicles()
+            setData(res.data);
         } catch (err) {
             console.error("Error fetching data:", err);
             setError("Failed to fetch data. Please try again later.");
         } finally {
             setLoading(false);
-        }
-    };
-
-    const handleEdit = (id) => {
-        // Implement edit functionality if needed
-        console.log("Edit vehicle with id:", id);
-    };
-
-    const handleDelete = async (id) => {
-        if (confirm("Are you sure you want to delete this vehicle?")) {
-            try {
-                await axios.delete(
-                    `https://erp-backend-fy3n.onrender.com/api/delete-vehicles/${id}`
-                );
-                setData((prevData) => prevData.filter((row) => row._id !== id));
-            } catch (err) {
-                console.error("Delete error:", err);
-                setError("Failed to delete vehicle.");
-            }
         }
     };
 

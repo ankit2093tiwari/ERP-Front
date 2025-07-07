@@ -51,6 +51,10 @@ export const getAllUsers = async () => {
     const response = await axios.get(`${BASE_URL}/api/all-users`);
     return response?.data;
 };
+export const getSchools = async () => {
+    const response = await axios.get(`${BASE_URL}/api/schools/all`);
+    return response?.data;
+};
 export const getActiveSession = async () => {
     const response = await axios.get(`${BASE_URL}/api/active-session`);
     return response?.data;
