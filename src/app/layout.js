@@ -57,9 +57,9 @@ export default function RootLayout({ children }) {
   };
 
   const removeAuthLocalStorage = () => {
-      localStorage.removeItem("authToken");
-      sessionStorage.removeItem("authToken");
-      localStorage.removeItem("selectedSessionId"); 
+    localStorage.removeItem("authToken");
+    sessionStorage.removeItem("authToken");
+    // localStorage.removeItem("selectedSessionId"); 
   }
   const handleLogout = () => {
     removeAuthLocalStorage()
@@ -91,22 +91,22 @@ export default function RootLayout({ children }) {
           strategy="beforeInteractive"
         />
         <Provider store={store}>
-            {isAuthenticated ? (
-              <>
-                <div className="layout">
-                  <SideBar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
-                  <div className={`main-content ${isSidebarOpen ? "with-sidebar" : "full-width"}`}>
-                    <Header toggleSidebar={toggleSidebar} onLogout={handleLogout} />
-                    <main>{children}</main>
-                    <Footer />
-                  </div>
+          {isAuthenticated ? (
+            <>
+              <div className="layout">
+                <SideBar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
+                <div className={`main-content ${isSidebarOpen ? "with-sidebar" : "full-width"}`}>
+                  <Header toggleSidebar={toggleSidebar} onLogout={handleLogout} />
+                  <main>{children}</main>
+                  <Footer />
                 </div>
-                <ToastContainer position="top-right" autoClose={5000} />
-                <SpeechRecognitionProvider onCommand={handleCommand} />
-              </>
-            ) : (
-              <LoginPage onLogin={handleLogin} />
-            )}
+              </div>
+              <ToastContainer position="top-right" autoClose={5000} />
+              <SpeechRecognitionProvider onCommand={handleCommand} />
+            </>
+          ) : (
+            <LoginPage onLogin={handleLogin} />
+          )}
         </Provider>
 
       </body>

@@ -15,7 +15,7 @@ import { toast } from 'react-toastify';
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { getCastes, getSections, getCategories, getClasses, getReligions, getStates, addNewStudent } from "@/Services";
 
-const StudentMasterPage = () => {
+const AddNewStudentPage = () => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -1027,4 +1027,4 @@ const StudentMasterPage = () => {
   );
 };
 
-export default dynamic(() => Promise.resolve(StudentMasterPage), { ssr: false });
+export default dynamic(() => Promise.resolve(AddNewStudentPage), { ssr: false });

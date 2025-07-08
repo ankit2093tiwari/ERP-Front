@@ -12,13 +12,13 @@ const Page = () => {
       href: "/userManagement/addUser",
       icon: <Image src="/module/user/addUser.png" className="studentIcon" width={100} height={100} alt="" />,
       title: "Add User",
-      description: "Add Basic Details Of Notice",
+      description: "Add New User and set authorities",
     },
     {
       href: "/userManagement/exisitingUser",
       icon: <Image src="/module/user/ExistingUsers.png" className="studentIcon" width={100} height={100} alt="" />,
       title: "Existing Users",
-      description: "Check Basic Details Of Notice",
+      description: "Check records of existing users",
     },
 
   ];
