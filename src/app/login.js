@@ -4,6 +4,9 @@ import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { BASE_URL } from "@/Services";
 import axios from "axios";
+import { useDispatch } from "react-redux";
+import { setAuthToken } from "@/Redux/Slices/authSlice";
+
 
 const SpeechRecognition =
   typeof window !== "undefined"
@@ -21,6 +24,7 @@ export default function LoginPage({ onLogin }) {
   const [isListening, setIsListening] = useState(false);
 
   const router = useRouter();
+  const dispatch = useDispatch()
   const recognitionRef = useRef(null);
   const timeoutRef = useRef(null);
 
@@ -99,6 +103,7 @@ export default function LoginPage({ onLogin }) {
 
       const data = res.data;
       if (data.success) {
+        dispatch(setAuthToken(data.token)); //to save in redux 
         onLogin && onLogin(data.token, rememberMe);
         router.push("/");
       } else {

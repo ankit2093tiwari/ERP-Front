@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
@@ -11,32 +10,30 @@ export default function ModuleAccessLayout({ children, requiredModule }) {
   useEffect(() => {
     const token = localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
     if (!token) {
-      setStatus("unauthorized");
       router.replace("/login");
       return;
     }
 
     try {
       const decoded = jwtDecode(token);
-      const hasAccess = decoded.data?.authorities?.some(
-        (auth) => auth.module === requiredModule
+      const authorities = decoded?.data?.authorities || [];
+
+      const hasViewAccess = authorities.some(
+        (auth) => auth.module === requiredModule && auth.actions.includes("view")
       );
 
-      if (!hasAccess) {
-        setStatus("unauthorized");
+      if (!hasViewAccess) {
         router.replace("/unauthorized");
         return;
       }
 
       setStatus("authorized");
-    } catch (error) {
-      console.error("JWT decode failed:", error);
-      setStatus("unauthorized");
+    } catch {
       router.replace("/unauthorized");
     }
   }, [requiredModule, router]);
 
-  if (status === "loading" || status === "unauthorized") return null;
+  if (status !== "authorized") return null;
 
   return <>{children}</>;
 }

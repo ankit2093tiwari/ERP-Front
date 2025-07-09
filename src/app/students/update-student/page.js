@@ -16,9 +16,11 @@ import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { toast } from 'react-toastify';
 import { getAllStudents, getCastes, getCategories, getClasses, getReligions, getSections, getStates, updateStudent } from "@/Services";
 import useSessionId from "@/hooks/useSessionId";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const UpdatePage = () => {
   const selectedSessionId = useSessionId();
+  const { hasEditAccess } = usePagePermission()
 
   const router = useRouter();
   const [data, setData] = useState([]); // Table data
@@ -894,7 +896,7 @@ const UpdatePage = () => {
                       <Col>
                         <div className='buttons1'>
                           {/* <Button type="button" className='btn btn-primary mt-4'>Preview</Button> */}
-                          <Button type="button" className="btn btn-primary mt-4" onClick={(e) => handleSubmit(e)}>Submit form</Button>
+                          {hasEditAccess && <Button type="button" className="btn btn-primary mt-4" onClick={(e) => handleSubmit(e)}>Submit form</Button>}
                         </div>
                       </Col>
                     </Row>

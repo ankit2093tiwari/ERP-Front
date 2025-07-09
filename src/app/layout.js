@@ -1,7 +1,8 @@
 // app/layout.js
 "use client";
 import { Provider } from "react-redux";
-import { store } from "@/Redux/store";
+import { store, persistor } from "@/Redux/store";
+import { PersistGate } from "redux-persist/integration/react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Script from "next/script";
@@ -91,22 +92,24 @@ export default function RootLayout({ children }) {
           strategy="beforeInteractive"
         />
         <Provider store={store}>
-          {isAuthenticated ? (
-            <>
-              <div className="layout">
-                <SideBar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
-                <div className={`main-content ${isSidebarOpen ? "with-sidebar" : "full-width"}`}>
-                  <Header toggleSidebar={toggleSidebar} onLogout={handleLogout} />
-                  <main>{children}</main>
-                  <Footer />
+          <PersistGate loading={null} persistor={persistor}>
+            {isAuthenticated ? (
+              <>
+                <div className="layout">
+                  <SideBar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
+                  <div className={`main-content ${isSidebarOpen ? "with-sidebar" : "full-width"}`}>
+                    <Header toggleSidebar={toggleSidebar} onLogout={handleLogout} />
+                    <main>{children}</main>
+                    <Footer />
+                  </div>
                 </div>
-              </div>
-              <ToastContainer position="top-right" autoClose={5000} />
-              <SpeechRecognitionProvider onCommand={handleCommand} />
-            </>
-          ) : (
-            <LoginPage onLogin={handleLogin} />
-          )}
+                <ToastContainer position="top-right" autoClose={5000} />
+                <SpeechRecognitionProvider onCommand={handleCommand} />
+              </>
+            ) : (
+              <LoginPage onLogin={handleLogin} />
+            )}
+          </PersistGate>
         </Provider>
 
       </body>

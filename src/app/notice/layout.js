@@ -2,7 +2,7 @@ import ModuleAccessLayout from "@/app/component/ModuleAccessLayout";
 
 export default function NoticeModuleLayout({ children }) {
     return (
-        <ModuleAccessLayout requiredModule="student">
+        <ModuleAccessLayout requiredModule="notice">
             {children}
         </ModuleAccessLayout>
     );

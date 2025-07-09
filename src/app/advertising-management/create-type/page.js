@@ -18,7 +18,7 @@ import Table from "@/app/component/DataTable";
 import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { toast } from "react-toastify";
-import { addNewAdvertisementType, getAdvertisementTypes } from "@/Services";
+import { addNewAdvertisementType, getAdvertisementTypes,BASE_URL } from "@/Services";
 
 const CreateType = () => {
   const [data, setData] = useState([]);
@@ -114,7 +114,7 @@ const CreateType = () => {
     }
 
     try {
-      await axios.put(`https://erp-backend-fy3n.onrender.com/api/advertisings/${id}`, editFormData);
+      await axios.put(`${BASE_URL}/api/advertisings/${id}`, editFormData);
       toast.success("Type updated successfully!");
       fetchData();
       setEditingId(null);
@@ -126,7 +126,7 @@ const CreateType = () => {
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this advertising type?")) {
       try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/advertisings/${id}`);
+        await axios.delete(`${BASE_URL}/api/advertisings/${id}`);
         toast.success("Type deleted successfully!");
         fetchData();
       } catch (err) {

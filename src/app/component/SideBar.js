@@ -391,7 +391,7 @@ export default function Sidebar({ isOpen }) {
                             </Accordion.Item>
                         )}
                         {/* Students */}
-                        {hasAccess("student") && (
+                        {hasAccess("students") && (
                             <Accordion.Item eventKey="students">
                                 <Accordion.Header>
                                     <span style={{ display: "flex", alignItems: "center" }}>
@@ -464,8 +464,6 @@ export default function Sidebar({ isOpen }) {
                                 </Accordion.Body>
                             </Accordion.Item>
                         )}
-
-                        {/* fee module  */}
                         {hasAccess('fees') && (
                             <Accordion.Item eventKey="fee">
                                 <Accordion.Header>
@@ -514,8 +512,6 @@ export default function Sidebar({ isOpen }) {
                                 </Accordion.Body>
                             </Accordion.Item>
                         )}
-
-                        {/* stock module  */}
                         {hasAccess("stock") && (
                             <Accordion.Item eventKey="stock">
                                 <Accordion.Header>
@@ -588,7 +584,6 @@ export default function Sidebar({ isOpen }) {
                                 </Accordion.Body>
                             </Accordion.Item>
                         )}
-                        {/* medical module  */}
                         {hasAccess("medical") && (
                             <Accordion.Item eventKey="medical">
                                 <Accordion.Header>
@@ -614,7 +609,6 @@ export default function Sidebar({ isOpen }) {
                             </Accordion.Item>
 
                         )}
-                        {/* gallery module  */}
                         {hasAccess("gallery") && (
                             <Accordion.Item eventKey="gallery">
                                 <Accordion.Header>
@@ -711,7 +705,6 @@ export default function Sidebar({ isOpen }) {
                                 </Accordion.Body>
                             </Accordion.Item>
                         )}
-                        {/* hrd module  */}
                         {hasAccess("hrd") && (
                             <Accordion.Item eventKey="HRD">
                                 <Accordion.Header>
@@ -748,7 +741,6 @@ export default function Sidebar({ isOpen }) {
                                 </Accordion.Body>
                             </Accordion.Item>
                         )}
-                        {/* library module  */}
                         {hasAccess('library') && (
                             <Accordion.Item eventKey="library">
                                 <Accordion.Header>
@@ -828,7 +820,7 @@ export default function Sidebar({ isOpen }) {
                                 </Accordion.Header>
                             </Accordion.Item>
                         )}
-                        {hasAccess('attendance') && (
+                        {hasAccess('studentattendance') && (
                             <Accordion.Item eventKey="sudentAttendence">
                                 <Accordion.Header>
                                     <span style={{ display: "flex", alignItems: "center" }}>

@@ -21,12 +21,11 @@ import { BASE_URL, getAllUsers } from "@/Services";
 import { toast } from "react-toastify";
 
 const allModules = [
-  "masterentry", "student", "library", "hostel", "fees", "hrd", "frontoffice",
-  "attendance", "exams", "timetable", "transport", "stock", "notice", "events",
-  "accounts", "advertising", "circular", "servicecall", "syllabus", "mess",
-  "thought", "homework", "medical", "visitor", "gallery", "balbank",
-  "youtubevideo", "sendsms", "chartfilling", "dailydairy", "copycorrection", "usermanagement",
-  "complaintdetails", "appoinmentdetails", "importantsms"
+  "masterentry", "students", "transport", "stock", "library", "fees", "hrd", "frontoffice", "studentattendance",
+  "exams", "notice", "accounts", "advertising", "thought", "medical", "gallery",
+  "circular", "servicecall", "syllabus", "timetable", "mess", "homework", "copycorrection",
+  "visitor", "balbank", "youtubevideo", "events", "hostel", "sendsms", "chartfilling",
+  "dailydairy", "complaintdetails", "appoinmentdetails", "importantsms", "usermanagement",
 ];
 
 const allActions = ["view", "edit", "submit"];

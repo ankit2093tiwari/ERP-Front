@@ -13,9 +13,11 @@ import { copyContent, printContent } from "@/app/utils";
 import { deleteStudentById, getStudentsData } from "@/Services";
 import { toast } from "react-toastify";
 import useSessionId from "@/hooks/useSessionId";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const Studentlist = () => {
- const selectedSessionId = useSessionId();
+  const { hasEditAccess, hasSubmitAccess } = usePagePermission()
+  const selectedSessionId = useSessionId();
 
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -76,17 +78,12 @@ const Studentlist = () => {
     { name: "Gender", selector: (row) => row.gender_name || "N/A" },
     { name: "Phone No", selector: (row) => row.phone_no || "N/A" },
     { name: "Date of Birth", selector: (row) => new Date(row.date_of_birth).toLocaleDateString() || "N/A" },
-    // { name: "Religion", selector: (row) => row.religion_name || "N/A" },
     { name: "Aadhar No", selector: (row) => row.aadhar_card_no || "N/A" },
-    // { name: "Last School", selector: (row) => row.last_school_attended || "N/A" },
     { name: "Country", selector: (row) => row.residence_address?.country || "India" },
-    {
+    hasEditAccess && {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
-          {/* <button className="editButton" onClick={() => handleEdit(row._id)}>
-            <FaEdit />
-          </button> */}
           <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
             <FaTrashAlt />
           </button>
@@ -135,12 +132,13 @@ const Studentlist = () => {
         <Container className={styles.vehicle}>
 
           <div className="d-flex justify-content-between mb-3">
-            <Button onClick={() => router.push('/students/add-new-student')} className="btn-add">
+            {hasSubmitAccess && <Button onClick={() => router.push('/students/add-new-student')} className="btn-add">
               <CgAddR /> Add New Student
-            </Button>
-            <Button onClick={() => router.push("/students/update-student")} className="btn-add">
+            </Button>}
+            {hasEditAccess && <Button onClick={() => router.push("/students/update-student")} className="btn-add">
               <CgAddR /> Update Student
-            </Button>
+            </Button>}
+
           </div>
 
           <Row>

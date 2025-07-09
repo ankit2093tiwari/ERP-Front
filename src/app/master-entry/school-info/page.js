@@ -16,8 +16,10 @@ import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { useRouter } from "next/navigation";
 import { BASE_URL, getSchools } from "@/Services";
 import { toast } from "react-toastify";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const SchoolInfo = () => {
+  const { hasEditAccess, hasSubmitAccess } = usePagePermission()
   const router = useRouter();
 
   const [school, setSchool] = useState({
@@ -187,7 +189,7 @@ const SchoolInfo = () => {
               <div className="cover-sheet p-3">
                 <div className="studentHeading d-flex justify-content-between align-items-center">
                   <h2>School Information</h2>
-                  {!isEditMode && hasExistingSchool && (
+                  {!isEditMode && hasExistingSchool && hasEditAccess && (
                     <Button variant="primary" onClick={() => setIsEditMode(true)}>
                       Edit School Info
                     </Button>
@@ -368,9 +370,11 @@ const SchoolInfo = () => {
                     </div>
                   ) : !hasExistingSchool ? (
                     <div className="mt-4">
-                      <Button variant="primary" onClick={() => setIsEditMode(true)}>
-                        Create School Information
-                      </Button>
+                      {
+                        hasSubmitAccess && <Button variant="primary" onClick={() => setIsEditMode(true)}>
+                          Create School Information
+                        </Button>
+                      }
                     </div>
                   ) : null}
                 </Form>

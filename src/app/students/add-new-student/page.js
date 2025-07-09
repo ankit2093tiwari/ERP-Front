@@ -2,24 +2,20 @@
 
 import React, { useState, useEffect } from "react";
 import styles from "@/app/students/add-new-student/page.module.css";
-import Preview from '@/app/component/Preview';
 import { Tab, Tabs, Container, Row, Col, FormSelect } from 'react-bootstrap';
-import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import dynamic from 'next/dynamic';
 import { Form, FormGroup, FormLabel, FormControl, Button, Breadcrumb } from 'react-bootstrap';
 import { FormCheck } from 'react-bootstrap';
 import { capitalizeFirstLetter, motherTongueOptions } from "@/app/utils";
-import { FaEdit, FaTrashAlt } from "react-icons/fa"
 import { toast } from 'react-toastify';
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { getCastes, getSections, getCategories, getClasses, getReligions, getStates, addNewStudent } from "@/Services";
-
+import usePagePermission from "@/hooks/usePagePermission";
 const AddNewStudentPage = () => {
-  const [data, setData] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [showAddForm, setShowAddForm] = useState(false);
+  const { hasViewAccess, hasSubmitAccess } = usePagePermission();
+
 
   const initialStudentState = {
     first_name: "",
@@ -72,16 +68,12 @@ const AddNewStudentPage = () => {
   const [student, setStudent] = useState(initialStudentState);
   // ... (keep all other state declarations)
   const [studentError, setStudentError] = useState({});
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [classList, setClassList] = useState([]);
   const [sectionList, setSectionList] = useState([]);
   const [religionList, setReligionList] = useState([]);
   const [categoryList, setCategoryList] = useState([]);
   const [casteList, setCasteList] = useState([]);
   const [stateList, setStateList] = useState([]);
-  const [selectedValue, setSelectedValue] = useState("");
-  const [sourceText, setSourceText] = useState("");
-  const [targetText, setTargetText] = useState("");
   const [copyChecked, setCopyChecked] = useState(false);
 
   useEffect(() => {
@@ -278,13 +270,6 @@ const AddNewStudentPage = () => {
     }
   };
 
-  const handleCopy = () => {
-    setTargetText(sourceText);
-  };
-
-  const onOpen = () => setIsPopoverOpen(true);
-  const onClose = () => setIsPopoverOpen(false);
-
   const breadcrumbItems = [{ label: "students", link: "/students/all-module" }, { label: "add-new-student", link: "null" }]
 
   return (
@@ -307,7 +292,6 @@ const AddNewStudentPage = () => {
                   <div className="studentHeading"><h2> Basic Details  </h2> </div>
                   <div className="formSheet">
                     <Form className={styles.form} onSubmit={handleSubmit}>
-                      {/* ... (keep all form fields exactly as they are) ... */}
                       <Row >
                         <FormGroup as={Col} md="3" controlId="validationCustom01">
                           <FormLabel className="labelForm">Student name</FormLabel>
@@ -746,50 +730,6 @@ const AddNewStudentPage = () => {
                           />
                         </FormGroup>
                       </Row>
-                      {/* <Row className="mb-3">
-                        <FormGroup as={Col} md="5">
-                          <FormLabel className="labelForm">Residance Address</FormLabel>
-                          <FormControl
-                            as="textarea"
-                            rows={6}
-                            style={{ height: '150px' }}
-                            id="sourceTextarea"
-                            value={sourceText}
-                            onChange={(e) => {
-                              const value = e.target.value;
-                              setSourceText(value);
-                              if (copyChecked) {
-                                setTargetText(value); // Keep syncing if checkbox is checked
-                              }
-                            }}
-                          />
-                        </FormGroup>
-
-                        <FormGroup as={Col} md="2" className="d-flex align-items-center">
-                          <FormCheck
-                            type="checkbox"
-                            label="Copy Address"
-                            checked={copyChecked}
-                            onChange={(e) => {
-                              const checked = e.target.checked;
-                              setCopyChecked(checked);
-                              setTargetText(checked ? sourceText : ''); // Copy or clear
-                            }}
-                          />
-                        </FormGroup>
-
-                        <FormGroup as={Col} md="5">
-                          <FormLabel className="labelForm">Permanent Address</FormLabel>
-                          <FormControl
-                            as="textarea"
-                            rows={6}
-                            style={{ height: '150px' }}
-                            id="targetTextarea"
-                            value={targetText}
-                            onChange={(e) => setTargetText(e.target.value)}
-                          />
-                        </FormGroup>
-                      </Row> */}
                       <Row className="mb-3">
                         <FormGroup as={Col} md="5">
                           <FormLabel className="labelForm">Residence Address</FormLabel>
@@ -912,15 +852,13 @@ const AddNewStudentPage = () => {
                       <Row>
                         <Col>
                           <div className='buttons1'>
-                            <Button type="button" className='btn btn-primary mt-4'>Preview</Button>
-                            <Button type="submit" className="btn btn-primary mt-4">Submit form</Button>
+                            {hasSubmitAccess && <Button type="submit" className="btn btn-primary mt-4">Submit form</Button>}
                           </div>
                         </Col>
                       </Row>
                     </Form>
                   </div>
                 </Tab>
-                {/* ... (keep other tabs) ... */}
 
                 <Tab eventKey="document-upload" title="Document Uploads" className='cover-sheet'>
                   <Row>
