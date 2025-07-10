@@ -18,8 +18,10 @@ import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { toast } from "react-toastify";
 import { addNewThought, deleteThoughtById, getAllThoughts, updateThoughtById } from "@/Services";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const Thought = () => {
+  const { hasEditAccess, hasSubmitAccess } = usePagePermission()
   const today = new Date().toISOString().split("T")[0];
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -80,7 +82,7 @@ const Thought = () => {
           row.thought_name || "N/A"
         ),
     },
-    {
+    hasEditAccess && {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
@@ -213,9 +215,11 @@ const Thought = () => {
 
       <section>
         <Container>
-          <Button onClick={() => setShowAddForm(true)} className="btn-add">
-            <CgAddR /> Add Thought
-          </Button>
+          {hasSubmitAccess && (
+            <Button onClick={() => setShowAddForm(true)} className="btn-add">
+              <CgAddR /> Add Thought
+            </Button>
+          )}
 
           {showAddForm && (
             <div className="cover-sheet">

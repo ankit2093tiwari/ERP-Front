@@ -8,8 +8,10 @@ import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { CgAddR } from 'react-icons/cg';
 import { toast } from "react-toastify";
 import { addNewPublisher, deletePublisherById, getAllPublishers, updatePublisherById } from "@/Services";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const Publisher = () => {
+  const {hasEditAccess,hasSubmitAccess}=usePagePermission()
   const [isEditMode, setIsEditMode] = useState(false);
   const [editId, setEditId] = useState(null);
   const [data, setData] = useState([]);
@@ -151,7 +153,7 @@ const Publisher = () => {
     { name: "Tax Ident No.", selector: (row) => row.taxIdentNo || "N/A", sortable: true },
     { name: "Mobile No.", selector: (row) => row.publisherMobileNo || "N/A", sortable: true },
     { name: "Email", selector: (row) => row.publisherEmail || "N/A", sortable: true },
-    {
+    hasEditAccess &&{
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
@@ -182,9 +184,11 @@ const Publisher = () => {
       </div>
       <section>
         <Container>
-          <Button onClick={() => setShowAddForm(true)} className="btn-add">
+          {hasSubmitAccess &&(
+            <Button onClick={() => setShowAddForm(true)} className="btn-add">
             <CgAddR /> Add Publisher
           </Button>
+          )}
 
           {showAddForm && (
             <div className="cover-sheet">

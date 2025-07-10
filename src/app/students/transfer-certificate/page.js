@@ -13,9 +13,11 @@ import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
 import { deleteTransferCertificateById, generateTransferCertificate, getAllTCRecords, getLastTCNumber, getStudentByRegistrationId, updateTransferCertificateById } from '@/Services';
 import { toast } from 'react-toastify';
 import useSessionId from '@/hooks/useSessionId';
+import usePagePermission from '@/hooks/usePagePermission';
 
 const TransferCertificate = () => {
   const selectedSessionId = useSessionId();
+  const { hasSubmitAccess, hasEditAccess } = usePagePermission()
 
   const [studentData, setStudentData] = useState(null);
   const [studentId, setStudentId] = useState("");
@@ -94,7 +96,7 @@ const TransferCertificate = () => {
       selector: row => row.class_section,
       sortable: true,
     },
-    {
+    hasEditAccess && {
       name: "Actions",
       cell: (row) => (
         <>
@@ -503,9 +505,11 @@ const TransferCertificate = () => {
                       <Row>
                         <Col>
                           <div className="buttons1">
-                            <Button type="submit" id="submit" disabled={isSubmitting}>
-                              {isSubmitting ? 'Submitting...' : 'Submit form'}
-                            </Button>
+                            {hasEditAccess && (
+                              <Button type="submit" id="submit" disabled={isSubmitting}>
+                                {isSubmitting ? 'Submitting...' : 'Submit form'}
+                              </Button>
+                            )}
                           </div>
                         </Col>
                       </Row>

@@ -11,9 +11,11 @@ import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { addNewClass, addNewSection, deleteClassById, deleteSectionById, getAllSections, getClasses, updateClassById, updateSectionById } from "@/Services";
 import { toast } from "react-toastify";
 import useSessionId from "@/hooks/useSessionId";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const ClassMasterPage = () => {
   const selectedSessionId = useSessionId();
+  const { hasSubmitAccess, hasEditAccess } = usePagePermission()
 
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -53,20 +55,24 @@ const ClassMasterPage = () => {
               row.class_name || "N/A"
             )}
           </div>
-          <div>
-            {editingClass && editingClass._id === row._id ? (
-              <button className="editButton ms-2" onClick={() => handleUpdateClass(row._id)}>
-                <FaSave />
-              </button>
-            ) : (
-              <button className="editButton ms-2" onClick={() => handleEditClass(row)}>
-                <FaEdit />
-              </button>
-            )}
-            <button className="editButton btn-danger ms-2" onClick={() => handleDeleteClass(row._id)}>
-              <FaTrashAlt />
-            </button>
-          </div>
+          {
+            hasEditAccess && (
+              <div>
+                {editingClass && editingClass._id === row._id ? (
+                  <button className="editButton ms-2" onClick={() => handleUpdateClass(row._id)}>
+                    <FaSave />
+                  </button>
+                ) : (
+                  <button className="editButton ms-2" onClick={() => handleEditClass(row)}>
+                    <FaEdit />
+                  </button>
+                )}
+                <button className="editButton btn-danger ms-2" onClick={() => handleDeleteClass(row._id)}>
+                  <FaTrashAlt />
+                </button>
+              </div>
+            )
+          }
         </div>
       ),
       sortable: true,
@@ -113,20 +119,24 @@ const ClassMasterPage = () => {
                     `${section.section_code} - ${section.section_name}`
                   )}
                 </div>
-                <div>
-                  {editingSection && editingSection._id === section._id ? (
-                    <button className="editButton ms-2" onClick={() => handleUpdateSection(section._id)}>
-                      <FaSave />
-                    </button>
-                  ) : (
-                    <button className="editButton ms-2" onClick={() => handleEditSection(section)}>
-                      <FaEdit />
-                    </button>
-                  )}
-                  <button className="editButton btn-danger ms-2" onClick={() => handleDeleteSection(section._id)}>
-                    <FaTrashAlt />
-                  </button>
-                </div>
+                {
+                  hasEditAccess && (
+                    <div>
+                      {editingSection && editingSection._id === section._id ? (
+                        <button className="editButton ms-2" onClick={() => handleUpdateSection(section._id)}>
+                          <FaSave />
+                        </button>
+                      ) : (
+                        <button className="editButton ms-2" onClick={() => handleEditSection(section)}>
+                          <FaEdit />
+                        </button>
+                      )}
+                      <button className="editButton btn-danger ms-2" onClick={() => handleDeleteSection(section._id)}>
+                        <FaTrashAlt />
+                      </button>
+                    </div>
+                  )
+                }
               </div>
             ))
           ) : (
@@ -352,20 +362,24 @@ const ClassMasterPage = () => {
       </div>
       <section>
         <Container>
-          <div className="d-flex gap-2 mb-3">
-            <Button
-              onClick={() => setIsClassFormOpen(true)}
-              className="btn-add"
-            >
-              <CgAddR /> Add Class
-            </Button>
-            <Button
-              onClick={() => setIsSectionFormOpen(true)}
-              className="btn-add"
-            >
-              <CgAddR /> Add Section
-            </Button>
-          </div>
+          {
+            hasSubmitAccess && (
+              <div className="d-flex gap-2 mb-3">
+                <Button
+                  onClick={() => setIsClassFormOpen(true)}
+                  className="btn-add"
+                >
+                  <CgAddR /> Add Class
+                </Button>
+                <Button
+                  onClick={() => setIsSectionFormOpen(true)}
+                  className="btn-add"
+                >
+                  <CgAddR /> Add Section
+                </Button>
+              </div>
+            )
+          }
 
           {isClassFormOpen && (
             <div className="cover-sheet">

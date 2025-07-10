@@ -10,8 +10,10 @@ import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { toast } from "react-toastify";
 import { addNewRack, addNewShelf, deleteRackById, deleteShelfById, getAllRacks, getAllShelves, updateRackById, updateShelfById } from "@/Services";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const RackAndShelfManager = () => {
+  const { hasEditAccess, hasSubmitAccess } = usePagePermission()
   const [racks, setRacks] = useState([]);
   const [shelves, setShelves] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -166,7 +168,7 @@ const RackAndShelfManager = () => {
     { name: "#", selector: (row, index) => index + 1 },
     { name: "Rack", selector: (row) => row.rackId?.rackName || "N/A", sortable: true },
     { name: "Shelf Name", selector: (row) => row.shelfName },
-    {
+    hasEditAccess && {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
@@ -180,7 +182,7 @@ const RackAndShelfManager = () => {
   const rackColumns = [
     { name: "#", selector: (row, index) => index + 1 },
     { name: "Rack Name", selector: (row) => row.rackName, sortable: true },
-    {
+    hasEditAccess && {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
@@ -208,9 +210,11 @@ const RackAndShelfManager = () => {
 
       <section>
         <Container>
-          <Button onClick={() => setIsPopoverOpen(!isPopoverOpen)} className="btn-add">
-            <CgAddR /> Add Rack/Shelf
-          </Button>
+          {hasSubmitAccess && (
+            <Button onClick={() => setIsPopoverOpen(!isPopoverOpen)} className="btn-add">
+              <CgAddR /> Add Rack/Shelf
+            </Button>
+          )}
 
           {isPopoverOpen && (
             <div className="cover-sheet">

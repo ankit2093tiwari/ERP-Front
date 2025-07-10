@@ -10,8 +10,10 @@ import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { addNewBookCategory, deleteBookCategoryById, getBookCategories, updateBookCategoryById } from "@/Services";
 import { toast } from "react-toastify";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const BookCategory = () => {
+  const { hasSubmitAccess, hasEditAccess } = usePagePermission()
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -174,7 +176,7 @@ const BookCategory = () => {
         ),
       sortable: true,
     },
-    {
+    hasEditAccess && {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
@@ -210,10 +212,11 @@ const BookCategory = () => {
       </div>
       <section>
         <Container>
-
-          <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
-            <CgAddR /> Add Book Category
-          </Button>
+          {hasSubmitAccess && (
+            <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
+              <CgAddR /> Add Book Category
+            </Button>
+          )}
           {isPopoverOpen && (
             <div className="cover-sheet">
               <div className="studentHeading">

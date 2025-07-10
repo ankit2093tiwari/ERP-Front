@@ -18,9 +18,12 @@ import Table from "@/app/component/DataTable";
 import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { toast } from "react-toastify";
-import { addNewReligion, deleteReligionById, getReligions } from "@/Services";
+import { addNewReligion, deleteReligionById, getReligions, updateReligionById } from "@/Services";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const ReligionMasterPage = () => {
+  const { hasSubmitAccess, hasEditAccess } = usePagePermission()
+
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
@@ -37,6 +40,7 @@ const ReligionMasterPage = () => {
     },
     {
       name: "Religion Name",
+      selector: (row) => row.religion_name,
       cell: (row) =>
         editingId === row._id ? (
           <FormControl
@@ -49,7 +53,7 @@ const ReligionMasterPage = () => {
         ),
       sortable: true,
     },
-    {
+    hasEditAccess && {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
@@ -112,19 +116,11 @@ const ReligionMasterPage = () => {
     }
 
     try {
-      const res = await axios.put(`https://erp-backend-fy3n.onrender.com/api/religions/${id}`, {
+      const res = await updateReligionById(id, {
         religion_name: editedName,
-      });
-
+      })
       toast.success("Religion updated successfully!");
-
-      const updated = res.data?.data;
-      if (updated) {
-        setData((prev) => [updated, ...prev.filter((item) => item._id !== id)]);
-      } else {
-        fetchData();
-      }
-
+      fetchData();
       setEditingId(null);
     } catch (err) {
       toast.error("Failed to update religion.");
@@ -210,9 +206,13 @@ const ReligionMasterPage = () => {
 
       <section>
         <Container>
-          <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
-            <CgAddR /> Add Religion
-          </Button>
+          {
+            hasSubmitAccess && (
+              <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
+                <CgAddR /> Add Religion
+              </Button>
+            )
+          }
 
           {isPopoverOpen && (
             <div className="cover-sheet">

@@ -8,7 +8,9 @@ import BreadcrumbComp from "@/app/component/Breadcrumb";
 import dynamic from 'next/dynamic';
 import { getItemCategories, getItemsByCategoryId, getItemById, addWriteOffEntry, getAllWriteOffItems } from '@/Services';
 import { toast } from 'react-toastify';
+import usePagePermission from '@/hooks/usePagePermission';
 const StockWriteOffEntry = () => {
+  const { hasSubmitAccess } = usePagePermission()
   const [itemCategories, setItemCategories] = useState([]);
   const [items, setItems] = useState([]);
   const [writeOffData, setWriteOffData] = useState([]);
@@ -143,7 +145,7 @@ const StockWriteOffEntry = () => {
       <section>
         <Container>
           <Row><Col>
-            <Button onClick={onOpen} className="btn-add"><CgAddR /> Add Item</Button>
+            {hasSubmitAccess && (<Button onClick={onOpen} className="btn-add"><CgAddR /> Add Item</Button>)}
             {isPopoverOpen && (
               <div className="cover-sheet">
                 <div className="studentHeading">

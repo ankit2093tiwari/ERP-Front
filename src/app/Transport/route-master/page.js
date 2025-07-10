@@ -17,8 +17,10 @@ import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { toast } from "react-toastify";
 import { addNewRoute, deleteRouteById, getAllRoutes, getAllVehicles, updateRouteById } from "@/Services";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const RouteMaster = () => {
+  const {hasEditAccess,hasSubmitAccess}=usePagePermission()
   const [data, setData] = useState([]);
   const [editRowId, setEditRowId] = useState(null);
   const [updatedRoute, setUpdatedRoute] = useState({});
@@ -206,7 +208,7 @@ const RouteMaster = () => {
           row.Amount
         ),
     },
-    {
+    hasEditAccess &&{
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
@@ -241,9 +243,11 @@ const RouteMaster = () => {
 
       <section>
         <Container>
-          <Button onClick={() => setShowAddForm(true)} className="btn-add">
+          {hasSubmitAccess &&(
+            <Button onClick={() => setShowAddForm(true)} className="btn-add">
             <CgAddR /> Add Route
           </Button>
+          )}
 
           {showAddForm && (
             <div className="cover-sheet">

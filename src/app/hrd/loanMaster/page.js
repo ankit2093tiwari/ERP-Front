@@ -13,14 +13,15 @@ import {
   FormControl,
   Button,
 } from "react-bootstrap";
-import axios from "axios";
 import Table from "@/app/component/DataTable";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { copyContent, printContent } from "@/app/utils";
 import { toast } from "react-toastify";
 import { addNewLoan, deleteLoanById, getAllLoans, updateLoanById } from "@/Services";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const LoanMasterPage = () => {
+  const { hasEditAccess, hasSubmitAccess } = usePagePermission()
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -149,7 +150,7 @@ const LoanMasterPage = () => {
           row.LoanName || "N/A"
         ),
     },
-    {
+    hasEditAccess && {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
@@ -208,9 +209,11 @@ const LoanMasterPage = () => {
 
       <section>
         <Container>
-          <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
-            <CgAddR /> Add Loan
-          </Button>
+          {hasSubmitAccess && (
+            <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
+              <CgAddR /> Add Loan
+            </Button>
+          )}
 
           {isPopoverOpen && (
             <div className="cover-sheet">

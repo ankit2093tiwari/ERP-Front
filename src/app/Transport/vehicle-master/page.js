@@ -19,8 +19,10 @@ import { toast } from "react-toastify";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { addNewVehicle, deleteVehicleById, getAllVehicles, getAllVehicleTypes, updateVehicleById } from "@/Services";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const VehicleRecords = () => {
+  const { hasEditAccess, hasSubmitAccess } = usePagePermission()
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [editRowId, setEditRowId] = useState(null);
@@ -141,7 +143,7 @@ const VehicleRecords = () => {
           row.Driver_Name
         ),
     },
-    {
+    hasEditAccess && {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
@@ -169,7 +171,7 @@ const VehicleRecords = () => {
         </div>
       ),
     },
-  ];
+  ].filter(Boolean);
 
   const fetchData = async () => {
     setLoading(true);
@@ -448,9 +450,11 @@ const VehicleRecords = () => {
 
       <section>
         <Container>
-          <Button onClick={() => setShowAddForm(true)} className="btn-add">
+          {hasSubmitAccess &&(
+            <Button onClick={() => setShowAddForm(true)} className="btn-add">
             <CgAddR /> Add Vehicle
           </Button>
+          )}
 
           {showAddForm && (
             <div className="cover-sheet">

@@ -9,8 +9,11 @@ import BreadcrumbComp from "@/app/component/Breadcrumb";
 import dynamic from 'next/dynamic';
 import { addNewIssuedItem, addNewReturnItem, deleteIssuedItemById, getAllDepartments, getAllIssuedItems, getAllStudents, getItemCategories, getItemsByCategoryId } from '@/Services';
 import { toast } from 'react-toastify';
+import usePagePermission from '@/hooks/usePagePermission';
 
 const ReturnItem = () => {
+const {hasSubmitAccess,hasEditAccess}=usePagePermission()
+
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const onOpen = () => setIsPopoverOpen(true);
   const onClose = () => {
@@ -43,7 +46,7 @@ const ReturnItem = () => {
     { name: 'Quantity', selector: row => row.quantity },
     { name: 'Remarks', selector: row => row.remarks },
     { name: 'Date & Time', selector: row => row.dateAndTime },
-    {
+    hasEditAccess &&{
       name: "Actions",
       cell: (row) => (
         <button

@@ -30,8 +30,10 @@ import {
   getAllDoctors,
   updateDoctorProfileById,
 } from "@/Services";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const AddDoctorProfile = () => {
+  const { hasEditAccess, hasSubmitAccess } = usePagePermission()
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [fieldError, setFieldError] = useState({});
@@ -157,7 +159,7 @@ const AddDoctorProfile = () => {
           row.description || "N/A"
         ),
     },
-    {
+    hasEditAccess && {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
@@ -359,9 +361,11 @@ const AddDoctorProfile = () => {
 
       <section>
         <Container>
-          <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
-            <CgAddR /> Add Doctor Profile
-          </Button>
+          {hasSubmitAccess && (
+            <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
+              <CgAddR /> Add Doctor Profile
+            </Button>
+          )}
 
           {isPopoverOpen && (
             <div className="cover-sheet">

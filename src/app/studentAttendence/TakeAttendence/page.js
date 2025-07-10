@@ -7,8 +7,10 @@ import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { createStudentsAttendance, getClasses, getSections, getStudentsByClassAndSection } from "@/Services";
 import { toast } from "react-toastify";
 import useSessionId from "@/hooks/useSessionId";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const TakeAttendence = () => {
+  const {hasSubmitAccess}=usePagePermission()
   const selectedSessionId = useSessionId()
   const [classList, setClassList] = useState([]);
   const [sectionList, setSectionList] = useState([]);
@@ -187,7 +189,8 @@ const TakeAttendence = () => {
                 </Col>
               </Row>
               <br />
-              <Row>
+              {hasSubmitAccess &&(
+                <Row>
                 <Col>
                   {students.length > 0 && (
                     <Button variant="success" onClick={submitAttendance} disabled={submitting}>
@@ -196,6 +199,7 @@ const TakeAttendence = () => {
                   )}
                 </Col>
               </Row>
+              )}
             </Form>
           </div>
 

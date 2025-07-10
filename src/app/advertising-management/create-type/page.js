@@ -18,9 +18,11 @@ import Table from "@/app/component/DataTable";
 import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { toast } from "react-toastify";
-import { addNewAdvertisementType, getAdvertisementTypes,BASE_URL } from "@/Services";
+import { addNewAdvertisementType, getAdvertisementTypes, BASE_URL } from "@/Services";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const CreateType = () => {
+  const { hasSubmitAccess, hasEditAccess } = usePagePermission()
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -38,9 +40,11 @@ const CreateType = () => {
       name: "#",
       selector: (row, index) => index + 1,
       width: "80px",
+      sortable: false,
     },
     {
       name: "Type Name",
+      selector:(row)=>row.type_name,
       cell: (row) =>
         editingId === row._id ? (
           <div>
@@ -59,8 +63,9 @@ const CreateType = () => {
         ) : (
           row.type_name || "N/A"
         ),
+      sortable: true,
     },
-    {
+    hasEditAccess && {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
@@ -85,8 +90,10 @@ const CreateType = () => {
           )}
         </div>
       ),
+      sortable: false,
     },
-  ];
+  ].filter(Boolean); // ✅ This removes `false` if hasEditAccess is false
+
 
   const fetchData = async () => {
     setLoading(true);
@@ -196,9 +203,11 @@ const CreateType = () => {
 
       <section>
         <Container>
-          <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
-            <CgAddR /> Add Advertising Type
-          </Button>
+          {hasSubmitAccess && (
+            <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
+              <CgAddR /> Add Advertising Type
+            </Button>
+          )}
 
           {isPopoverOpen && (
             <div className="cover-sheet">

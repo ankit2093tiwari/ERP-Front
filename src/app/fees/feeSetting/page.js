@@ -10,8 +10,10 @@ import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { toast } from "react-toastify";
 import { getAllFeeSetting, updateFeeSetting } from "@/Services";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const FeeSetting = () => {
+  const {hasEditAccess}=usePagePermission()
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -113,7 +115,7 @@ const FeeSetting = () => {
     { name: "Credit Card Charge", selector: (row) => `${row.credit_card_charge}%` },
     { name: "Debit Card Charge", selector: (row) => `${row.debit_card_charge}%` },
     { name: "AMEX Charge", selector: (row) => `${row.amex_charge}%` },
-    {
+    hasEditAccess &&{
       name: "Actions",
       cell: (row) => (
         <button

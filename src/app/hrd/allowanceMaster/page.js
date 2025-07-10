@@ -19,8 +19,10 @@ import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { copyContent, printContent } from "@/app/utils";
 import { toast } from "react-toastify";
 import { addnewAllowance, deleteAllowanceById, getAllAllowances, updateAllowanceById } from "@/Services";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const AllowanceMasterPage = () => {
+  const { hasEditAccess, hasSubmitAccess } = usePagePermission()
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -172,7 +174,7 @@ const AllowanceMasterPage = () => {
           row.category || "N/A"
         ),
     },
-    {
+    hasEditAccess && {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
@@ -235,9 +237,11 @@ const AllowanceMasterPage = () => {
 
       <section>
         <Container>
-          <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
-            <CgAddR /> Add Allowance
-          </Button>
+          {hasSubmitAccess && (
+            <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
+              <CgAddR /> Add Allowance
+            </Button>
+          )}
 
           {isPopoverOpen && (
             <div className="cover-sheet">

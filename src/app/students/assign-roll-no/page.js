@@ -23,8 +23,12 @@ import {
 } from "@/Services";
 import { toast } from "react-toastify";
 import useSessionId from "@/hooks/useSessionId";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const AssignRollNo = () => {
+
+const {hasEditAccess}=usePagePermission()
+
   const selectedSessionId = useSessionId()
   const [classList, setClassList] = useState([]);
   const [sectionList, setSectionList] = useState([]);
@@ -314,7 +318,7 @@ const AssignRollNo = () => {
 
               <Row className="mt-3">
                 <Col>
-                  {showButtons && !isEditing && (
+                  {showButtons && !isEditing && hasEditAccess && (
                     <Button onClick={handleEditRollNo} className="me-2">
                       Edit Roll Numbers
                     </Button>

@@ -12,8 +12,11 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { addNewQuotationStock, BASE_URL, deleteQuotationStockById, getAllItems, getAllStores, getAllVendors, getItemCategories, getItemsByCategoryId, getQuotationStocks, updateQuotationStockById } from '@/Services';
 import { toast } from 'react-toastify';
+import usePagePermission from '@/hooks/usePagePermission';
 
 const QuotationMaster = () => {
+  const { hasEditAccess, hasSubmitAccess } = usePagePermission()
+
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -96,7 +99,7 @@ const QuotationMaster = () => {
       cell: (row) => row.quotationNo || 'N/A',
       sortable: true,
     },
-    {
+    hasEditAccess && {
       name: 'Actions',
       cell: (row) => (
         <div className="d-flex gap-2">
@@ -364,7 +367,7 @@ const QuotationMaster = () => {
                 className="closeForm"
                 onClick={() => setShowPurchaseForm(false)}
               >
-                ×
+                X
               </button>
             </div>
 
@@ -473,9 +476,11 @@ const QuotationMaster = () => {
       <section>
         <Container>
           {error && <Alert variant="danger">{error}</Alert>}
-          <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
-            <CgAddR /> Add Quotation
-          </Button>
+          {hasSubmitAccess && (
+            <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
+              <CgAddR /> Add Quotation
+            </Button>
+          )}
 
           {isPopoverOpen && (
             <div className="cover-sheet">

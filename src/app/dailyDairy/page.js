@@ -24,8 +24,11 @@ import {
   updateDailyDiaryRecord,
 } from "@/Services";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const DailyDiary = () => {
+  const { hasEditAccess, hasSubmitAccess, moduleName } = usePagePermission()
+
   const [data, setData] = useState([]);
   const [teachers, setTeachers] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -160,7 +163,7 @@ const DailyDiary = () => {
       name: "Work Details",
       selector: (row) => row.workDetails || "N/A",
     },
-    {
+    hasEditAccess && {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
@@ -173,7 +176,7 @@ const DailyDiary = () => {
         </div>
       ),
     },
-  ];
+  ].filter(Boolean);
 
   return (
     <>
@@ -189,9 +192,13 @@ const DailyDiary = () => {
 
       <section>
         <Container>
-          <Button onClick={() => setShowAddForm(true)} className="btn-add">
-            <CgAddR /> Add Entry
-          </Button>
+          {
+            hasSubmitAccess && (
+              <Button onClick={() => setShowAddForm(true)} className="btn-add">
+                <CgAddR /> Add Entry
+              </Button>
+            )
+          }
 
           {showAddForm && (
             <div className="cover-sheet">

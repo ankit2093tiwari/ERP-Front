@@ -7,8 +7,10 @@ import styles from "@/app/medical/routine-check-up/page.module.css";
 import { addNewFeeConcessionEntry, BASE_URL, getClasses, getFeeGroupDataBySectionId, getFeeStructureByFeeGroupId, getSections, getStudentsByClassAndSection } from "@/Services";
 import axios from 'axios';
 import useSessionId from '@/hooks/useSessionId';
+import usePagePermission from '@/hooks/usePagePermission';
 
 const ConcessionEntry = () => {
+  const { hasEditAccess, hasSubmitAccess } = usePagePermission()
   const selectedSessionId = useSessionId()
   const [isLoading, setIsLoading] = useState(false);
   const [classList, setClassList] = useState([]);
@@ -357,13 +359,15 @@ const ConcessionEntry = () => {
 
 
 
-              <Button
-                className="mt-3"
-                onClick={handleSubmit}
-                disabled={isLoading}
-              >
-                {isLoading ? 'Processing...' : 'Submit'}
-              </Button>
+              {hasSubmitAccess && (
+                <Button
+                  className="mt-2 ms-3"
+                  onClick={handleSubmit}
+                  disabled={isLoading}
+                >
+                  {isLoading ? 'Processing...' : 'Submit'}
+                </Button>
+              )}
             </div>
           </div>
         </Container>

@@ -5,8 +5,10 @@ import { Form, Row, Col, Container, FormLabel, FormControl, Button } from "react
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { toast } from "react-toastify";
 import { getFineMaster, updateFineMaster } from "@/Services";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const FineMaster = () => {
+  const {hasEditAccess}=usePagePermission()
   const [formData, setFormData] = useState({
     teacherFine: "",
     studentFine: "",
@@ -126,13 +128,15 @@ const FineMaster = () => {
                   />
                 </Col>
               </Row>
-              <Row className="mt-3">
+              {hasEditAccess &&(
+                <Row className="mt-3">
                 <Col>
                   <Button type="submit">
                     Update Fine
                   </Button>
                 </Col>
               </Row>
+              )}
             </Form>
           </div>
         </Container>

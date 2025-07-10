@@ -15,8 +15,11 @@ import axios from "axios";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { toast } from "react-toastify";
 import { addNewNotice } from "@/Services";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const AddNotice = () => {
+  const { hasSubmitAccess } = usePagePermission()
+
   const today = new Date().toISOString().split("T")[0];
   const [newNotice, setNewNotice] = useState({
     date: today,
@@ -158,11 +161,13 @@ const AddNotice = () => {
                 </Col>
               </Row>
 
-              <div className="d-flex justify-content-between mt-3">
-                <Button variant="primary" onClick={handleAdd}>
-                  Add Notice
-                </Button>
-              </div>
+              {hasSubmitAccess && (
+                <div className="d-flex justify-content-between mt-3">
+                  <Button variant="primary" onClick={handleAdd}>
+                    Add Notice
+                  </Button>
+                </div>
+              )}
 
               {successMessage && (
                 <div className="alert alert-success mt-3">

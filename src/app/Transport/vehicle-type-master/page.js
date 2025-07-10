@@ -18,8 +18,10 @@ import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { toast } from "react-toastify";
 import { addNewVehicleType, deleteVehicleTypeById, getAllVehicleTypes, updateVehicleTypeById } from "@/Services";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const VehicleRecords = () => {
+  const {hasSubmitAccess,hasEditAccess}=usePagePermission()
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [editRowId, setEditRowId] = useState(null);
@@ -46,7 +48,7 @@ const VehicleRecords = () => {
           row.type_name || "N/A"
         ),
     },
-    {
+    hasEditAccess &&{
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
@@ -65,7 +67,7 @@ const VehicleRecords = () => {
         </div>
       ),
     },
-  ];
+  ].filter(Boolean);;
 
   const fetchData = async () => {
     setLoading(true);
@@ -193,9 +195,11 @@ const VehicleRecords = () => {
 
       <section>
         <Container>
-          <Button onClick={() => setShowAddForm(true)} className="btn-add">
+         {hasSubmitAccess &&(
+           <Button onClick={() => setShowAddForm(true)} className="btn-add">
             <CgAddR /> Add Vehicle
           </Button>
+         )}
 
           {showAddForm && (
             <div className="cover-sheet">

@@ -18,8 +18,11 @@ import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { toast } from "react-toastify";
 import { addNewCaste, deleteCasteById, getCastes, updateCasteById } from "@/Services";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const CasteMasterPage = () => {
+  const { hasSubmitAccess, hasEditAccess } = usePagePermission()
+
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [newCasteName, setNewCasteName] = useState("");
@@ -58,7 +61,7 @@ const CasteMasterPage = () => {
         ),
       sortable: true,
     },
-    {
+    hasEditAccess && {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
@@ -208,9 +211,11 @@ const CasteMasterPage = () => {
 
       <section>
         <Container>
-          <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
-            <CgAddR /> Add Caste
-          </Button>
+          {hasSubmitAccess && (
+            <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
+              <CgAddR /> Add Caste
+            </Button>
+          )}
 
           {isPopoverOpen && (
             <div className="cover-sheet">

@@ -19,8 +19,10 @@ import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { toast } from "react-toastify";
 import { addNewCheckupType, deleteCheckupTypeById, getAllCheckupTypes, updateCheckupTypeById } from "@/Services";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const AddCheckUp = () => {
+  const { hasEditAccess, hasSubmitAccess } = usePagePermission()
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -51,7 +53,7 @@ const AddCheckUp = () => {
         ),
       sortable: true,
     },
-    {
+    hasEditAccess && {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
@@ -201,9 +203,11 @@ const AddCheckUp = () => {
         <Container>
           {error && <Alert variant="danger">{error}</Alert>}
 
-          <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
-            <CgAddR /> Add Check-Up Type
-          </Button>
+          {hasSubmitAccess && (
+            <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
+              <CgAddR /> Add Check-Up Type
+            </Button>
+          )}
 
           {isPopoverOpen && (
             <div className="cover-sheet">

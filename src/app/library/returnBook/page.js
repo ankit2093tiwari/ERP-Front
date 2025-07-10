@@ -8,8 +8,10 @@ import { copyContent, printContent } from "@/app/utils";
 import { getAllIssuedBooks, getFineMaster, returnIssueBookById } from "@/Services";
 import Table from "@/app/component/DataTable";
 import { toast } from "react-toastify";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const ReturnBook = () => {
+    const {hasSubmitAccess}=usePagePermission()
     const breadcrumbItems = [
         { label: "Library", link: "/library/all-module" },
         { label: "Return Book", link: "null" },
@@ -94,7 +96,7 @@ const ReturnBook = () => {
         { name: "Issued To", selector: row => `${row.issuedToType}: ${row.issuedToName}`, sortable: true },
         { name: "Issue Period", selector: row => `${row.issuePeriod} Days`, sortable: true },
         { name: "Issue Date", selector: row => new Date(row.issueDate).toLocaleDateString(), sortable: true },
-        {
+        hasSubmitAccess &&{
             name: "Actions",
             cell: (row) => (
                 <div className="d-flex gap-2">

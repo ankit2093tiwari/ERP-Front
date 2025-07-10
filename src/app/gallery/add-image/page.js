@@ -12,8 +12,10 @@ import {
 import { toast } from "react-toastify";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { addNewGalleryImage, getAllGalleryGroups } from "@/Services";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const AddImage = () => {
+  const {hasSubmitAccess}=usePagePermission()
   const fileInputRef = useRef(null)
   const today = new Date().toISOString().split("T")[0];
 
@@ -190,9 +192,11 @@ const AddImage = () => {
                 </Col>
               </Row>
 
-              <Button type="submit" disabled={loading} className="btn btn-primary mt-4">
+             {hasSubmitAccess &&(
+               <Button type="submit" disabled={loading} className="btn btn-primary mt-4">
                 {loading ? "Uploading..." : "Add Image"}
               </Button>
+             )}
             </Form>
           </div>
         </Container>

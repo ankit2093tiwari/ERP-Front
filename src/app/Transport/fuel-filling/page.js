@@ -11,8 +11,10 @@ import "react-datepicker/dist/react-datepicker.css";
 import { toast } from 'react-toastify';
 import { copyContent, printContent } from '@/app/utils';
 import { addNewFuelFilling, deleteFuelFillingById, getAllFuelFillings, getAllVehicles, updateFuelFillingById } from '@/Services';
+import usePagePermission from '@/hooks/usePagePermission';
 
 const FuelFilling = () => {
+  const { hasEditAccess, hasSubmitAccess } = usePagePermission()
   const [data, setData] = useState([]);
   const [vehicles, setVehicles] = useState([]);
   const [editRowId, setEditRowId] = useState(null);
@@ -134,7 +136,7 @@ const FuelFilling = () => {
       selector: row => `${row.Quantity_of_diesel * row.Amount_per_Liter} Rs.`,
       sortable: true,
     },
-    {
+    hasEditAccess && {
       name: 'Action',
       cell: row => (
         <div style={{ display: 'flex' }}>
@@ -349,9 +351,11 @@ const FuelFilling = () => {
         <Container>
           <Row>
             <Col>
-              <Button onClick={() => setShowAddForm(true)} className="btn-add">
-                <CgAddR /> New Fuel Filling
-              </Button>
+              {hasSubmitAccess && (
+                  <Button onClick={() => setShowAddForm(true)} className="btn-add">
+                    <CgAddR /> New Fuel Filling
+                  </Button>
+                )}
 
               {showAddForm && (
                 <div className="cover-sheet">

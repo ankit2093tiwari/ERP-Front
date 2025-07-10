@@ -9,8 +9,10 @@ import Table from "@/app/component/DataTable";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { deleteNoticeById, getAllNotices, updateNoticeById } from "@/Services";
 import { toast } from "react-toastify";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const NoticeRecord = () => {
+  const { hasEditAccess } = usePagePermission()
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [editingId, setEditingId] = useState(null);
@@ -110,7 +112,7 @@ const NoticeRecord = () => {
       selector: (row) => new Date(row.date).toLocaleDateString() || "N/A",
       sortable: true,
     },
-    {
+    hasEditAccess && {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">

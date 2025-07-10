@@ -16,9 +16,11 @@ import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { BASE_URL, getClasses, getSections } from "@/Services";
 import { toast } from "react-toastify";
 import useSessionId from "@/hooks/useSessionId";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const AttendanceReport = () => {
-  const selectedSessionId=useSessionId()
+  const { hasEditAccess } = usePagePermission()
+  const selectedSessionId = useSessionId()
   const [classList, setClassList] = useState([]);
   const [sectionList, setSectionList] = useState([]);
   const [selectedClass, setSelectedClass] = useState("");
@@ -61,29 +63,29 @@ const AttendanceReport = () => {
     }
   };
 
- const fetchAttendanceReports = async () => {
-  setLoading(true);
-  try {
-    const res = await axios.get(
-      `${BASE_URL}/api/attendance?class_name=${selectedClass}&section_name=${selectedSection}&attendance_date=${attendanceDate}`
-    );
+  const fetchAttendanceReports = async () => {
+    setLoading(true);
+    try {
+      const res = await axios.get(
+        `${BASE_URL}/api/attendance?class_name=${selectedClass}&section_name=${selectedSection}&attendance_date=${attendanceDate}`
+      );
 
-    if (res.data.success && res.data.data?._id) {
-      setAttendanceId(res.data.data._id); // ✅ Save for update
-      setAttendanceRecords(res.data.data.students || []); // ✅ Save students array
-    } else {
+      if (res.data.success && res.data.data?._id) {
+        setAttendanceId(res.data.data._id); // ✅ Save for update
+        setAttendanceRecords(res.data.data.students || []); // ✅ Save students array
+      } else {
+        setAttendanceRecords([]);
+        setAttendanceId(null); // Clear attendanceId
+        toast.error("No attendance found for the selected date/class/section");
+      }
+    } catch (error) {
+      console.error("Fetch error:", error);
+      toast.error("Failed to fetch attendance");
+      setAttendanceId(null);
       setAttendanceRecords([]);
-      setAttendanceId(null); // Clear attendanceId
-      toast.error("No attendance found for the selected date/class/section");
     }
-  } catch (error) {
-    console.error("Fetch error:", error);
-    toast.error("Failed to fetch attendance");
-    setAttendanceId(null);
-    setAttendanceRecords([]);
-  }
-  setLoading(false);
-};
+    setLoading(false);
+  };
 
 
 
@@ -193,7 +195,7 @@ const AttendanceReport = () => {
               </Row>
               <Row className="mt-3">
                 <Col>
-                  {attendanceRecords.length > 0 && (
+                  {attendanceRecords.length > 0 && hasEditAccess && (
                     <Button variant="primary" onClick={handleSaveUpdate}>
                       Save Changes
                     </Button>

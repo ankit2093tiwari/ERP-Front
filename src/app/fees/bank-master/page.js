@@ -9,8 +9,10 @@ import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { toast } from "react-toastify";
 import { addNewBank, deleteBankById, getAllBanks, updateBankById } from "@/Services";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const BankMaster = () => {
+  const {hasSubmitAccess,hasEditAccess}=usePagePermission()
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -42,7 +44,7 @@ const BankMaster = () => {
         ),
       sortable: true,
     },
-    {
+    hasEditAccess &&{
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
@@ -192,7 +194,8 @@ const BankMaster = () => {
 
       <section>
         <Container>
-          <Button
+          {hasSubmitAccess &&(
+            <Button
             onClick={() => {
               setIsPopoverOpen(true);
               setFieldError("");
@@ -202,6 +205,7 @@ const BankMaster = () => {
           >
             <CgAddR /> Add New Bank
           </Button>
+          )}
 
           {isPopoverOpen && (
             <div className="cover-sheet">

@@ -22,8 +22,11 @@ import {
   updateHeadById,
 } from "@/Services";
 import { toast } from "react-toastify";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const HeadMasterPage = () => {
+  const { hasEditAccess, hasSubmitAccess } = usePagePermission()
+
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -193,7 +196,7 @@ const HeadMasterPage = () => {
         ),
       sortable: true,
     },
-    {
+    hasEditAccess && {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
@@ -252,10 +255,12 @@ const HeadMasterPage = () => {
 
       <section>
         <Container>
-          <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
-            <CgAddR /> Add Head Master
-          </Button>
+          {hasSubmitAccess && (
+            <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
+              <CgAddR /> Add Head Master
+            </Button>
 
+          )}
           {isPopoverOpen && (
             <div className="cover-sheet">
               <div className="studentHeading">

@@ -20,8 +20,11 @@ import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { addNewCategory, deleteCategoryById, getItemCategories, updateCategoryById } from "@/Services";
 import { toast } from "react-toastify";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const ItemCategory = () => {
+  const { hasSubmitAccess, hasEditAccess } = usePagePermission()
+
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -59,7 +62,7 @@ const ItemCategory = () => {
         ),
       sortable: true,
     },
-    {
+    hasEditAccess && {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
@@ -234,12 +237,14 @@ const ItemCategory = () => {
         <Container>
           {error && <Alert variant="danger">{error}</Alert>}
 
-          <Button
-            onClick={() => setIsPopoverOpen(true)}
-            className="btn-add"
-          >
-            <CgAddR /> Add Category
-          </Button>
+          {hasSubmitAccess && (
+            <Button
+              onClick={() => setIsPopoverOpen(true)}
+              className="btn-add"
+            >
+              <CgAddR /> Add Category
+            </Button>
+          )}
 
           {isPopoverOpen && (
             <div className="cover-sheet">

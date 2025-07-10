@@ -23,8 +23,10 @@ import {
   getAllHolydays,
   updateHolidayById,
 } from "@/Services";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const HolidayMasterPage = () => {
+  const { hasEditAccess, hasSubmitAccess } = usePagePermission()
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -152,7 +154,7 @@ const HolidayMasterPage = () => {
         row.to_date ? new Date(row.to_date).toLocaleDateString() : "N/A",
       sortable: true,
     },
-    {
+    hasEditAccess && {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
@@ -173,8 +175,7 @@ const HolidayMasterPage = () => {
   const handleCopy = () => {
     const headers = ["#", "Holiday Name", "From Date", "To Date"];
     const rows = data.map((row, index) =>
-      `${index + 1}\t${row.holiday_name || "N/A"}\t${
-        row.from_date ? new Date(row.from_date).toLocaleDateString() : "N/A"
+      `${index + 1}\t${row.holiday_name || "N/A"}\t${row.from_date ? new Date(row.from_date).toLocaleDateString() : "N/A"
       }\t${row.to_date ? new Date(row.to_date).toLocaleDateString() : "N/A"}`
     );
     copyContent(headers, rows);
@@ -210,15 +211,17 @@ const HolidayMasterPage = () => {
 
       <section>
         <Container>
-          <Button
-            onClick={() => {
-              resetForm();
-              setIsFormVisible(true);
-            }}
-            className="btn-add"
-          >
-            <CgAddR /> Add Holiday
-          </Button>
+          {hasSubmitAccess && (
+            <Button
+              onClick={() => {
+                resetForm();
+                setIsFormVisible(true);
+              }}
+              className="btn-add"
+            >
+              <CgAddR /> Add Holiday
+            </Button>
+          )}
 
           {isFormVisible && (
             <div className="cover-sheet mt-3 mb-4">

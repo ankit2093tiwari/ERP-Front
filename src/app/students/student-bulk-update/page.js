@@ -8,12 +8,14 @@ import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { getClasses, getSections, getStudentsByClassAndSection, updateBulkStudents } from "@/Services";
 import { toast } from 'react-toastify'
 import useSessionId from "@/hooks/useSessionId";
+import usePagePermission from "@/hooks/usePagePermission";
 const SpeechRecognition =
   typeof window !== "undefined"
     ? window.SpeechRecognition || window.webkitSpeechRecognition
     : null;
 const StudentBulkUpdate = () => {
   const selectedSessionId = useSessionId();
+  const {hasEditAccess}=usePagePermission()
 
   const [classList, setClassList] = useState([]);
   const [sectionList, setSectionList] = useState([]);
@@ -309,7 +311,7 @@ const StudentBulkUpdate = () => {
                 </Col>
               </Row>
               <br />
-              {showUpdateButton && (
+              {showUpdateButton && hasEditAccess && (
                 <Row>
                   <Col>
                     <Button className="btn btn-success" onClick={handleUpdateStudents}>

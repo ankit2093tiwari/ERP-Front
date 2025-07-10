@@ -25,8 +25,11 @@ import {
   updateSessionById,
   deleteSessionById,
 } from "@/Services";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const SessionMasterPage = () => {
+  const { hasEditAccess, hasSubmitAccess } = usePagePermission()
+
   const [data, setData] = useState([]);
   const [classes, setClasses] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -197,20 +200,22 @@ const SessionMasterPage = () => {
                 {/* ({new Date(session.start_date).toLocaleDateString()} -{" "}
                 {new Date(session.end_date).toLocaleDateString()}) */}
               </div>
-              <div className="d-flex gap-1">
-                <button
-                  className="editButton btn-sm"
-                  onClick={() => handleEdit(session)}
-                >
-                  <FaEdit />
-                </button>
-                <button
-                  className="editButton btn-sm btn-danger"
-                  onClick={() => handleDelete(session._id)}
-                >
-                  <FaTrashAlt />
-                </button>
-              </div>
+              {hasEditAccess && (
+                <div className="d-flex gap-1">
+                  <button
+                    className="editButton btn-sm"
+                    onClick={() => handleEdit(session)}
+                  >
+                    <FaEdit />
+                  </button>
+                  <button
+                    className="editButton btn-sm btn-danger"
+                    onClick={() => handleDelete(session._id)}
+                  >
+                    <FaTrashAlt />
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -261,17 +266,19 @@ const SessionMasterPage = () => {
 
       <section>
         <Container>
-          <Button
-            className="btn-add mb-3"
-            onClick={() => {
-              setIsFormOpen(true);
-              setEditingId(null);
-              setFormData({ sessionName: "", class_id: [], start_date: "", end_date: "" });
-              setFieldErrors({});
-            }}
-          >
-            <CgAddR /> Add Session
-          </Button>
+          {hasSubmitAccess && (
+            <Button
+              className="btn-add mb-3"
+              onClick={() => {
+                setIsFormOpen(true);
+                setEditingId(null);
+                setFormData({ sessionName: "", class_id: [], start_date: "", end_date: "" });
+                setFieldErrors({});
+              }}
+            >
+              <CgAddR /> Add Session
+            </Button>
+          )}
 
           {isFormOpen && (
             <div className="cover-sheet">

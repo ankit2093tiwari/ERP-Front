@@ -9,8 +9,10 @@ import { toast } from "react-toastify";
 import { FaSearch } from "react-icons/fa";
 import { addNewFeeEntry, deleteFeeEntryById, getAllPaymentMode, getClasses, getFeeGroupDataBySectionId, getFeeHistoryByStudentId, getFeeStructureByFeeGroupId, getFeeStructures, getSections, getStudentsByClassAndSection } from "@/Services";
 import useSessionId from "@/hooks/useSessionId";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const FeeEntry = () => {
+  const {hasSubmitAccess,hasEditAccess}=usePagePermission()
   const selectedSessionId = useSessionId()
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -133,10 +135,8 @@ const FeeEntry = () => {
     { name: "REMARKS", selector: (row) => row.description || "N/A" },
     { name: "STATUS", selector: (row) => row.status || "N/A" },
     { name: "DATE", selector: (row) => row.date || "N/A" },
-    // { name: "DISCOUNT", selector: (row) => row.discount || "N/A" },
-    // { name: "FINE", selector: (row) => row.fine || "N/A" },
     { name: "PAID AMOUNT", selector: (row) => row.paid_amount || "N/A" },
-    {
+    hasEditAccess &&{
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
@@ -507,26 +507,6 @@ const FeeEntry = () => {
                         </Col>
                       </Row>
                     </div>
-
-                    {/* <Row className="justify-content-between mt-3 align-items-center">
-                <Col lg={12}>
-                  <div className="text-end">
-                    <Button variant="primary" className="btn-action me-2">
-                      <FaPrint /> Assign Fees
-                    </Button>
-                    <Button variant="primary" className="btn-action me-2">
-                      <FaPrint /> Assign Discount
-                    </Button>
-                    <Button variant="primary" className="btn-action me-2">
-                      <FaPrint /> Paid History
-                    </Button>
-                    <Button variant="success" className="btn-action">
-                      <FaPrint /> Pay Fees
-                    </Button>
-                  </div>
-                </Col>
-              </Row> */}
-
                     <hr />
 
                     <div className="card-title">
@@ -554,12 +534,12 @@ const FeeEntry = () => {
                     <div className="card-body">
                       <Table columns={payFeeColumns} data={payFeeData} key={payFeeData.filter(item => item.selected).length} />
                     </div>
-                    <div><button className="btn btn-secondary mt-2" onClick={assignStudentFee}>Pay Fee</button></div>
+                    <div>{hasSubmitAccess && (<button className="btn btn-secondary mt-2" onClick={assignStudentFee}>Pay Fee</button>)}</div>
                   </div>
                 </Col>
               </Row>
             )}
-            {!selectedStudent && <h5 className="p-5 text-center text-danger">Select Student to Get detail</h5>}
+            {!selectedStudent && <h6 className="p-5 text-center text-danger">Select Student to Get detail</h6>}
           </div>
         </Container>
       </section>

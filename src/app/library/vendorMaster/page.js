@@ -19,8 +19,10 @@ import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { FaEdit, FaTrash } from "react-icons/fa";
 import { addNewLibraryVendor, deleteLibraryVendorById, getItemCategories, getLibraryVendors, updateLibraryVendorById } from "@/Services";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const VendorMaster = () => {
+  const {hasEditAccess, hasSubmitAccess}=usePagePermission()
   const [vendors, setVendors] = useState([]);
   const [categories, setCategories] = useState([]);
   const [editId, setEditId] = useState(null);
@@ -150,7 +152,7 @@ const VendorMaster = () => {
     },
     { name: "Contact", selector: (row) => row.contactNumber },
     { name: "Email", selector: (row) => row.email },
-    {
+    hasEditAccess &&{
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
@@ -237,7 +239,8 @@ const VendorMaster = () => {
       </div>
       <section>
         <Container>
-          <Button
+          {hasSubmitAccess &&(
+            <Button
             onClick={() => {
               setEditId(null);
               reset(defaultFormValues);
@@ -247,6 +250,7 @@ const VendorMaster = () => {
           >
             Add Vendor
           </Button>
+          )}
           {isPopoverOpen && (
             <div className="cover-sheet">
               <div className="studentHeading">

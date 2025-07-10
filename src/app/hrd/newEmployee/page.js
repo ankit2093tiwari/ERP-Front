@@ -12,6 +12,7 @@ import { FaEdit, FaTrashAlt, FaEye } from "react-icons/fa";
 import { CgAddR } from 'react-icons/cg';
 import { addNewEmployee, deleteEmployeeById, getAllDepartments, getAllDesignations, getAllEmployee, getCastes, getCategories, getReligions, updateEmployeeById } from '@/Services';
 import { toast } from 'react-toastify';
+import usePagePermission from '@/hooks/usePagePermission';
 
 // Validation Schema
 const schema = yup.object().shape({
@@ -35,6 +36,7 @@ const schema = yup.object().shape({
 });
 
 const Employee = () => {
+    const { hasSubmitAccess, hasEditAccess } = usePagePermission()
     const breadcrumbItems = [
         { label: "hrd", link: "/hrd/allModule" },
         { label: "Employee Management", link: "null" },
@@ -62,24 +64,6 @@ const Employee = () => {
     const [currentEmployeeId, setCurrentEmployeeId] = useState(null);
     const [designations, setDesignations] = useState([])
     const [departments, setdepartments] = useState([])
-
-    // Function to generate employee code
-    // const generateEmployeeCode = async () => {
-    //     try {
-    //         // Get the count of existing employees
-    //         const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/all-employee");
-    //         const count = response.data.data?.length || 0;
-
-    //         // Generate code with prefix and sequential number
-    //         const newCode = `EMP${String(count + 1).padStart(4, '0')}`;
-    //         setValue("employee_code", newCode);
-    //     } catch (err) {
-    //         console.error("Error generating employee code:", err);
-    //         // Fallback code if API fails
-    //         const fallbackCode = `EMP${String(Math.floor(Math.random() * 10000)).padStart(4, '0')}`;
-    //         setValue("employee_code", fallbackCode);
-    //     }
-    // };
 
     const fetchCategories = async () => {
         const response = await getCategories()
@@ -251,7 +235,7 @@ const Employee = () => {
             selector: (row) => row.mobile_no || "N/A",
             sortable: true,
         },
-        {
+        hasEditAccess && {
             name: "Actions",
             cell: (row) => (
                 <div className="d-flex gap-2">
@@ -302,13 +286,6 @@ const Employee = () => {
         setError("");
     };
 
-    // Generate employee code when form opens in create mode
-    // useEffect(() => {
-    //     if (isFormOpen && !editMode) {
-    //         generateEmployeeCode();
-    //     }
-    // }, [isFormOpen, editMode]);
-
     return (
         <>
             <div className="breadcrumbSheet position-relative">
@@ -325,17 +302,18 @@ const Employee = () => {
                 <Container>
                     <Row>
                         <Col>
-                            <Button
-                                onClick={() => {
-                                    setIsFormOpen(true);
-                                    setEditMode(false);
-                                    resetForm();
-                                    // generateEmployeeCode();
-                                }}
-                                className="btn-add mb-3"
-                            >
-                                <CgAddR /> Add New Employee
-                            </Button>
+                            {hasSubmitAccess && (
+                                <Button
+                                    onClick={() => {
+                                        setIsFormOpen(true);
+                                        setEditMode(false);
+                                        resetForm();
+                                    }}
+                                    className="btn-add mb-3"
+                                >
+                                    <CgAddR /> Add New Employee
+                                </Button>
+                            )}
 
                             {isFormOpen && (
                                 <div className="cover-sheet mb-4" key={editMode ? `edit-${currentEmployeeId}` : 'create'}>

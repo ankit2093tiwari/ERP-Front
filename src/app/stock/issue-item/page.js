@@ -9,8 +9,10 @@ import { Container, Row, Col, Form, FormLabel, FormGroup, FormControl, FormSelec
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { addNewIssuedItem, deleteIssuedItemById, getAllDepartments, getAllIssuedItems, getAllStudents, getItemCategories, getItemsByCategoryId } from '@/Services';
 import { toast } from 'react-toastify';
+import usePagePermission from '@/hooks/usePagePermission';
 
 const ItemIssue = () => {
+  const {hasSubmitAccess,hasEditAccess}=usePagePermission()
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const onOpen = () => setIsPopoverOpen(true);
   const onClose = () => setIsPopoverOpen(false);
@@ -43,7 +45,7 @@ const ItemIssue = () => {
     { name: 'Quantity', selector: row => row.quantity },
     { name: 'Remarks', selector: row => row.remarks },
     { name: 'Date & Time', selector: row => row.dateAndTime },
-    {
+    hasEditAccess &&{
       name: "Actions",
       cell: (row) => (
         <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
@@ -213,7 +215,7 @@ const handleCopy = () => {
         <Container>
           <Row>
             <Col>
-              <Button onClick={onOpen} className="btn-add"><CgAddR /> Issue Items</Button>
+              {hasSubmitAccess && (<Button onClick={onOpen} className="btn-add"><CgAddR /> Issue Items</Button>)}
               {isPopoverOpen && (
                 <div className="cover-sheet">
                   <div className="studentHeading">

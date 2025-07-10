@@ -20,8 +20,10 @@ import Table from "@/app/component/DataTable";
 import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { addNewRoutineCheckup, deleteRoutineCheckupById, getAllDoctors, getAllRoutineCheckups, updateRoutineCheckupById } from "@/Services";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const RoutineCheckUp = () => {
+  const { hasEditAccess, hasSubmitAccess } = usePagePermission()
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -118,7 +120,7 @@ const RoutineCheckUp = () => {
           row.remark || "N/A"
         ),
     },
-    {
+    hasEditAccess && {
       name: "Actions",
       cell: (row) =>
         editingId === row._id ? (
@@ -275,15 +277,17 @@ const RoutineCheckUp = () => {
         <Container>
           {error && <Alert variant="danger">{error}</Alert>}
 
-          <Button
-            onClick={() => {
-              setIsPopoverOpen(true);
-              setFormData((prev) => ({ ...prev, form_no: nextFormNo.toString() }));
-            }}
-            className="btn-add"
-          >
-            <CgAddR /> Add Routine Check-Up
-          </Button>
+          {hasSubmitAccess && (
+            <Button
+              onClick={() => {
+                setIsPopoverOpen(true);
+                setFormData((prev) => ({ ...prev, form_no: nextFormNo.toString() }));
+              }}
+              className="btn-add"
+            >
+              <CgAddR /> Add Routine Check-Up
+            </Button>
+          )}
 
           {isPopoverOpen && (
             <div className="cover-sheet">

@@ -17,8 +17,10 @@ import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { toast } from "react-toastify";
 import { addNewStore, deleteStoreById, getAllStores, updateStoreById } from "@/Services";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const StoreMaster = () => {
+  const {hasSubmitAccess,hasEditAccess}=usePagePermission()
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -53,7 +55,7 @@ const StoreMaster = () => {
         ),
       sortable: true,
     },
-    {
+    hasEditAccess &&{
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
@@ -224,12 +226,16 @@ const StoreMaster = () => {
 
       <section>
         <Container>
-          <Button
+         {
+          hasSubmitAccess &&(
+             <Button
             onClick={() => setIsPopoverOpen(true)}
             className="btn-add"
           >
             <CgAddR /> Add Store
           </Button>
+          )
+         }
 
           {isPopoverOpen && (
             <div className="cover-sheet">

@@ -14,8 +14,10 @@ import {
   getBookCategories,
   getLibraryGroups,
 } from "@/Services";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const NewBookSuggestion = () => {
+  const {hasEditAccess,hasSubmitAccess}=usePagePermission()
   const [bookCategories, setBookCategories] = useState([]);
   const [libraryGroups, setLibraryGroups] = useState([]);
   const [data, setData] = useState([]);
@@ -167,7 +169,7 @@ const NewBookSuggestion = () => {
     { name: "Publisher Name", selector: (row) => row.publisherName || "N/A" },
     { name: "Publish Year", selector: (row) => row.publishYear || "N/A" },
     { name: "Edition", selector: (row) => row.edition || "N/A" },
-    {
+    hasEditAccess &&{
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
@@ -207,9 +209,11 @@ const NewBookSuggestion = () => {
 
       <section>
         <Container>
-          <Button onClick={() => setShowAddForm(true)} className="btn-add">
+          {hasSubmitAccess &&(
+            <Button onClick={() => setShowAddForm(true)} className="btn-add">
             <CgAddR /> Add New Suggestion
           </Button>
+          )}
 
           {showAddForm && (
             <div className="cover-sheet">

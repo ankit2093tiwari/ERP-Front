@@ -10,8 +10,10 @@ import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { toast } from "react-toastify";
 import { addNewAdvertisement, deleteAdvertisementById, getAdvertisements, getAdvertisementTypes, updateAdvertisementById } from "@/Services";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const AdvertisementPage = () => {
+  const {hasEditAccess,hasSubmitAccess}=usePagePermission()
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
@@ -253,7 +255,7 @@ const AdvertisementPage = () => {
       ),
       sortable: true
     },
-    {
+    hasEditAccess &&{
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
@@ -311,7 +313,7 @@ const AdvertisementPage = () => {
         </div>
       ),
     }
-  ];
+  ].filter(Boolean);;
 
   // Fetch advertisements data
   const fetchData = async () => {
@@ -506,12 +508,14 @@ const AdvertisementPage = () => {
 
       <section>
         <Container>
-          <Button
+        {hasSubmitAccess &&(
+            <Button
             onClick={() => setIsPopoverOpen(true)}
             className="btn-add"
           >
             <CgAddR /> Add Advertisement
           </Button>
+        )}
 
           {isPopoverOpen && (
             <div className="cover-sheet">

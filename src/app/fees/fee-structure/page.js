@@ -8,8 +8,10 @@ import Table from "@/app/component/DataTable";
 import { addNewFeeStructure, deleteFeeStructureById, getAllInstallments, getFeeGroups, getFeeStructures, updateFeeStructureById } from "@/Services";
 import { toast } from "react-toastify";
 import useSessionId from "@/hooks/useSessionId";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const FeeStatement = () => {
+  const {hasEditAccess,hasSubmitAccess}=usePagePermission()
   const selectedSessionId=useSessionId()
   const [data, setData] = useState([]);
   const [feeGroups, setFeeGroups] = useState([]);
@@ -391,7 +393,7 @@ const FeeStatement = () => {
       },
       sortable: true,
     },
-    {
+    hasEditAccess &&{
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
@@ -431,7 +433,8 @@ const FeeStatement = () => {
       </div>
       <section>
         <Container>
-          <div className="position-relative">
+         {hasSubmitAccess &&(
+           <div className="position-relative">
             <Button
               onClick={() => {
                 resetForm();
@@ -439,9 +442,10 @@ const FeeStatement = () => {
               }}
               className="btn-add mb-4"
             >
-              <CgAddR /> New Fee
+              <CgAddR />New Fee Structure
             </Button>
           </div>
+         )}
           {isPopoverOpen && (
             <div className="cover-sheet">
               <div className="studentHeading">

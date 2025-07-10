@@ -18,8 +18,10 @@ import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { toast } from "react-toastify";
 import { addCategory, deleteCategory, getCategories, updateCategory } from "@/Services";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const CategoryMasterPage = () => {
+  const { hasEditAccess, hasSubmitAccess } = usePagePermission()
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
@@ -58,7 +60,7 @@ const CategoryMasterPage = () => {
         ),
       sortable: true,
     },
-    {
+    hasEditAccess && {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
@@ -234,9 +236,11 @@ const CategoryMasterPage = () => {
 
       <section>
         <Container>
-          <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
-            <CgAddR /> Add Category
-          </Button>
+          {hasSubmitAccess && (
+            <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
+              <CgAddR /> Add Category
+            </Button>
+          )}
 
           {isPopoverOpen && (
             <div className="cover-sheet">

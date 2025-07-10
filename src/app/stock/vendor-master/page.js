@@ -10,8 +10,10 @@ import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { toast } from "react-toastify";
 import { deleteVendorRecordById, getAllVendors, getItemCategories, updateVendor, addNewVendor } from "@/Services";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const VendorMaster = () => {
+  const { hasSubmitAccess, hasEditAccess } = usePagePermission()
   // State management
   const [data, setData] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -98,7 +100,7 @@ const VendorMaster = () => {
       selector: (row) => row.email || "N/A",
       sortable: true,
     },
-    {
+    hasEditAccess &&{
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
@@ -375,9 +377,11 @@ const VendorMaster = () => {
 
       <section>
         <Container>
-          <Button onClick={handleAddNew} className="btn-add">
+          {hasSubmitAccess &&(
+            <Button onClick={handleAddNew} className="btn-add">
             <CgAddR /> Add Vendor
           </Button>
+          )}
 
           {isFormOpen && (
             <div className="cover-sheet">

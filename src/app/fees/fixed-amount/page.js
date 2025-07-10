@@ -8,8 +8,10 @@ import styles from "@/app/medical/routine-check-up/page.module.css";
 import { addNewFixedAmount, getAllInstallments, getClasses, getHeadsByInstallmentName, getSections, getStudentsByClassAndSection } from "@/Services";
 import { toast } from "react-toastify";
 import useSessionId from "@/hooks/useSessionId";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const FixedAmount = () => {
+    const { hasEditAccess } = usePagePermission()
     const selectedSessionId = useSessionId()
     const [classList, setClassList] = useState([]);
     const [sectionList, setSectionList] = useState([]);
@@ -37,7 +39,7 @@ const FixedAmount = () => {
         setHeads([]);
         setErrors({});
 
-        fetchData(); 
+        fetchData();
     }, [selectedSessionId]);
 
 
@@ -306,11 +308,13 @@ const FixedAmount = () => {
                                         </Table>
                                     </div>
 
-                                    <div className="d-flex justify-content-end mt-4">
-                                        <Button variant="primary" onClick={handleSubmit} disabled={loading} style={{ minWidth: '120px' }} className={styles.btnPrimary}>
-                                            <FaSave /> {loading ? "Updating..." : "Update"}
-                                        </Button>
-                                    </div>
+                                    {hasEditAccess && (
+                                        <div className="d-flex justify-content-end mt-4">
+                                            <Button variant="primary" onClick={handleSubmit} disabled={loading} style={{ minWidth: '120px' }} className={styles.btnPrimary}>
+                                                <FaSave /> {loading ? "Updating..." : "Update"}
+                                            </Button>
+                                        </div>
+                                    )}
                                 </>)
                             }
                         </div>

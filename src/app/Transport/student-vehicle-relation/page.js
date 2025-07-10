@@ -10,8 +10,10 @@ import { copyContent, printContent } from '@/app/utils';
 import { toast } from 'react-toastify';
 import { addNewStudentVehicle, deleteStudentVehicleById, getAllPickupPoints, getAllStudents, getAllStudentVehicles, getRoutes, updateStudentVehicleById } from '@/Services';
 import useSessionId from '@/hooks/useSessionId';
+import usePagePermission from '@/hooks/usePagePermission';
 
 const StudentVehicle = () => {
+  const {hasEditAccess,hasSubmitAccess}=usePagePermission()
   const selectedSessionId = useSessionId();
 
   const [data, setData] = useState([]);
@@ -108,7 +110,7 @@ const StudentVehicle = () => {
       },
       sortable: true,
     },
-    {
+    hasEditAccess &&{
       name: 'Action',
       cell: row => (
         <div className="d-flex gap-2">
@@ -309,9 +311,11 @@ const StudentVehicle = () => {
 
       <section>
         <Container>
-          <Button onClick={() => setShowAddForm(true)} className="btn-add">
+        {hasSubmitAccess &&(
+            <Button onClick={() => setShowAddForm(true)} className="btn-add">
             <CgAddR /> New Transport Assignment
           </Button>
+        )}
 
           {showAddForm && (
             <div className="cover-sheet">

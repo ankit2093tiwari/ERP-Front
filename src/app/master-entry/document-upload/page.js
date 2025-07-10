@@ -19,9 +19,12 @@ import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { toast } from "react-toastify";
 import { BASE_URL } from "@/Services";
+import usePagePermission from "@/hooks/usePagePermission";
 
 
 const DocumentMasterPage = () => {
+const {hasEditAccess, hasSubmitAccess}=usePagePermission()
+
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
@@ -51,7 +54,7 @@ const DocumentMasterPage = () => {
         ),
       sortable: true,
     },
-    {
+    hasEditAccess && {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
@@ -232,9 +235,13 @@ const DocumentMasterPage = () => {
 
       <section>
         <Container>
-          <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
+         {
+          hasSubmitAccess && (
+             <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
             <CgAddR /> Add Document
           </Button>
+          )
+         }
 
           {isPopoverOpen && (
             <div className="cover-sheet">

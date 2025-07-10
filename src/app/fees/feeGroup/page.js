@@ -19,11 +19,14 @@ import {
 import { toast } from "react-toastify";
 import { addNewFeeGroup, deleteFeeGroupById, getAllSections, getClasses, getFeeGroups, updateFeeGroupById } from "@/Services";
 import useSessionId from "@/hooks/useSessionId";
+import usePagePermission from "@/hooks/usePagePermission";
 const breadcrumbItems = [
   { label: "Fee", link: "/fees/all-module" },
   { label: "fee-Group", link: "null" },
 ];
 const FeeGroup = () => {
+  const {hasSubmitAccess,hasEditAccess}=usePagePermission()
+
   const selectedSessionId=useSessionId()
   const [loading, setLoading] = useState(false);
   const [classList, setClassList] = useState([]);
@@ -264,7 +267,7 @@ const FeeGroup = () => {
           row.late_fine_per_day
         ),
     },
-    {
+    hasEditAccess &&{
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
@@ -318,9 +321,11 @@ const FeeGroup = () => {
 
       <section>
         <Container>
-          <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
+          {hasSubmitAccess &&(
+            <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
             <CgAddR /> Add Fee Group
           </Button>
+          )}
 
           {isPopoverOpen && (
             <div className="cover-sheet bg-light">

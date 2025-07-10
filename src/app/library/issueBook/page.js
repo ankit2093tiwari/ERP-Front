@@ -10,8 +10,10 @@ import { Form, Row, Col, Container, FormLabel, FormSelect, FormControl, Button }
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { addNewIssuedBook, getAllBooks, getAllStudents, getAllEmployee, getAllIssuedBooks, deleteIssuedBook } from "@/Services";
 import { toast } from "react-toastify";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const IssueBook = () => {
+  const {hasEditAccess,hasSubmitAccess}=usePagePermission()
   const [data, setData] = useState([]);
   const [books, setBooks] = useState([]);
   const [students, setStudents] = useState([]);
@@ -40,7 +42,7 @@ const IssueBook = () => {
     { name: "Issued To", selector: row => `${row.issuedToType}: ${row.issuedToName}`, sortable: true, },
     { name: "Issue Period", selector: row => `${row.issuePeriod} Days`, sortable: true, },
     { name: "Issue Date", selector: row => new Date(row.issueDate).toLocaleDateString(), sortable: true, },
-    {
+    hasEditAccess &&{
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
@@ -203,9 +205,11 @@ const IssueBook = () => {
       </div>
       <section>
         <Container>
-          <Button onClick={() => setShowAddForm(true)} className="btn-add">
+          {hasSubmitAccess &&(
+            <Button onClick={() => setShowAddForm(true)} className="btn-add">
             <CgAddR /> Issue Book
           </Button>
+          )}
 
           {showAddForm && (
             <div className="cover-sheet">

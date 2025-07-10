@@ -134,6 +134,10 @@ export const addNewReligion = async (payload) => {
     const response = await axios.post(`${BASE_URL}/api/religions`, payload)
     return response?.data;
 }
+export const updateReligionById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/religions/${id}`, payload)
+    return response?.data;
+}
 export const deleteReligionById = async (id) => {
     const response = await axios.delete(`${BASE_URL}/api/religions/${id}`)
     return response?.data;

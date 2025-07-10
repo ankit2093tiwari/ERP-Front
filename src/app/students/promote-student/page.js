@@ -9,9 +9,11 @@ import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { BASE_URL, getActiveSession, getClasses, getSections, getSessions, getStudentsByClassAndSection, promoteStudents } from "@/Services";
 import { toast } from "react-toastify";
 import useSessionId from "@/hooks/useSessionId";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const PromoteStudentPage = () => {
   const selectedSessionId = useSessionId();
+  const { hasEditAccess } = usePagePermission()
 
   const [classList, setClassList] = useState([]);
   const [sectionList, setSectionList] = useState([]);
@@ -331,73 +333,75 @@ const PromoteStudentPage = () => {
               </div>
 
               {/* Promotion Information Section */}
-              <div className="mb-4">
-                <h5 className="mb-3">Promotion Information</h5>
-                <Row>
-                  <Col lg={4}>
-                    <FormLabel className="labelForm">Promotion Session</FormLabel>
-                    <FormSelect
-                      value={promotionSessionId}
-                      onChange={(e) => {
-                        const selectedId = e.target.value;
-                        setPromotionSessionId(selectedId);
-                        fetchPromotedClasses(selectedId);
-                      }}
-                    >
-                      <option value="">Select Promotion Session</option>
-                      {sessionList.map((session) => (
-                        <option key={session._id} value={session._id}>
-                          {session.sessionName}
-                        </option>
-                      ))}
-                    </FormSelect>
+              {hasEditAccess && (
+                <div className="mb-4">
+                  <h5 className="mb-3">Promotion Information</h5>
+                  <Row>
+                    <Col lg={4}>
+                      <FormLabel className="labelForm">Promotion Session</FormLabel>
+                      <FormSelect
+                        value={promotionSessionId}
+                        onChange={(e) => {
+                          const selectedId = e.target.value;
+                          setPromotionSessionId(selectedId);
+                          fetchPromotedClasses(selectedId);
+                        }}
+                      >
+                        <option value="">Select Promotion Session</option>
+                        {sessionList.map((session) => (
+                          <option key={session._id} value={session._id}>
+                            {session.sessionName}
+                          </option>
+                        ))}
+                      </FormSelect>
 
-                  </Col>
-                  <Col lg={4}>
-                    <FormLabel className="labelForm">Promoted Class</FormLabel>
-                    <FormSelect
-                      value={promotedClass}
-                      onChange={(e) => {
-                        setPromotedClass(e.target.value);
-                        fetchSections(e.target.value, setPromotedSectionList);
-                      }}
-                    >
-                      <option value="">Select Promoted Class</option>
-                      {promotedClassList.map((cls) => (
-                        <option key={cls._id} value={cls._id}>{cls.class_name}</option>
-                      ))}
-                    </FormSelect>
+                    </Col>
+                    <Col lg={4}>
+                      <FormLabel className="labelForm">Promoted Class</FormLabel>
+                      <FormSelect
+                        value={promotedClass}
+                        onChange={(e) => {
+                          setPromotedClass(e.target.value);
+                          fetchSections(e.target.value, setPromotedSectionList);
+                        }}
+                      >
+                        <option value="">Select Promoted Class</option>
+                        {promotedClassList.map((cls) => (
+                          <option key={cls._id} value={cls._id}>{cls.class_name}</option>
+                        ))}
+                      </FormSelect>
 
-                  </Col>
-                  <Col lg={4}>
-                    <FormLabel className="labelForm">Promoted Section</FormLabel>
-                    <FormSelect
-                      value={promotedSection}
-                      onChange={(e) => setPromotedSection(e.target.value)}
-                    >
-                      <option value="">Select Promoted Section</option>
-                      {promotedSectionList.map((sec) => (
-                        <option key={sec._id} value={sec._id}>{sec.section_name}</option>
-                      ))}
-                    </FormSelect>
-                  </Col>
-                </Row>
-                <Row className="mt-3">
-                  <Col>
-                    <Button
-                      onClick={handlePromote}
-                      disabled={
-                        !selectedStudents.length ||
-                        !promotedClass ||
-                        !promotedSection ||
-                        !promotionSessionId
-                      }
-                    >
-                      Promote Students
-                    </Button>
-                  </Col>
-                </Row>
-              </div>
+                    </Col>
+                    <Col lg={4}>
+                      <FormLabel className="labelForm">Promoted Section</FormLabel>
+                      <FormSelect
+                        value={promotedSection}
+                        onChange={(e) => setPromotedSection(e.target.value)}
+                      >
+                        <option value="">Select Promoted Section</option>
+                        {promotedSectionList.map((sec) => (
+                          <option key={sec._id} value={sec._id}>{sec.section_name}</option>
+                        ))}
+                      </FormSelect>
+                    </Col>
+                  </Row>
+                  <Row className="mt-3">
+                    <Col>
+                      <Button
+                        onClick={handlePromote}
+                        disabled={
+                          !selectedStudents.length ||
+                          !promotedClass ||
+                          !promotedSection ||
+                          !promotionSessionId
+                        }
+                      >
+                        Promote Students
+                      </Button>
+                    </Col>
+                  </Row>
+                </div>
+              )}
             </Form>
           </div>
 

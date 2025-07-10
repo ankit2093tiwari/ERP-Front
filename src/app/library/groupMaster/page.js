@@ -8,11 +8,12 @@ import { Form, Row, Col, Container, FormLabel, FormControl, Button } from "react
 import { CgAddR } from 'react-icons/cg';
 import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
-import axios from "axios";
 import { toast } from "react-toastify";
 import { addNewLibraryGroup, deleteLibraryGroupById, getLibraryGroups, updateLibraryGroupById } from "@/Services";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const AddLibraryGroup = () => {
+  const { hasEditAccess, hasSubmitAccess } = usePagePermission()
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -46,7 +47,7 @@ const AddLibraryGroup = () => {
         ),
       sortable: true,
     },
-    {
+    hasEditAccess && {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
@@ -180,9 +181,11 @@ const AddLibraryGroup = () => {
 
       <section>
         <Container>
-          <Button onClick={onOpen} className="btn-add">
-            <CgAddR /> Add Group
-          </Button>
+          {hasSubmitAccess && (
+            <Button onClick={onOpen} className="btn-add">
+              <CgAddR /> Add Group
+            </Button>
+          )}
 
           {isPopoverOpen && (
             <div className="cover-sheet">

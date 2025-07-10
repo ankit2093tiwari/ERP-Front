@@ -20,8 +20,10 @@ import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { copyContent, printContent } from "@/app/utils";
 import { toast } from "react-toastify";
 import { addNewDesignation, deleteDesignationById, getAllDesignations, updateDesignationById } from "@/Services";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const DesignationMasterPage = () => {
+  const {hasEditAccess, hasSubmitAccess}=usePagePermission()
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [buttonLoading, setButtonLoading] = useState(false);
@@ -75,7 +77,7 @@ const DesignationMasterPage = () => {
           row.designation_type || "N/A"
         ),
     },
-    {
+    hasEditAccess &&{
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
@@ -249,9 +251,11 @@ const DesignationMasterPage = () => {
 
       <section>
         <Container>
-          <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
+          {hasSubmitAccess &&(
+            <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
             <CgAddR /> Add Designation
           </Button>
+          )}
 
           {isPopoverOpen && (
             <div className="cover-sheet">

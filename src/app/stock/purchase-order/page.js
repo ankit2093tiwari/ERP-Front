@@ -10,8 +10,11 @@ import Table from '@/app/component/DataTable';
 import { copyContent, printContent } from '@/app/utils';
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { deletePurchaseOrderById, getPurchaseOrders } from '@/Services';
+import usePagePermission from '@/hooks/usePagePermission';
 
 const PurchaseList = () => {
+const {hasEditAccess}=usePagePermission()
+
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -61,7 +64,7 @@ const PurchaseList = () => {
       selector: row => row.purchaseDate ? new Date(row.purchaseDate).toLocaleDateString() : 'N/A',
       sortable: true,
     },
-    {
+    hasEditAccess &&{
       name: 'Actions',
       cell: row => (
         <Button variant="danger" size="sm" onClick={() => handleDelete(row._id)}>

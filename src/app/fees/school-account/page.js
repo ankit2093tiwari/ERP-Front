@@ -8,8 +8,10 @@ import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { copyContent, printContent } from "@/app/utils";
 import { addNewSchoolAccount, getAllSchoolAccounts, updateSchoolAccountById } from "@/Services";
 import { toast } from "react-toastify";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const SchoolAccount = () => {
+  const {hasEditAccess}=usePagePermission()
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -118,7 +120,7 @@ const SchoolAccount = () => {
         ),
       sortable: true,
     },
-    {
+    hasEditAccess &&{
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">

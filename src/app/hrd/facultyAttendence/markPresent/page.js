@@ -16,8 +16,11 @@ import { copyContent, printContent } from "@/app/utils";
 
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { createFacultyAttendance, getAllEmployee } from "@/Services";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const MarkPresentPage = () => {
+  const { hasSubmitAccess } = usePagePermission()
+
   const today = new Date().toISOString().split("T")[0];
   const [attendanceDate, setAttendanceDate] = useState(today);
   const [staffList, setStaffList] = useState([]);
@@ -166,11 +169,13 @@ const MarkPresentPage = () => {
                 </Col>
               </Row>
               <Row>
-                <Col lg={2} className="d-flex align-items-end">
-                  <Button variant="primary" onClick={handleSubmit}>
-                    Submit
-                  </Button>
-                </Col>
+                {hasSubmitAccess && (
+                  <Col lg={2} className="d-flex align-items-end">
+                    <Button variant="primary" onClick={handleSubmit}>
+                      Submit
+                    </Button>
+                  </Col>
+                )}
               </Row>
             </Form>
           </div>

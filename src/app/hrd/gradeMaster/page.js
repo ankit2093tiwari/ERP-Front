@@ -18,8 +18,10 @@ import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { copyContent, printContent } from "@/app/utils";
 import { toast } from "react-toastify";
 import { addNewGrade, deleteGradeById, getAllGrades, updateGradeById } from "@/Services";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const GradeMasterPage = () => {
+  const {hasEditAccess,hasSubmitAccess}=usePagePermission()
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -160,7 +162,7 @@ const GradeMasterPage = () => {
           row.grade_name || "N/A"
         ),
     },
-    {
+    hasEditAccess &&{
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
@@ -207,9 +209,11 @@ const GradeMasterPage = () => {
 
       <section>
         <Container>
-          <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
+          {hasSubmitAccess &&(
+            <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
             <CgAddR /> Add Grade
           </Button>
+          )}
 
           {isPopoverOpen && (
             <div className="cover-sheet">

@@ -17,8 +17,11 @@ import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { toast } from "react-toastify";
 import { copyContent, printContent } from "@/app/utils";
 import { addNewCity, addNewState, deleteCityById, deleteStateById, getCities, getStates, updateCityById, updateStateById } from "@/Services";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const StateCityMaster = () => {
+  const { hasSubmitAccess, hasEditAccess } = usePagePermission()
+
   const [states, setStates] = useState([]);
   const [cities, setCities] = useState([]);
   const [formData, setFormData] = useState({
@@ -239,7 +242,7 @@ const StateCityMaster = () => {
       grow: 2,
       sortable: true,
     },
-    {
+    hasEditAccess && {
       name: "Actions",
       cell: (row) =>
         editingState?._id === row._id ? (
@@ -304,7 +307,7 @@ const StateCityMaster = () => {
       grow: 2,
       sortable: true,
     },
-    {
+    hasEditAccess && {
       name: "Actions",
       cell: (row) =>
         editingCity?._id === row._id ? (
@@ -358,19 +361,23 @@ const StateCityMaster = () => {
       </div>
       <section>
         <Container>
-          <div className="d-flex gap-2 mb-3">
-            <Button className="btn-add" onClick={() => setIsStateFormOpen(true)}>
-              <CgAddR /> Add State
-            </Button>
-            <Button
-              className="btn-add"
-              onClick={() => setIsCityFormOpen(true)}
-              disabled={states.length === 0}
-              title={states.length === 0 ? "Please add states first" : ""}
-            >
-              <CgAddR /> Add City
-            </Button>
-          </div>
+          {
+            hasSubmitAccess && (
+              <div className="d-flex gap-2 mb-3">
+                <Button className="btn-add" onClick={() => setIsStateFormOpen(true)}>
+                  <CgAddR /> Add State
+                </Button>
+                <Button
+                  className="btn-add"
+                  onClick={() => setIsCityFormOpen(true)}
+                  disabled={states.length === 0}
+                  title={states.length === 0 ? "Please add states first" : ""}
+                >
+                  <CgAddR /> Add City
+                </Button>
+              </div>
+            )
+          }
 
           {/* State Form */}
           {isStateFormOpen && (

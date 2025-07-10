@@ -10,9 +10,11 @@ import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { addNewSubject, deleteSubjectById, getAllEmployee, getAllSubjetcs, getClasses, getSections, updateSubjectById } from "@/Services";
 import { toast } from "react-toastify";
 import useSessionId from "@/hooks/useSessionId";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const SubjectMaster = () => {
   const selectedSessionId = useSessionId();
+  const { hasSubmitAccess, hasEditAccess } = usePagePermission()
 
   const [classList, setClassList] = useState([]);
   const [sectionList, setSectionList] = useState([]);
@@ -145,7 +147,7 @@ const SubjectMaster = () => {
         ),
       sortable: true,
     },
-    {
+    hasEditAccess && {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
@@ -363,12 +365,14 @@ const SubjectMaster = () => {
       </div>
       <section>
         <Container>
-          <Button
-            onClick={() => setIsPopoverOpen(true)}
-            className="btn-add"
-          >
-            <CgAddR /> Add Subject
-          </Button>
+          {hasSubmitAccess && (
+            <Button
+              onClick={() => setIsPopoverOpen(true)}
+              className="btn-add"
+            >
+              <CgAddR /> Add Subject
+            </Button>
+          )}
 
           {isPopoverOpen && (
             <div className="cover-sheet">

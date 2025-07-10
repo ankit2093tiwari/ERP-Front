@@ -10,8 +10,10 @@ import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { toast } from "react-toastify";
 import { addNewPettyHead, deletePettyHeadById, getAllPettyHeads, updatePettyHeadById } from "@/Services";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const PettyHeadMaster = () => {
+  const { hasSubmitAccess, hasEditAccess } = usePagePermission()
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -61,7 +63,7 @@ const PettyHeadMaster = () => {
           row.head_type || "N/A"
         ),
     },
-    {
+    hasEditAccess && {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
@@ -235,12 +237,14 @@ const PettyHeadMaster = () => {
 
       <section>
         <Container>
-          <Button onClick={() => {
-            setShowAddForm(true);
-            setFieldError({});
-          }} className="btn-add">
-            <CgAddR /> Add Petty Head
-          </Button>
+          {hasSubmitAccess && (
+            <Button onClick={() => {
+              setShowAddForm(true);
+              setFieldError({});
+            }} className="btn-add">
+              <CgAddR /> Add Petty Head
+            </Button>
+          )}
 
           {showAddForm && (
             <div className="cover-sheet">

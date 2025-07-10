@@ -19,8 +19,11 @@ import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { copyContent, printContent } from "@/app/utils";
 import { addNewItem, deleteItemById, getAllItems, getItemCategories, updateItemById } from "@/Services";
 import { toast } from "react-toastify";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const ItemMaster = () => {
+const {hasSubmitAccess,hasEditAccess}=usePagePermission()
+
   const [data, setData] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -140,7 +143,7 @@ const ItemMaster = () => {
       ),
       sortable: true
     },
-    {
+    hasEditAccess && {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
@@ -327,10 +330,12 @@ const ItemMaster = () => {
         <Container>
           {error && <Alert variant="danger">{error}</Alert>}
 
-          <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
+          {hasSubmitAccess &&(
+            <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
             <CgAddR /> Add Item
           </Button>
 
+          )}
           {isPopoverOpen && (
             <div className="cover-sheet">
               <div className="studentHeading">

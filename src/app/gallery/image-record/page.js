@@ -8,8 +8,10 @@ import Table from "@/app/component/DataTable";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { toast } from "react-toastify";
 import { deleteGalleryImageRecordById, getAllIGalleryImages, updateGalleryImageRecordById } from "@/Services";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const ImageRecord = () => {
+  const {hasEditAccess}=usePagePermission()
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -114,7 +116,7 @@ const ImageRecord = () => {
       },
       sortable: false,
     },
-    {
+    hasEditAccess &&{
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">

@@ -22,8 +22,11 @@ import {
   getAllInstallments,
   updateInstallmentById
 } from "@/Services";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const InstallmentMaster = () => {
+const {hasSubmitAccess,hasEditAccess}=usePagePermission()
+
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -139,7 +142,7 @@ const InstallmentMaster = () => {
         ),
       sortable: true,
     },
-    {
+    hasEditAccess &&{
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
@@ -185,9 +188,11 @@ const InstallmentMaster = () => {
       </div>
       <section>
         <Container>
-          <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
+         {hasSubmitAccess &&(
+           <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
             <CgAddR /> Add Installment
           </Button>
+         )}
 
           {isPopoverOpen && (
             <div className="cover-sheet">

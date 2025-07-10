@@ -23,8 +23,10 @@ import {
     getShelfByRackId,
 } from "@/Services";
 import { toast } from "react-toastify";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const NewBookEntry = () => {
+    const { hasSubmitAccess } = usePagePermission()
     const [bookCategories, setBookCategories] = useState([]);
     const [libraryGroups, setLibraryGroups] = useState([]);
     const [libraryVendors, setLibraryVendors] = useState([]);
@@ -621,13 +623,15 @@ const NewBookEntry = () => {
                                     </Form.Control.Feedback>
                                 </Col>
                             </Row>
-                            <Row className="mb-2">
-                                <Col className="text-center">
-                                    <Button className="btn btn-primary mt-4" type="submit">
-                                        Submit
-                                    </Button>
-                                </Col>
-                            </Row>
+                            {hasSubmitAccess && (
+                                <Row className="mb-2">
+                                    <Col className="text-center">
+                                        <Button className="btn btn-primary mt-4" type="submit">
+                                            Submit
+                                        </Button>
+                                    </Col>
+                                </Row>
+                            )}
                         </Form>
                     </Container>
                 </div>
