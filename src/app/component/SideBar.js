@@ -657,7 +657,7 @@ export default function Sidebar({ isOpen }) {
                                 </Accordion.Body>
                             </Accordion.Item>
                         )}
-                        {hasAccess("exams") && (
+                        {hasAccess("exam") && (
                             <Accordion.Item eventKey="exams">
                                 <Accordion.Header>
                                     <span style={{ display: "flex", alignItems: "center" }}>

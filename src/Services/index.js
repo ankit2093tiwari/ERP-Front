@@ -192,8 +192,12 @@ export const getCities = async () => {
     const response = await axios.get(`${BASE_URL}/api/all-cities`)
     return response?.data;
 }
-export const getAllSubjetcs = async () => {
+export const getAllSubjects = async () => {
     const response = await axios.get(`${BASE_URL}/api/all-subject`);
+    return response?.data;
+};
+export const getSubjectByClassId = async (classId) => {
+    const response = await axios.get(`${BASE_URL}/api/subject/${classId}`);
     return response?.data;
 };
 export const addNewSubject = async (payload) => {
@@ -1168,5 +1172,58 @@ export const deleteThoughtById = async (id) => {
 
 export const createStudentsAttendance = async (payload) => {
     const response = await axios.post(`${BASE_URL}/api/students/takeAttendance`, payload);
+    return response?.data;
+}
+
+export const getAllExamGrades = async () => {
+    const response = await axios.get(`${BASE_URL}/api/examGrade`);
+    return response?.data;
+}
+export const getAllExamTypes = async () => {
+    const response = await axios.get(`${BASE_URL}/api/examTypes`);
+    return response?.data;
+}
+export const addNewExamGrade = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/examGrade`, payload);
+    return response?.data;
+}
+export const addNewExamType = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/examType`, payload);
+    return response?.data;
+}
+export const updateExamGradeById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/examGrade/${id}`, payload);
+    return response?.data;
+}
+export const updateExamTypeById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/examType/${id}`, payload);
+    return response?.data;
+}
+export const deleteExamGradeById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/examGrade/${id}`);
+    return response?.data;
+}
+export const deleteExamTypeById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/examType/${id}`);
+    return response?.data;
+}
+export const addNewExamMaster = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/exam-master`, payload);
+    return response?.data;
+}
+export const getAllExamMasters = async () => {
+    const response = await axios.get(`${BASE_URL}/api/exam-master`);
+    return response?.data;
+}
+export const getExamMasterById = async (id) => {
+    const response = await axios.get(`${BASE_URL}/api/exam-master/${id}`);
+    return response?.data;
+}
+export const updateExamMasterById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/exam-master/${id}`, payload);
+    return response?.data;
+}
+export const deleteExamMasterById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/exam-master/${id}`);
     return response?.data;
 }

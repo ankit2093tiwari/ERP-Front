@@ -4,35 +4,31 @@ import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
 import { CgAddR } from 'react-icons/cg';
-import {
-  Form,
-  Row,
-  Col,
-  Container,
-  FormLabel,
-  FormControl,
-  Button
-} from "react-bootstrap";
-import axios from "axios";
+import { addNewExamType, deleteExamTypeById, getAllExamTypes, updateExamTypeById } from "@/Services";
+import { Form, Row, Col, Container, FormLabel, FormControl, Button } from "react-bootstrap";
 import Table from "@/app/component/DataTable";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { copyContent, printContent } from "@/app/utils";
+import { toast } from "react-toastify";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const ExamTypeMaster = () => {
+  const { hasEditAccess, hasSubmitAccess } = usePagePermission()
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  
-  // Form state
+  const [formErrors, setFormErrors] = useState({});
+  const [isEditMode, setIsEditMode] = useState(false);
+
   const [formData, setFormData] = useState({
     examTypeName: ''
   });
-
-  const [editData, setEditData] = useState({
-    examTypeName: ''
-  });
+  const validate = (value) => {
+    if (!value || value.trim() === "") return "Exam type name is required";
+    if (value.length < 3) return "Name should be at least 3 characters";
+    return "";
+  };
 
   const columns = [
     {
@@ -43,156 +39,121 @@ const ExamTypeMaster = () => {
     },
     {
       name: "Exam Type Name",
-      cell: (row) => editingId === row._id ? (
-        <FormControl
-          type="text"
-          value={editData.examTypeName}
-          onChange={(e) => setEditData({...editData, examTypeName: e.target.value})}
-        />
-      ) : (
+      cell: (row) => (
         row.examTypeName || "N/A"
       ),
       sortable: true,
     },
-    {
+    hasEditAccess && {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
-          {editingId === row._id ? (
-            <button className="editButton" onClick={() => handleSave(row._id)}>
-              <FaSave />
-            </button>
-          ) : (
-            <button className="editButton" onClick={() => handleEdit(row)}>
-              <FaEdit />
-            </button>
-          )}
+          <button className="editButton" onClick={() => handleEdit(row)}>
+            <FaEdit />
+          </button>
           <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
             <FaTrashAlt />
           </button>
         </div>
       ),
-    },
+    }
+
   ];
 
-  const handlePrint = async () => {
+  const handlePrint = () => {
     const tableHeaders = [["#", "Exam Type Name"]];
     const tableRows = data.map((row, index) => [
       index + 1,
       row.examTypeName || "N/A",
     ]);
-
     printContent(tableHeaders, tableRows);
   };
 
   const handleCopy = () => {
     const headers = ["#", "Exam Type Name"];
-    const rows = data.map((row, index) => 
-      `${index + 1}\t${row.examTypeName || "N/A"}`
-    );
-
+    const rows = data.map((row, index) => `${index + 1}\t${row.examTypeName || "N/A"}`);
     copyContent(headers, rows);
   };
 
-  // Fetch data from the backend
   const fetchData = async () => {
     setLoading(true);
-    setError("");
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/examType");
-      setData(response.data.data || []);
+      const response = await getAllExamTypes()
+      setData(response.data || []);
     } catch (err) {
-      console.error("Error fetching data:", err);
-      setError(err.response?.data?.message || "Failed to fetch exam types. Please try again later.");
+      toast.error(err.response?.data?.message || "Failed to fetch exam types.");
     } finally {
       setLoading(false);
     }
   };
 
-  // Handle edit action
   const handleEdit = (row) => {
     setEditingId(row._id);
-    setEditData({
-      examTypeName: row.examTypeName
-    });
+    setFormData({ examTypeName: row.examTypeName });
+    setIsPopoverOpen(true);
+    setIsEditMode(true);
+    setFormErrors({});
   };
 
-  // Handle save action
-  const handleSave = async (id) => {
-    if (!editData.examTypeName) {
-      setError("Exam type name is required");
-      return;
-    }
-
-    try {
-      const response = await axios.put(
-        `https://erp-backend-fy3n.onrender.com/api/examType/${id}`,
-        { examTypeName: editData.examTypeName }
-      );
-      
-      setData(prevData => 
-        prevData.map(row => 
-          row._id === id ? response.data.data : row
-        )
-      );
-      setEditingId(null);
-      fetchData();
-    } catch (error) {
-      setError(error.response?.data?.message || "Failed to update exam type. Please try again later.");
-    }
-  };
-
-  // Handle delete action
   const handleDelete = async (id) => {
-    if (confirm("Are you sure you want to delete this exam type?")) {
-      try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/examType/${id}`);
-        setData(prevData => prevData.filter(row => row._id !== id));
-        fetchData();
-      } catch (error) {
-        setError(error.response?.data?.message || "Failed to delete exam type. Please try again later.");
-      }
+    if (!confirm("Are you sure you want to delete this exam type?")) return;
+    try {
+      await deleteExamTypeById(id)
+      setData(prev => prev.filter(row => row._id !== id));
+      toast.success("Exam type deleted successfully");
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to delete exam type.");
     }
   };
 
-  // Handle add action
-  const handleAdd = async () => {
-    if (!formData.examTypeName) {
-      setError("Exam type name is required");
+  const handleSubmit = async () => {
+    const errMsg = validate(formData.examTypeName);
+    if (errMsg) {
+      setFormErrors({ examTypeName: errMsg });
       return;
     }
+    setFormErrors({});
 
     try {
-      const response = await axios.post(
-        "https://erp-backend-fy3n.onrender.com/api/examType",
-        { examTypeName: formData.examTypeName }
-      );
-      
-      setData(prevData => [...prevData, response.data.data]);
+      if (isEditMode) {
+        // update mode
+        const res = await updateExamTypeById(editingId, {
+          examTypeName: formData.examTypeName,
+        })
+        toast.success("Exam type updated successfully");
+        fetchData()
+      } else {
+        // add mode
+        const res = await addNewExamType({
+          examTypeName: formData.examTypeName,
+        })
+        toast.success("Exam type added successfully");
+        fetchData()
+      }
+
+      // Reset after success
       setFormData({ examTypeName: '' });
+      setEditingId(null);
+      setIsEditMode(false);
       setIsPopoverOpen(false);
-      fetchData();
     } catch (error) {
-      setError(error.response?.data?.message || "Failed to add exam type. Please try again later.");
+      toast.error(error.response?.data?.message || (isEditMode ? "Failed to update exam type." : "Failed to add exam type."));
     }
   };
 
-  // Handle form input changes
+
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    });
+    setFormData({ ...formData, [name]: value });
   };
 
-  // Fetch data on component mount
   useEffect(() => {
     fetchData();
   }, []);
 
   const breadcrumbItems = [
-    { label: "Exams", link: "/exam/all-module" }, 
+    { label: "Exams", link: "/exam/all-module" },
     { label: "Exam Type Master", link: null }
   ];
 
@@ -207,22 +168,30 @@ const ExamTypeMaster = () => {
           </Row>
         </Container>
       </div>
+
       <section>
         <Container>
-          <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
-            <CgAddR /> Add Exam Type
-          </Button>
+          {hasSubmitAccess && (
+            <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
+              <CgAddR /> Add Exam Type
+            </Button>
+          )}
 
           {isPopoverOpen && (
             <div className="cover-sheet">
               <div className="studentHeading">
-                <h2>Add New Exam Type</h2>
+                <h2>{isEditMode ? "Edit" : "Add New"} Exam Type</h2>
+
                 <button
                   className="closeForm"
                   onClick={() => {
                     setIsPopoverOpen(false);
-                    setError("");
+                    setFormData({ examTypeName: '' });
+                    setEditingId(null);
+                    setIsEditMode(false);
+                    setFormErrors({});
                   }}
+
                 >
                   X
                 </button>
@@ -236,14 +205,21 @@ const ExamTypeMaster = () => {
                       name="examTypeName"
                       placeholder="Enter Exam Type Name"
                       value={formData.examTypeName}
-                      onChange={handleInputChange}
+                      onChange={(e) => {
+                        handleInputChange(e);
+                        setFormErrors({ ...formErrors, examTypeName: "" }); // hide error on change
+                      }}
                     />
+                    {formErrors.examTypeName && (
+                      <small className="text-danger">{formErrors.examTypeName}</small>
+                    )}
+
                   </Col>
                 </Row>
-                {error && <p className="text-danger">{error}</p>}
-                <Button onClick={handleAdd} className="btn btn-primary">
-                  Add Exam Type
+                <Button onClick={handleSubmit} className="btn btn-primary">
+                  {isEditMode ? "Update Exam Type" : "Add Exam Type"}
                 </Button>
+
               </Form>
             </div>
           )}
@@ -251,13 +227,12 @@ const ExamTypeMaster = () => {
           <div className="tableSheet">
             <h2>Exam Type Records</h2>
             {loading && <p>Loading...</p>}
-            {error && <p className="text-danger">{error}</p>}
-            {!loading && !error && (
-              <Table 
-                columns={columns} 
-                data={data} 
-                handleCopy={handleCopy} 
-                handlePrint={handlePrint} 
+            {!loading && (
+              <Table
+                columns={columns}
+                data={data}
+                handleCopy={handleCopy}
+                handlePrint={handlePrint}
               />
             )}
           </div>

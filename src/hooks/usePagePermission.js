@@ -9,6 +9,7 @@ const routeToModuleMap = {
     "dailyDairy": "dailydairy",
     "studentAttendence": "studentattendance",
     'Transport':"transport",
+    userManagement: "usermanagement",
     exams: "exams",
     fees: "fees",
     hostel: "hostel",

@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
-import { CgAddR } from 'react-icons/cg';
+import { FaEdit, FaTrashAlt } from "react-icons/fa";
+import { CgAddR } from "react-icons/cg";
 import {
   Form,
   Row,
@@ -11,223 +11,186 @@ import {
   Container,
   FormLabel,
   FormControl,
-  Button
+  Button,
 } from "react-bootstrap";
-import axios from "axios";
 import Table from "@/app/component/DataTable";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { copyContent, printContent } from "@/app/utils";
+import { toast } from "react-toastify";
+import { addNewExamGrade, BASE_URL, deleteExamGradeById, getAllExamGrades, updateExamGradeById } from "@/Services";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const ExamGradeMaster = () => {
+  const { hasEditAccess, hasSubmitAccess } = usePagePermission()
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const [editingId, setEditingId] = useState(null);
-  
-  // Form state
+  const [formErrors, setFormErrors] = useState({});
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editId, setEditId] = useState(null);
+
   const [formData, setFormData] = useState({
-    from: '',
-    to: '',
-    gradeName: ''
+    min_marks: "",
+    max_marks: "",
+    grade_name: "",
+    grade_point: "",
+    remarks: "",
   });
 
-  const [editData, setEditData] = useState({
-    from: '',
-    to: '',
-    gradeName: ''
-  });
+  const validateForm = (data) => {
+    const errors = {};
+    if (data.min_marks === "" || data.min_marks === null)
+      errors.min_marks = "From marks is required";
+    else if (isNaN(data.min_marks) || data.min_marks < 0 || data.min_marks > 100)
+      errors.min_marks = "From marks must be between 0 and 100";
 
-  const columns = [
-    {
-      name: "#",
-      selector: (row, index) => index + 1,
-      sortable: false,
-      width: "80px",
-    },
-    {
-      name: "From",
-      cell: (row) => editingId === row._id ? (
-        <FormControl
-          type="number"
-          value={editData.from}
-          onChange={(e) => setEditData({...editData, from: e.target.value})}
-        />
-      ) : (
-        row.from || "N/A"
-      ),
-      sortable: true,
-    },
-    {
-      name: "To",
-      cell: (row) => editingId === row._id ? (
-        <FormControl
-          type="number"
-          value={editData.to}
-          onChange={(e) => setEditData({...editData, to: e.target.value})}
-        />
-      ) : (
-        row.to || "N/A"
-      ),
-      sortable: true,
-    },
-    {
-      name: "Grade Name",
-      cell: (row) => editingId === row._id ? (
-        <FormControl
-          type="text"
-          value={editData.gradeName}
-          onChange={(e) => setEditData({...editData, gradeName: e.target.value})}
-        />
-      ) : (
-        row.gradeName || "N/A"
-      ),
-      sortable: true,
-    },
-    {
-      name: "Actions",
-      cell: (row) => (
-        <div className="d-flex gap-2">
-          {editingId === row._id ? (
-            <button className="editButton" onClick={() => handleSave(row._id)}>
-              <FaSave />
-            </button>
-          ) : (
-            <button className="editButton" onClick={() => handleEdit(row)}>
-              <FaEdit />
-            </button>
-          )}
-          <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
-            <FaTrashAlt />
-          </button>
-        </div>
-      ),
-    },
-  ];
+    if (data.max_marks === "" || data.max_marks === null)
+      errors.max_marks = "To marks is required";
+    else if (isNaN(data.max_marks) || data.max_marks < 0 || data.max_marks > 100)
+      errors.max_marks = "To marks must be between 0 and 100";
+    else if (Number(data.min_marks) >= Number(data.max_marks))
+      errors.max_marks = "To marks must be greater than From marks";
 
-  const handlePrint = async () => {
-    const tableHeaders = [["#", "From", "To", "Grade Name"]];
-    const tableRows = data.map((row, index) => [
+    if (!data.grade_name || data.grade_name.trim() === "")
+      errors.grade_name = "Grade name is required";
+
+    if (data.grade_point === "" || data.grade_point === null)
+      errors.grade_point = "Grade point is required";
+    else if (isNaN(data.grade_point) || data.grade_point < 0 || data.grade_point > 10)
+      errors.grade_point = "Grade point must be between 0 and 10";
+
+    return errors;
+  };
+
+  const handlePrint = () => {
+    const headers = [["#", "From", "To", "Grade", "Grade Point", "Remarks"]];
+    const rows = data.map((row, index) => [
       index + 1,
-      row.from || "N/A",
-      row.to || "N/A",
-      row.gradeName || "N/A",
+      row.min_marks,
+      row.max_marks,
+      row.grade_name,
+      row.grade_point,
+      row.remarks,
     ]);
-
-    printContent(tableHeaders, tableRows);
+    printContent(headers, rows);
   };
 
   const handleCopy = () => {
-    const headers = ["#", "From", "To", "Grade Name"];
-    const rows = data.map((row, index) => 
-      `${index + 1}\t${row.from || "N/A"}\t${row.to || "N/A"}\t${row.gradeName || "N/A"}`
+    const headers = ["#", "From", "To", "Grade", "Grade Point", "Remarks"];
+    const rows = data.map((row, index) =>
+      `${index + 1}\t${row.min_marks}\t${row.max_marks}\t${row.grade_name}\t${row.grade_point}\t${row.remarks}`
     );
-
     copyContent(headers, rows);
   };
 
-  // Fetch data from the backend
+  const handleEdit = (row) => {
+    setFormData({
+      min_marks: row.min_marks,
+      max_marks: row.max_marks,
+      grade_name: row.grade_name,
+      grade_point: row.grade_point,
+      remarks: row.remarks,
+    });
+    setFormErrors({});
+    setEditId(row._id);
+    setIsEditMode(true);
+    setIsPopoverOpen(true);
+  };
+
+  const handleSubmit = async () => {
+    const errors = validateForm(formData);
+    if (Object.keys(errors).length > 0) {
+      setFormErrors(errors);
+      return;
+    }
+    try {
+      if (isEditMode && editId) {
+        const res = await updateExamGradeById(editId, formData);
+        toast.success("Grade updated successfully");
+        fetchData()
+      } else {
+        const res = await addNewExamGrade(formData)
+        toast.success("Grade added successfully");
+        fetchData()
+      }
+      setFormData({ min_marks: "", max_marks: "", grade_name: "", grade_point: "", remarks: "" });
+      setIsPopoverOpen(false);
+      setFormErrors({});
+      setIsEditMode(false);
+      setEditId(null);
+    } catch {
+      toast.error(isEditMode ? "Failed to update grade" : "Failed to add grade");
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!confirm("Are you sure to delete?")) return;
+    try {
+      await deleteExamGradeById(id)
+      toast.success("Grade deleted successfully");
+      fetchData()
+    } catch (err) {
+      console.error("Failed to delete grade", err);
+      toast.error(err.response.data.message || "Failed to delete grade");
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    setFormErrors({ ...formErrors, [name]: "" });
+  };
+
   const fetchData = async () => {
     setLoading(true);
     setError("");
     try {
-      const response = await axios.get("https://erp-backend-fy3n.onrender.com/api/examGrade");
-      setData(response.data.data || []);
+      const res = await getAllExamGrades()
+      setData(res.data || []);
     } catch (err) {
-      console.error("Error fetching data:", err);
-      setError(err.response?.data?.message || "Failed to fetch exam grades. Please try again later.");
+      setError("Failed to fetch grades");
     } finally {
       setLoading(false);
     }
   };
 
-  // Handle edit action
-  const handleEdit = (row) => {
-    setEditingId(row._id);
-    setEditData({
-      from: row.from,
-      to: row.to,
-      gradeName: row.gradeName
-    });
-  };
-
-  // Handle save action
-  const handleSave = async (id) => {
-    if (!editData.from || !editData.to || !editData.gradeName) {
-      setError("All fields are required");
-      return;
-    }
-
-    try {
-      const response = await axios.put(
-        `https://erp-backend-fy3n.onrender.com/api/examGrade/${id}`,
-        editData
-      );
-      
-      setData(prevData => 
-        prevData.map(row => 
-          row._id === id ? response.data.data : row
-        )
-      );
-      setEditingId(null);
-      fetchData();
-    } catch (error) {
-      setError(error.response?.data?.message || "Failed to update exam grade. Please try again later.");
-    }
-  };
-
-  // Handle delete action
-  const handleDelete = async (id) => {
-    if (confirm("Are you sure you want to delete this exam grade?")) {
-      try {
-        await axios.delete(`https://erp-backend-fy3n.onrender.com/api/examGrade/${id}`);
-        setData(prevData => prevData.filter(row => row._id !== id));
-        fetchData();
-      } catch (error) {
-        setError(error.response?.data?.message || "Failed to delete exam grade. Please try again later.");
-      }
-    }
-  };
-
-  // Handle add action
-  const handleAdd = async () => {
-    if (!formData.from || !formData.to || !formData.gradeName) {
-      setError("All fields are required");
-      return;
-    }
-
-    try {
-      const response = await axios.post(
-        "https://erp-backend-fy3n.onrender.com/api/examGrade",
-        formData
-      );
-      
-      setData(prevData => [...prevData, response.data.data]);
-      setFormData({ from: '', to: '', gradeName: '' });
-      setIsPopoverOpen(false);
-      fetchData();
-    } catch (error) {
-      setError(error.response?.data?.message || "Failed to add exam grade. Please try again later.");
-    }
-  };
-
-  // Handle form input changes
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value
-    });
-  };
-
-  // Fetch data on component mount
   useEffect(() => {
     fetchData();
   }, []);
 
+  const columns = [
+    {
+      name: "#",
+      selector: (row, index) => index + 1,
+      width: "60px",
+    },
+    { name: "From", selector: (row) => row.min_marks || "N/A",sortable:true },
+    { name: "To", selector: (row) => row.max_marks || "N/A" },
+    { name: "Grade", selector: (row) => row.grade_name || "N/A" },
+    { name: "Grade Point", selector: (row) => row.grade_point || "N/A",sortable:true },
+    { name: "Remarks", selector: (row) => row.remarks || "N/A" },
+    hasEditAccess && {
+      name: "Actions",
+      cell: (row) => (
+        <div className="d-flex gap-2">
+          <button className="editButton" onClick={() => handleEdit(row)}>
+            <FaEdit />
+          </button>
+          <button
+            className="editButton btn-danger"
+            onClick={() => handleDelete(row._id)}
+          >
+            <FaTrashAlt />
+          </button>
+        </div>
+      ),
+    },
+  ].filter(Boolean); // Filter out any undefined actions
+
   const breadcrumbItems = [
-    { label: "Exams", link: "/exam/all-module" }, 
-    { label: "Exam Grade Master", link: null }
+    { label: "Exams", link: "/exam/all-module" },
+    { label: "Exam Grade Master", link: null },
   ];
 
   return (
@@ -243,19 +206,27 @@ const ExamGradeMaster = () => {
       </div>
       <section>
         <Container>
-          <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
-            <CgAddR /> Add Exam Grade
-          </Button>
+          {hasSubmitAccess && (
+            <Button onClick={() => {
+              setIsPopoverOpen(true);
+              setFormErrors({});
+              setIsEditMode(false);
+              setFormData({ min_marks: "", max_marks: "", grade_name: "", grade_point: "", remarks: "" });
+            }} className="btn-add">
+              <CgAddR /> Add Exam Grade
+            </Button>
+          )}
 
           {isPopoverOpen && (
             <div className="cover-sheet">
               <div className="studentHeading">
-                <h2>Add New Exam Grade</h2>
+                <h2>{isEditMode ? "Edit" : "Add New"} Exam Grade</h2>
                 <button
                   className="closeForm"
                   onClick={() => {
                     setIsPopoverOpen(false);
-                    setError("");
+                    setFormErrors({});
+                    setIsEditMode(false);
                   }}
                 >
                   X
@@ -264,54 +235,72 @@ const ExamGradeMaster = () => {
               <Form className="formSheet">
                 <Row className="mb-3">
                   <Col lg={4}>
-                    <FormLabel className="labelForm">From</FormLabel>
+                    <FormLabel className="labelForm">From<span className="text-danger">*</span></FormLabel>
                     <FormControl
                       type="number"
-                      name="from"
-                      placeholder="Enter From Mark"
-                      value={formData.from}
+                      name="min_marks"
+                      value={formData.min_marks}
                       onChange={handleInputChange}
                     />
+                    {formErrors.min_marks && <p className="text-danger small">{formErrors.min_marks}</p>}
                   </Col>
                   <Col lg={4}>
-                    <FormLabel className="labelForm">To</FormLabel>
+                    <FormLabel className="labelForm">To<span className="text-danger">*</span></FormLabel>
                     <FormControl
                       type="number"
-                      name="to"
-                      placeholder="Enter To Mark"
-                      value={formData.to}
+                      name="max_marks"
+                      value={formData.max_marks}
                       onChange={handleInputChange}
                     />
+                    {formErrors.max_marks && <p className="text-danger small">{formErrors.max_marks}</p>}
                   </Col>
                   <Col lg={4}>
-                    <FormLabel className="labelForm">Grade Name</FormLabel>
+                    <FormLabel className="labelForm">Grade<span className="text-danger">*</span></FormLabel>
                     <FormControl
                       type="text"
-                      name="gradeName"
-                      placeholder="Enter Grade Name"
-                      value={formData.gradeName}
+                      name="grade_name"
+                      value={formData.grade_name}
+                      onChange={handleInputChange}
+                    />
+                    {formErrors.grade_name && <p className="text-danger small">{formErrors.grade_name}</p>}
+                  </Col>
+                  <Col lg={4} className="mt-3">
+                    <FormLabel className="labelForm">Grade Point<span className="text-danger">*</span></FormLabel>
+                    <FormControl
+                      type="number"
+                      name="grade_point"
+                      value={formData.grade_point}
+                      onChange={handleInputChange}
+                    />
+                    {formErrors.grade_point && <p className="text-danger small">{formErrors.grade_point}</p>}
+                  </Col>
+                  <Col lg={8} className="mt-3">
+                    <FormLabel className="labelForm">Remarks</FormLabel>
+                    <FormControl
+                      type="text"
+                      name="remarks"
+                      value={formData.remarks}
                       onChange={handleInputChange}
                     />
                   </Col>
                 </Row>
-                {error && <p className="text-danger">{error}</p>}
-                <Button onClick={handleAdd} className="btn btn-primary">
-                  Add Grade
+                <Button onClick={handleSubmit} className="btn btn-primary">
+                  {isEditMode ? "Update Grade" : "Add Grade"}
                 </Button>
               </Form>
             </div>
           )}
 
-          <div className="tableSheet">
+          <div className="tableSheet mt-4">
             <h2>Exam Grade Records</h2>
             {loading && <p>Loading...</p>}
             {error && <p className="text-danger">{error}</p>}
-            {!loading && !error && (
-              <Table 
-                columns={columns} 
-                data={data} 
-                handleCopy={handleCopy} 
-                handlePrint={handlePrint} 
+            {!loading && (
+              <Table
+                columns={columns}
+                data={data}
+                handleCopy={handleCopy}
+                handlePrint={handlePrint}
               />
             )}
           </div>
