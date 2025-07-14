@@ -1219,11 +1219,40 @@ export const getExamMasterById = async (id) => {
     const response = await axios.get(`${BASE_URL}/api/exam-master/${id}`);
     return response?.data;
 }
+export const getExamMasterByClassId = async (id) => {
+    const response = await axios.get(`${BASE_URL}/api/exam-master-byClass/${id}`);
+    return response?.data;
+}
 export const updateExamMasterById = async (id, payload) => {
     const response = await axios.put(`${BASE_URL}/api/exam-master/${id}`, payload);
     return response?.data;
 }
 export const deleteExamMasterById = async (id) => {
     const response = await axios.delete(`${BASE_URL}/api/exam-master/${id}`);
+    return response?.data;
+}
+
+export const addExamMarksEntry = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/marks-entry`, payload);
+    return response?.data;
+}
+
+export const getExamsTimeTable = async (filterBy) => {
+    const response = await axios.get(`${BASE_URL}/api/exam-master-timetable`, {
+        params: filterBy
+    });
+    return response?.data;
+}
+export const getClassTecherAllotments = async () => {
+    const response = await axios.get(`${BASE_URL}/api/classteacherallotment`);
+    return response?.data;
+}
+
+export const addNewClassTeacherAllotment = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/classteacherallotment`, payload);
+    return response?.data;
+}
+export const deleteClassTeacherAllotmentById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/classteacherallotment/${id}`);
     return response?.data;
 }

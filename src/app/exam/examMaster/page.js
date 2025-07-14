@@ -1,10 +1,9 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import dynamic from "next/dynamic";
-import { Container, Row, Col, FormLabel, Form, Button, } from "react-bootstrap";
-import { addNewExamMaster, BASE_URL, getAllEmployee, getAllExamTypes, getClasses, getSubjectByClassId } from "@/Services";
+import { Container, Row, Col, FormLabel, Form, Button, Alert } from "react-bootstrap";
+import { addNewExamMaster, getAllEmployee, getAllExamTypes, getClasses, getSubjectByClassId } from "@/Services";
 import { toast } from "react-toastify";
 import Table from "@/app/component/DataTable";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
@@ -16,6 +15,7 @@ const amPmOptions = ["AM", "PM"];
 
 const ExamMaster = () => {
   const { hasSubmitAccess } = usePagePermission()
+
   const [examTypes, setExamTypes] = useState([]);
   const [classes, setClasses] = useState([]);
   const [teachers, setTeachers] = useState([]);
@@ -103,9 +103,15 @@ const ExamMaster = () => {
       }
     }
 
+    // Lookup names
+    const classObj = classes.find(c => c._id === selectedClass);
+    const className = classObj?.class_name || "Class";
+
+    const examTypeObj = examTypes.find(e => e._id === selectedExamType);
+    const examTypeName = examTypeObj?.examTypeName || "Exam";
     // Build payload to match your backend
     const payload = {
-      examName: `${selectedExamType}-${selectedClass}`, // you can adjust this
+      examName: `${className}-${examTypeName}`,
       examType: selectedExamType,
       class: selectedClass,
       examDetails: examDetails.map((d) => ({
@@ -128,8 +134,9 @@ const ExamMaster = () => {
       setExamDetails([]);
       setSelectedClass("");
       setSelectedExamType("");
-    } catch {
-      toast.error("Failed to save exam.");
+    } catch (error) {
+      console.error("Error saving exam:", error);
+      toast.error(error.response.data.message || "Failed to save exam.");
     }
   };
 
@@ -303,24 +310,20 @@ const ExamMaster = () => {
                 <Button onClick={handleSubmit} disabled={!selectedClass || !selectedExamType}>Submit</Button>
               )}
             </div>
-
-            {!selectedExamType || !selectedClass ? (
-              <div className="alert alert-warning">
-                Please select an Exam Type and Class to view or add exam details.
-              </div>
-            ) : (
-              <div className="tableSheet">
-                <h5>Exam Details (Subject Wise)</h5>
-                <Table
-                  columns={columns}
-                  data={examDetails}
-                  handlePrint={() => { }}
-                  handleCopy={() => { }}
-                />
-              </div>
-            )}
-
           </div>
+          {!selectedExamType || !selectedClass ? (
+            <Alert variant="info">Please select an Exam Type and Class to view or add exam details.</Alert>
+          ) : (
+            <div className="tableSheet">
+              <h5>Exam Details (Subject Wise)</h5>
+              <Table
+                columns={columns}
+                data={examDetails}
+                handlePrint={() => { }}
+                handleCopy={() => { }}
+              />
+            </div>
+          )}
         </Container>
       </section>
     </>

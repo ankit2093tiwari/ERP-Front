@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Table from "@/app/component/DataTable";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
-import { Container, Row, Col, Breadcrumb, Button, Table as BootstrapTable, FormGroup, FormLabel, FormControl, FormSelect } from "react-bootstrap";
+import { Container, Row, Col, Breadcrumb, Alert, Table as BootstrapTable, FormGroup, FormLabel, FormControl, FormSelect } from "react-bootstrap";
 import { toast } from "react-toastify";
 import { FaSearch } from "react-icons/fa";
 import { addNewFeeEntry, deleteFeeEntryById, getAllPaymentMode, getClasses, getFeeGroupDataBySectionId, getFeeHistoryByStudentId, getFeeStructureByFeeGroupId, getFeeStructures, getSections, getStudentsByClassAndSection } from "@/Services";
@@ -12,7 +12,7 @@ import useSessionId from "@/hooks/useSessionId";
 import usePagePermission from "@/hooks/usePagePermission";
 
 const FeeEntry = () => {
-  const {hasSubmitAccess,hasEditAccess}=usePagePermission()
+  const { hasSubmitAccess, hasEditAccess } = usePagePermission()
   const selectedSessionId = useSessionId()
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -136,7 +136,7 @@ const FeeEntry = () => {
     { name: "STATUS", selector: (row) => row.status || "N/A" },
     { name: "DATE", selector: (row) => row.date || "N/A" },
     { name: "PAID AMOUNT", selector: (row) => row.paid_amount || "N/A" },
-    hasEditAccess &&{
+    hasEditAccess && {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
@@ -417,17 +417,6 @@ const FeeEntry = () => {
                 </div>
               </Col>
             </Row>
-
-
-            {loading && (
-              <Row className="mt-3">
-                <Col>
-                  <div className="text-center">
-                    <p>Loading students...</p>
-                  </div>
-                </Col>
-              </Row>
-            )}
           </div>
 
           <div className="cover-sheet">
@@ -539,8 +528,18 @@ const FeeEntry = () => {
                 </Col>
               </Row>
             )}
-            {!selectedStudent && <h6 className="p-5 text-center text-danger">Select Student to Get detail</h6>}
           </div>
+          {loading && (
+            <Row className="mt-3">
+              <Col>
+                <div className="text-center">
+                  <p>Loading students...</p>
+                </div>
+              </Col>
+            </Row>
+          )}
+          {!selectedStudent && <Alert variant="info">Please select student to get Detailss.</Alert>}
+
         </Container>
       </section>
     </>
