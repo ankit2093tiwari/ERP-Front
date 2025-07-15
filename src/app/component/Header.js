@@ -49,12 +49,30 @@ export default function Header({ toggleSidebar, onLogout }) {
           setSessions(allSessions);
 
           // ✅ Read session ID from localStorage
+          // const storedSessionId = localStorage.getItem("selectedSessionId");
+          // if (storedSessionId) {
+          //   const matched = allSessions.find(s => s._id === storedSessionId);
+          //   if (matched) {
+          //     setSelectedSession(matched);
+          //   }
+          // }
+          // ✅ Try to read from localStorage
           const storedSessionId = localStorage.getItem("selectedSessionId");
+          let matched = null;
           if (storedSessionId) {
-            const matched = allSessions.find(s => s._id === storedSessionId);
-            if (matched) {
-              setSelectedSession(matched);
-            }
+            matched = allSessions.find(s => s._id === storedSessionId);
+          }
+
+          // ✅ If found in localStorage, set it
+          if (matched) {
+            setSelectedSession(matched);
+            dispatch(setSessionId(matched._id));
+          }
+          // ✅ Otherwise default to first available session
+          else if (allSessions.length > 0) {
+            setSelectedSession(allSessions[0]);
+            dispatch(setSessionId(allSessions[0]._id));
+            localStorage.setItem("selectedSessionId", allSessions[0]._id);
           }
         }
       } catch (error) {

@@ -47,14 +47,14 @@ const ExamTypeMaster = () => {
     hasEditAccess && {
       name: "Actions",
       cell: (row) => (
-        <div className="d-flex gap-2">
-          <button className="editButton" onClick={() => handleEdit(row)}>
+        <>
+          <Button variant="success" size="sm" className="me-2" onClick={() => handleEdit(row)}>
             <FaEdit />
-          </button>
-          <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
+          </Button>
+          <Button variant="danger" size="sm" onClick={() => handleDelete(row._id)}>
             <FaTrashAlt />
-          </button>
-        </div>
+          </Button>
+        </>
       ),
     }
 

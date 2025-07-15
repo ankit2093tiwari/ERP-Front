@@ -249,6 +249,39 @@ export default function Sidebar({ isOpen }) {
         { title: "Subject Category", href: "/exam/subjectCategory", icon: <FaAngleDoubleRight /> },
         { title: "Subject Sub Category", href: "/exam/subjectSubCategory", icon: <FaAngleDoubleRight /> },
         { title: "Remarks Master", href: "/exam/remarksEntry", icon: <FaAngleDoubleRight /> },
+        {
+            title: "Reports",
+            href: "/exam/reports/all-reports",
+            icon: <FaFileAlt />,
+            isOpen: true,
+            children: [
+                {
+                    title: "All Reports",
+                    href: "/exam/reports/all-reports",
+                    icon: <FaAngleDoubleRight />,
+                },
+                {
+                    title: "Mark Subjectwise",
+                    href: "/exam/reports/subjectwise-students-report",
+                    icon: <FaAngleDoubleRight />,
+                },
+                {
+                    title: "Stu.wise Marksheet",
+                    href: "/exam/reports/student-wise-marksheet",
+                    icon: <FaAngleDoubleRight />,
+                },
+                {
+                    title: "Sec.wise Marksheet",
+                    href: "/exam/reports/section-wise-marksheet",
+                    icon: <FaAngleDoubleRight />,
+                },
+                {
+                    title: "Download Student List",
+                    href: "/exam/reports/download_students_list",
+                    icon: <FaAngleDoubleRight />,
+                },
+            ],
+        },
     ];
     const noticeItems = [
         { title: "All Modules", href: "/notice/all-module", icon: <FaAngleDoubleRight /> },
@@ -668,13 +701,29 @@ export default function Sidebar({ isOpen }) {
                                 <Accordion.Body>
                                     <ul style={{ listStyle: "none", paddingLeft: isOpen || activeKey ? "20px" : "0" }}>
                                         {examItems.map((item, index) => (
-                                            <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
-                                                {item.icon}
-                                                <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>
-                                                    <Link href={item.href}>
-                                                        {item.title}
-                                                    </Link>
-                                                </span>
+                                            <li key={index} style={{ padding: "5px 0" }}>
+                                                <div style={{ display: "flex", alignItems: "center" }}>
+                                                    {item.icon}
+                                                    <span style={{ marginLeft: "10px", display: (isOpen || activeKey) ? "inline" : "none" }}>
+                                                        {item.children ? (
+                                                            <span>{item.title}</span>
+                                                        ) : (
+                                                            <Link href={item.href}>{item.title}</Link>
+                                                        )}
+                                                    </span>
+                                                </div>
+                                                {item.children && activeKey === "exams" && (
+                                                    <ul style={{ listStyle: "none", paddingLeft: "20px" }}>
+                                                        {item.children.map((child, childIndex) => (
+                                                            <li key={childIndex} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
+                                                                {child.icon}
+                                                                <span style={{ marginLeft: "10px" }}>
+                                                                    <Link href={child.href}>{child.title}</Link>
+                                                                </span>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                )}
                                             </li>
                                         ))}
                                     </ul>

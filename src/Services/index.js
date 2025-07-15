@@ -30,7 +30,7 @@ axios.interceptors.response.use(
     (response) => {
         if (response.data?.error === "Token expired") {
             removeAuthLocalStorage()
-            window.location.href = "/login";  //I've to use router.push/replace here
+            window.location.href = "/login";
         }
         return response;
     },
@@ -1254,5 +1254,60 @@ export const addNewClassTeacherAllotment = async (payload) => {
 }
 export const deleteClassTeacherAllotmentById = async (id) => {
     const response = await axios.delete(`${BASE_URL}/api/classteacherallotment/${id}`);
+    return response?.data;
+}
+export const getAllSubjectCategories = async () => {
+    const response = await axios.get(`${BASE_URL}/api/subject-categories`);
+    return response?.data;
+}
+export const getAllSubjectSubCategories = async () => {
+    const response = await axios.get(`${BASE_URL}/api/subject-subcategories`);
+    return response?.data;
+}
+export const getAllRemarks = async () => {
+    const response = await axios.get(`${BASE_URL}/api/remark-master`);
+    return response?.data;
+}
+export const addNewSubjectCategory = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/subject-categories`, payload);
+    return response?.data;
+}
+export const addNewSubjectSubCategory = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/subject-subcategories`, payload);
+    return response?.data;
+}
+export const addNewRemark = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/remark-master`, payload);
+    return response?.data;
+}
+export const deleteSubjectCategoryById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/subject-categories/${id}`);
+    return response?.data;
+}
+export const deleteSubjectSubCategoryById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/subject-subcategories/${id}`);
+    return response?.data;
+}
+export const deleteRemarkById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/remark-master/${id}`);
+    return response?.data;
+}
+export const updateSubjectCategoryById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/subject-categories/${id}`, payload);
+    return response?.data;
+}
+export const updateSubjectSubCategoryById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/subject-subcategories/${id}`, payload);
+    return response?.data;
+}
+export const updateRemarkById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/remark-master/${id}`, payload);
+    return response?.data;
+}
+
+export const getStudentReport = async (filterBy) => {
+    const response = await axios.get(`${BASE_URL}/api/student-report`, {
+        params: filterBy
+    });
     return response?.data;
 }

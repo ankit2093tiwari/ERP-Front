@@ -15,9 +15,11 @@ import {
   getStudentsByClassAndSection,
   addExamMarksEntry,
 } from "@/Services";
+import useSessionId from "@/hooks/useSessionId";
 
 const MarksEntry = () => {
   const { hasSubmitAccess } = usePagePermission();
+  const selectedSessionId = useSessionId()
 
   // Data States
   const [classes, setClasses] = useState([]);
@@ -56,7 +58,7 @@ const MarksEntry = () => {
         toast.error("Failed to fetch classes.");
       }
     })();
-  }, []);
+  }, [selectedSessionId]);
 
   useEffect(() => {
     if (selectedClass) {
@@ -206,7 +208,7 @@ const MarksEntry = () => {
       await addExamMarksEntry(payload);
       toast.success("Marks saved successfully.");
       setStudents([]);
-    } catch(error) {
+    } catch (error) {
       console.error("Error saving marks:", error);
       toast.error(error.response?.data?.message || "Failed to save marks.");
     }
@@ -337,36 +339,36 @@ const MarksEntry = () => {
                 <div className="tableSheet">
                   <h2>Marks Entry (Student Wise)</h2>
                   <div className="mb-3">
-                  <Row>
-                    <Col md={4}>
-                      <Form.Control
-                        type="number"
-                        placeholder="Fill same marks for all"
-                        value={bulkMarks}
-                        onChange={(e) => setBulkMarks(e.target.value)}
-                      />
-                      <Button className="mt-2" onClick={() => applyBulkMarks(bulkMarks)}>Apply Marks</Button>
-                    </Col>
-                    <Col md={4}>
-                      <Form.Control
-                        type="number"
-                        placeholder="Fill same practical marks for all"
-                        value={bulkPractical}
-                        onChange={(e) => setBulkPractical(e.target.value)}
-                      />
-                      <Button className="mt-2" onClick={() => applyBulkPractical(bulkPractical)}>Apply Practical</Button>
-                    </Col>
-                    <Col md={4}>
-                      <Form.Control
-                        type="text"
-                        placeholder="Fill same remarks for all"
-                        value={bulkRemarks}
-                        onChange={(e) => setBulkRemarks(e.target.value)}
-                      />
-                      <Button className="mt-2" onClick={() => applyBulkRemarks(bulkRemarks)}>Apply Remarks</Button>
-                    </Col>
-                  </Row>
-                </div>
+                    <Row>
+                      <Col md={4}>
+                        <Form.Control
+                          type="number"
+                          placeholder="Fill same marks for all"
+                          value={bulkMarks}
+                          onChange={(e) => setBulkMarks(e.target.value)}
+                        />
+                        <Button className="mt-2" onClick={() => applyBulkMarks(bulkMarks)}>Apply Marks</Button>
+                      </Col>
+                      <Col md={4}>
+                        <Form.Control
+                          type="number"
+                          placeholder="Fill same practical marks for all"
+                          value={bulkPractical}
+                          onChange={(e) => setBulkPractical(e.target.value)}
+                        />
+                        <Button className="mt-2" onClick={() => applyBulkPractical(bulkPractical)}>Apply Practical</Button>
+                      </Col>
+                      <Col md={4}>
+                        <Form.Control
+                          type="text"
+                          placeholder="Fill same remarks for all"
+                          value={bulkRemarks}
+                          onChange={(e) => setBulkRemarks(e.target.value)}
+                        />
+                        <Button className="mt-2" onClick={() => applyBulkRemarks(bulkRemarks)}>Apply Remarks</Button>
+                      </Col>
+                    </Row>
+                  </div>
                   <Table
                     columns={columns}
                     data={students}

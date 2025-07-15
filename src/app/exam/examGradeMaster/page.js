@@ -165,25 +165,22 @@ const ExamGradeMaster = () => {
       selector: (row, index) => index + 1,
       width: "60px",
     },
-    { name: "From", selector: (row) => row.min_marks || "N/A",sortable:true },
+    { name: "From", selector: (row) => row.min_marks || "N/A", sortable: true },
     { name: "To", selector: (row) => row.max_marks || "N/A" },
     { name: "Grade", selector: (row) => row.grade_name || "N/A" },
-    { name: "Grade Point", selector: (row) => row.grade_point || "N/A",sortable:true },
+    { name: "Grade Point", selector: (row) => row.grade_point || "N/A", sortable: true },
     { name: "Remarks", selector: (row) => row.remarks || "N/A" },
     hasEditAccess && {
       name: "Actions",
       cell: (row) => (
-        <div className="d-flex gap-2">
-          <button className="editButton" onClick={() => handleEdit(row)}>
+        <>
+          <Button variant="success" size="sm" className="me-2" onClick={() => handleEdit(row)}>
             <FaEdit />
-          </button>
-          <button
-            className="editButton btn-danger"
-            onClick={() => handleDelete(row._id)}
-          >
+          </Button>
+          <Button variant="danger" size="sm" onClick={() => handleDelete(row._id)}>
             <FaTrashAlt />
-          </button>
-        </div>
+          </Button>
+        </>
       ),
     },
   ].filter(Boolean); // Filter out any undefined actions
