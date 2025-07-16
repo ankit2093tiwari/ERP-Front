@@ -662,6 +662,15 @@ export const deleteIssuedItemById = async (id) => {
     return response?.data;
 }
 
+export const addNewStockReceive = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/stock-receive`, payload)
+    return response?.data;
+}
+export const getAllReceivedStocks = async () => {
+    const response = await axios.get(`${BASE_URL}/api/stock-receive`,)
+    return response?.data;
+}
+
 export const getAllIGalleryImages = async () => {
     const response = await axios.get(`${BASE_URL}/api/images`)
     return response?.data;
@@ -943,6 +952,7 @@ export const createFacultyAttendance = async (payload) => {
     return response?.data;
 }
 
+
 export const getAdvertisementTypes = async () => {
     const response = await axios.get(`${BASE_URL}/api/advertisings`)
     return response?.data;
@@ -1172,6 +1182,10 @@ export const deleteThoughtById = async (id) => {
 
 export const createStudentsAttendance = async (payload) => {
     const response = await axios.post(`${BASE_URL}/api/students/takeAttendance`, payload);
+    return response?.data;
+}
+export const getStudentsByClassAndSectionAndDateRange = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/attendance/monthly-report`, payload)
     return response?.data;
 }
 

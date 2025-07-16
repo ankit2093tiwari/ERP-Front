@@ -1,19 +1,32 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Form, Row, Col, Container, FormLabel, Button, Breadcrumb, FormSelect } from "react-bootstrap";
+import {
+  Form,
+  Row,
+  Col,
+  Container,
+  FormLabel,
+  Button,
+  Breadcrumb,
+  FormSelect,
+} from "react-bootstrap";
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { toast } from "react-toastify";
-import { getClasses, getSections, getStudentsByClassAndSection } from "@/Services";
+import {
+  getClasses,
+  getSections,
+  getStudentsByClassAndSectionAndDateRange, //  your service
+} from "@/Services";
 
 const MonthlyReport = () => {
   const [classList, setClassList] = useState([]);
   const [sectionList, setSectionList] = useState([]);
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedSection, setSelectedSection] = useState("");
-  const [attendanceDate, setAttendanceDate] = useState("");
+  const [selectedMonth, setSelectedMonth] = useState(""); // e.g., "2025-06"
   const [attendanceReports, setAttendanceReports] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -23,44 +36,65 @@ const MonthlyReport = () => {
 
   const fetchClasses = async () => {
     try {
-      const response = await getClasses()
+      const response = await getClasses();
       setClassList(response?.data || []);
     } catch (error) {
-      toast.error(error.response?.data.message || "Failed to fetch classes. Please try again.");
-      console.error("Error fetching classes:", error);
+      toast.error(error.response?.data.message || "Failed to fetch classes.");
     }
   };
 
   const fetchSections = async (classId) => {
     try {
-      const response = await getSections(classId)
+      const response = await getSections(classId);
       setSectionList(response?.data || []);
     } catch (error) {
-      toast.error(error.response?.data.message || "Failed to fetch sections. Please try again.");
-      console.error("Error fetching sections:", error);
+      toast.error(error.response?.data.message || "Failed to fetch sections.");
     }
   };
 
   const fetchAttendanceReports = async () => {
-    if (!selectedClass || !selectedSection || !attendanceDate) {
-      toast.warn("Please select class, section, and attendance date");
+    if (!selectedClass || !selectedSection || !selectedMonth) {
+      toast.warn("Please select class, section, and month");
       return;
     }
+
+    const [year, month] = selectedMonth.split("-");
+    const startDate = new Date(year, month - 1, 1);
+    const endDate = new Date(year, month, 0);
+
     setLoading(true);
     try {
-      const response = await getStudentsByClassAndSection(selectedClass, selectedSection)
+      const response = await getStudentsByClassAndSectionAndDateRange({
+        classId: selectedClass,
+        sectionId: selectedSection,
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+      });
+
+      console.log("Attendance API response:", response);
+
       if (response.success) {
-        setAttendanceReports(response.data || []);
-        generatePDF(response.data); // Pass the fetched data to generatePDF
+        if (response.data.length > 0) {
+          setAttendanceReports(response.data);
+          generatePDF(response.data, startDate, endDate);
+          toast.success("Attendance report fetched & PDF generated.");
+        } else {
+          toast.info("No attendance records found for this period.");
+        }
       } else {
-        toast.warn(response.message || "No attendance records found.");
+        toast.error(response.message || "Failed to fetch attendance reports.");
       }
     } catch (error) {
-      toast.error(error.response?.data.message || "Failed to fetch attendance reports. Please try again.");
-      console.error("Error fetching attendance reports:", error.response?.data.message || error.message);
+      console.error("Error fetching attendance reports:", error);
+      toast.error(
+        error.response?.data?.message ||
+        "Failed to fetch attendance reports. Please try again."
+      );
     }
     setLoading(false);
   };
+
+
   const getClassName = (id) => {
     const found = classList.find((cls) => cls._id === id);
     return found ? found.class_name : "N/A";
@@ -70,48 +104,49 @@ const MonthlyReport = () => {
     const found = sectionList.find((sec) => sec._id === id);
     return found ? found.section_name : "N/A";
   };
-  const generatePDF = (data) => {
-    const doc = new jsPDF();
 
+  const generatePDF = (data, startDate, endDate) => {
+    const doc = new jsPDF();
     const className = getClassName(selectedClass);
     const sectionName = getSectionName(selectedSection);
-    const reportTitle = "Attendance Report";
-    const secondLine = `Class: ${className} (${sectionName})  ||  Date: ${attendanceDate}`;
+    const formattedStartDate = startDate.toLocaleDateString();
+    const formattedEndDate = endDate.toLocaleDateString();
+    const reportTitle = "Monthly Attendance Report";
+    const secondLine = `Class: ${className} (${sectionName}) || Period: ${formattedStartDate} - ${formattedEndDate}`;
 
     const pageWidth = doc.internal.pageSize.getWidth();
-
-    // ✅ Line 1 - Attendance Report (centered)
     doc.setFontSize(16);
     doc.text(reportTitle, pageWidth / 2, 15, { align: "center" });
 
-    // ✅ Line 2 - Class & Date (centered)
     doc.setFontSize(12);
     doc.text(secondLine, pageWidth / 2, 25, { align: "center" });
 
-    // ✅ Table Data
-    const tableData = data.map((report, index) => [
-      index + 1,
-      report.student_id?.roll_no || "N/A",
-      `${report.student_id?.first_name} ${report.student_id?.last_name}`.trim(),
-      report.student_id?.father_name || "N/A",
-      new Date(report.attendance_date).toLocaleDateString(),
-      report.status || "N/A",
-      // report.taken_by || "N/A", // 👈 Commented for future use
-    ]);
+    const tableData = data.map((report, index) => {
+      return [
+        index + 1,
+        report.roll_no || "N/A",
+        `${report.first_name || ""} ${report.last_name || ""}`.trim() || "N/A",
+        report.father_name || "N/A",
+        new Date(report.attendance_date).toLocaleDateString(),
+        report.status || "N/A"
+      ];
+    });
 
-    // ✅ Table
     doc.autoTable({
       head: [["#", "Roll No", "Student Name", "Father Name", "Date", "Status"]],
       body: tableData,
       startY: 35,
     });
 
-    // ✅ Save PDF
-    doc.save("Attendance_Report.pdf");
+    doc.save("Monthly_Attendance_Report.pdf");
   };
 
 
-  const breadcrumbItems = [{ label: "Student Attendance", link: "/studentAttendence/allModule" }, { label: "Monthly-Report", link: "null" }]
+
+  const breadcrumbItems = [
+    { label: "Student Attendance", link: "/studentAttendence/allModule" },
+    { label: "Monthly-Report", link: "null" },
+  ];
 
   return (
     <>
@@ -124,12 +159,12 @@ const MonthlyReport = () => {
           </Row>
         </Container>
       </div>
+
       <section>
         <Container>
-
           <div className="cover-sheet">
             <div className="studentHeading">
-              <h2>Search Students</h2>
+              <h2>Monthly Attendance Report</h2>
             </div>
 
             <Form className="formSheet">
@@ -151,6 +186,7 @@ const MonthlyReport = () => {
                     ))}
                   </FormSelect>
                 </Col>
+
                 <Col>
                   <FormLabel className="labelForm">Select Section</FormLabel>
                   <FormSelect
@@ -165,15 +201,17 @@ const MonthlyReport = () => {
                     ))}
                   </FormSelect>
                 </Col>
+
                 <Col>
-                  <FormLabel className="labelForm">Attendance Date</FormLabel>
+                  <FormLabel className="labelForm">Select Month</FormLabel>
                   <Form.Control
-                    type="date"
-                    value={attendanceDate}
-                    onChange={(e) => setAttendanceDate(e.target.value)}
+                    type="month"
+                    value={selectedMonth}
+                    onChange={(e) => setSelectedMonth(e.target.value)}
                   />
                 </Col>
               </Row>
+
               <br />
               <Row>
                 <Col>

@@ -12,6 +12,7 @@ import { FaEdit, FaTrashAlt, FaEye } from "react-icons/fa";
 import { CgAddR } from 'react-icons/cg';
 import { addNewEmployee, deleteEmployeeById, getAllDepartments, getAllDesignations, getAllEmployee, getCastes, getCategories, getReligions, updateEmployeeById } from '@/Services';
 import { toast } from 'react-toastify';
+import { copyContent, printContent } from '@/app/utils';
 import usePagePermission from '@/hooks/usePagePermission';
 
 // Validation Schema
@@ -42,16 +43,7 @@ const Employee = () => {
         { label: "Employee Management", link: "null" },
     ];
 
-    const {
-        register,
-        handleSubmit,
-        reset,
-        setValue,
-        watch,
-        formState: { errors },
-    } = useForm({
-        resolver: yupResolver(schema),
-    });
+    const {register,handleSubmit,reset,setValue,watch,formState: { errors },} = useForm({resolver: yupResolver(schema),});
 
     const [allCategories, setAllCategories] = useState([]);
     const [allReligions, setAllReligions] = useState([]);
@@ -285,6 +277,25 @@ const Employee = () => {
         setCurrentEmployeeId(null);
         setError("");
     };
+    const handleCopy = () => {
+        const headers = ["#", "Employee Code", "Employee Name", "Email", "Mobile"];
+        const rows = employees.map((row, index) =>
+            `${index + 1}\t${row.employee_code || "N/A"}\t${row.employee_name || "N/A"}\t${row.employee_email || "N/A"}\t${row.mobile_no || "N/A"}`
+        );
+        copyContent(headers, rows);
+    };
+    const handlePrint = () => {
+        const headers = [["#", "Employee Code", "Employee Name", "Email", "Mobile"]];
+        const rows = employees.map((row, index) => [
+            index + 1,
+            row.employee_code || "N/A",
+            row.employee_name || "N/A",
+            row.employee_email || "N/A",
+            row.mobile_no || "N/A",
+        ]);
+        printContent(headers, rows);
+    };
+
 
     return (
         <>
@@ -334,19 +345,6 @@ const Employee = () => {
                                         onSubmit={handleSubmit(editMode ? handleUpdateEmployee : handleCreateEmployee)}
                                     >
                                         <Row>
-                                            {/* <FormGroup as={Col} md="3" controlId="employee_code">
-                                                <FormLabel className="labelForm">Employee Code</FormLabel>
-                                                <FormControl
-                                                    type="text"
-                                                    disabled
-                                                    placeholder="Employee Code"
-                                                    {...register("employee_code")}
-                                                    isInvalid={!!errors.employee_code}
-                                                />
-                                                <FormControl.Feedback type="invalid">
-                                                    {errors.employee_code?.message}
-                                                </FormControl.Feedback>
-                                            </FormGroup> */}
                                             <FormGroup as={Col} md="3" controlId="employee_name">
                                                 <FormLabel className="labelForm">Employee Name</FormLabel>
                                                 <FormControl
@@ -1147,6 +1145,8 @@ const Employee = () => {
                                     <Table
                                         columns={columns}
                                         data={employees}
+                                        handleCopy={handleCopy}
+                                        handlePrint={handlePrint}
                                     />
                                 )}
                             </div>

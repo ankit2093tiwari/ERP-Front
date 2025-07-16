@@ -8,7 +8,6 @@ import { Form, Row, Col, Container, FormLabel, FormSelect, FormControl, Button }
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const hrdSallary = () => {
-
   const columns = [
     {
       name: "#",

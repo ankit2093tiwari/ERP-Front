@@ -18,8 +18,10 @@ import {
   getSections
 } from "@/Services";
 import usePagePermission from "@/hooks/usePagePermission";
+import useSessionId from "@/hooks/useSessionId";
 
 const ClassTeacherAllotment = () => {
+  const selectedSessionId=useSessionId()
   const { hasEditAccess, hasSubmitAccess } = usePagePermission()
 
   const [classes, setClasses] = useState([]);
@@ -40,7 +42,7 @@ const ClassTeacherAllotment = () => {
     fetchClasses();
     fetchTeachers();
     fetchAllotments();
-  }, []);
+  }, [selectedSessionId]);
 
   useEffect(() => {
     if (selectedClass) {

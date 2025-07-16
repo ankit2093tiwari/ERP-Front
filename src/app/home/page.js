@@ -15,9 +15,9 @@ import Website from "@/app/Assets/website.webp";
 import HomeWork from "@/app/Assets/homeWork.webp";
 import Card from "../component/Card";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
-import { Container, Row , Col } from "react-bootstrap";
+import { Container, Row, Col } from "react-bootstrap";
 
-const breadcrumbItems = [ { label: "Home", link: "null" }]
+const breadcrumbItems = [{ label: "Home", link: "null" }]
 
 const Dashboard = () => {
   return (
@@ -58,8 +58,8 @@ const Dashboard = () => {
                 action2="Student Fee Details"
                 action3="Daily Fee Collection"
                 actionLink="/fees/fee-entry"
-                action2Link="/fees/transfer-certificate"
-                action3Link="/fees/details"
+                action2Link="/fees/fee-entry"
+                action3Link="/fees/dashboard"
               />
               <Card
                 name="TRANSPORT"
@@ -70,7 +70,7 @@ const Dashboard = () => {
                 action3="All Transport Info"
                 actionLink="/Transport/vehicle-master"
                 action2Link="/Transport/student-vehicle-relation"
-                action3Link="/Transport/info"
+                action3Link="/Transport/reports/all-transportInfo"
               />
               <Card
                 name="STOCKS"
@@ -81,18 +81,18 @@ const Dashboard = () => {
                 action3="Issue Items"
                 actionLink="/stock/item-master"
                 action2Link="/stock/stock-available"
-                action3Link="/stock/issue-items"
+                action3Link="/stock/issue-item"
               />
               <Card
-                name="PAYROLL"
+                name="HRD"
                 user={payrollImg}
-                link="/payroll/all-module"
+                link="/hrd/allModule"
                 action="Add New Employee"
                 action2="Salary Generation"
                 action3="Pay Slip"
-                actionLink="/payroll/add-employee"
-                action2Link="/payroll/salary-generation"
-                action3Link="/payroll/pay-slip"
+                actionLink="/hrd/newEmployee"
+                action2Link="/hrd/salary-generation"
+                action3Link="/hrd/pay-slip"
               />
               <Card
                 name="LIBRARY"
@@ -100,10 +100,10 @@ const Dashboard = () => {
                 link="/library/all-module"
                 action="Add New Book"
                 action2="Issue Book"
-                action3="Issued Books Records"
-                actionLink="/library/add-book"
-                action2Link="/library/issue-book"
-                action3Link="/library/issued-records"
+                action3="return Book"
+                actionLink="/library/newBookEntry"
+                action2Link="/library/issueBook"
+                action3Link="/library/returnBook"
               />
               <Card
                 name="EXAM"
@@ -112,20 +112,20 @@ const Dashboard = () => {
                 action="Create Exam"
                 action2="Marks Entry"
                 action3="Student Wise Marksheet"
-                actionLink="/exam/create"
-                action2Link="/exam/marks-entry"
-                action3Link="/exam/marksheet"
+                actionLink="/exam/examMaster"
+                action2Link="/exam/marksEntry"
+                action3Link="/exam/reports/student-wise-marksheet"
               />
               <Card
-                name="ATTENDANCE"
+                name="STUDENTS ATTENDANCE"
                 user={Attendance}
                 link="/attendance/all-module"
                 action="Take Attendance"
                 action2="Take Report"
                 action3="Monthly Report"
-                actionLink="/attendance/take"
-                action2Link="/attendance/report"
-                action3Link="/attendance/monthly-report"
+                actionLink="/studentAttendence/TakeAttendence"
+                action2Link="/studentAttendence/AttendenceReport"
+                action3Link="/studentAttendence/MonthlyReport"
               />
               <Card
                 name="TIME TABLE"
@@ -147,7 +147,7 @@ const Dashboard = () => {
                 action3="All User List"
                 actionLink="/userManagement/addUser"
                 action2Link="/userManagement/exisitingUser"
-                action3Link="/users/list"
+                action3Link="/userManagement/exisitingUser"
               />
               <Card
                 name="WEBSITE"
