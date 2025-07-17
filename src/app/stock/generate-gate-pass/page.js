@@ -1,12 +1,23 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Table from '@/app/component/DataTable';
 import { Container, Row, Col, Breadcrumb } from 'react-bootstrap';
 import styles from "@/app/students/add-new-student/page.module.css";
 // import dynamic from 'next/dynamic';
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import { getAllGatePasses } from '@/Services';
 
 const GenerateGatePass = () => {
+  const [gatePasRcords, setGatePassRecords] = useState([])
+
+  const fetchGatePassData = async () => {
+    const res = await getAllGatePasses()
+    setGatePassRecords(res?.data)
+  }
+
+  useEffect(() => {
+    fetchGatePassData()
+  }, [])
   const columns = [
     {
       name: '#',
@@ -71,7 +82,7 @@ const GenerateGatePass = () => {
               <div className="tableSheet">
                 <h2>Person Entry Records</h2>
                 <Table columns={columns} data={data} />
-               
+
               </div>
             </Col>
           </Row>

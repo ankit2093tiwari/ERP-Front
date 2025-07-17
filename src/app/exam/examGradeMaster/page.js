@@ -165,7 +165,7 @@ const ExamGradeMaster = () => {
       selector: (row, index) => index + 1,
       width: "60px",
     },
-    { name: "From", selector: (row) => row.min_marks || "N/A", sortable: true },
+    { name: "From", selector: (row) => row.min_marks || 0, sortable: true },
     { name: "To", selector: (row) => row.max_marks || "N/A" },
     { name: "Grade", selector: (row) => row.grade_name || "N/A" },
     { name: "Grade Point", selector: (row) => row.grade_point || "N/A", sortable: true },

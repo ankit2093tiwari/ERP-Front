@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Form, Button, Alert, Spinner } from "react-bootstrap";
+import { FaTrashAlt } from "react-icons/fa";
 import { toast } from "react-toastify";
 import dynamic from "next/dynamic";
-import axios from "axios";
 
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import Table from "@/app/component/DataTable";
@@ -21,7 +21,7 @@ import usePagePermission from "@/hooks/usePagePermission";
 import useSessionId from "@/hooks/useSessionId";
 
 const ClassTeacherAllotment = () => {
-  const selectedSessionId=useSessionId()
+  const selectedSessionId = useSessionId()
   const { hasEditAccess, hasSubmitAccess } = usePagePermission()
 
   const [classes, setClasses] = useState([]);
@@ -196,7 +196,7 @@ const ClassTeacherAllotment = () => {
           size="sm"
           onClick={() => handleDelete(row._id)}
         >
-          Delete
+          <FaTrashAlt />
         </Button>
       )
     }

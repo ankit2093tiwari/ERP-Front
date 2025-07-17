@@ -163,7 +163,7 @@ export default function Sidebar({ isOpen }) {
         { title: "Mail In", href: "/front-office/mail-in", icon: <FaAngleDoubleRight /> },
         { title: "Mail Out", href: "/front-office/mail-out", icon: <FaAngleDoubleRight /> },
         { title: "Address Book", href: "/front-office/address-book", icon: <FaAngleDoubleRight /> },
-        { title: "Gate Pass", href: "/stock/gate-pass", icon: <FaAngleDoubleRight /> },
+        { title: "Gate Pass", href: "/front-office/gate-pass", icon: <FaAngleDoubleRight /> },
     ];
 
     const stockItems = [

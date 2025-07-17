@@ -32,6 +32,7 @@ const StudentRemarksEntry = () => {
     const [selectedClass, setSelectedClass] = useState("");
     const [selectedSection, setSelectedSection] = useState("");
     const [selectedExam, setSelectedExam] = useState("");
+    const [remarkErrors, setRemarkErrors] = useState({});
 
 
     const breadcrumbItems = [
@@ -109,7 +110,9 @@ const StudentRemarksEntry = () => {
     }
     const handleRemarkChange = (id, value) => {
         setStudents(prev => prev.map(s => s.studentId === id ? { ...s, remark: value } : s));
+        setRemarkErrors(prev => ({ ...prev, [id]: false })); // Clear error
     };
+
 
     const handleSubmitRemarks = async () => {
         if (!selectedClass || !selectedSection || !selectedExam) {
@@ -138,6 +141,15 @@ const StudentRemarksEntry = () => {
         }
     }
     const handlePrintReport = async (studentId, studentName) => {
+        const studentRow = students.find(s => s.studentId === studentId);
+
+        if (!studentRow || !studentRow.remark?.trim()) {
+            toast.warn("Please select a remark for this student before viewing the report.");
+            setRemarkErrors(prev => ({ ...prev, [studentId]: true }));
+            return;
+        }
+
+        setRemarkErrors(prev => ({ ...prev, [studentId]: false }));
         try {
             const schoolName = await getSchoolinfo();
 
@@ -248,6 +260,7 @@ const StudentRemarksEntry = () => {
                 <Form.Select
                     value={row.remark}
                     onChange={(e) => handleRemarkChange(row.studentId, e.target.value)}
+                    isInvalid={remarkErrors[row.studentId]}
                 >
                     <option value="">Select</option>
                     {remarks.map(remark => (

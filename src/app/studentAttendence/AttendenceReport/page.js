@@ -71,8 +71,8 @@ const AttendanceReport = () => {
       );
 
       if (res.data.success && res.data.data?._id) {
-        setAttendanceId(res.data.data._id); // ✅ Save for update
-        setAttendanceRecords(res.data.data.students || []); // ✅ Save students array
+        setAttendanceId(res.data.data._id); //  Save for update
+        setAttendanceRecords(res.data.data.students || []); //  Save students array
       } else {
         setAttendanceRecords([]);
         setAttendanceId(null); // Clear attendanceId

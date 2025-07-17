@@ -1325,3 +1325,79 @@ export const getStudentReport = async (filterBy) => {
     });
     return response?.data;
 }
+
+export const getAllExpenses = async () => {
+    const response = await axios.get(`${BASE_URL}/api/expense-entry`);
+    return response?.data;
+}
+export const addNewExpense = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/expense-entry`, payload);
+    return response?.data;
+}
+export const updateExpenseById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/expense-entry/${id}`, payload);
+    return response?.data;
+}
+export const deleteExpenseById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/expense-entry/${id}`);
+    return response?.data;
+}
+export const getMailInRecords = async () => {
+    const response = await axios.get(`${BASE_URL}/api/mail-in`);
+    return response?.data;
+}
+export const addNewMailInRecord = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/mail-in`, payload);
+    return response?.data;
+}
+export const updateMailInRecordById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/mail-in/${id}`, payload);
+    return response?.data;
+}
+export const deleteMailInRecordById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/mail-in/${id}`);
+    return response?.data;
+}
+export const getMailOutRecords = async () => {
+    const response = await axios.get(`${BASE_URL}/api/mail-out`);
+    return response?.data;
+}
+export const addNewMailOutRecord = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/mail-out`, payload);
+    return response?.data;
+}
+export const updateMailOutRecordById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/mail-out/${id}`, payload);
+    return response?.data;
+}
+export const deleteMailOutRecordById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/mail-out/${id}`);
+    return response?.data;
+}
+
+export const getAllAddressBooks = async () => {
+    const response = await axios.get(`${BASE_URL}/api/address-book`)
+    return response?.data;
+}
+export const addNewAddressbook = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/address-book`, payload)
+    return response?.data;
+}
+export const updateAddressBookById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/address-book/${id}`, payload)
+    return response?.data;
+}
+export const deleteAddressBookById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/address-book/${id}`)
+    return response?.data;
+}
+
+
+export const addNewGatePass = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/gate-pass`,payload)
+    return response?.data;
+}
+export const getAllGatePasses = async () => {
+    const response = await axios.get(`${BASE_URL}/api/gate-pass`)
+    return response?.data;
+}

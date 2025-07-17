@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import dynamic from "next/dynamic";
-import { Container, Row, Col, Form, FormLabel, Button } from "react-bootstrap";
+import { Container, Row, Col, Form, FormLabel, Button, Alert } from "react-bootstrap";
 import { toast } from "react-toastify";
 import Table from "@/app/component/DataTable";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
@@ -333,55 +333,56 @@ const MarksEntry = () => {
               </Button>
             </div>
           </div>
-          <div className="cover-sheet">
-            {students.length > 0 && (
-              <>
-                <div className="tableSheet">
-                  <h2>Marks Entry (Student Wise)</h2>
-                  <div className="mb-3">
-                    <Row>
-                      <Col md={4}>
-                        <Form.Control
-                          type="number"
-                          placeholder="Fill same marks for all"
-                          value={bulkMarks}
-                          onChange={(e) => setBulkMarks(e.target.value)}
-                        />
-                        <Button className="mt-2" onClick={() => applyBulkMarks(bulkMarks)}>Apply Marks</Button>
-                      </Col>
-                      <Col md={4}>
-                        <Form.Control
-                          type="number"
-                          placeholder="Fill same practical marks for all"
-                          value={bulkPractical}
-                          onChange={(e) => setBulkPractical(e.target.value)}
-                        />
-                        <Button className="mt-2" onClick={() => applyBulkPractical(bulkPractical)}>Apply Practical</Button>
-                      </Col>
-                      <Col md={4}>
-                        <Form.Control
-                          type="text"
-                          placeholder="Fill same remarks for all"
-                          value={bulkRemarks}
-                          onChange={(e) => setBulkRemarks(e.target.value)}
-                        />
-                        <Button className="mt-2" onClick={() => applyBulkRemarks(bulkRemarks)}>Apply Remarks</Button>
-                      </Col>
-                    </Row>
-                  </div>
-                  <Table
-                    columns={columns}
-                    data={students}
-                  />
+
+          {students.length > 0 ? (
+            <div className="cover-sheet">
+              <div className="tableSheet">
+                <h2>Marks Entry (Student Wise)</h2>
+                <div className="mb-3">
+                  <Row>
+                    <Col md={4}>
+                      <Form.Control
+                        type="number"
+                        placeholder="Fill same marks for all"
+                        value={bulkMarks}
+                        onChange={(e) => setBulkMarks(e.target.value)}
+                      />
+                      <Button className="mt-2" onClick={() => applyBulkMarks(bulkMarks)}>Apply Marks</Button>
+                    </Col>
+                    <Col md={4}>
+                      <Form.Control
+                        type="number"
+                        placeholder="Fill same practical marks for all"
+                        value={bulkPractical}
+                        onChange={(e) => setBulkPractical(e.target.value)}
+                      />
+                      <Button className="mt-2" onClick={() => applyBulkPractical(bulkPractical)}>Apply Practical</Button>
+                    </Col>
+                    <Col md={4}>
+                      <Form.Control
+                        type="text"
+                        placeholder="Fill same remarks for all"
+                        value={bulkRemarks}
+                        onChange={(e) => setBulkRemarks(e.target.value)}
+                      />
+                      <Button className="mt-2" onClick={() => applyBulkRemarks(bulkRemarks)}>Apply Remarks</Button>
+                    </Col>
+                  </Row>
                 </div>
-                {hasSubmitAccess && (
-                  <Button className="mt-3" onClick={handleSubmit}>
-                    Submit Marks
-                  </Button>
-                )}
-              </>
-            )}
-          </div>
+                <Table
+                  columns={columns}
+                  data={students}
+                />
+              </div>
+              {hasSubmitAccess && (
+                <Button className="mt-3" onClick={handleSubmit}>
+                  Submit Marks
+                </Button>
+              )}
+            </div>
+          ) :
+            <Alert variant="info">Please select an Exam , Subject, Class and Section to load students details.</Alert>
+          }
         </Container>
       </section>
     </>

@@ -6,6 +6,7 @@ import Table from "@/app/component/DataTable";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import { Form, Row, Col, Container, FormLabel, FormSelect, FormControl, Button, Breadcrumb } from "react-bootstrap";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import { copyContent, printContent } from "@/app/utils";
 
 const BalBank = () => {
 
@@ -64,27 +65,68 @@ const BalBank = () => {
   const data = [
     {
       id: 1,
-      entryDate: '20',
-      studentName: "Stationary Pen",
-      itemName: '',
-      amount: "300.00",
-      quantity: "AKANKSHA",
-      totalAmount: 'Remarks',
-      description: '24-09-2020',
-      modePayment: '',
+      entryDate: '24-09-2020',
+      studentName: "Raju",
+      itemName: 'Item1',
+      amount: 300,
+      quantity: 20,
+      totalAmount: 6000,
+      description: '....sfkdfjdjfd',
+      modePayment: 'cash',
     },
     {
       id: 2,
-      entryDate: '20',
-      studentName: "Stationary Pen",
-      itemName: '',
-      amount: "300.00",
-      quantity: "AKANKSHA",
-      totalAmount: 'Remarks',
-      description: '24-09-2020',
-      modePayment: '',
+      entryDate: '25-09-2020',
+      studentName: "Shivam Kumar",
+      itemName: 'Item2',
+      amount: 200,
+      quantity: 20,
+      totalAmount: 4000,
+      description: '...description',
+      modePayment: 'cash',
     },
   ];
+  const handleCopy = () => {
+    const headers = [
+      "#", "Entry Date", "Student Name", "Item Name", "Amount/Item", "Quantity", "Total Amount", "description", "Payment Mode"
+    ];
+
+    const rows = data.map((row, index) => {
+      return [
+        index + 1,
+        row.entryDate || "N/A",
+        row.studentName || "N/A",
+        row.itemName || "N/A",
+        row.amount || "N/A",
+        row.quantity || "N/A",
+        row.totalAmount || "N/A",
+        row.description || "N/A",
+        row.modePayment || "N/A"
+      ].join("\t");
+    });
+    copyContent(headers, rows);
+  };
+
+  const handlePrint = () => {
+    const headers = [
+      ["#", "Entry Date", "Student Name", "Item Name", "Amount/Item", "Quantity", "Total Amount", "description", "Payment Mode"]
+    ];
+
+    const rows = data.map((row, index) => {
+      return [
+        index + 1,
+        row.entryDate || "N/A",
+        row.studentName || "N/A",
+        row.itemName || "N/A",
+        row.amount || "N/A",
+        row.quantity || "N/A",
+        row.totalAmount || "N/A",
+        row.description || "N/A",
+        row.modePayment || "N/A"
+      ]
+    });
+    printContent(headers, rows);
+  };
   const breadcrumbItems = [{ label: "Accounts", link: "/accounts/all-module" }, { label: "Bal Bank", link: "null" }]
   return (
     <>
@@ -103,7 +145,7 @@ const BalBank = () => {
             <Col>
               <div className="tableSheet">
                 <h2> Bal Bank Report </h2>
-                <Table columns={columns} data={data} />
+                <Table columns={columns} data={data} handleCopy={handleCopy} handlePrint={handlePrint} />
               </div>
             </Col>
           </Row>
