@@ -6,7 +6,7 @@ import { FaHome, FaBug, FaBell, FaBriefcaseMedical, FaAngleDoubleRight, FaFile, 
 import { FaGauge } from "react-icons/fa6";
 import { MdAccountBalance, MdLibraryBooks } from "react-icons/md";
 import { TiContacts } from "react-icons/ti";
-import { RiUserFollowLine } from "react-icons/ri";
+import { RiUserFollowLine, RiBankCard2Line } from "react-icons/ri";
 import { Image } from "react-bootstrap";
 import { jwtDecode } from "jwt-decode";
 export default function Sidebar({ isOpen }) {
@@ -178,6 +178,7 @@ export default function Sidebar({ isOpen }) {
         { title: "Issue Item", href: "/stock/issue-item", icon: <FaAngleDoubleRight /> },
         { title: "Return Item", href: "/stock/return-item", icon: <FaAngleDoubleRight /> },
         { title: "Write Off Entry", href: "/stock/write-off-entry", icon: <FaAngleDoubleRight /> },
+        { title: "GatePass Entry", href: "/stock/gate-pass", icon: <FaAngleDoubleRight /> },
         { title: "Generate Gate Pass", href: "/stock/generate-gate-pass", icon: <FaAngleDoubleRight /> },
         {
             title: "Reports",
@@ -219,7 +220,7 @@ export default function Sidebar({ isOpen }) {
         { title: "HRD Salary", href: "/accounts/hrd-salary", icon: <FaAngleDoubleRight /> },
         { title: "Expense Entry", href: "/accounts/expense-entry", icon: <FaAngleDoubleRight /> },
         { title: "Bal Bank", href: "/accounts/bal-bank", icon: <FaAngleDoubleRight /> },
-        { title: "All Income", href: "/accounts/all-income", icon: <FaAngleDoubleRight /> },
+        // { title: "All Income", href: "/accounts/all-income", icon: <FaAngleDoubleRight /> },
     ];
     const galleryItems = [
         { title: "All Modules", href: "/gallery/all-module", icon: <FaAngleDoubleRight /> },
@@ -353,6 +354,12 @@ export default function Sidebar({ isOpen }) {
         { title: "Attendence Report", href: "/studentAttendence/AttendenceReport", icon: <FaAngleDoubleRight /> },
         { title: "Monthly Report", href: "/studentAttendence/MonthlyReport", icon: <FaAngleDoubleRight /> },
     ];
+    const balbankitems = [
+        { title: "All Modules", href: "/balbank/all-module", icon: <FaAngleDoubleRight /> },
+        { title: "Deposit Amount", href: "/balbank/deposite-amount", icon: <FaAngleDoubleRight /> },
+        { title: "Daily Transaction Entry", href: "/balbank/daily-transaction-entry", icon: <FaAngleDoubleRight /> },
+        { title: "Report", href: "/balbank/report", icon: <FaAngleDoubleRight /> },
+    ];
     const userItems = [
         { title: "All Modules", href: "/userManagement/all-module", icon: <FaAngleDoubleRight /> },
         { title: "Add User", href: "/userManagement/addUser", icon: <FaAngleDoubleRight /> },
@@ -364,8 +371,8 @@ export default function Sidebar({ isOpen }) {
         <div>
             <div
                 className={`sidebar ${isOpen || sidebarHover ? "open" : "closed"}`}
-            // onMouseEnter={() => setSidebarHover(true)}
-            // onMouseLeave={() => setSidebarHover(false)}
+                onMouseEnter={() => setSidebarHover(true)}
+                onMouseLeave={() => setSidebarHover(false)}
             >
                 <div className="sidebar-profile d-flex align-items-center flex-column">
                     <div className="position-relative">
@@ -867,6 +874,30 @@ export default function Sidebar({ isOpen }) {
                                         </span>
                                     </Link>
                                 </Accordion.Header>
+                            </Accordion.Item>
+                        )}
+                        {hasAccess('balbank') && (
+                            <Accordion.Item eventKey="balbank">
+                                <Accordion.Header>
+                                    <span style={{ display: "flex", alignItems: "center" }}>
+                                        <RiBankCard2Line style={{ marginRight: isOpen || activeKey ? "10px" : "0" }} />
+                                        {(isOpen || activeKey) && "Bal Bank"}
+                                    </span>
+                                </Accordion.Header>
+                                <Accordion.Body>
+                                    <ul style={{ listStyle: "none", paddingLeft: isOpen || activeKey ? "20px" : "0" }}>
+                                        {balbankitems.map((item, index) => (
+                                            <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
+                                                {item.icon}
+                                                <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>
+                                                    <Link href={item.href}>
+                                                        {item.title}
+                                                    </Link>
+                                                </span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </Accordion.Body>
                             </Accordion.Item>
                         )}
                         {hasAccess('studentattendance') && (

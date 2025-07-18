@@ -3,7 +3,7 @@ import React from "react";
 import Link from "next/link";
 import SubCard from "@/app/component/SubCard";
 import Image from "next/image";
-import { Container,Row, Col, Breadcrumb } from 'react-bootstrap';
+import { Container, Row, Col, Breadcrumb } from 'react-bootstrap';
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 
 const Page = () => {
@@ -32,12 +32,12 @@ const Page = () => {
       title: "Bal Bank",
       description: "Add Basic Details of Year",
     },
-    {
-      href: "/accounts/all-income",
-      icon: <Image src="/module/account/allIncome.png" className="studentIcon" width={100} height={100} alt="" />,
-      title: "All Income",
-      description: "Upload Basic Details of Document",
-    },
+    // {
+    //   href: "/accounts/all-income",
+    //   icon: <Image src="/module/account/allIncome.png" className="studentIcon" width={100} height={100} alt="" />,
+    //   title: "All Income",
+    //   description: "Upload Basic Details of Document",
+    // },
   ];
 
   const breadcrumbItems = [{ label: "All Module", link: null }]
@@ -49,13 +49,13 @@ const Page = () => {
         <Container>
           <Row>
             <Col>
-            <BreadcrumbComp items={breadcrumbItems} />
+              <BreadcrumbComp items={breadcrumbItems} />
             </Col>
           </Row>
         </Container>
       </div>
 
-      
+
       <section>
         <Container>
           <div className="studentHeading">

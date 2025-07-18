@@ -1394,10 +1394,35 @@ export const deleteAddressBookById = async (id) => {
 
 
 export const addNewGatePass = async (payload) => {
-    const response = await axios.post(`${BASE_URL}/api/gate-pass`,payload)
+    const response = await axios.post(`${BASE_URL}/api/gate-pass`, payload)
     return response?.data;
 }
 export const getAllGatePasses = async () => {
     const response = await axios.get(`${BASE_URL}/api/gate-pass`)
+    return response?.data;
+}
+
+export const getAllDepositAmounts = async () => {
+    const response = await axios.get(`${BASE_URL}/api/deposit-amount`);
+    return response?.data;
+}
+export const addNewDepositAmount = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/deposit-amount`, payload);
+    return response?.data;
+}
+export const deleteDepositAmountById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/deposit-amount/${id}`);
+    return response?.data;
+}
+export const getAllDailyTransactions = async () => {
+    const response = await axios.get(`${BASE_URL}/api/daily-transaction`);
+    return response?.data;
+}
+export const addNewDailyTransaction = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/daily-transaction`, payload);
+    return response?.data;
+}
+export const deleteDailyTransactionById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/daily-transaction/${id}`);
     return response?.data;
 }

@@ -59,17 +59,17 @@ const ClassMasterPage = () => {
             hasEditAccess && (
               <div>
                 {editingClass && editingClass._id === row._id ? (
-                  <button className="editButton ms-2" onClick={() => handleUpdateClass(row._id)}>
+                  <Button size="sm" variant="success" className="me-1" onClick={() => handleUpdateClass(row._id)}>
                     <FaSave />
-                  </button>
+                  </Button>
                 ) : (
-                  <button className="editButton ms-2" onClick={() => handleEditClass(row)}>
+                  <Button size="sm" variant="success" className="me-1" onClick={() => handleEditClass(row)}>
                     <FaEdit />
-                  </button>
+                  </Button>
                 )}
-                <button className="editButton btn-danger ms-2" onClick={() => handleDeleteClass(row._id)}>
+                <Button size="sm" variant="danger" onClick={() => handleDeleteClass(row._id)}>
                   <FaTrashAlt />
-                </button>
+                </Button>
               </div>
             )
           }
@@ -121,19 +121,19 @@ const ClassMasterPage = () => {
                 </div>
                 {
                   hasEditAccess && (
-                    <div>
+                    <div className="mb-2">
                       {editingSection && editingSection._id === section._id ? (
-                        <button className="editButton ms-2" onClick={() => handleUpdateSection(section._id)}>
+                        <Button size="sm" variant="success" className="mx-1" onClick={() => handleUpdateSection(section._id)}>
                           <FaSave />
-                        </button>
+                        </Button>
                       ) : (
-                        <button className="editButton ms-2" onClick={() => handleEditSection(section)}>
+                        <Button size="sm" variant="success" className="mx-1" onClick={() => handleEditSection(section)}>
                           <FaEdit />
-                        </button>
+                        </Button>
                       )}
-                      <button className="editButton btn-danger ms-2" onClick={() => handleDeleteSection(section._id)}>
+                      <Button size="sm" variant="danger" onClick={() => handleDeleteSection(section._id)}>
                         <FaTrashAlt />
-                      </button>
+                      </Button>
                     </div>
                   )
                 }

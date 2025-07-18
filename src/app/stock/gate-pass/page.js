@@ -1,16 +1,13 @@
 "use client";
 import React, { useState } from "react";
-import axios from "axios";
-import Table from "@/app/component/DataTable";
-import styles from "@/app/master-entry/school-info/page.module.css";
-import Preview from "@/app/component/Preview";
 import { Container, Row, Col, Breadcrumb, Form, FormLabel, FormGroup, FormControl, Button } from "react-bootstrap";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { addNewGatePass } from "@/Services";
 import { toast } from "react-toastify";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const GatePassEntry = () => {
-  const [showPreview, setShowPreview] = useState(false);
+  const { hasSubmitAccess } = usePagePermission()
   const [formData, setFormData] = useState({
     todayDate: new Date().toISOString().split("T")[0],
     personName: "",
@@ -111,7 +108,7 @@ const GatePassEntry = () => {
                     </FormGroup>
 
                     <FormGroup as={Col} md="6">
-                      <FormLabel className="labelForm">Purpose *</FormLabel>
+                      <FormLabel className="labelForm">Purpose <span className="text-danger">*</span></FormLabel>
                       <FormControl
                         as="textarea"
                         name="purpose"
@@ -119,7 +116,6 @@ const GatePassEntry = () => {
                         onChange={handleChange}
                         isInvalid={!!errors.purpose}
                         rows={1}
-
                       />
                       <FormControl.Feedback type="invalid">{errors.purpose}</FormControl.Feedback>
                     </FormGroup>
@@ -127,7 +123,7 @@ const GatePassEntry = () => {
 
                   <Row className="mb-3">
                     <FormGroup as={Col} md="6">
-                      <FormLabel className="labelForm">Company Details *</FormLabel>
+                      <FormLabel className="labelForm">Company Details <span className="text-danger">*</span></FormLabel>
                       <FormControl
                         type="text"
                         name="companyDetails"
@@ -140,7 +136,7 @@ const GatePassEntry = () => {
                     </FormGroup>
 
                     <FormGroup as={Col} md="6">
-                      <FormLabel className="labelForm">Item In Details *</FormLabel>
+                      <FormLabel className="labelForm">Item In Details <span className="text-danger">*</span></FormLabel>
                       <FormControl
                         as="textarea"
                         name="itemDetails"
@@ -156,7 +152,7 @@ const GatePassEntry = () => {
 
                   <Row className="mb-3">
                     <FormGroup as={Col} md="6">
-                      <FormLabel className="labelForm">Email Id *</FormLabel>
+                      <FormLabel className="labelForm">Email Id <span className="text-danger">*</span></FormLabel>
                       <FormControl
                         type="email"
                         name="emailId"
@@ -169,7 +165,7 @@ const GatePassEntry = () => {
                     </FormGroup>
 
                     <FormGroup as={Col} md="6">
-                      <FormLabel className="labelForm">Mobile No *</FormLabel>
+                      <FormLabel className="labelForm">Mobile No <span className="text-danger">*</span></FormLabel>
                       <FormControl
                         type="text"
                         name="mobileNo"
@@ -184,7 +180,7 @@ const GatePassEntry = () => {
 
                   <Row className="mb-3">
                     <FormGroup as={Col} md="6">
-                      <FormLabel className="labelForm">Address *</FormLabel>
+                      <FormLabel className="labelForm">Address <span className="text-danger">*</span></FormLabel>
                       <FormControl
                         as="textarea"
                         name="address"
@@ -192,7 +188,6 @@ const GatePassEntry = () => {
                         onChange={handleChange}
                         isInvalid={!!errors.address}
                         rows={1}
-
                       />
                       <FormControl.Feedback type="invalid">{errors.address}</FormControl.Feedback>
                     </FormGroup>
@@ -220,9 +215,11 @@ const GatePassEntry = () => {
                     </FormGroup>
                   </Row>
 
-                  <div>
-                    <Button variant="success" type="submit">Submit</Button>
-                  </div>
+                  {hasSubmitAccess && (
+                    <div>
+                      <Button variant="success" type="submit">Submit</Button>
+                    </div>
+                  )}
                 </Form>
               </div>
             </Col>

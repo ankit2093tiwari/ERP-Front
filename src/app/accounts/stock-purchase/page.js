@@ -1,30 +1,90 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Table from '@/app/component/DataTable';
-import styles from "@/app/students/add-new-student/page.module.css"
-import { Container, Row, Col, Form, FormLabel, FormGroup, FormControl, FormSelect, Button, Breadcrumb } from 'react-bootstrap';
+import { Container, Row, Col } from 'react-bootstrap';
 import dynamic from 'next/dynamic';
-import "react-datepicker/dist/react-datepicker.css";
-import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import { copyContent, printContent } from '@/app/utils';
+import { getAllReceivedStocks } from '@/Services';
 
 const StockPurchase = () => {
-  const [formData, setFormData] = useState({
-    mailNo: '',
-    forWhom: '',
-    date: '',
-    mode: '',
-    fromF: '',
-    courierName: '',
-    address: '',
-    receiver: '',
-    remark: '',
-  });
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+  const [receivedStocks, setReceivedStocks] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    fetchReceiveStocks();
+  }, []);
+
+  const fetchReceiveStocks = async () => {
+    try {
+      setLoading(true);
+      const response = await getAllReceivedStocks();
+      if (response.success) {
+        // transform response.data to table rows
+        const tableData = response.data.map((item, index) => ({
+          id: index + 1,
+          from: item.purchaseOrder?.quotation?.vendorName?.organizationName || "",
+          vendorContact: item.purchaseOrder?.quotation?.vendorName?.contactPersonName || "",
+          vendorPhone: item.purchaseOrder?.quotation?.vendorName?.contactNumber || "",
+          forWhom: item.purchaseOrder?.quotation?.itemName?.itemName || "",
+          mode: item.payMode || "Cash",
+          receiver: item.receivedBy || "",
+          totalAmount: item.totalAmount || 0,
+          receivedQty: item.receivedQty || 0,
+          receivedDate: item.receivedDate ? new Date(item.receivedDate).toLocaleDateString() : "",
+          remarks: item.remarks || ""
+        }));
+
+        setReceivedStocks(tableData);
+      }
+    } catch (err) {
+      console.error("Error fetching received stocks:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
+  const handleCopy = () => {
+    const headers = [
+      "#", "Vendor", "Mode", "Received by", "Total Amount",
+      "Received Qty", "Received Date", "Remarks"
+    ];
+
+    const rows = receivedStocks.map((row, index) => {
+      return [
+        index + 1,
+        row.from || "N/A",
+        row.mode || "N/A",
+        row.receiver || "N/A",
+        row.totalAmount || "N/A",
+        row.receivedQty || "N/A",
+        row.receivedDate || "N/A",
+        row.remarks || "N/A"
+      ].join("\t");
+    });
+
+    copyContent(headers, rows);
+  };
+
+  const handlePrint = () => {
+    const headers = [[
+      "#", "Vendor", "Mode", "Received by", "Total Amount",
+      "Received Qty", "Received Date", "Remarks"
+    ]];
+
+    const rows = receivedStocks.map((row, index) => ([
+      index + 1,
+      row.from || "N/A",
+      row.mode || "N/A",
+      row.receiver || "N/A",
+      row.totalAmount || "N/A",
+      row.receivedQty || "N/A",
+      row.receivedDate || "N/A",
+      row.remarks || "N/A"
+    ]));
+
+    printContent(headers, rows);
+  };
 
   const columns = [
     {
@@ -34,13 +94,15 @@ const StockPurchase = () => {
       width: '70px',
     },
     {
-      name: 'From',
-      selector: row => row.from,
-      sortable: true,
-    },
-    {
-      name: 'For Whom',
-      selector: row => row.forWhom,
+      name: 'Vendor',
+      selector: row => row.from || '',
+      cell: row => (
+        <div>
+          <strong>{row.from || 'N/A'}</strong>
+          {row.vendorContact && <div className="text-muted small">{row.vendorContact}</div>}
+          {row.vendorPhone && <div className="text-muted small">{row.vendorPhone}</div>}
+        </div>
+      ),
       sortable: true,
     },
     {
@@ -49,70 +111,33 @@ const StockPurchase = () => {
       sortable: true,
     },
     {
-      name: 'Receiver',
+      name: 'Received by',
       selector: row => row.receiver,
       sortable: true,
     },
     {
-      name: 'Action',
-      cell: row => (
-        <div style={{
-          display: 'flex',
-        }}>
-          <button className='editButton'
-            onClick={() => handleEdit(row.id)}
-          >
-            <FaEdit />
-          </button>
-          <button className="editButton btn-danger"
-            onClick={() => handleDelete(row.id)}
-          >
-            <FaTrashAlt />
-          </button>
-        </div>
-      ),
+      name: 'Total Amount',
+      selector: row => row.totalAmount,
+      sortable: true,
+    },
+    {
+      name: 'Received Qty',
+      selector: row => row.receivedQty,
+      sortable: true,
+    },
+    {
+      name: 'Received Date',
+      selector: row => row.receivedDate,
+      sortable: true,
+    },
+    {
+      name: 'Remarks',
+      selector: row => row.remarks,
+      sortable: false,
     }
   ];
-  const data = [
-    {
-      id: 1,
-      from: 'from1',
-      forWhom: 'Anokhi',
-      mode: 'General Post',
-      receiver: 'Neha',
-    },
-    {
-      id: 2,
-      from: 'from2',
-      forWhom: 'Anshika',
-      mode: 'General Post',
-      receiver: 'Nupul',
-    },
-    {
-      id: 3,
-      from: 'from3',
-      forWhom: 'Anil',
-      mode: 'Courier',
-      receiver: 'Neelesh',
-    },
-    {
-      id: 4,
-      from: 'from4',
-      forWhom: 'Anu',
-      mode: 'General Post',
-      receiver: 'Nitin',
-    },
-  ];
-  const [startDate, setStartDate] = useState(new Date());
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const togglePopover = () => {
-    setIsPopoverOpen(!isPopoverOpen);
-  };
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    console.log('Form submitted:', formData);
-    setIsPopoverOpen(false);
-  };
+
+
   const breadcrumbItems = [{ label: "Accounts", link: "/accounts/all-module" }, { label: "Stock Purchase", link: "null" }]
 
   return (
@@ -127,13 +152,19 @@ const StockPurchase = () => {
         </Container>
       </div>
       <Container>
-
         <section>
           <Row>
             <Col>
               <div className="tableSheet">
                 <h2>Stock Purchase Records</h2>
-                <Table columns={columns} data={data} />
+                {loading ? <p>Loading..</p> : (
+                  <Table
+                    columns={columns}
+                    data={receivedStocks}
+                    handleCopy={handleCopy}
+                    handlePrint={handlePrint}
+                  />
+                )}
               </div>
             </Col>
           </Row>

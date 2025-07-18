@@ -1,121 +1,63 @@
 "use client";
-import React from "react";
-import dynamic from "next/dynamic";
-import styles from "@/app/medical/routine-check-up/page.module.css";
-import Table from "@/app/component/DataTable";
+import React, { useEffect, useState } from "react";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import { Form, Row, Col, Container, FormLabel, FormSelect, FormControl, Button } from "react-bootstrap";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import Table from "@/app/component/DataTable";
+import { getAllEmployee } from "@/Services";
 
-const hrdSallary = () => {
+const HrdSallary = () => {
+  const [employeedata, setEmployeeData] = useState([]);
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    fetchEmployeeData();
+  }, []);
+
+  const fetchEmployeeData = async () => {
+    setLoading(true)
+    const response = await getAllEmployee();
+    setEmployeeData(response?.data || []);
+    setLoading(false)
+  };
+
+  // Mapping API data to table rows
+  const tableData = employeedata.map((item, index) => ({
+    id: index + 1,
+    salDate: item.pay_scale_from ? new Date(item.pay_scale_from).toLocaleDateString("en-GB", { month: "2-digit", year: "numeric" }) : '',
+    empcode: item.employee_code || '',
+    name: item.employee_name || '',
+    actBasic: item.basic_pay || '',
+    basic: item.gross_pay || '',
+    ve: item.conv || '',
+    grossPay: item.gross_pay || '',
+    pf: item.income_tax || '',
+    lic: item.lic_amount || '',
+    vd: item.da || '',
+    esi: item.esi || '',
+    netSalary: item.net_pay || '',
+  }));
+
   const columns = [
-    {
-      name: "#",
-      selector: (row) => row.id,
-      sortable: true,
-      width: "80px",
-    },
-    {
-      name: "Sal. Date",
-      selector: (row) => row.salDate,
-      sortable: false,
-    },
-    {
-      name: "Emp. Code",
-      selector: (row) => row.empcode,
-      sortable: false,
-    },
-    {
-      name: "Name",
-      selector: (row) => row.name,
-      sortable: false,
-    },
-    {
-      name: "Act. Basic",
-      selector: (row) => row.actBasic,
-      sortable: false,
-    },
-    {
-      name: "Basic",
-      selector: (row) => row.basic,
-      sortable: false,
-    },
-    {
-      name: "Increment",
-      selector: (row) => row.increment,
-      sortable: false,
-    },
-    {
-      name: "VE",
-      selector: (row) => row.ve,
-      sortable: true,
-    },
-    {
-      name: "Gross Pay",
-      selector: (row) => row.grossPay,
-      sortable: true,
-    },
-    {
-      name: "PF",
-      selector: (row) => row.pf,
-      sortable: true,
-    },
-    {
-      name: "LIC",
-      selector: (row) => row.lic,
-      sortable: true,
-    },
-    {
-      name: "Sal. Adv",
-      selector: (row) => row.salAdv,
-      sortable: true,
-    },
-    {
-      name: "VD",
-      selector: (row) => row.vd,
-      sortable: true,
-    },
-    {
-      name: "ESI",
-      selector: (row) => row.esi,
-      sortable: true,
-    },
-    {
-      name: "Total Deb.",
-      selector: (row) => row.totalDeb,
-      sortable: true,
-    },
-    {
-      name: "Net Salery",
-      selector: (row) => row.netSalary,
-      sortable: true,
-    },
+    { name: "#", selector: (row) => row.id, width: "60px" },
+    { name: "Sal. Date", selector: (row) => row.salDate },
+    { name: "Emp. Code", selector: (row) => row.empcode },
+    { name: "Name", selector: (row) => row.name },
+    { name: "Act. Basic", selector: (row) => row.actBasic },
+    { name: "Basic", selector: (row) => row.basic },
+    { name: "VE", selector: (row) => row.ve },
+    { name: "Gross Pay", selector: (row) => row.grossPay },
+    { name: "PF", selector: (row) => row.pf },
+    { name: "LIC", selector: (row) => row.lic },
+    { name: "VD", selector: (row) => row.vd },
+    { name: "ESI", selector: (row) => row.esi },
+    { name: "Net Salary", selector: (row) => row.netSalary },
   ];
 
-  const data = [
-    {
-      id: 1,
-      salDate: '20',
-      empcode: '',
-      name: '',
-      actBasic: '',
-      basic: "",
-      increment: '',
-      ve: "300.00",
-      grossPay: '',
-      pf: "AKANKSHA",
-      lic: 'Remarks',
-      salAdv: '24-09-2020',
-      vd: '',
-      esi: '',
-      totalDeb: '',
-      netSalary: '',
-    },
+  const breadcrumbItems = [
+    { label: "Accounts", link: "/accounts/all-module" },
+    { label: "HRD Salary", link: null },
   ];
-
-
-  const breadcrumbItems = [{ label: "Accounts", link: "/accounts/all-module" }, { label: "HRD Salry", link: null }]
-
 
   return (
     <>
@@ -123,7 +65,7 @@ const hrdSallary = () => {
         <Container>
           <Row>
             <Col>
-            <BreadcrumbComp items={breadcrumbItems} />
+              <BreadcrumbComp items={breadcrumbItems} />
             </Col>
           </Row>
         </Container>
@@ -133,15 +75,17 @@ const hrdSallary = () => {
           <Row>
             <Col>
               <div className="tableSheet">
-                <h2>HRD Salary Records </h2>
-                <Table columns={columns} data={data} />
+                <h2>HRD Salary Records</h2>
+                {loading ? <p>Loading..</p> : (
+                  <Table columns={columns} data={tableData} />
+                )}
               </div>
             </Col>
           </Row>
         </Container>
       </section>
     </>
-  )
-}
+  );
+};
 
-export default hrdSallary
+export default HrdSallary;

@@ -1,69 +1,143 @@
 "use client";
 import React, { useEffect, useState } from 'react';
 import Table from '@/app/component/DataTable';
-import { Container, Row, Col, Breadcrumb } from 'react-bootstrap';
-import styles from "@/app/students/add-new-student/page.module.css";
-// import dynamic from 'next/dynamic';
+import { Container, Row, Col, Button } from 'react-bootstrap';
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { getAllGatePasses } from '@/Services';
+import { FaEdit, FaTrashAlt } from 'react-icons/fa';
+import usePagePermission from '@/hooks/usePagePermission';
+import { copyContent, printContent } from '@/app/utils';
 
 const GenerateGatePass = () => {
-  const [gatePasRcords, setGatePassRecords] = useState([])
+  const { hasEditAccess } = usePagePermission()
+  const [gatePassRecords, setGatePassRecords] = useState([]);
 
   const fetchGatePassData = async () => {
-    const res = await getAllGatePasses()
-    setGatePassRecords(res?.data)
-  }
+    const res = await getAllGatePasses();
+    if (res?.success && Array.isArray(res.data)) {
+      // Add index for display (# column)
+      const formattedData = res.data.map((item, index) => ({
+        ...item,
+        index: index + 1,
+        date: item.date?.split('T')[0], // format date (optional)
+      }));
+      setGatePassRecords(formattedData);
+    }
+  };
 
   useEffect(() => {
-    fetchGatePassData()
-  }, [])
+    fetchGatePassData();
+  }, []);
+
+  const handleDelete = async (id) => {
+    alert(id)
+  }
+
   const columns = [
     {
       name: '#',
-      selector: row => row.id,
+      selector: row => row.index,
       sortable: true,
-      width: '80px',
+      width: '60px',
     },
     {
-      name: 'Item Category',
-      selector: row => row.itemCategory,
-      sortable: true,
-    },
-    {
-      name: 'Item Name',
-      selector: row => row.itemName,
+      name: 'Company Details',
+      selector: row => row.companyDetails || "N/A",
       sortable: true,
     },
     {
-      name: 'Type',
-      selector: row => row.type,
+      name: 'Email',
+      selector: row => row.emailId || "N/A",
       sortable: true,
     },
     {
-      name: 'Available Stock',
-      selector: row => row.availableStock,
+      name: 'Mobile No.',
+      selector: row => row.mobileNo || "N/A",
       sortable: true,
+    },
+    {
+      name: 'Purpose',
+      selector: row => row.purpose || "N/A",
+      sortable: true,
+    },
+    {
+      name: 'Address',
+      selector: row => row.address || "N/A",
+      sortable: true,
+    },
+    {
+      name: 'Remark',
+      selector: row => row.remark || "N/A",
+      sortable: true,
+    },
+    {
+      name: 'Item Details',
+      selector: row => row.itemDetails || "N/A",
+      sortable: true,
+    },
+    {
+      name: 'Person Name',
+      selector: row => row.personName || "N/A",
+      sortable: true,
+    },
+    {
+      name: 'Date',
+      selector: row => row.date || "N/A",
+      sortable: true,
+    },
+    hasEditAccess && {
+      name: 'Action',
+      cell: (row) => (
+        <>
+          <Button variant='success' size='sm' className='me-1'><FaEdit /></Button>
+          <Button variant='danger' size='sm' onClick={() => handleDelete(row._id)}><FaTrashAlt /></Button>
+        </>
+      )
     }
   ];
 
-  const data = [
-    {
-      id: 1,
-      itemCategory: 'Furntiture',
-      itemName: 'Chairs',
-      type: 'Non-Recurring',
-      availableStock: '105'
-    },
-    {
-      id: 2,
-      itemCategory: 'Stationary',
-      itemName: 'Pen',
-      type: 'Recurring',
-      availableStock: '-1'
-    },
+  const breadcrumbItems = [
+    { label: "Stock", link: "/stock/all-module" },
+    { label: "Generate Pass", link: null }
   ];
-  const breadcrumbItems = [{ label: "Stock", link: "/stock/all-module" }, { label: "Generate Pass", link: "null" }]
+
+  const handleCopy = () => {
+    const headers = [
+      "#", "CompanyDetails", "Purpose", "Email", "Mobile", "Address", "Date", "PersonName"
+    ]
+    const rows = gatePassRecords?.map((row) => (
+      [
+        row.index,
+        row.companyDetails || "N/A",
+        row.purpose || "N/A",
+        row.emailId || "N/A",
+        row.mobileNo || "N/A",
+        row.address || "N/A",
+        row.date || "N/A",
+        row.personName || "N/A"
+      ].join('\t')
+    ))
+    copyContent(headers, rows)
+  }
+  const handlePrint = () => {
+    const headers = [
+      ["#", "CompanyDetails", "Purpose", "Mobile", "Address", "Date", "PersonName"]
+    ]
+    const rows = gatePassRecords?.map((row) => (
+      [
+        row.index,
+        row.companyDetails || "N/A",
+        row.purpose || "N/A",
+        // row.emailId || "N/A",
+        row.mobileNo || "N/A",
+        row.address || "N/A",
+        row.date || "N/A",
+        row.personName || "N/A"
+      ]
+    ))
+    printContent(headers, rows)
+  }
+
   return (
     <>
       <div className="breadcrumbSheet position-relative">
@@ -75,14 +149,14 @@ const GenerateGatePass = () => {
           </Row>
         </Container>
       </div>
+
       <section>
         <Container>
           <Row>
             <Col>
               <div className="tableSheet">
                 <h2>Person Entry Records</h2>
-                <Table columns={columns} data={data} />
-
+                <Table columns={columns} data={gatePassRecords} handleCopy={handleCopy} handlePrint={handlePrint} />
               </div>
             </Col>
           </Row>
