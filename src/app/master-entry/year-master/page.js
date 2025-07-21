@@ -28,7 +28,7 @@ import {
 import usePagePermission from "@/hooks/usePagePermission";
 
 const SessionMasterPage = () => {
-  const { hasEditAccess, hasSubmitAccess } = usePagePermission()
+  const { hasEditAccess, hasSubmitAccess } = usePagePermission();
 
   const [data, setData] = useState([]);
   const [classes, setClasses] = useState([]);
@@ -61,7 +61,7 @@ const SessionMasterPage = () => {
     setLoading(true);
     try {
       const res = await getSessions();
-      const grouped = groupSessionsByClass(res.data || []);
+      const grouped = groupClassesBySession(res.data || []);
       setData(grouped);
     } catch {
       toast.error("Failed to fetch sessions");
@@ -70,29 +70,16 @@ const SessionMasterPage = () => {
     }
   };
 
-  const groupSessionsByClass = (sessions) => {
-    const grouped = {};
-    sessions.forEach((session) => {
-      session.class_id.forEach((cls) => {
-        const classId = cls.class?._id;
-        const className = cls.class?.class_name;
-        if (!grouped[classId]) {
-          grouped[classId] = {
-            _id: classId,
-            class_name: className,
-            sessions: [],
-          };
-        }
-        grouped[classId].sessions.push({
-          _id: session._id,
-          sessionName: session.sessionName,
-          start_date: session.start_date,
-          end_date: session.end_date,
-          class_id: session.class_id,
-        });
-      });
-    });
-    return Object.values(grouped);
+  // 🔄 Group by session, not class
+  const groupClassesBySession = (sessions) => {
+    return sessions.map((session) => ({
+      _id: session._id,
+      sessionName: session.sessionName,
+      start_date: session.start_date,
+      end_date: session.end_date,
+      class_id: session.class_id,
+      classes: session.class_id.map((c) => c.class?.class_name).filter(Boolean),
+    }));
   };
 
   const handleEdit = (session) => {
@@ -127,6 +114,7 @@ const SessionMasterPage = () => {
     if (!formData.sessionName.trim()) errors.sessionName = "Session name is required";
     if (!formData.start_date) errors.start_date = "Start date is required";
     if (!formData.end_date) errors.end_date = "End date is required";
+    if (formData.start_date > formData.end_date) errors.end_date = "End date must be after start date";
     if (!formData.class_id.length) errors.class_id = "At least one class is required";
     return errors;
   };
@@ -186,65 +174,70 @@ const SessionMasterPage = () => {
       width: "80px",
     },
     {
-      name: "Class Name",
-      selector: (row) => row.class_name,
+      name: "Session Name",
+      selector: (row) => row.sessionName,
     },
     {
-      name: "Sessions",
+      name: "Date Range",
+      cell: (row) =>
+        `${new Date(row.start_date).toLocaleDateString()} - ${new Date(row.end_date).toLocaleDateString()}`,
+    },
+    {
+      name: "Classes",
       cell: (row) => (
         <div>
-          {row.sessions.map((session) => (
-            <div key={session._id} className="d-flex justify-content-between align-items-center mb-1">
-              <div>
-                <strong>{session.sessionName}</strong>
-                {/* ({new Date(session.start_date).toLocaleDateString()} -{" "}
-                {new Date(session.end_date).toLocaleDateString()}) */}
-              </div>
-              {hasEditAccess && (
-                <div className="d-flex gap-1">
-                  <button
-                    className="editButton btn-sm"
-                    onClick={() => handleEdit(session)}
-                  >
-                    <FaEdit />
-                  </button>
-                  <button
-                    className="editButton btn-sm btn-danger"
-                    onClick={() => handleDelete(session._id)}
-                  >
-                    <FaTrashAlt />
-                  </button>
-                </div>
-              )}
-            </div>
-          ))}
+          {row.classes.length > 0 ? (
+            row.classes.map((cls, idx) => <div key={idx}>{cls}</div>)
+          ) : (
+            <em>No classes</em>
+          )}
         </div>
       ),
+    },
+    {
+      name: "Actions",
+      cell: (row) =>
+        hasEditAccess && (
+          <div className="d-flex gap-1">
+            <button className="editButton btn-sm" onClick={() => handleEdit(row)}>
+              <FaEdit />
+            </button>
+            <button
+              className="editButton btn-sm btn-danger"
+              onClick={() => handleDelete(row._id)}
+            >
+              <FaTrashAlt />
+            </button>
+          </div>
+        ),
+      ignoreRowClick: true,
     },
   ];
 
   const handleCopy = () => {
-    const headers = ["#", "Class Name", "Session Name", "Start Date", "End Date"];
-    const rows = data.flatMap((row, index) =>
-      row.sessions.map((s) =>
-        `${index + 1}\t${row.class_name}\t${s.sessionName}\t${new Date(s.start_date).toLocaleDateString()}\t${new Date(s.end_date).toLocaleDateString()}`
-      )
+    const headers = ["#", "Session Name", "Date Range", "Classes"];
+    const rows = data.map((row, i) =>
+      `${i + 1}\t${row.sessionName}\t${new Date(row.start_date).toLocaleDateString()} - ${new Date(row.end_date).toLocaleDateString()}\t${row.classes.join(", ")}`
     );
     copyContent(headers, rows);
   };
 
   const handlePrint = () => {
-    const headers = [["#", "Class Name", "Session Name", "Start Date", "End Date"]];
-    const rows = data.flatMap((row, index) =>
-      row.sessions.map((s) => [
-        index + 1,
-        row.class_name,
-        s.sessionName,
-        new Date(s.start_date).toLocaleDateString(),
-        new Date(s.end_date).toLocaleDateString(),
-      ])
-    );
+    const headers = [["#", "Session Name", "Date Range", "Classes"]];
+    const rows = data.map((row, i) => [
+      i + 1,
+      row.sessionName,
+      `${new Date(row.start_date).toLocaleDateString()} - ${new Date(row.end_date).toLocaleDateString()}`,
+      row.classes.join(", "),
+    ]);
     printContent(headers, rows);
+  };
+
+  const handleCloseForm = () => {
+    setIsFormOpen(false);
+    setEditingId(null);
+    setFormData({ sessionName: "", class_id: [], start_date: "", end_date: "" });
+    setFieldErrors({});
   };
 
   useEffect(() => {
@@ -284,7 +277,7 @@ const SessionMasterPage = () => {
             <div className="cover-sheet">
               <div className="studentHeading">
                 <h2>{editingId ? "Edit" : "Add"} Session</h2>
-                <button className="closeForm" onClick={() => setIsFormOpen(false)}>X</button>
+                <button className="closeForm" onClick={handleCloseForm}>X</button>
               </div>
               <Form className="formSheet">
                 <Row className="mb-3">

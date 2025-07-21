@@ -2,9 +2,13 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { Accordion } from "react-bootstrap";
-import { FaHome, FaBug, FaBell, FaBriefcaseMedical, FaAngleDoubleRight, FaFile, FaEnvelope, FaUsersCog, FaBook, FaCalendarPlus, FaPhotoVideo, FaNewspaper, FaUserGraduate, FaFileAlt, FaBus, FaRupeeSign, FaBusinessTime, FaBoxOpen } from "react-icons/fa";
+import {
+    FaHome, FaBug, FaBell, FaBriefcaseMedical, FaAngleDoubleRight, FaFile,
+    FaEnvelope, FaUsersCog, FaBook, FaCalendarPlus, FaPhotoVideo, FaNewspaper,
+    FaUserGraduate, FaFileAlt, FaBus, FaRupeeSign, FaBusinessTime, FaBoxOpen, FaYoutube
+} from "react-icons/fa";
 import { FaGauge } from "react-icons/fa6";
-import { MdAccountBalance, MdLibraryBooks } from "react-icons/md";
+import { MdAccountBalance, MdLibraryBooks, MdOutlineLibraryBooks, MdOutlineHomeWork } from "react-icons/md";
 import { TiContacts } from "react-icons/ti";
 import { RiUserFollowLine, RiBankCard2Line } from "react-icons/ri";
 import { Image } from "react-bootstrap";
@@ -39,13 +43,12 @@ export default function Sidebar({ isOpen }) {
         setActiveKey(activeKey === key ? null : key);
     };
 
-    // ... (keep all your item arrays the same)
     const masterEntryItems = [
         { title: "All Modules", href: "/master-entry/all-module", icon: <FaAngleDoubleRight /> },
         { title: "School Info", href: "/master-entry/school-info", icon: <FaAngleDoubleRight /> },
+        { title: "Year Master", href: "/master-entry/year-master", icon: <FaAngleDoubleRight /> },
         { title: "Class Master", href: "/master-entry/class-master", icon: <FaAngleDoubleRight /> },
         { title: "City Master", href: "/master-entry/city-master", icon: <FaAngleDoubleRight /> },
-        { title: "Year Master", href: "/master-entry/year-master", icon: <FaAngleDoubleRight /> },
         { title: "Document Upload", href: "/master-entry/document-upload", icon: <FaAngleDoubleRight /> },
         { title: "Category Master", href: "/master-entry/category-master", icon: <FaAngleDoubleRight /> },
         { title: "Religion Master", href: "/master-entry/religion-master", icon: <FaAngleDoubleRight /> },
@@ -348,6 +351,9 @@ export default function Sidebar({ isOpen }) {
     const importantSMSItems = [
         { title: "importantSMS", href: "/importantSMS", icon: <FaAngleDoubleRight /> },
     ];
+    const syllabusDetailItem = [
+        { title: "DailyDairy Details", href: "/dailyDairy", icon: <MdOutlineLibraryBooks /> },
+    ];
     const studentAttendenceItems = [
         { title: "All Modules", href: "/studentAttendence/allModule", icon: <FaAngleDoubleRight /> },
         { title: "Take Attendence", href: "/studentAttendence/TakeAttendence", icon: <FaAngleDoubleRight /> },
@@ -360,13 +366,17 @@ export default function Sidebar({ isOpen }) {
         { title: "Daily Transaction Entry", href: "/balbank/daily-transaction-entry", icon: <FaAngleDoubleRight /> },
         { title: "Report", href: "/balbank/report", icon: <FaAngleDoubleRight /> },
     ];
+    const youtubeVideoItems = [
+        { title: "All Modules", href: "/youtubevideo/all-module", icon: <FaAngleDoubleRight /> },
+        { title: "Add Group", href: "/youtubevideo/add-group", icon: <FaAngleDoubleRight /> },
+        { title: "Add Youtube Video", href: "/youtubevideo/add-video", icon: <FaAngleDoubleRight /> },
+        { title: "Video Records", href: "/youtubevideo/video-records", icon: <FaAngleDoubleRight /> },
+    ];
     const userItems = [
         { title: "All Modules", href: "/userManagement/all-module", icon: <FaAngleDoubleRight /> },
         { title: "Add User", href: "/userManagement/addUser", icon: <FaAngleDoubleRight /> },
         { title: "Existing Users", href: "/userManagement/exisitingUser", icon: <FaAngleDoubleRight /> },
     ];
-
-
     return (
         <div>
             <div
@@ -843,7 +853,7 @@ export default function Sidebar({ isOpen }) {
                                 </Accordion.Header>
                             </Accordion.Item>
                         )}
-                        {hasAccess("complaintdetails") && (
+                        {/* {hasAccess("complaintdetails") && (
                             <Accordion.Item className="nav-item" eventKey="complaints">
                                 <Accordion.Header>
                                     <Link href="/complaints" className="nav-link">
@@ -875,6 +885,28 @@ export default function Sidebar({ isOpen }) {
                                     </Link>
                                 </Accordion.Header>
                             </Accordion.Item>
+                        )} */}
+                        {hasAccess("syllabus") && (
+                            <Accordion.Item className="nav-item" eventKey="syllabus">
+                                <Accordion.Header>
+                                    <Link href="/syllabus" className="nav-link">
+                                        <span>
+                                            <MdOutlineLibraryBooks /> {(isOpen || activeKey) && "Syllabus detail"}
+                                        </span>
+                                    </Link>
+                                </Accordion.Header>
+                            </Accordion.Item>
+                        )}
+                        {hasAccess("homework") && (
+                            <Accordion.Item className="nav-item" eventKey="homework">
+                                <Accordion.Header>
+                                    <Link href="/homework" className="nav-link">
+                                        <span>
+                                            <MdOutlineHomeWork /> {(isOpen || activeKey) && "Home Work"}
+                                        </span>
+                                    </Link>
+                                </Accordion.Header>
+                            </Accordion.Item>
                         )}
                         {hasAccess('balbank') && (
                             <Accordion.Item eventKey="balbank">
@@ -887,6 +919,30 @@ export default function Sidebar({ isOpen }) {
                                 <Accordion.Body>
                                     <ul style={{ listStyle: "none", paddingLeft: isOpen || activeKey ? "20px" : "0" }}>
                                         {balbankitems.map((item, index) => (
+                                            <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
+                                                {item.icon}
+                                                <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>
+                                                    <Link href={item.href}>
+                                                        {item.title}
+                                                    </Link>
+                                                </span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </Accordion.Body>
+                            </Accordion.Item>
+                        )}
+                        {hasAccess('youtubevideo') && (
+                            <Accordion.Item eventKey="youtubevideo">
+                                <Accordion.Header>
+                                    <span style={{ display: "flex", alignItems: "center" }}>
+                                        <FaYoutube style={{ marginRight: isOpen || activeKey ? "10px" : "0" }} />
+                                        {(isOpen || activeKey) && "Youtube Video"}
+                                    </span>
+                                </Accordion.Header>
+                                <Accordion.Body>
+                                    <ul style={{ listStyle: "none", paddingLeft: isOpen || activeKey ? "20px" : "0" }}>
+                                        {youtubeVideoItems?.map((item, index) => (
                                             <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
                                                 {item.icon}
                                                 <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>

@@ -367,10 +367,10 @@ const Dashboard = () => {
                   </div>
                 </div>
                 <div className="card bgPurple overflow-hidden mb-3 pb-0 shadow-none">
-                  <div className="card-body p-2 bgPurple thought-of-day">
-                    <div className="thought-content d-flex flex-column justify-contend-center align-items-center ">
+                  <div className="card-body bgPurple thought-of-day ">
+                    <div className="thought-content d-flex flex-column justify-contend-center align-items-center">
                       <p className="notice-title mb-1 text-white fw-bold">{thoughtOfTheDay || "ALWAYS BE HAPPY"}  </p>
-                      <div className="thought-date">Thursday, July 3, 2025</div>
+                      <div className="thought-date">{new Date().toISOString().split('T')[0]}</div>
                     </div>
                   </div>
                 </div>
@@ -529,34 +529,34 @@ const Dashboard = () => {
                   <div className="card-body position-relative z-1 notice-box-wrap text-start">
                     <div className="">
                       <div className="notice-list">
-                        <div className="post-date bg-skyblue">16 June, 2019</div>
+                        <div className="post-date bg-skyblue">{new Date().toISOString().split('T')[0]}</div>
                         <h6 className="notice-title"><a href="#">Great School manag mene esom text of the
                           printing.</a></h6>
                         <div className="entry-meta"> Jennyfar Lopez / <span>5 min ago</span></div>
                       </div>
                       <div className="notice-list">
-                        <div className="post-date bg-yellow">16 June, 2019</div>
+                        <div className="post-date bg-yellow">16 June, 2024</div>
                         <h6 className="notice-title"><a href="#">Great School manag printing.</a></h6>
                         <div className="entry-meta"> Jennyfar Lopez / <span>5 min ago</span></div>
                       </div>
                       <div className="notice-list">
-                        <div className="post-date bg-pink">16 June, 2019</div>
+                        <div className="post-date bg-pink">16 June, 2024</div>
                         <h6 className="notice-title"><a href="#">Great School manag meneesom.</a></h6>
                         <div className="entry-meta"> Jennyfar Lopez / <span>5 min ago</span></div>
                       </div>
                       <div className="notice-list">
-                        <div className="post-date bg-skyblue">16 June, 2019</div>
+                        <div className="post-date bg-skyblue">16 June, 2024</div>
                         <h6 className="notice-title"><a href="#">Great School manag mene esom text of the
                           printing.</a></h6>
                         <div className="entry-meta"> Jennyfar Lopez / <span>5 min ago</span></div>
                       </div>
                       <div className="notice-list">
-                        <div className="post-date bg-yellow">16 June, 2019</div>
+                        <div className="post-date bg-yellow">28 July, 2024</div>
                         <h6 className="notice-title"><a href="#">Great School manag printing.</a></h6>
                         <div className="entry-meta"> Jennyfar Lopez / <span>5 min ago</span></div>
                       </div>
                       <div className="notice-list">
-                        <div className="post-date bg-pink">16 June, 2019</div>
+                        <div className="post-date bg-pink">16 August, 2024</div>
                         <h6 className="notice-title"><a href="#">Great School manag meneesom.</a></h6>
                         <div className="entry-meta"> Jennyfar Lopez / <span>5 min ago</span></div>
                       </div>

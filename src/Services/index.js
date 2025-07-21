@@ -1426,3 +1426,65 @@ export const deleteDailyTransactionById = async (id) => {
     const response = await axios.delete(`${BASE_URL}/api/daily-transaction/${id}`);
     return response?.data;
 }
+
+export const getYoutubeVideoGroups = async () => {
+    const response = await axios.get(`${BASE_URL}/api/youtube-videogroups`);
+    return response?.data;
+}
+export const addNewYoutubeVideoGroup = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/youtube-videogroup`, payload);
+    return response?.data;
+}
+export const updateYoutubeVideoGroupById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/youtube-videogroup/${id}`, payload);
+    return response?.data;
+}
+export const deleteYoutubeVideoGroupById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/youtube-videogroup/${id}`);
+    return response?.data;
+}
+export const getAllYoutubeVideos = async () => {
+    const response = await axios.get(`${BASE_URL}/api/youtube-videos`);
+    return response?.data;
+}
+export const addNewYoutubeVideo = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/youtube-video`, payload);
+    return response?.data;
+}
+export const deleteYoutubeVideoById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/youtube-video/${id}`);
+    return response?.data;
+}
+export const updateYoutubeVideoById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/youtube-video/${id}`, payload);
+    return response?.data;
+}
+export const getAllSyllabus = async () => {
+    const response = await axios.get(`${BASE_URL}/api/syllabus`);
+    return response?.data;
+}
+export const uploadSyllabus = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/syllabus`, payload);
+    return response?.data;
+}
+export const updateSyllabusById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/syllabus/${id}`, payload);
+    return response?.data;
+}
+export const deleteSyllabusById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/syllabus/${id}`);
+    return response?.data;
+}
+
+export const getAllHomeWork = async () => {
+    const response = await axios.get(`${BASE_URL}/api/homework`);
+    return response?.data;
+}
+export const addNewHomeWork = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/homework`, payload);
+    return response?.data;
+}
+export const deleteHomeWorkById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/homework/${id}`);
+    return response?.data;
+}

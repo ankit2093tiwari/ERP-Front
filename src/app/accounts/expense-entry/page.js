@@ -10,8 +10,10 @@ import { Container, Row, Col, Button, Form, FormLabel, FormControl, Spinner, } f
 import Table from "@/app/component/DataTable";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { addNewExpense, deleteExpenseById, getAllExpenses, updateExpenseById } from "@/Services";
+import usePagePermission from "@/hooks/usePagePermission";
 
 const ExpenseEntry = () => {
+  const { hasEditAccess, hasSubmitAccess } = usePagePermission()
   const [expenses, setExpenses] = useState([]);
   const [form, setForm] = useState({ date: "", itemName: "", amount: "", description: "" });
   const [errors, setErrors] = useState({});
@@ -124,11 +126,11 @@ const ExpenseEntry = () => {
 
   const columns = [
     { name: "#", selector: (row, i) => i + 1, width: "60px" },
-    { name: "Date", selector: (row) => new Date(row.date).toLocaleDateString() },
-    { name: "Item Name", selector: (row) => row.itemName },
-    { name: "Amount", selector: (row) => row.amount },
+    { name: "Date", selector: (row) => new Date(row.date).toLocaleDateString(),sortable:true  },
+    { name: "Item Name", selector: (row) => row.itemName,sortable:true  },
+    { name: "Amount", selector: (row) => row.amount,sortable:true },
     { name: "Description", selector: (row) => row.description || "-" },
-    {
+    hasEditAccess && {
       name: "Actions",
       cell: (row) => (
         <div className="twobuttons d-flex">
@@ -184,14 +186,16 @@ const ExpenseEntry = () => {
 
       <section>
         <Container>
-          <Button onClick={() => {
-            setForm({ date: new Date().toISOString().split("T")[0], itemName: "", amount: "", description: "" });
-            setEditId(null);
-            setIsPopoverOpen(true);
-          }} className="btn-add">
-            <CgAddR /> New Expense
-          </Button>
+          {hasSubmitAccess && (
+            <Button onClick={() => {
+              setForm({ date: new Date().toISOString().split("T")[0], itemName: "", amount: "", description: "" });
+              setEditId(null);
+              setIsPopoverOpen(true);
+            }} className="btn-add">
+              <CgAddR /> New Expense
+            </Button>
 
+          )}
           {isPopoverOpen && (
             <div className="cover-sheet">
               <div className="studentHeading">
