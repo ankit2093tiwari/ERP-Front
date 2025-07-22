@@ -1488,3 +1488,37 @@ export const deleteHomeWorkById = async (id) => {
     const response = await axios.delete(`${BASE_URL}/api/homework/${id}`);
     return response?.data;
 }
+export const updateHomeworkById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/homework/${id}`, payload);
+    return response?.data;
+}
+
+export const getAlltimeTables = async () => {
+    const response = await axios.get(`${BASE_URL}/api/timetable`);
+    return response?.data;
+}
+export const addNewTimeTable = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/timetable`, payload);
+    return response?.data;
+}
+export const updateTimeTableById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/timetable/${id}`, payload);
+    return response?.data;
+}
+export const deleteTimeTableById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/timetable/${id}`);
+    return response?.data;
+}
+
+export const getAllStudentEvaluations = async (classId, sectionId, evalDate) => {
+    const response = await axios.get(`${BASE_URL}/api/student-evaluation?classId=${classId}&sectionId=${sectionId}&evalDate=${evalDate}`);
+    return response?.data;
+}
+export const addNewStudentEvaluation = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/student-evaluation`,payload);
+    return response?.data;
+}
+export const deleteStudentEvaluationById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/student-evaluation/${id}`);
+    return response?.data;
+}

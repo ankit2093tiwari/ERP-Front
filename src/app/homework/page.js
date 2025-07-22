@@ -4,30 +4,27 @@ import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { toast } from 'react-toastify';
 import { CgAddR } from 'react-icons/cg';
-import { FaTrashAlt } from 'react-icons/fa';
-import {
-    Container,
-    Row,
-    Col,
-    Form,
-    Button,
-    FormLabel,
-    FormControl,
-} from 'react-bootstrap';
+import { FaTrashAlt, FaEye, FaEdit } from 'react-icons/fa';
+import { Container, Row, Col, Form, Button, FormLabel, FormControl, Spinner, } from 'react-bootstrap';
 import usePagePermission from '@/hooks/usePagePermission';
 import Table from '@/app/component/DataTable';
 import BreadcrumbComp from '@/app/component/Breadcrumb';
 import { copyContent, printContent } from '@/app/utils';
 import {
-    getClasses, getSections,
+    getClasses,
+    getSections,
     getAllHomeWork,
     addNewHomeWork,
     deleteHomeWorkById,
     getSubjectByClassId,
+    updateHomeworkById,
 } from '@/Services';
+import useSessionId from '@/hooks/useSessionId';
 
 const HomeworkEntryPage = () => {
+    const selectedSessionId = useSessionId()
     const { hasSubmitAccess, hasEditAccess } = usePagePermission();
+
     const [classOptions, setClassOptions] = useState([]);
     const [sectionOptions, setSectionOptions] = useState([]);
     const [subjectOptions, setSubjectOptions] = useState([]);
@@ -35,6 +32,8 @@ const HomeworkEntryPage = () => {
     const [loading, setLoading] = useState(false);
     const [formErrors, setFormErrors] = useState({});
     const [isFormOpen, setIsFormOpen] = useState(false);
+    const [isEditMode, setIsEditMode] = useState(false);
+    const [editId, setEditId] = useState(null);
 
     const [formData, setFormData] = useState({
         date: '',
@@ -51,7 +50,7 @@ const HomeworkEntryPage = () => {
             setLoading(true);
             const response = await getAllHomeWork();
             setData(response?.data || []);
-        } catch (error) {
+        } catch {
             toast.error('Failed to fetch homework.');
         } finally {
             setLoading(false);
@@ -78,13 +77,12 @@ const HomeworkEntryPage = () => {
 
     const fetchSubjects = async (classId) => {
         try {
-            const res = await getSubjectByClassId(classId); // Pass classId to service
+            const res = await getSubjectByClassId(classId);
             setSubjectOptions(res?.data || []);
         } catch {
             toast.error('Failed to load subjects');
         }
     };
-
 
     const handleChange = (e) => {
         const { name, value, files } = e.target;
@@ -108,14 +106,27 @@ const HomeworkEntryPage = () => {
         setFormErrors({ ...formErrors, [name]: '' });
     };
 
-
-    const handleAdd = async () => {
-        const requiredFields = ['date', 'subjectId', 'classId', 'sectionId', 'file', 'details', 'lastSubmissionDate'];
+    const validateForm = () => {
+        const requiredFields = ['date', 'subjectId', 'classId', 'sectionId', 'details', 'lastSubmissionDate'];
         const errors = {};
+
         requiredFields.forEach((field) => {
             if (!formData[field]) errors[field] = 'This field is required';
         });
 
+        if (!isEditMode && !formData.file) {
+            errors.file = 'This field is required';
+        }
+
+        if (formData.file && formData.file.type !== 'application/pdf') {
+            errors.file = 'Only PDF files are allowed';
+        }
+
+        return errors;
+    };
+
+    const handleSubmit = async () => {
+        const errors = validateForm();
         if (Object.keys(errors).length > 0) {
             setFormErrors(errors);
             return;
@@ -123,16 +134,21 @@ const HomeworkEntryPage = () => {
 
         const payload = new FormData();
         Object.entries(formData).forEach(([key, value]) => {
-            payload.append(key, value);
+            if (value !== null) payload.append(key, value);
         });
 
         try {
-            const res = await addNewHomeWork(payload);
-            toast.success(res?.message || 'Homework uploaded');
+            if (isEditMode) {
+                const res = await updateHomeworkById(editId, payload);
+                toast.success(res?.message || 'Homework updated');
+            } else {
+                const res = await addNewHomeWork(payload);
+                toast.success(res?.message || 'Homework uploaded');
+            }
             fetchData();
             resetForm();
         } catch (err) {
-            toast.error(err?.response?.data?.message || 'Upload failed');
+            toast.error(err?.response?.data?.message || 'Operation failed');
         }
     };
 
@@ -148,6 +164,27 @@ const HomeworkEntryPage = () => {
         });
         setFormErrors({});
         setIsFormOpen(false);
+        setIsEditMode(false);
+        setEditId(null);
+    };
+
+    const handleEdit = (item) => {
+        setIsFormOpen(true);
+        setIsEditMode(true);
+        setEditId(item._id);
+
+        fetchSections(item.classId._id);
+        fetchSubjects(item.classId._id);
+
+        setFormData({
+            date: item.date,
+            classId: item.classId._id,
+            sectionId: item.sectionId._id,
+            subjectId: item.subjectId._id,
+            file: null,
+            details: item.details,
+            lastSubmissionDate: item.lastSubmissionDate,
+        });
     };
 
     const handleDelete = async (id) => {
@@ -166,9 +203,9 @@ const HomeworkEntryPage = () => {
         const rows = data.map((row, index) => [
             index + 1,
             row.date,
-            row.className,
-            row.sectionName,
-            row.subjectName,
+            row.classId?.class_name,
+            row.sectionId?.section_name,
+            row.subjectId?.subject_details?.subject_name || 'N/A',
             row.lastSubmissionDate,
         ]);
         printContent(headers, rows);
@@ -178,7 +215,7 @@ const HomeworkEntryPage = () => {
         const headers = ['#', 'Date', 'Class', 'Section', 'Subject', 'Last Submission'];
         const rows = data.map(
             (row, i) =>
-                `${i + 1}\t${row.date}\t${row.className}\t${row.sectionName}\t${row.subjectName}\t${row.lastSubmissionDate}`
+                `${i + 1}\t${row.date}\t${row.classId?.class_name}\t${row.sectionId?.section_name}\t${row.subjectId?.subject_details?.subject_name || 'N/A'}\t${row.lastSubmissionDate}`
         );
         copyContent(headers, rows);
     };
@@ -188,14 +225,31 @@ const HomeworkEntryPage = () => {
         { name: 'Date', selector: (row) => row.date },
         { name: 'Class', selector: (row) => row?.classId?.class_name },
         { name: 'Section', selector: (row) => row?.sectionId?.section_name },
-        { name: 'Subject', selector: (row) => row.subjectId.subject_details.subject_name || "N/A" },
+        { name: 'Subject', selector: (row) => row.subjectId?.subject_details?.subject_name || 'N/A' },
         { name: 'Last Submission', selector: (row) => row.lastSubmissionDate },
+        {
+            name: 'View',
+            cell: (row) =>
+                row?.filePath ? (
+                    <a href={row.filePath} target="_blank" rel="noopener noreferrer" className="btn btn-sm btn-outline-primary" title="View PDF">
+                        <FaEye />
+                    </a>
+                ) : (
+                    <span className="text-muted">N/A</span>
+                ),
+            width: '80px'
+        },
         hasEditAccess && {
             name: 'Actions',
             cell: (row) => (
-                <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
-                    <FaTrashAlt />
-                </button>
+                <>
+                    <Button variant='success' size='sm' className="me-2" onClick={() => handleEdit(row)} title="Edit">
+                        <FaEdit />
+                    </Button>
+                    <Button variant='danger' size='sm' onClick={() => handleDelete(row._id)} title="Delete">
+                        <FaTrashAlt />
+                    </Button>
+                </>
             ),
         },
     ].filter(Boolean);
@@ -208,7 +262,7 @@ const HomeworkEntryPage = () => {
     useEffect(() => {
         fetchData();
         fetchClassOptions();
-    }, []);
+    }, [selectedSessionId]);
 
     return (
         <>
@@ -220,7 +274,6 @@ const HomeworkEntryPage = () => {
                         </Col>
                     </Row>
                 </Container>
-
             </div>
 
             <section>
@@ -234,11 +287,10 @@ const HomeworkEntryPage = () => {
                     {isFormOpen && (
                         <div className="cover-sheet">
                             <div className="studentHeading">
-                                <h2>Add Homework</h2>
-                                <button className="closeForm" onClick={resetForm}>
-                                    X
-                                </button>
+                                <h2>{isEditMode ? 'Edit Homework' : 'Add Homework'}</h2>
+                                <button className="closeForm" onClick={resetForm}>X</button>
                             </div>
+
                             <Form className="formSheet">
                                 <Row className="mb-3">
                                     <Col lg={4}>
@@ -267,13 +319,14 @@ const HomeworkEntryPage = () => {
                                         <div className="text-danger">{formErrors.sectionId}</div>
                                     </Col>
                                 </Row>
+
                                 <Row className="mb-3">
                                     <Col lg={6}>
                                         <FormLabel>Subject <span className="text-danger">*</span></FormLabel>
                                         <Form.Select name="subjectId" value={formData.subjectId} onChange={handleChange} isInvalid={!!formErrors.subjectId}>
                                             <option value="">Select Subject</option>
                                             {subjectOptions.map((sub) => (
-                                                <option key={sub._id} value={sub._id}>{sub?.subject_details?.subject_name || "N/A"}</option>
+                                                <option key={sub._id} value={sub._id}>{sub?.subject_details?.subject_name || 'N/A'}</option>
                                             ))}
                                         </Form.Select>
                                         <div className="text-danger">{formErrors.subjectId}</div>
@@ -287,8 +340,8 @@ const HomeworkEntryPage = () => {
 
                                 <Row className="mb-3">
                                     <Col lg={6}>
-                                        <FormLabel>Upload File (PDF/Image) <span className="text-danger">*</span></FormLabel>
-                                        <FormControl type="file" name="file" accept="image/*,application/pdf" onChange={handleChange} isInvalid={!!formErrors.file} />
+                                        <FormLabel>Upload File (PDF) {isEditMode ? '' : <span className="text-danger">*</span>}</FormLabel>
+                                        <FormControl type="file" name="file" accept="application/pdf" onChange={handleChange} isInvalid={!!formErrors.file} />
                                         <div className="text-danger">{formErrors.file}</div>
                                     </Col>
                                     <Col lg={6}>
@@ -298,14 +351,22 @@ const HomeworkEntryPage = () => {
                                     </Col>
                                 </Row>
 
-                                <Button className="btn btn-primary" onClick={handleAdd}>Submit Homework</Button>
+                                <Button className="btn btn-primary" onClick={handleSubmit}>
+                                    {isEditMode ? 'Update Homework' : 'Submit Homework'}
+                                </Button>
                             </Form>
                         </div>
                     )}
 
                     <div className="tableSheet mt-4">
                         <h2>Homework Records</h2>
-                        <Table columns={columns} data={data} handlePrint={handlePrint} handleCopy={handleCopy} />
+                        {loading ? (
+                            <div className="text-center py-5">
+                                <Spinner animation="border" variant="primary" />
+                            </div>
+                        ) : (
+                            <Table columns={columns} data={data} handlePrint={handlePrint} handleCopy={handleCopy} />
+                        )}
                     </div>
                 </Container>
             </section>

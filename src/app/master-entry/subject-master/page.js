@@ -204,6 +204,7 @@ const SubjectMaster = () => {
     {
       name: "Class Name",
       selector: (row) => row.class_name?.class_name || "N/A",
+      sortable:true
     },
     {
       name: "Section Name",

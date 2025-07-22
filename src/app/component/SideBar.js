@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { Accordion } from "react-bootstrap";
 import {
-    FaHome, FaBug, FaBell, FaBriefcaseMedical, FaAngleDoubleRight, FaFile,
+    FaHome, FaBug, FaBell, FaBriefcaseMedical, FaAngleDoubleRight, FaFile,FaTable,
     FaEnvelope, FaUsersCog, FaBook, FaCalendarPlus, FaPhotoVideo, FaNewspaper,
     FaUserGraduate, FaFileAlt, FaBus, FaRupeeSign, FaBusinessTime, FaBoxOpen, FaYoutube
 } from "react-icons/fa";
@@ -360,11 +360,16 @@ export default function Sidebar({ isOpen }) {
         { title: "Attendence Report", href: "/studentAttendence/AttendenceReport", icon: <FaAngleDoubleRight /> },
         { title: "Monthly Report", href: "/studentAttendence/MonthlyReport", icon: <FaAngleDoubleRight /> },
     ];
-    const balbankitems = [
+    const balbankItems = [
         { title: "All Modules", href: "/balbank/all-module", icon: <FaAngleDoubleRight /> },
         { title: "Deposit Amount", href: "/balbank/deposite-amount", icon: <FaAngleDoubleRight /> },
         { title: "Daily Transaction Entry", href: "/balbank/daily-transaction-entry", icon: <FaAngleDoubleRight /> },
         { title: "Report", href: "/balbank/report", icon: <FaAngleDoubleRight /> },
+    ];
+    const timetableItems = [
+        { title: "All Modules", href: "/timetable/all-module", icon: <FaAngleDoubleRight /> },
+        { title: "Regular Time Table", href: "/timetable/regular-timetable", icon: <FaAngleDoubleRight /> },
+        { title: "Adjust Time Table", href: "/timetable/adjust-timetable", icon: <FaAngleDoubleRight /> },
     ];
     const youtubeVideoItems = [
         { title: "All Modules", href: "/youtubevideo/all-module", icon: <FaAngleDoubleRight /> },
@@ -908,6 +913,30 @@ export default function Sidebar({ isOpen }) {
                                 </Accordion.Header>
                             </Accordion.Item>
                         )}
+                        {hasAccess('timetable') && (
+                            <Accordion.Item eventKey="timetable">
+                                <Accordion.Header>
+                                    <span style={{ display: "flex", alignItems: "center" }}>
+                                        <FaTable style={{ marginRight: isOpen || activeKey ? "10px" : "0" }} />
+                                        {(isOpen || activeKey) && "Time Table"}
+                                    </span>
+                                </Accordion.Header>
+                                <Accordion.Body>
+                                    <ul style={{ listStyle: "none", paddingLeft: isOpen || activeKey ? "20px" : "0" }}>
+                                        {timetableItems.map((item, index) => (
+                                            <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
+                                                {item.icon}
+                                                <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>
+                                                    <Link href={item.href}>
+                                                        {item.title}
+                                                    </Link>
+                                                </span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </Accordion.Body>
+                            </Accordion.Item>
+                        )}
                         {hasAccess('balbank') && (
                             <Accordion.Item eventKey="balbank">
                                 <Accordion.Header>
@@ -918,7 +947,7 @@ export default function Sidebar({ isOpen }) {
                                 </Accordion.Header>
                                 <Accordion.Body>
                                     <ul style={{ listStyle: "none", paddingLeft: isOpen || activeKey ? "20px" : "0" }}>
-                                        {balbankitems.map((item, index) => (
+                                        {balbankItems.map((item, index) => (
                                             <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
                                                 {item.icon}
                                                 <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>
