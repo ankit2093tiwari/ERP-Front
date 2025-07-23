@@ -34,8 +34,8 @@ const ExistingUser = () => {
   const allModules = [
     "masterentry", "students", "transport", "stock", "library", "fees", "hrd", "frontoffice", "studentattendance",
     "exam", "notice", "accounts", "advertising", "thought", "medical", "gallery",
-    "circular", "servicecall", "syllabus", "timetable", "mess", "homework", "copycorrection",
-    "visitor", "balbank", "youtubevideo", "events", "hostel", "sendsms", "chartfilling",
+    "circular", "servicecall", "syllabus", "timetable", "mess", "homework", "copycorrection", 
+    "balbank", "youtubevideo", "events", "hostel", "sendsms", "chartfilling", "visitordetails",
     "dailydairy", "complaintdetails", "appoinmentdetails", "importantsms", "usermanagement",
   ];
   const allActions = ["view", "edit", "submit"];
@@ -202,20 +202,21 @@ const ExistingUser = () => {
       cell: (row) => (
         <div className="d-flex gap-2">
           {editingId === row._id ? (
-            <button className="editButton" onClick={handleUpdate}>
+            <Button size='sm' variant="success" className="me-1" onClick={handleUpdate}>
               <FaSave />
-            </button>
+            </Button>
           ) : (
-            <button className="editButton" onClick={() => handleEdit(row)}>
+            <Button size='sm' variant="success" className="me-1" onClick={() => handleEdit(row)}>
               <FaEdit />
-            </button>
+            </Button>
           )}
-          <button
-            className="editButton btn-danger"
+          <Button
+          size="sm"
+          variant="danger"
             onClick={() => handleDelete(row._id)}
           >
             <FaTrashAlt />
-          </button>
+          </Button>
         </div>
       ),
     },

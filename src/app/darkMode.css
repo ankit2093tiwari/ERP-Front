@@ -11,14 +11,17 @@ body.dark-mode main {
 body.dark-mode .sidebar,
 body.dark-mode .sidebar ul,
 body.dark-mode .sidebar ul li,
-body.dark-mode .sidebar ul li svg,
 body.dark-mode .accordion-item>.accordion-header .accordion-button svg,
 body.dark-mode .accordion-button,
 body.dark-mode .studentCardDetails .card,
 body.dark-mode .sidebar ul::-webkit-scrollbar-track,
 body.dark-mode .SubCard,
 body.dark-mode .form-control,
-body.dark-mode .form-select {
+body.dark-mode .searchBar input,
+body.dark-mode .form-select,
+body.dark-mode .breadcrumbSheet,
+body.dark-mode .cover-sheet
+{
     background: #383838;
 }
 
@@ -39,46 +42,66 @@ body.dark-mode .studentCardCount p span,
 body.dark-mode .studentCardTitle1 h4,
 body.dark-mode .form-select,
 body.dark-mode .form-control,
+body.dark-mode .searchBar input,
 body.dark-mode h1, body.dark-mode h2, body.dark-mode h3, body.dark-mode h4, body.dark-mode h5, body.dark-mode h6,
 body.dark-mode .breadcrumb .breadcrumb-item a,
 body.dark-mode .breadcrumb-item.active,
-body.dark-mode .breadcrumb-item + .breadcrumb-item:before
+body.dark-mode .breadcrumb-item + .breadcrumb-item:before,
+body.dark-mode .accordion-item > .accordion-header .accordion-button,
+body.dark-mode .accordion-item > .accordion-header .accordion-button svg,
+body.dark-mode .accordion-item>.accordion-header .accordion-button span a,
+body.dark-mode .sidebar ul li svg
 {
     color: #fff;
     color: var(--bs-body-bg);
 }
 
-body.dark-mode .studentCardDetails .card {
+body.dark-mode .studentCardDetails .card 
+{
     box-shadow: none;
 }
 
 body.dark-mode .studentCardTitle,
 body.dark-mode .sidebar ul::-webkit-scrollbar-thumb,
-body.dark-mode .iconBack {
+body.dark-mode .iconBack,
+body.dark-mode .tableSheet,
+body.dark-mode main:before
+{
     background: #262525;
 }
 
-/* body.dark-mode .accordion-item>.accordion-header .accordion-button::after
+body.dark-mode .accordion-item>.accordion-header .accordion-button::after
  {
     filter: invert(100%);
-} */
+}
+body.dark-mode .accordion-item > .accordion-header .accordion-button:not(.collapsed):after
+{
+    filter:none;
+}
+
+
 
 body.dark-mode .sidebar li,
 body.dark-mode .sidebarAccordion .accordion-item,
 body.dark-mode .form-control,
+body.dark-mode .searchBar input,
 body.dark-mode .form-select,
 body.dark-mode .nav-tabs .nav-link:hover
  {
     border-color: #000;
 }
-
-body.dark-mode .form-control::placeholder,
-body.dark-mode .form-control:-ms-input-placeholder,
-body.dark-mode .form-control::-ms-input-placeholder
+body.dark-mode .cover-sheet
 {
-    color: var(--bs-body-bg);
+    border-color: #383838;
 }
-body.dark-mode .nav-tabs .nav-link.active
+body.dark-mode .form-control::placeholder,
+body.dark-mode .searchBar input::placeholder
+{
+    /* color: var(--bs-body-bg); */
+    color: #999 !important;
+}
+body.dark-mode .nav-tabs .nav-link.active,
+body.dark-mode .sidebarAccordion .accordion-item .accordion-header .accordion-button:not(.collapsed)
 {
     color:#000;
 }
@@ -86,4 +109,49 @@ body.dark-mode .tableSheet h2:before
 {
     background-color: #fff;
 }
+body.dark-mode .sidebar ul li svg
+{
+    background-color: transparent;
+}
+body.dark-mode #submit, body.dark-mode .btn-primary,
+body.dark-mode .printButton
+{
+    background: #fff;
+    color:#000;
+}
 
+body.dark-mode .editButton
+{
+    background-color: #000;
+    color: #fff;
+}
+
+
+body.dark-mode .card,
+body.dark-mode .card .card-header,
+body.dark-mode .card-gray, body.dark-mode .card-gray .card-body,
+body.dark-mode .space-y-5 a,
+body.dark-mode .table > :not(caption) > * > *
+{
+    background: #383838 !important;
+}
+body.dark-mode .widget:after
+{
+    opacity: 0.1;
+}
+body.dark-mode .widget h5.card-title,
+body.dark-mode .space-y-5 p,
+body.dark-mode .table > :not(caption) > * > *,
+body.dark-mode .notice-box-wrap .notice-list .notice-title a,
+body.dark-mode .notice-box-wrap .notice-list .entry-meta
+{
+    color: #fff;
+}
+body.dark-mode .apexcharts-datalabel, body.dark-mode .apexcharts-datalabel-label
+{
+    fill:#fff;
+}
+.apexcharts-datalabel, .apexcharts-datalabel-label
+{
+    fill:#000;
+}

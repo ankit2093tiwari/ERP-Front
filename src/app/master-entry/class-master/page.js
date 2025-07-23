@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { Form, Row, Col, Container, FormLabel, FormControl, Button, Breadcrumb } from "react-bootstrap";
-import axios from "axios";
 import Table from "@/app/component/DataTable";
 import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
 import { CgAddR } from "react-icons/cg";

@@ -1,7 +1,7 @@
 import axios from "axios";
 
-export const BASE_URL = 'https://erp-backend-fy3n.onrender.com'
-// export const BASE_URL = 'http://localhost:8000'
+// export const BASE_URL = 'https://erp-backend-fy3n.onrender.com'
+export const BASE_URL = 'http://localhost:8000'
 
 
 axios.interceptors.request.use((config) => {
@@ -1515,10 +1515,26 @@ export const getAllStudentEvaluations = async (classId, sectionId, evalDate) => 
     return response?.data;
 }
 export const addNewStudentEvaluation = async (payload) => {
-    const response = await axios.post(`${BASE_URL}/api/student-evaluation`,payload);
+    const response = await axios.post(`${BASE_URL}/api/student-evaluation`, payload);
     return response?.data;
 }
 export const deleteStudentEvaluationById = async (id) => {
     const response = await axios.delete(`${BASE_URL}/api/student-evaluation/${id}`);
+    return response?.data;
+}
+export const getAllVisitorEntries = async () => {
+    const response = await axios.get(`${BASE_URL}/api/visitor-entries`);
+    return response?.data;
+}
+export const addNewVisitorEntry = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/visitor-entry`, payload);
+    return response?.data;
+}
+export const deleteVisitorEntryById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/visitor-entry/${id}`);
+    return response?.data;
+}
+export const updateVisitorEntryById = async (id,payload) => {
+    const response = await axios.put(`${BASE_URL}/api/visitor-entry/${id}`,payload);
     return response?.data;
 }

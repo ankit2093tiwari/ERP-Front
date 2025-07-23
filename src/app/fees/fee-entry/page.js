@@ -533,12 +533,12 @@ const FeeEntry = () => {
             <Row className="mt-3">
               <Col>
                 <div className="text-center">
-                  <p>Loading students...</p>
+                  <p>Loading...</p>
                 </div>
               </Col>
             </Row>
           )}
-          {!selectedStudent && <Alert variant="info">Please select student to get Detailss.</Alert>}
+          {!selectedStudent && <Alert variant="info">Please select student to get Details.</Alert>}
 
         </Container>
       </section>

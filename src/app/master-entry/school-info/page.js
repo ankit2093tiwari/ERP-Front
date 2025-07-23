@@ -186,7 +186,7 @@ const SchoolInfo = () => {
         <Container>
           <Row>
             <Col>
-              <div className="cover-sheet p-3">
+              <div className="cover-sheet">
                 <div className="studentHeading d-flex justify-content-between align-items-center">
                   <h2>School Information</h2>
                   {!isEditMode && hasExistingSchool && hasEditAccess && (
@@ -202,7 +202,7 @@ const SchoolInfo = () => {
                   </Alert>
                 )}
 
-                <Form onSubmit={handleSubmit}>
+                <Form onSubmit={handleSubmit} className="formSheet">
                   <Row className="mb-3">
                     <Form.Group as={Col} md="6">
                       <FormLabel>School Name</FormLabel>

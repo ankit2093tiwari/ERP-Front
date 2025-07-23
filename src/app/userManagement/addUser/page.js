@@ -27,7 +27,7 @@ const allModules = [
   "masterentry", "students", "transport", "stock", "library", "fees", "hrd", "frontoffice", "studentattendance",
   "exam", "notice", "accounts", "advertising", "thought", "medical", "gallery",
   "circular", "servicecall", "syllabus", "timetable", "mess", "homework", "copycorrection",
-  "visitor", "balbank", "youtubevideo", "events", "hostel", "sendsms", "chartfilling",
+  "balbank", "youtubevideo", "events", "hostel", "sendsms", "chartfilling", "visitordetails",
   "dailydairy", "complaintdetails", "appoinmentdetails", "importantsms", "usermanagement",
 ];
 
@@ -73,21 +73,21 @@ const AddUser = () => {
     ? allActions
     : allActions.filter(act => allowedActions.includes(act));
 
-const convertAuthoritiesForAPI = () => {
-  let authorities = selectedModules.map(module => ({
-    module,
-    actions: Object.entries(selectedActions)
-      .filter(([action, selected]) => selected)
-      .map(([action]) => action)
-  })).filter(item => item.actions.length > 0);
+  const convertAuthoritiesForAPI = () => {
+    let authorities = selectedModules.map(module => ({
+      module,
+      actions: Object.entries(selectedActions)
+        .filter(([action, selected]) => selected)
+        .map(([action]) => action)
+    })).filter(item => item.actions.length > 0);
 
-  if (formData.usertype === "superadmin") {
-    authorities = authorities.filter(a => a.module !== "usermanagement");
-    authorities.push({ module: "usermanagement", actions: allActions });
-  }
+    if (formData.usertype === "superadmin") {
+      authorities = authorities.filter(a => a.module !== "usermanagement");
+      authorities.push({ module: "usermanagement", actions: allActions });
+    }
 
-  return authorities;
-};
+    return authorities;
+  };
 
 
 

@@ -3,11 +3,11 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { Accordion } from "react-bootstrap";
 import {
-    FaHome, FaBug, FaBell, FaBriefcaseMedical, FaAngleDoubleRight, FaFile,FaTable,
-    FaEnvelope, FaUsersCog, FaBook, FaCalendarPlus, FaPhotoVideo, FaNewspaper,
+    FaHome, FaBug, FaBell, FaBriefcaseMedical, FaAngleDoubleRight, FaFile, FaTable,
+    FaEnvelope, FaUsersCog, FaBook, FaCalendarPlus, FaPhotoVideo, FaNewspaper, FaChartArea,
     FaUserGraduate, FaFileAlt, FaBus, FaRupeeSign, FaBusinessTime, FaBoxOpen, FaYoutube
 } from "react-icons/fa";
-import { FaGauge } from "react-icons/fa6";
+import { FaGauge, FaArrowRightArrowLeft } from "react-icons/fa6";
 import { MdAccountBalance, MdLibraryBooks, MdOutlineLibraryBooks, MdOutlineHomeWork } from "react-icons/md";
 import { TiContacts } from "react-icons/ti";
 import { RiUserFollowLine, RiBankCard2Line } from "react-icons/ri";
@@ -335,6 +335,24 @@ export default function Sidebar({ isOpen }) {
         { title: "New Book Suggestion", href: "/library/newBookSuggestion", icon: <FaAngleDoubleRight /> },
         { title: "Issue Book", href: "/library/issueBook", icon: <FaAngleDoubleRight /> },
         { title: "Return Book", href: "/library/returnBook", icon: <FaAngleDoubleRight /> },
+        {
+            title: "Reports",
+            href: "/library/reports/all-reports",
+            icon: <FaFileAlt />,
+            isOpen: true,
+            children: [
+                {
+                    title: "All Reports",
+                    href: "/library/reports/all-reports",
+                    icon: <FaAngleDoubleRight />,
+                },
+                {
+                    title: "Book Bank",
+                    href: "/library/reports/book-bank",
+                    icon: <FaAngleDoubleRight />,
+                },
+            ],
+        },
     ];
     const dailydairyItems = [
         { title: "DailyDairy Details", href: "/dailyDairy", icon: <FaAngleDoubleRight /> },
@@ -370,6 +388,16 @@ export default function Sidebar({ isOpen }) {
         { title: "All Modules", href: "/timetable/all-module", icon: <FaAngleDoubleRight /> },
         { title: "Regular Time Table", href: "/timetable/regular-timetable", icon: <FaAngleDoubleRight /> },
         { title: "Adjust Time Table", href: "/timetable/adjust-timetable", icon: <FaAngleDoubleRight /> },
+    ];
+    const chartfillingItems = [
+        { title: "All Modules", href: "/chartfilling/all-module", icon: <FaAngleDoubleRight /> },
+        { title: "Student Evaluation", href: "/chartfilling/student-evaluation", icon: <FaAngleDoubleRight /> },
+        { title: "Evalution Report", href: "/chartfilling/report", icon: <FaAngleDoubleRight /> },
+    ];
+    const visitorDetailsItems = [
+        { title: "All Modules", href: "/visitordetails/all-module", icon: <FaAngleDoubleRight /> },
+        { title: "Visitor Entry", href: "/visitordetails/visitor-entry", icon: <FaAngleDoubleRight /> },
+        { title: "Generate Pass", href: "/visitordetails/generate-pass", icon: <FaAngleDoubleRight /> },
     ];
     const youtubeVideoItems = [
         { title: "All Modules", href: "/youtubevideo/all-module", icon: <FaAngleDoubleRight /> },
@@ -813,23 +841,47 @@ export default function Sidebar({ isOpen }) {
                             </Accordion.Item>
                         )}
                         {hasAccess('library') && (
-                            <Accordion.Item eventKey="library">
+                           <Accordion.Item eventKey="library">
                                 <Accordion.Header>
                                     <span style={{ display: "flex", alignItems: "center" }}>
-                                        <MdLibraryBooks style={{ marginRight: isOpen || activeKey ? "10px" : "0" }} />
-                                        {(isOpen || activeKey) && "Library"}
+                                        <FaBoxOpen style={{ marginRight: (isOpen || sidebarHover) ? "10px" : "0" }} />
+                                        {(isOpen || sidebarHover) && "Library"}
                                     </span>
                                 </Accordion.Header>
                                 <Accordion.Body>
-                                    <ul style={{ listStyle: "none", paddingLeft: isOpen || activeKey ? "20px" : "0" }}>
+                                    <ul style={{ listStyle: "none", paddingLeft: (isOpen || sidebarHover) ? "20px" : "0" }}>
                                         {libraryItems.map((item, index) => (
-                                            <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
-                                                {item.icon}
-                                                <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>
-                                                    <Link href={item.href}>
-                                                        {item.title}
-                                                    </Link>
-                                                </span>
+                                            <li key={index} style={{ padding: "5px 0" }}>
+                                                <div style={{ display: "flex", alignItems: "center" }}>
+                                                    {item.icon}
+                                                    <span
+                                                        style={{
+                                                            marginLeft: "10px",
+                                                            display: (isOpen || sidebarHover) ? "inline" : "none",
+                                                        }}
+                                                    >
+                                                        <Link href={item.href}>{item.title}</Link>
+                                                    </span>
+                                                </div>
+                                                {item.children && activeKey === "library" && (
+                                                    <ul style={{ listStyle: "none", paddingLeft: "20px" }}>
+                                                        {item.children.map((child, childIndex) => (
+                                                            <li
+                                                                key={childIndex}
+                                                                style={{
+                                                                    padding: "5px 0",
+                                                                    display: "flex",
+                                                                    alignItems: "center",
+                                                                }}
+                                                            >
+                                                                {child.icon}
+                                                                <span style={{ marginLeft: "10px" }}>
+                                                                    <Link href={child.href}>{child.title}</Link>
+                                                                </span>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                )}
                                             </li>
                                         ))}
                                     </ul>
@@ -937,6 +989,30 @@ export default function Sidebar({ isOpen }) {
                                 </Accordion.Body>
                             </Accordion.Item>
                         )}
+                        {hasAccess('visitordetails') && (
+                            <Accordion.Item eventKey="visitordetails">
+                                <Accordion.Header>
+                                    <span style={{ display: "flex", alignItems: "center" }}>
+                                        <FaArrowRightArrowLeft style={{ marginRight: isOpen || activeKey ? "10px" : "0" }} />
+                                        {(isOpen || activeKey) && "Visitor Details"}
+                                    </span>
+                                </Accordion.Header>
+                                <Accordion.Body>
+                                    <ul style={{ listStyle: "none", paddingLeft: isOpen || activeKey ? "20px" : "0" }}>
+                                        {visitorDetailsItems.map((item, index) => (
+                                            <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
+                                                {item.icon}
+                                                <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>
+                                                    <Link href={item.href}>
+                                                        {item.title}
+                                                    </Link>
+                                                </span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </Accordion.Body>
+                            </Accordion.Item>
+                        )}
                         {hasAccess('balbank') && (
                             <Accordion.Item eventKey="balbank">
                                 <Accordion.Header>
@@ -996,6 +1072,30 @@ export default function Sidebar({ isOpen }) {
                                 <Accordion.Body>
                                     <ul style={{ listStyle: "none", paddingLeft: isOpen || activeKey ? "20px" : "0" }}>
                                         {studentAttendenceItems.map((item, index) => (
+                                            <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
+                                                {item.icon}
+                                                <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>
+                                                    <Link href={item.href}>
+                                                        {item.title}
+                                                    </Link>
+                                                </span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </Accordion.Body>
+                            </Accordion.Item>
+                        )}
+                        {hasAccess('chartfilling') && (
+                            <Accordion.Item eventKey="chartfilling">
+                                <Accordion.Header>
+                                    <span style={{ display: "flex", alignItems: "center" }}>
+                                        <FaChartArea style={{ marginRight: isOpen || activeKey ? "10px" : "0" }} />
+                                        {(isOpen || activeKey) && "Chart Filling"}
+                                    </span>
+                                </Accordion.Header>
+                                <Accordion.Body>
+                                    <ul style={{ listStyle: "none", paddingLeft: isOpen || activeKey ? "20px" : "0" }}>
+                                        {chartfillingItems.map((item, index) => (
                                             <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
                                                 {item.icon}
                                                 <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>
