@@ -1,7 +1,7 @@
 
 import { createSlice } from "@reduxjs/toolkit";
 
-const initialState = { selectedSessionId: typeof window !== "undefined" ? localStorage.getItem("selectedSessionId") || "" : "", };
+const initialState = { selectedSessionId: "" };
 
 const sessionSlice = createSlice({
     name: "session",
@@ -9,15 +9,9 @@ const sessionSlice = createSlice({
     reducers: {
         setSessionId: (state, action) => {
             state.selectedSessionId = action.payload;
-            if (typeof window !== "undefined") {
-                localStorage.setItem("selectedSessionId", action.payload);
-            }
         },
         clearSessionId: (state) => {
             state.selectedSessionId = "";
-            if (typeof window !== "undefined") {
-                localStorage.removeItem("selectedSessionId");
-            }
         },
     },
 });

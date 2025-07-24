@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { Accordion } from "react-bootstrap";
 import {
-    FaHome, FaBug, FaBell, FaBriefcaseMedical, FaAngleDoubleRight, FaFile, FaTable,
+    FaHome, FaBug, FaBell, FaBriefcaseMedical, FaAngleDoubleRight, FaFile, FaTable, FaSms,
     FaEnvelope, FaUsersCog, FaBook, FaCalendarPlus, FaPhotoVideo, FaNewspaper, FaChartArea,
     FaUserGraduate, FaFileAlt, FaBus, FaRupeeSign, FaBusinessTime, FaBoxOpen, FaYoutube
 } from "react-icons/fa";
@@ -13,17 +13,20 @@ import { TiContacts } from "react-icons/ti";
 import { RiUserFollowLine, RiBankCard2Line } from "react-icons/ri";
 import { Image } from "react-bootstrap";
 import { jwtDecode } from "jwt-decode";
+import { useSelector } from "react-redux";
 export default function Sidebar({ isOpen }) {
     const [activeKey, setActiveKey] = useState(null);
     const [sidebarHover, setSidebarHover] = useState(false);
     const [userName, setUserName] = useState("User Name");
+    const [userType, setUserType] = useState("Principal");
     const [profilePic, setProfilePic] = useState("");
     const [authorities, setAuthorities] = useState([]);
-
+    const token = useSelector((state) => state.auth.token)
     useEffect(() => {
-        const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
         if (token) {
             const decoded = jwtDecode(token);
+            const type = decoded.data?.usertype
+            setUserType(type);
             const userName = decoded.data?.username;
             setUserName(userName);
             setProfilePic(decoded.data?.profile_pic);
@@ -354,6 +357,11 @@ export default function Sidebar({ isOpen }) {
             ],
         },
     ];
+    const sendBulkSmsItems = [
+        { title: "All Modules", href: "/sendsms/all-module", icon: <FaAngleDoubleRight /> }, ,
+        { title: "Send SMS to Students", href: "/sendsms/student", icon: <FaAngleDoubleRight /> },
+        { title: "Send SMS to Staff", href: "/sendsms/staff", icon: <FaAngleDoubleRight /> },
+    ];
     const dailydairyItems = [
         { title: "DailyDairy Details", href: "/dailyDairy", icon: <FaAngleDoubleRight /> },
     ];
@@ -394,6 +402,11 @@ export default function Sidebar({ isOpen }) {
         { title: "Student Evaluation", href: "/chartfilling/student-evaluation", icon: <FaAngleDoubleRight /> },
         { title: "Evalution Report", href: "/chartfilling/report", icon: <FaAngleDoubleRight /> },
     ];
+    const copycorrectionItems = [
+        { title: "All Modules", href: "/copycorrection/all-module", icon: <FaAngleDoubleRight /> },
+        { title: "Copy Check", href: "/copycorrection/copy-check", icon: <FaAngleDoubleRight /> },
+        { title: "Copy Check report", href: "/copycorrection/copy-check-report", icon: <FaAngleDoubleRight /> },
+    ];
     const visitorDetailsItems = [
         { title: "All Modules", href: "/visitordetails/all-module", icon: <FaAngleDoubleRight /> },
         { title: "Visitor Entry", href: "/visitordetails/visitor-entry", icon: <FaAngleDoubleRight /> },
@@ -424,7 +437,7 @@ export default function Sidebar({ isOpen }) {
                     </div>
                     <div className="text-center">
                         <h6 className="profile-name text-nowrap text-truncate">{userName}</h6>
-                        <span className="badge bg-danger">Principal</span>
+                        <span className="badge bg-primary text-capitalize">{userType}</span>
                     </div>
                 </div>
                 <ul>
@@ -841,7 +854,7 @@ export default function Sidebar({ isOpen }) {
                             </Accordion.Item>
                         )}
                         {hasAccess('library') && (
-                           <Accordion.Item eventKey="library">
+                            <Accordion.Item eventKey="library">
                                 <Accordion.Header>
                                     <span style={{ display: "flex", alignItems: "center" }}>
                                         <FaBoxOpen style={{ marginRight: (isOpen || sidebarHover) ? "10px" : "0" }} />
@@ -882,6 +895,30 @@ export default function Sidebar({ isOpen }) {
                                                         ))}
                                                     </ul>
                                                 )}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </Accordion.Body>
+                            </Accordion.Item>
+                        )}
+                        {hasAccess("sendsms") && (
+                            <Accordion.Item eventKey="sendsms">
+                                <Accordion.Header>
+                                    <span style={{ display: "flex", alignItems: "center" }}>
+                                        <FaSms style={{ marginRight: isOpen || activeKey ? "10px" : "0" }} />
+                                        {(isOpen || activeKey) && "Send Bulk SMS"}
+                                    </span>
+                                </Accordion.Header>
+                                <Accordion.Body>
+                                    <ul style={{ listStyle: "none", paddingLeft: isOpen || activeKey ? "20px" : "0" }}>
+                                        {sendBulkSmsItems.map((item, index) => (
+                                            <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
+                                                {item.icon}
+                                                <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>
+                                                    <Link href={item.href}>
+                                                        {item.title}
+                                                    </Link>
+                                                </span>
                                             </li>
                                         ))}
                                     </ul>
@@ -1096,6 +1133,30 @@ export default function Sidebar({ isOpen }) {
                                 <Accordion.Body>
                                     <ul style={{ listStyle: "none", paddingLeft: isOpen || activeKey ? "20px" : "0" }}>
                                         {chartfillingItems.map((item, index) => (
+                                            <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
+                                                {item.icon}
+                                                <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>
+                                                    <Link href={item.href}>
+                                                        {item.title}
+                                                    </Link>
+                                                </span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </Accordion.Body>
+                            </Accordion.Item>
+                        )}
+                        {hasAccess('copycorrection') && (
+                            <Accordion.Item eventKey="copycorrection">
+                                <Accordion.Header>
+                                    <span style={{ display: "flex", alignItems: "center" }}>
+                                        <MdLibraryBooks style={{ marginRight: isOpen || activeKey ? "10px" : "0" }} />
+                                        {(isOpen || activeKey) && "Copy Correction"}
+                                    </span>
+                                </Accordion.Header>
+                                <Accordion.Body>
+                                    <ul style={{ listStyle: "none", paddingLeft: isOpen || activeKey ? "20px" : "0" }}>
+                                        {copycorrectionItems.map((item, index) => (
                                             <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
                                                 {item.icon}
                                                 <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>

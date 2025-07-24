@@ -29,7 +29,9 @@ export default function RootLayout({ children }) {
   const toggleSidebar = () => setSidebarOpen(!isSidebarOpen);
 
   useEffect(() => {
-    const token = localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
+    const token = typeof window !== "undefined"
+      ? localStorage.getItem("authToken") || sessionStorage.getItem("authToken")
+      : null;
 
     if (token) {
       axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
@@ -44,7 +46,6 @@ export default function RootLayout({ children }) {
     setIsLoading(false);
   }, [router]);
 
-
   const handleLogin = (token, rememberMe) => {
     if (rememberMe) {
       localStorage.setItem("authToken", token);
@@ -57,13 +58,10 @@ export default function RootLayout({ children }) {
     router.replace("/");
   };
 
-  const removeAuthLocalStorage = () => {
-    localStorage.removeItem("authToken");
-    sessionStorage.removeItem("authToken");
-    // localStorage.removeItem("selectedSessionId"); 
-  }
   const handleLogout = () => {
-    removeAuthLocalStorage()
+    if(!confirm("Are you sure to want to logout?")) return
+    localStorage.clear()
+    sessionStorage.removeItem("authToken");
     setIsAuthenticated(false);
     router.replace("/login");
   };
@@ -111,7 +109,6 @@ export default function RootLayout({ children }) {
             )}
           </PersistGate>
         </Provider>
-
       </body>
     </html>
   );

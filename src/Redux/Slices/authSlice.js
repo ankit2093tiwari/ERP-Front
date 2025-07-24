@@ -1,4 +1,3 @@
-// authSlice.js
 import { createSlice } from "@reduxjs/toolkit";
 import { jwtDecode } from "jwt-decode";
 
@@ -27,11 +26,6 @@ const authSlice = createSlice({
         state.user = decoded.data;
         state.authorities = authMap;
 
-        // Save token in browser storage
-        if (typeof window !== "undefined") {
-          window.localStorage.setItem("authToken", action.payload);
-        }
-
       } catch (error) {
         console.error("JWT decode failed:", error);
       }
@@ -41,10 +35,6 @@ const authSlice = createSlice({
       state.token = null;
       state.user = null;
       state.authorities = {};
-
-      if (typeof window !== "undefined") {
-        window.localStorage.removeItem("authToken");
-      }
     },
   },
 });

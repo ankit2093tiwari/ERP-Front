@@ -1,12 +1,14 @@
 import axios from "axios";
+import { store } from "@/Redux/store";
 
 export const BASE_URL = 'https://erp-backend-fy3n.onrender.com'
 // export const BASE_URL = 'http://localhost:8000'
 
 
 axios.interceptors.request.use((config) => {
-    const token = localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
-    const selectedSessionId = localStorage.getItem("selectedSessionId");
+    const state = store.getState();
+    const token = state.auth.token;
+    const selectedSessionId = state.session.selectedSessionId;
 
     if (token) {
         config.headers["Authorization"] = `Bearer ${token}`;
@@ -18,6 +20,7 @@ axios.interceptors.request.use((config) => {
 
     return config;
 }, (error) => Promise.reject(error));
+
 
 const removeAuthLocalStorage = () => {
     localStorage.removeItem("authToken");
@@ -1534,7 +1537,15 @@ export const deleteVisitorEntryById = async (id) => {
     const response = await axios.delete(`${BASE_URL}/api/visitor-entry/${id}`);
     return response?.data;
 }
-export const updateVisitorEntryById = async (id,payload) => {
-    const response = await axios.put(`${BASE_URL}/api/visitor-entry/${id}`,payload);
+export const updateVisitorEntryById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/visitor-entry/${id}`, payload);
+    return response?.data;
+}
+export const getAllCopyChecks = async () => {
+    const response = await axios.get(`${BASE_URL}/api/copy-check`);
+    return response?.data;
+}
+export const addNewCopyCheck = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/copy-check`, payload);
     return response?.data;
 }

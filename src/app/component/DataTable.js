@@ -80,15 +80,6 @@ const Table = ({ columns, data, handlePrint, handleCopy }) => {
           placeholder="Search..."
           onChange={handleFilter}
           value={searchText}
-          style={{
-            marginBottom: '10px',
-            padding: '8px',
-            width: '79%',
-            boxSizing: 'border-box',
-            borderRadius: '4px',
-            border: '1px solid #ddd',
-            marginRight: "5px"
-          }}
         />
         <button className="editButton" onClick={handleCopy}>
           Copy
