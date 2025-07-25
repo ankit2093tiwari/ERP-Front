@@ -44,7 +44,7 @@ const CreateType = () => {
     },
     {
       name: "Type Name",
-      selector:(row)=>row.type_name,
+      selector: (row) => row.type_name,
       cell: (row) =>
         editingId === row._id ? (
           <div>
@@ -68,7 +68,7 @@ const CreateType = () => {
     hasEditAccess && {
       name: "Actions",
       cell: (row) => (
-        <div className="d-flex gap-2">
+        <div className="d-flex gap-1">
           {editingId === row._id ? (
             <>
               <button className="editButton" onClick={() => handleUpdate(row._id)}>

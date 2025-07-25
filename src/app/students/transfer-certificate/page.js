@@ -6,14 +6,15 @@ import { Tab, Tabs, Container, Row, Col } from 'react-bootstrap';
 import "react-datepicker/dist/react-datepicker.css";
 import { Form, FormGroup, FormLabel, FormControl, Button } from 'react-bootstrap';
 import BreadcrumbComp from "@/app/component/Breadcrumb";
-import axios from 'axios';
 import Table from "@/app/component/DataTable";
 import { copyContent, printContent } from "@/app/utils";
-import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
-import { deleteTransferCertificateById, generateTransferCertificate, getAllTCRecords, getLastTCNumber, getStudentByRegistrationId, updateTransferCertificateById } from '@/Services';
+import { FaEdit, FaTrashAlt, FaSave, FaEye } from "react-icons/fa";
+import { deleteTransferCertificateById, generateTransferCertificate, getAllTCRecords, getLastTCNumber, getSchools, getStudentByRegistrationId, updateTransferCertificateById } from '@/Services';
 import { toast } from 'react-toastify';
 import useSessionId from '@/hooks/useSessionId';
 import usePagePermission from '@/hooks/usePagePermission';
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const TransferCertificate = () => {
   const selectedSessionId = useSessionId();
@@ -96,16 +97,22 @@ const TransferCertificate = () => {
       selector: row => row.class_section,
       sortable: true,
     },
-    hasEditAccess && {
+    {
       name: "Actions",
       cell: (row) => (
-        <>
-          <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
-            <FaTrashAlt />
-          </button>
-        </>
+        <div className="d-flex gap-2">
+          <Button size='sm' variant='success' className="me-1" onClick={() => generateSingleTCPDF(row)} title="View PDF">
+            <FaEye />
+          </Button>
+          {hasEditAccess && (
+            <Button size='sm' variant='danger' onClick={() => handleDelete(row._id)} title="Delete">
+              <FaTrashAlt />
+            </Button>
+          )}
+        </div>
       ),
-    },
+    }
+
   ];
   const fetchTcRecords = async () => {
     setLoading(true);
@@ -387,6 +394,105 @@ const TransferCertificate = () => {
       }
     }
   };
+
+  const generateSingleTCPDF = async (student) => {
+    const response = await getSchools();
+    const schoolInfo = response.data[0];
+
+    const doc = new jsPDF();
+
+    // 🔹 Load logo from URL and convert to base64
+    const loadImage = (url) =>
+      new Promise((resolve) => {
+        const img = new Image();
+        img.crossOrigin = "anonymous";
+        img.onload = () => {
+          const canvas = document.createElement("canvas");
+          canvas.width = img.width;
+          canvas.height = img.height;
+          canvas.getContext("2d").drawImage(img, 0, 0);
+          resolve(canvas.toDataURL("image/png"));
+        };
+        img.src = url;
+      });
+
+    const logoUrl = schoolInfo?.logo_image?.data;
+    const logoBase64 = logoUrl ? await loadImage(logoUrl) : null;
+
+    // 🔹 Add logo
+    if (logoBase64) {
+      doc.addImage(logoBase64, "PNG", 15, 10, 25, 25); // x, y, width, height
+    }
+
+    // 🔹 Add school info header
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text(schoolInfo.school_name || "", 105, 20, { align: "center" });
+
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text(
+      `${schoolInfo.address} | Phone: ${schoolInfo.phone_no} | Email: ${schoolInfo.email_name}`,
+      105,
+      26,
+      { align: "center" }
+    );
+    doc.text(`Website: ${schoolInfo.web_address}`, 105, 31, { align: "center" });
+
+    // 🔹 Certificate Title
+    doc.setFontSize(12);
+    doc.setFont("helvetica", "bold");
+    doc.text("Transfer Certificate", 105, 40, { align: "center" });
+
+    // 🔹 TC Data Table
+    autoTable(doc, {
+      startY: 45,
+      theme: 'grid',
+      styles: { fontSize: 10, cellPadding: 3 },
+      columnStyles: { 0: { fontStyle: 'bold', cellWidth: 60 } },
+      body: [
+        ['TC No.', student.tc_no],
+        ['Student Name', student.student_name],
+        ['Father Name', student.father_name],
+        ['Mother Name', student.mother_name],
+        ['Class & Section', student.class_section],
+        ['DOB', new Date(student.dob).toLocaleDateString()],
+        ['DOB (in words)', student.dob_inWords],
+        ['Nationality', student.nationality],
+        ['Subjects', student.subject_studies.filter(Boolean).join(', ')],
+        ['General Conduct', student.general_conduct],
+        ['Failed?', student.whether_failed],
+        ['NCC Cadet?', student.whether_ncc_cadet],
+        ['Fee Concession', student.fee_concession],
+        ['Total Working Days', student.total_working_days],
+        ['Present Working Days', student.present_working_days || 'N/A'],
+        ['Promotion to next class?', student.class_promotion === "true" ? 'Yes' : 'No'],
+        ['Reason for Leaving', student.reason_for_leaving_school],
+        ['Date of Issue', new Date(student.date_of_issue).toLocaleDateString()],
+        ['Date of Application', new Date(student.date_of_application).toLocaleDateString()],
+        ['Remarks', student.remarks || 'N/A'],
+        ['School Name', student.school_name],
+      ],
+    });
+    const finalY = doc.lastAutoTable.finalY + 10;
+
+    doc.setFontSize(10);
+    doc.text("__________________________", 20, finalY);
+    doc.text("__________________________", 140, finalY);
+
+    doc.text("Class Teacher / Clerk", 30, finalY + 6);
+    doc.text("Principal / Headmaster", 140, finalY + 6);
+
+    doc.text(`Date of Issue: ${new Date(student.date_of_issue).toLocaleDateString()}`, 105, finalY + 15, { align: "center" });
+
+    doc.setFontSize(9);
+    doc.text("[School Seal]", 105, finalY + 20, { align: "center" });
+    // 🔹 Open PDF in new tab
+    const blob = doc.output('blob');
+    const url = URL.createObjectURL(blob);
+    window.open(url, "_blank");
+  }
+
   return (
     <>
       <div className="breadcrumbSheet position-relative">

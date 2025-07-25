@@ -28,7 +28,7 @@ const allModules = [
   "exam", "notice", "accounts", "advertising", "thought", "medical", "gallery",
   "circular", "servicecall", "syllabus", "timetable", "mess", "homework", "copycorrection",
   "balbank", "youtubevideo", "events", "hostel", "sendsms", "chartfilling", "visitordetails",
-  "dailydairy", "complaintdetails", "appoinmentdetails", "importantsms", "usermanagement",
+  "dailydairy", "complaintdetails", "appoinmentdetails", "importantsms", "usermanagement","websitemanagement"
 ];
 
 const allActions = ["view", "edit", "submit"];

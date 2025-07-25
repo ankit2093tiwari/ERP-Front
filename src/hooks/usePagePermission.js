@@ -12,6 +12,9 @@ const routeToModuleMap = {
     userManagement: "usermanagement",
     exams: "exams",
     fees: "fees",
+    appointment:"appoinmentdetails",
+    "advertising-management":"advertising",
+    "website-management":"websitemanagement"
 };
 
 const usePagePermission = () => {

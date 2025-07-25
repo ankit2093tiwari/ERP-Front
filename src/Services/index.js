@@ -1549,3 +1549,71 @@ export const addNewCopyCheck = async (payload) => {
     const response = await axios.post(`${BASE_URL}/api/copy-check`, payload);
     return response?.data;
 }
+
+export const getAllAppointments = async () => {
+    const response = await axios.get(`${BASE_URL}/api/appointments`);
+    return response?.data;
+}
+export const addNewAppointment = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/appointment`, payload);
+    return response?.data;
+}
+export const deleteAppointmentById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/appointment/${id}`);
+    return response?.data;
+}
+
+export const getAllSliderImages = async () => {
+    const response = await axios.get(`${BASE_URL}/api/slider-images`);
+    return response?.data;
+}
+export const addNewSliderImage = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/slider-image`, payload);
+    return response?.data;
+}
+export const deleteSliderImageById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/slider-image/${id}`);
+    return response?.data;
+}
+export const updateSliderImageById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/slider-image/${id}`, payload);
+    return response?.data;
+}
+
+export const getAllMainMenus = async () => {
+    const response = await axios.get(`${BASE_URL}/api/main-menus`);
+    return response?.data;
+}
+export const addNewMainMenu = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/main-menu`, payload);
+    return response?.data;
+}
+export const deleteMainMenuById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/main-menu/${id}`);
+    return response?.data;
+}
+export const updateMainMenuById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/main-menu/${id}`, payload);
+    return response?.data;
+}
+
+export const getSubMenuById = async (id) => {
+    const response = await axios.get(`${BASE_URL}/api/sub-menu/${id}`);
+    return response?.data;
+}
+export const getAllSubMenus = async () => {
+    const response = await axios.get(`${BASE_URL}/api/sub-menus`);
+    return response?.data;
+}
+export const addNewSubMenu = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/sub-menu`, payload);
+    return response?.data;
+}
+export const deleteSubMenuById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/sub-menu/${id}`);
+    return response?.data;
+}
+export const updateSubMenuById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/sub-menu/${id}`, payload);
+    return response?.data;
+}

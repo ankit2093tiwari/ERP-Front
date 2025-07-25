@@ -54,8 +54,6 @@ const GatePassEntry = () => {
     if (!validate()) return;
 
     try {
-      console.log(formData);
-
       const response = await addNewGatePass(formData)
       toast.success("Gate Pass submitted successfully");
       // Reset form

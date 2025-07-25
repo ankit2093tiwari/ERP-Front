@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { Accordion } from "react-bootstrap";
 import {
-    FaHome, FaBug, FaBell, FaBriefcaseMedical, FaAngleDoubleRight, FaFile, FaTable, FaSms,
+    FaHome, FaBug, FaBell, FaBriefcaseMedical, FaAngleDoubleRight, FaGlobe, FaTable, FaSms,
     FaEnvelope, FaUsersCog, FaBook, FaCalendarPlus, FaPhotoVideo, FaNewspaper, FaChartArea,
     FaUserGraduate, FaFileAlt, FaBus, FaRupeeSign, FaBusinessTime, FaBoxOpen, FaYoutube
 } from "react-icons/fa";
@@ -422,6 +422,47 @@ export default function Sidebar({ isOpen }) {
         { title: "All Modules", href: "/userManagement/all-module", icon: <FaAngleDoubleRight /> },
         { title: "Add User", href: "/userManagement/addUser", icon: <FaAngleDoubleRight /> },
         { title: "Existing Users", href: "/userManagement/exisitingUser", icon: <FaAngleDoubleRight /> },
+    ];
+    const websitemanagementItems = [
+        { title: "All Modules", href: "/website-management/all-module", icon: <FaAngleDoubleRight /> },
+        { title: "Home Page Slider", href: "/website-management/home-page-slider", icon: <FaAngleDoubleRight /> },
+        { title: "Add 1st Menu", href: "/website-management/add-main-menu", icon: <FaAngleDoubleRight /> },
+        { title: "Add 2nd Sub Menu", href: "/website-management/add-sub-menu", icon: <FaAngleDoubleRight /> },
+        { title: "Add 3rd Sub Menu", href: "/website-management/add-last-sub-menu", icon: <FaAngleDoubleRight /> },
+        { title: "Add Pages", href: "/website-management/add-pages", icon: <FaAngleDoubleRight /> },
+        {
+            title: "Reports",
+            href: "/stock/reports/all-reports",
+            icon: <FaFileAlt />,
+            isOpen: true,
+            children: [
+                {
+                    title: "All Reports",
+                    href: "/stock/reports/all-reports",
+                    icon: <FaAngleDoubleRight />,
+                },
+                {
+                    title: "All Item Details",
+                    href: "/stock/reports/all-itemDetails",
+                    icon: <FaAngleDoubleRight />,
+                },
+                {
+                    title: "Vendor Details",
+                    href: "/stock/reports/vendorDatabase",
+                    icon: <FaAngleDoubleRight />,
+                },
+                {
+                    title: "Quotation Details",
+                    href: "/stock/reports/quotationDetails",
+                    icon: <FaAngleDoubleRight />,
+                },
+                {
+                    title: "Purchase Order Details",
+                    href: "/stock/reports/purchaseOrderDetails",
+                    icon: <FaAngleDoubleRight />,
+                },
+            ],
+        },
     ];
     return (
         <div>
@@ -947,23 +988,23 @@ export default function Sidebar({ isOpen }) {
                                 </Accordion.Header>
                             </Accordion.Item>
                         )}
-                        {/* {hasAccess("complaintdetails") && (
-                            <Accordion.Item className="nav-item" eventKey="complaints">
-                                <Accordion.Header>
-                                    <Link href="/complaints" className="nav-link">
-                                        <span>
-                                            <FaBug /> {(isOpen || activeKey) && "Complaint Details"}
-                                        </span>
-                                    </Link>
-                                </Accordion.Header>
-                            </Accordion.Item>
-                        )}
                         {hasAccess("appoinmentdetails") && (
                             <Accordion.Item className="nav-item" eventKey="appointment">
                                 <Accordion.Header>
                                     <Link href="/appointment" className="nav-link">
                                         <span>
                                             <FaCalendarPlus /> {(isOpen || activeKey) && "Appointment Details"}
+                                        </span>
+                                    </Link>
+                                </Accordion.Header>
+                            </Accordion.Item>
+                        )}
+                        {hasAccess("complaintdetails") && (
+                            <Accordion.Item className="nav-item" eventKey="complaints">
+                                <Accordion.Header>
+                                    <Link href="/complaints" className="nav-link">
+                                        <span>
+                                            <FaBug /> {(isOpen || activeKey) && "Complaint Details"}
                                         </span>
                                     </Link>
                                 </Accordion.Header>
@@ -979,7 +1020,7 @@ export default function Sidebar({ isOpen }) {
                                     </Link>
                                 </Accordion.Header>
                             </Accordion.Item>
-                        )} */}
+                        )}
                         {hasAccess("syllabus") && (
                             <Accordion.Item className="nav-item" eventKey="syllabus">
                                 <Accordion.Header>
@@ -1194,7 +1235,54 @@ export default function Sidebar({ isOpen }) {
                                 </Accordion.Body>
                             </Accordion.Item>
                         )}
-
+                        {hasAccess("websitemanagement") && (
+                            <Accordion.Item eventKey="websitemanagement">
+                                <Accordion.Header>
+                                    <span style={{ display: "flex", alignItems: "center" }}>
+                                        <FaGlobe style={{ marginRight: (isOpen || sidebarHover) ? "10px" : "0" }} />
+                                        {(isOpen || sidebarHover) && "Website Management"}
+                                    </span>
+                                </Accordion.Header>
+                                <Accordion.Body>
+                                    <ul style={{ listStyle: "none", paddingLeft: (isOpen || sidebarHover) ? "20px" : "0" }}>
+                                        {websitemanagementItems.map((item, index) => (
+                                            <li key={index} style={{ padding: "5px 0" }}>
+                                                <div style={{ display: "flex", alignItems: "center" }}>
+                                                    {item.icon}
+                                                    <span
+                                                        style={{
+                                                            marginLeft: "10px",
+                                                            display: (isOpen || sidebarHover) ? "inline" : "none",
+                                                        }}
+                                                    >
+                                                        <Link href={item.href}>{item.title}</Link>
+                                                    </span>
+                                                </div>
+                                                {item.children && activeKey === "websitemanagement" && (
+                                                    <ul style={{ listStyle: "none", paddingLeft: "20px" }}>
+                                                        {item.children.map((child, childIndex) => (
+                                                            <li
+                                                                key={childIndex}
+                                                                style={{
+                                                                    padding: "5px 0",
+                                                                    display: "flex",
+                                                                    alignItems: "center",
+                                                                }}
+                                                            >
+                                                                {child.icon}
+                                                                <span style={{ marginLeft: "10px" }}>
+                                                                    <Link href={child.href}>{child.title}</Link>
+                                                                </span>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                )}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </Accordion.Body>
+                            </Accordion.Item>
+                        )}
                     </Accordion>
                 </ul>
             </div>

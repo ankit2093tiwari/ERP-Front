@@ -7,10 +7,10 @@ import { BASE_URL, getClasses } from "@/Services";
 import { toast } from "react-toastify";
 import Table from "@/app/component/DataTable";
 import { copyContent, printContent } from "@/app/utils";
-
-
+import useSessionId from "@/hooks/useSessionId";
 
 const SchoolOverview = () => {
+  const selectedSessionId=useSessionId()
   const [selectedClasses, setSelectedClasses] = useState([]);
   const [tableData, setTableData] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -37,7 +37,7 @@ const SchoolOverview = () => {
       }
     };
     fetchClasses();
-  }, []);
+  }, [selectedSessionId]);
 
   const handleClassToggle = (classId) => {
     setSelectedClasses(prev =>
@@ -140,9 +140,8 @@ const SchoolOverview = () => {
     { name: "Boys", selector: row => row.totalBoys },
     { name: "Girls", selector: row => row.totalGirls },
     { name: "Section Total", selector: row => row.sectionTotal },
-    { name: "TC", selector: row => row.tc || 0 },
     { name: "Dropout", selector: row => row.dropoutStudents },
-    { name: "New", selector: row => row.newStudents },
+    // { name: "New", selector: row => row.newStudents },
   ];
 
   const handlePrint = () => {
@@ -211,20 +210,17 @@ const SchoolOverview = () => {
       <section>
         <Container>
           <div className="cover-sheet">
-            <h2 className="studentHeading">School Overview</h2>
+            <div className="studentHeading">
+              <h2>School Overview</h2>
+            </div>
 
-            <div style={{ marginBottom: "20px", padding: "20px" }}>
+            <div className="formSheet">
               <h4>Select Class</h4>
-              <div className="mb-2">
+              <Row className="mb-2">
                 <em>{selectedClasses.length === 0 ? "Nothing selected" : `${selectedClasses.length} selected`}</em>
-              </div>
+              </Row>
 
-              <div className="d-flex gap-2 mb-3">
-                <Button className="btn-add" onClick={handleSelectAll} disabled={isFetchingClasses}>Select All</Button>
-                <Button className="btn-add" onClick={handleDeselectAll} disabled={isFetchingClasses}>Deselect All</Button>
-              </div>
-
-              <div style={{ maxHeight: "300px", overflowY: "auto", border: "1px solid #ddd", padding: "10px" }}>
+              <Row>
                 {isFetchingClasses ? (
                   <div>Loading classes...</div>
                 ) : (
@@ -240,16 +236,22 @@ const SchoolOverview = () => {
                     </div>
                   ))
                 )}
-              </div>
+              </Row>
+              <Row>
+                <Col>
+                <Button onClick={handleSelectAll} disabled={isFetchingClasses}>Select All</Button>
+                <Button onClick={handleDeselectAll} disabled={isFetchingClasses}>Deselect All</Button>
+                <Button
+                  variant="success"
+                  onClick={handleSearch}
+                  disabled={isLoading || isFetchingClasses || selectedClasses.length === 0}
+                >
+                  {isLoading ? "Searching..." : "Search"}
+                </Button></Col>
+              </Row>
             </div>
 
-            <Button
-              className="ms-4"
-              onClick={handleSearch}
-              disabled={isLoading || isFetchingClasses || selectedClasses.length === 0}
-            >
-              {isLoading ? "Searching..." : "Search"}
-            </Button>
+
 
             {tableRows.length > 0 && (
               <div className="tableSheet">
