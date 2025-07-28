@@ -99,7 +99,7 @@ const ReturnBook = () => {
         hasSubmitAccess &&{
             name: "Actions",
             cell: (row) => (
-                <div className="d-flex gap-2">
+                <div className="d-flex gap-1">
                     <button className="editButton bg-success" onClick={() => handleReturnBook(row)}>
                         Return <FaUndo />
                     </button>

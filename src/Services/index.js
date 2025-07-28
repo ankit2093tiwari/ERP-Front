@@ -1,8 +1,8 @@
 import axios from "axios";
 import { store } from "@/Redux/store";
 
-export const BASE_URL = 'https://erp-backend-fy3n.onrender.com'
-// export const BASE_URL = 'http://localhost:8000'
+// export const BASE_URL = 'https://erp-backend-fy3n.onrender.com'
+export const BASE_URL = 'http://localhost:8000'
 
 
 axios.interceptors.request.use((config) => {
@@ -1615,5 +1615,58 @@ export const deleteSubMenuById = async (id) => {
 }
 export const updateSubMenuById = async (id, payload) => {
     const response = await axios.put(`${BASE_URL}/api/sub-menu/${id}`, payload);
+    return response?.data;
+}
+
+export const getSubMenusByMainMenuId = async (id) => {
+    const response = await axios.get(`${BASE_URL}/api/sub-menus/${id}`);
+    return response?.data;
+}
+export const getAllLastSubMenus = async (id) => {
+    const response = await axios.get(`${BASE_URL}/api/last-submenus`);
+    return response?.data;
+}
+export const addNewLastSubMenu = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/last-submenu`, payload);
+    return response?.data;
+}
+export const deleteLastSubMenuById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/last-submenu/${id}`);
+    return response?.data;
+}
+export const updateLastSubMenuById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/last-submenu/${id}`, payload);
+    return response?.data;
+}
+export const getAllPublicationImages = async (id) => {
+    const response = await axios.get(`${BASE_URL}/api/publication-images`);
+    return response?.data;
+}
+export const addNewPublicationImage = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/publication-image`, payload);
+    return response?.data;
+}
+export const deletePublicationImageById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/publication-image/${id}`);
+    return response?.data;
+}
+export const updatePublicationImageById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/publication-image/${id}`, payload);
+    return response?.data;
+}
+export const getAllTemplates = async () => {
+    const response = await axios.get(`${BASE_URL}/api/page-templates`);
+    return response?.data;
+}
+export const addNewPage = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/add-page`,payload);
+    return response?.data;
+}
+export const getPageById = async (pageId) => {
+    const response = await axios.get(`${BASE_URL}/api/pages/${pageId}`);
+    return response?.data;
+}
+export const getAllPages = async () => {
+    const response = await axios.get(`${BASE_URL}/api/pages`);
     return response?.data;
 }

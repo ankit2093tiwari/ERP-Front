@@ -211,7 +211,7 @@ const RouteMaster = () => {
     hasEditAccess &&{
       name: "Actions",
       cell: (row) => (
-        <div className="d-flex gap-2">
+        <div className="d-flex gap-1">
           {editRowId === row._id ? (
             <button className="editButton btn-success" onClick={() => handleUpdate(row._id)}>
               <FaSave />

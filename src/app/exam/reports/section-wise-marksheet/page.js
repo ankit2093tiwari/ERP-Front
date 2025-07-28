@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+
 import dynamic from "next/dynamic";
 import { Container, Row, Col, Form, FormLabel, Button } from "react-bootstrap";
 import { toast } from "react-toastify";
@@ -52,25 +53,26 @@ const SectionWiseMarksheet = () => {
             setSections([]);
             setExams([]);
         }
-    }, [selectedClass]);
+    }, [selectedClass, fetchSections, fetchExams]);
 
-    const fetchSections = async () => {
+    const fetchSections = useCallback(async () => {
         try {
             const res = await getSections(selectedClass);
             setSections(res.data || []);
         } catch {
             toast.error("Failed to fetch sections.");
         }
-    };
+    }, [selectedClass]);
 
-    const fetchExams = async () => {
+    const fetchExams = useCallback(async () => {
         try {
             const res = await getExamMasterByClassId(selectedClass);
             setExams(res.data || []);
         } catch {
             toast.error("Failed to fetch exams.");
         }
-    };
+    }, [selectedClass]);
+
 
     const loadStudents = async () => {
         if (!selectedClass || !selectedSection || !selectedExam) {

@@ -430,6 +430,9 @@ export default function Sidebar({ isOpen }) {
         { title: "Add 2nd Sub Menu", href: "/website-management/add-sub-menu", icon: <FaAngleDoubleRight /> },
         { title: "Add 3rd Sub Menu", href: "/website-management/add-last-sub-menu", icon: <FaAngleDoubleRight /> },
         { title: "Add Pages", href: "/website-management/add-pages", icon: <FaAngleDoubleRight /> },
+        { title: "Add Image Gallery", href: "/gallery/all-module", icon: <FaAngleDoubleRight /> },
+        { title: "Add Notice", href: "/notice/all-module", icon: <FaAngleDoubleRight /> },
+        { title: "Add Publication Images", href: "/website-management/publication-image", icon: <FaAngleDoubleRight /> },
         {
             title: "Reports",
             href: "/stock/reports/all-reports",
@@ -438,27 +441,7 @@ export default function Sidebar({ isOpen }) {
             children: [
                 {
                     title: "All Reports",
-                    href: "/stock/reports/all-reports",
-                    icon: <FaAngleDoubleRight />,
-                },
-                {
-                    title: "All Item Details",
-                    href: "/stock/reports/all-itemDetails",
-                    icon: <FaAngleDoubleRight />,
-                },
-                {
-                    title: "Vendor Details",
-                    href: "/stock/reports/vendorDatabase",
-                    icon: <FaAngleDoubleRight />,
-                },
-                {
-                    title: "Quotation Details",
-                    href: "/stock/reports/quotationDetails",
-                    icon: <FaAngleDoubleRight />,
-                },
-                {
-                    title: "Purchase Order Details",
-                    href: "/stock/reports/purchaseOrderDetails",
+                    href: "/website-management/reports/all-reports",
                     icon: <FaAngleDoubleRight />,
                 },
             ],

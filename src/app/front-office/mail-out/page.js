@@ -47,7 +47,7 @@ const MailOut = () => {
     hasEditAccess && {
       name: 'Actions',
       cell: row => (
-        <div className="d-flex gap-2">
+        <div className="d-flex gap-1">
           <Button className="me-1" size='sm' variant='success' onClick={() => handleEdit(row._id)}><FaEdit /></Button>
           <Button size='sm' variant='danger' onClick={() => handleDelete(row._id)}><FaTrashAlt /></Button>
         </div>

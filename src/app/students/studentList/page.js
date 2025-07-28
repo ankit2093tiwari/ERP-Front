@@ -83,7 +83,7 @@ const Studentlist = () => {
     hasEditAccess && {
       name: "Actions",
       cell: (row) => (
-        <div className="d-flex gap-2">
+        <div className="d-flex gap-1">
           <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
             <FaTrashAlt />
           </button>

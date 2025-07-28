@@ -166,7 +166,7 @@ const VideoRecords = () => {
         hasEditAccess && {
             name: "Actions",
             cell: (row) => (
-                <div className="d-flex gap-2">
+                <div className="d-flex gap-1">
                     <Button size="sm" variant="success" onClick={() => handleEdit(row)}>
                         <FaEdit />
                     </Button>

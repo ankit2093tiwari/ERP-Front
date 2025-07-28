@@ -80,7 +80,7 @@ const DesignationMasterPage = () => {
     hasEditAccess &&{
       name: "Actions",
       cell: (row) => (
-        <div className="d-flex gap-2">
+        <div className="d-flex gap-1">
           {editingId === row._id ? (
             <button
               className="editButton"

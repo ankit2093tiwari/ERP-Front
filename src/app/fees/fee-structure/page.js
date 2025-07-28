@@ -396,7 +396,7 @@ const FeeStatement = () => {
     hasEditAccess &&{
       name: "Actions",
       cell: (row) => (
-        <div className="d-flex gap-2">
+        <div className="d-flex gap-1">
           <button
             className="editButton btn-primary"
             onClick={() => handleEdit(row._id)}

@@ -100,7 +100,7 @@ const TransferCertificate = () => {
     {
       name: "Actions",
       cell: (row) => (
-        <div className="d-flex gap-2">
+        <div className="d-flex gap-1">
           <Button size='sm' variant='success' className="me-1" onClick={() => generateSingleTCPDF(row)} title="View PDF">
             <FaEye />
           </Button>

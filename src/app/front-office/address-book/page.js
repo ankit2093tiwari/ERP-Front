@@ -102,7 +102,7 @@ const AddressBook = () => {
     {
       name: 'Actions',
       cell: row => (
-        <div className="d-flex gap-2">
+        <div className="d-flex gap-1">
           <button className="editButton" onClick={() => handleEdit(row)}><FaEdit /></button>
           <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}><FaTrashAlt /></button>
         </div>

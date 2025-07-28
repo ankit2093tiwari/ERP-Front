@@ -123,7 +123,7 @@ const SchoolAccount = () => {
     hasEditAccess &&{
       name: "Actions",
       cell: (row) => (
-        <div className="d-flex gap-2">
+        <div className="d-flex gap-1">
           {editingId === row._id ? (
             <Button variant="success" size="sm" onClick={() => handleUpdate(row._id)}>
               <FaSave />
@@ -182,7 +182,6 @@ const SchoolAccount = () => {
               </Form>
             </div>
           )}
-
           <div className="tableSheet mt-4">
             <h2>School Account Records</h2>
             {loading && <p>Loading...</p>}

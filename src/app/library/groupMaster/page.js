@@ -50,7 +50,7 @@ const AddLibraryGroup = () => {
     hasEditAccess && {
       name: "Actions",
       cell: (row) => (
-        <div className="d-flex gap-2">
+        <div className="d-flex gap-1">
           {editId === row._id ? (
             <button className="editButton" onClick={() => handleSave(row._id)}>
               <FaSave />

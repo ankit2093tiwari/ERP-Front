@@ -171,7 +171,7 @@ const RackAndShelfManager = () => {
     hasEditAccess && {
       name: "Actions",
       cell: (row) => (
-        <div className="d-flex gap-2">
+        <div className="d-flex gap-1">
           <Button variant="info" size="sm" onClick={() => handleEditShelf(row)}><FaEdit /></Button>
           <Button variant="danger" size="sm" onClick={() => handleDeleteShelf(row._id)}><FaTrashAlt /></Button>
         </div>
@@ -185,7 +185,7 @@ const RackAndShelfManager = () => {
     hasEditAccess && {
       name: "Actions",
       cell: (row) => (
-        <div className="d-flex gap-2">
+        <div className="d-flex gap-1">
           <Button variant="info" size="sm" onClick={() => handleEditRack(row)}><FaEdit /></Button>
           <Button variant="danger" size="sm" onClick={() => handleDeleteRack(row._id)}><FaTrashAlt /></Button>
         </div>

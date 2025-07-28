@@ -158,7 +158,7 @@ const SyllabusUploadPage = () => {
         hasEditAccess && {
             name: "Actions",
             cell: (row) => (
-                <div className="d-flex gap-2">
+                <div className="d-flex gap-1">
                     <a
                         title="view_syllabus"
                         className="me-1 p-2 border bg-light rounded-2"

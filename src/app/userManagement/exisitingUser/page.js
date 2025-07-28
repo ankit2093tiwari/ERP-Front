@@ -200,7 +200,7 @@ const ExistingUser = () => {
     hasEditAccess && {
       name: "Actions",
       cell: (row) => (
-        <div className="d-flex gap-2">
+        <div className="d-flex gap-1">
           {editingId === row._id ? (
             <Button size='sm' variant="success" className="me-1" onClick={handleUpdate}>
               <FaSave />

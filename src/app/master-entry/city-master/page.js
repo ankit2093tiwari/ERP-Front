@@ -255,7 +255,7 @@ const StateCityMaster = () => {
             </Button>
           </div>
         ) : (
-          <div className="d-flex gap-2">
+          <div className="d-flex gap-1">
             <button className="editButton" onClick={() => handleEditState(row)}>
               <FaEdit />
             </button>
@@ -311,7 +311,7 @@ const StateCityMaster = () => {
       name: "Actions",
       cell: (row) =>
         editingCity?._id === row._id ? (
-          <div className="d-flex gap-2">
+          <div className="d-flex gap-1">
             <Button
               variant="success"
               size="sm"
@@ -330,7 +330,7 @@ const StateCityMaster = () => {
             </Button>
           </div>
         ) : (
-          <div className="d-flex gap-2">
+          <div className="d-flex gap-1">
             <button className="editButton" onClick={() => handleEditCity(row)}>
               <FaEdit />
             </button>

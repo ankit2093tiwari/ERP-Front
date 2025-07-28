@@ -157,7 +157,7 @@ const HolidayMasterPage = () => {
     hasEditAccess && {
       name: "Actions",
       cell: (row) => (
-        <div className="d-flex gap-2">
+        <div className="d-flex gap-1">
           <button className="editButton" onClick={() => handleEdit(row)}>
             <FaEdit />
           </button>

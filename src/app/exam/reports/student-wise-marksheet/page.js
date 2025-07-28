@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
+
 import dynamic from "next/dynamic";
 import { Container, Row, Col, Form, FormLabel, Button, Modal, Table as BootstrapTable } from "react-bootstrap";
 import { toast } from "react-toastify";
@@ -55,31 +56,42 @@ const StudentRemarksEntry = () => {
         if (selectedClass) {
             fetchSections();
             fetchExams();
-            fetchRemarks()
+            fetchRemarks();
         } else {
             setSections([]);
             setExams([]);
-            setRemarks([])
+            setRemarks([]);
         }
-    }, [selectedClass]);
+    }, [selectedClass, fetchSections, fetchExams, fetchRemarks]);
 
-    const fetchSections = async () => {
+
+    const fetchSections = useCallback(async () => {
         try {
             const res = await getSections(selectedClass);
             setSections(res.data || []);
         } catch {
             toast.error("Failed to fetch sections.");
         }
-    };
+    }, [selectedClass]);
 
-    const fetchExams = async () => {
+    const fetchExams = useCallback(async () => {
         try {
             const res = await getExamMasterByClassId(selectedClass);
             setExams(res.data || []);
         } catch {
             toast.error("Failed to fetch exams.");
         }
-    };
+    }, [selectedClass]);
+
+    const fetchRemarks = useCallback(async () => {
+        try {
+            const response = await getAllRemarks();
+            setRemarks(response.data || []);
+        } catch (error) {
+            console.error("Failed to fetch remarks:", error);
+        }
+    }, []);
+
 
     const loadStudents = async () => {
         if (!selectedClass || !selectedSection || !selectedExam) {
@@ -100,14 +112,6 @@ const StudentRemarksEntry = () => {
         }
     };
 
-    const fetchRemarks = async () => {
-        try {
-            const response = await getAllRemarks()
-            setRemarks(response.data || []);
-        } catch (error) {
-            console.error("Failed to fetch remarks:", error);
-        }
-    }
     const handleRemarkChange = (id, value) => {
         setStudents(prev => prev.map(s => s.studentId === id ? { ...s, remark: value } : s));
         setRemarkErrors(prev => ({ ...prev, [id]: false })); // Clear error

@@ -11,7 +11,7 @@ import { deleteGalleryImageRecordById, getAllIGalleryImages, updateGalleryImageR
 import usePagePermission from "@/hooks/usePagePermission";
 
 const ImageRecord = () => {
-  const {hasEditAccess}=usePagePermission()
+  const { hasEditAccess } = usePagePermission()
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -116,10 +116,10 @@ const ImageRecord = () => {
       },
       sortable: false,
     },
-    hasEditAccess &&{
+    hasEditAccess && {
       name: "Actions",
       cell: (row) => (
-        <div className="d-flex gap-2">
+        <div className="d-flex gap-1">
           {editingId === row._id ? (
             <>
               <button className="editButton"

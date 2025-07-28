@@ -102,7 +102,7 @@ const QuotationMaster = () => {
     hasEditAccess && {
       name: 'Actions',
       cell: (row) => (
-        <div className="d-flex gap-2">
+        <div className="d-flex gap-1">
           <Button variant="info" size="sm" onClick={() => handlePurchase(row)} style={{ whiteSpace: 'nowrap' }}>
             Purchase
           </Button>
