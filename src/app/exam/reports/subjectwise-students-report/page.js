@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { Container, Row, Col, Form, FormLabel, Button } from "react-bootstrap";
 import { toast } from "react-toastify";
@@ -17,36 +17,30 @@ import {
   addExamMarksEntry,
 } from "@/Services";
 
-const MarksEntry = () => {
+const SubjectWiseMarksheet = () => {
   const { hasSubmitAccess } = usePagePermission();
 
-  // Data States
   const [classes, setClasses] = useState([]);
   const [sections, setSections] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const [exams, setExams] = useState([]);
   const [students, setStudents] = useState([]);
 
-  // Selected values
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedSection, setSelectedSection] = useState("");
   const [selectedSubject, setSelectedSubject] = useState("");
   const [selectedExam, setSelectedExam] = useState("");
 
-  // Bulk inputs
   const [bulkMarks, setBulkMarks] = useState("");
   const [bulkPractical, setBulkPractical] = useState("");
 
-  // Input refs for auto focus
   const inputRefs = useRef([]);
 
-  // Breadcrumb
   const breadcrumbItems = [
     { label: "Exams", link: "/exam/all-module" },
     { label: "Subject Wise Exam List", link: null },
   ];
 
-  // Load initial classes
   useEffect(() => {
     (async () => {
       try {
@@ -58,6 +52,33 @@ const MarksEntry = () => {
     })();
   }, []);
 
+  const fetchSections = useCallback(async () => {
+    try {
+      const res = await getSections(selectedClass);
+      setSections(res.data || []);
+    } catch {
+      toast.error("Failed to fetch sections.");
+    }
+  }, [selectedClass]);
+
+  const fetchSubjects = useCallback(async () => {
+    try {
+      const res = await getSubjectByClassId(selectedClass);
+      setSubjects(res.data || []);
+    } catch {
+      toast.error("Failed to fetch subjects.");
+    }
+  }, [selectedClass]);
+
+  const fetchExams = useCallback(async () => {
+    try {
+      const res = await getExamMasterByClassId(selectedClass);
+      setExams(res.data || []);
+    } catch {
+      toast.error("Failed to fetch exams.");
+    }
+  }, [selectedClass]);
+
   useEffect(() => {
     if (selectedClass) {
       fetchSections();
@@ -68,34 +89,7 @@ const MarksEntry = () => {
       setSubjects([]);
       setExams([]);
     }
-  }, [selectedClass]);
-
-  const fetchSections = async () => {
-    try {
-      const res = await getSections(selectedClass);
-      setSections(res.data || []);
-    } catch {
-      toast.error("Failed to fetch sections.");
-    }
-  };
-
-  const fetchSubjects = async () => {
-    try {
-      const res = await getSubjectByClassId(selectedClass);
-      setSubjects(res.data || []);
-    } catch {
-      toast.error("Failed to fetch subjects.");
-    }
-  };
-
-  const fetchExams = async () => {
-    try {
-      const res = await getExamMasterByClassId(selectedClass);
-      setExams(res.data || []);
-    } catch {
-      toast.error("Failed to fetch exams.");
-    }
-  };
+  }, [selectedClass, fetchSections, fetchSubjects, fetchExams]);
 
   const loadStudents = async () => {
     if (!selectedClass || !selectedSection || !selectedSubject || !selectedExam) {
@@ -119,7 +113,6 @@ const MarksEntry = () => {
     }
   };
 
-  // Validation
   const validateStudents = () => {
     let isValid = true;
     const updated = students.map(stu => {
@@ -157,7 +150,6 @@ const MarksEntry = () => {
     }
   };
 
-  // Bulk fills
   const applyBulkMarks = (val) => {
     let num = Number(val);
     if (isNaN(num) || num < 0 || num > 100) {
@@ -205,7 +197,6 @@ const MarksEntry = () => {
     }
   };
 
-  // Table columns
   const columns = [
     { name: "#", selector: (_, i) => i + 1, width: "60px" },
     { name: "Roll No", selector: (row) => row.rollNo, sortable: true },
@@ -359,4 +350,4 @@ const MarksEntry = () => {
   );
 };
 
-export default dynamic(() => Promise.resolve(MarksEntry), { ssr: false });
+export default dynamic(() => Promise.resolve(SubjectWiseMarksheet), { ssr: false });

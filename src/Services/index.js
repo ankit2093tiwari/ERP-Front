@@ -1,8 +1,8 @@
 import axios from "axios";
 import { store } from "@/Redux/store";
 
-// export const BASE_URL = 'https://erp-backend-fy3n.onrender.com'
-export const BASE_URL = 'http://localhost:8000'
+export const BASE_URL = 'https://erp-backend-fy3n.onrender.com'
+// export const BASE_URL = 'http://localhost:8000'
 
 
 axios.interceptors.request.use((config) => {
@@ -1659,7 +1659,7 @@ export const getAllTemplates = async () => {
     return response?.data;
 }
 export const addNewPage = async (payload) => {
-    const response = await axios.post(`${BASE_URL}/api/add-page`,payload);
+    const response = await axios.post(`${BASE_URL}/api/add-page`, payload);
     return response?.data;
 }
 export const getPageById = async (pageId) => {
