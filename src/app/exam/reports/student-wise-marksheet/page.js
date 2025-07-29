@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 
 import dynamic from "next/dynamic";
-import { Container, Row, Col, Form, FormLabel, Button, Modal, Table as BootstrapTable } from "react-bootstrap";
+import { Container, Row, Col, Form, FormLabel, Button, } from "react-bootstrap";
 import { toast } from "react-toastify";
 import Table from "@/app/component/DataTable";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
@@ -52,17 +52,6 @@ const StudentRemarksEntry = () => {
         })();
     }, []);
 
-    useEffect(() => {
-        if (selectedClass) {
-            fetchSections();
-            fetchExams();
-            fetchRemarks();
-        } else {
-            setSections([]);
-            setExams([]);
-            setRemarks([]);
-        }
-    }, [selectedClass, fetchSections, fetchExams, fetchRemarks]);
 
 
     const fetchSections = useCallback(async () => {
@@ -73,7 +62,6 @@ const StudentRemarksEntry = () => {
             toast.error("Failed to fetch sections.");
         }
     }, [selectedClass]);
-
     const fetchExams = useCallback(async () => {
         try {
             const res = await getExamMasterByClassId(selectedClass);
@@ -91,6 +79,17 @@ const StudentRemarksEntry = () => {
             console.error("Failed to fetch remarks:", error);
         }
     }, []);
+    useEffect(() => {
+        if (selectedClass) {
+            fetchSections();
+            fetchExams();
+            fetchRemarks();
+        } else {
+            setSections([]);
+            setExams([]);
+            setRemarks([]);
+        }
+    }, [selectedClass, fetchSections, fetchExams, fetchRemarks]);
 
 
     const loadStudents = async () => {

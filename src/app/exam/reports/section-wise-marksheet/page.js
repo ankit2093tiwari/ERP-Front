@@ -34,6 +34,24 @@ const SectionWiseMarksheet = () => {
         { label: "Section Wise Marksheet", link: null },
     ];
 
+    const fetchSections = useCallback(async () => {
+        try {
+            const res = await getSections(selectedClass);
+            setSections(res.data || []);
+        } catch {
+            toast.error("Failed to fetch sections.");
+        }
+    }, [selectedClass]);
+
+    const fetchExams = useCallback(async () => {
+        try {
+            const res = await getExamMasterByClassId(selectedClass);
+            setExams(res.data || []);
+        } catch {
+            toast.error("Failed to fetch exams.");
+        }
+    }, [selectedClass]);
+
     useEffect(() => {
         (async () => {
             try {
@@ -55,23 +73,7 @@ const SectionWiseMarksheet = () => {
         }
     }, [selectedClass, fetchSections, fetchExams]);
 
-    const fetchSections = useCallback(async () => {
-        try {
-            const res = await getSections(selectedClass);
-            setSections(res.data || []);
-        } catch {
-            toast.error("Failed to fetch sections.");
-        }
-    }, [selectedClass]);
 
-    const fetchExams = useCallback(async () => {
-        try {
-            const res = await getExamMasterByClassId(selectedClass);
-            setExams(res.data || []);
-        } catch {
-            toast.error("Failed to fetch exams.");
-        }
-    }, [selectedClass]);
 
 
     const loadStudents = async () => {

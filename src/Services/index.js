@@ -678,8 +678,6 @@ export const getAllIGalleryImages = async () => {
     const response = await axios.get(`${BASE_URL}/api/images`)
     return response?.data;
 }
-
-
 export const addNewGalleryImage = async (payload) => {
     const response = await axios.post(`${BASE_URL}/api/images`, payload)
     return response?.data;
@@ -763,7 +761,6 @@ export const updateRoutineCheckupById = async (id, payload) => {
     const response = await axios.put(`${BASE_URL}/api/routine-checkups/${id}`, payload)
     return response?.data;
 }
-
 
 export const getAllGalleryGroups = async () => {
     const response = await axios.get(`${BASE_URL}/api/galleryGroups`)
@@ -1658,6 +1655,10 @@ export const getAllTemplates = async () => {
     const response = await axios.get(`${BASE_URL}/api/page-templates`);
     return response?.data;
 }
+export const addNewTemplate = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/page-templates`, payload);
+    return response?.data;
+}
 export const addNewPage = async (payload) => {
     const response = await axios.post(`${BASE_URL}/api/add-page`, payload);
     return response?.data;
@@ -1668,5 +1669,52 @@ export const getPageById = async (pageId) => {
 }
 export const getAllPages = async () => {
     const response = await axios.get(`${BASE_URL}/api/pages`);
+    return response?.data;
+}
+export const deletePageById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/pages/${id}`);
+    return response?.data;
+}
+
+export const getAllFitIndiaGroups = async () => {
+    const response = await axios.get(`${BASE_URL}/api/fit-india-groups`)
+    return response?.data;
+}
+export const addNewFitIndiaGroup = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/fit-india-group`, payload)
+    return response?.data;
+}
+export const updateFitIndiaGroupById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/fit-india-group/${id}`, payload)
+    return response?.data;
+}
+export const deleteFitIndiaGroupById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/fit-india-group/${id}`)
+    return response?.data;
+}
+
+export const getAllFitIndiaImages = async () => {
+    const response = await axios.get(`${BASE_URL}/api/fitindia-images`)
+    return response?.data;
+}
+export const addNewFitIndiaImage = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/fitindia-image`, payload)
+    return response?.data;
+}
+export const updateFitIndiaImageById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/fitindia-image/${id}`, payload)
+    return response?.data;
+}
+export const deleteFitIndiaImageById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/fitindia-image/${id}`)
+    return response?.data;
+}
+
+export const getContactDetails = async () => {
+    const response = await axios.get(`${BASE_URL}/api/contact-details`)
+    return response?.data;
+}
+export const updateContactDetail = async (payload) => {
+    const response = await axios.put(`${BASE_URL}/api/contact-details`, payload)
     return response?.data;
 }

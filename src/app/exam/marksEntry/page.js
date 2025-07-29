@@ -60,17 +60,13 @@ const MarksEntry = () => {
     })();
   }, [selectedSessionId]);
 
-  useEffect(() => {
-    if (selectedClass) {
-      fetchSections();
-      fetchSubjects();
-      fetchExams();
-    } else {
-      setSections([]);
-      setSubjects([]);
-      setExams([]);
-    }
-  }, [selectedClass]);
+ useEffect(() => {
+  if (!selectedClass) {
+    setSections([]);
+    setSubjects([]);
+    setExams([]);
+    return;
+  }
 
   const fetchSections = async () => {
     try {
@@ -98,6 +94,12 @@ const MarksEntry = () => {
       toast.error("Failed to fetch exams.");
     }
   };
+
+  fetchSections();
+  fetchSubjects();
+  fetchExams();
+}, [selectedClass]);
+
 
   const loadStudents = async () => {
     if (!selectedClass || !selectedSection || !selectedSubject || !selectedExam) {

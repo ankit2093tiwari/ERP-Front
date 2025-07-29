@@ -47,31 +47,34 @@ const ExamMaster = () => {
   }, []);
 
   useEffect(() => {
-    if (selectedClass) fetchSubjectsByClass();
+    if (!selectedClass) return;
+
+    const fetchSubjectsByClass = async () => {
+      try {
+        const res = await getSubjectByClassId(selectedClass);
+        const subjectsData = res.data || [];
+        setSubjects(subjectsData);
+        const initialized = subjectsData.map((sub) => ({
+          subjectId: sub._id,
+          subjectName: sub.subject_details?.subject_name || "N/A",
+          examDate: "",
+          fromTime: { hour: "09", minute: "00", ampm: "AM" },
+          toTime: { hour: "12", minute: "00", ampm: "PM" },
+          maxMarks: "",
+          minMarks: "",
+          practicalMax: "",
+          practicalMin: "",
+          examHolder: "",
+        }));
+        setExamDetails(initialized);
+      } catch {
+        toast.error("Failed to fetch subjects.");
+      }
+    };
+
+    fetchSubjectsByClass();
   }, [selectedClass]);
 
-  const fetchSubjectsByClass = async () => {
-    try {
-      const res = await getSubjectByClassId(selectedClass);
-      const subjectsData = res.data || [];
-      setSubjects(subjectsData);
-      const initialized = subjectsData.map((sub) => ({
-        subjectId: sub._id,
-        subjectName: sub.subject_details?.subject_name || "N/A",
-        examDate: "",
-        fromTime: { hour: "09", minute: "00", ampm: "AM" },
-        toTime: { hour: "12", minute: "00", ampm: "PM" },
-        maxMarks: "",
-        minMarks: "",
-        practicalMax: "",
-        practicalMin: "",
-        examHolder: "",
-      }));
-      setExamDetails(initialized);
-    } catch {
-      toast.error("Failed to fetch subjects.");
-    }
-  };
 
   const handleDetailChange = (index, field, value) => {
     const updated = [...examDetails];

@@ -17,6 +17,7 @@ import { useRouter } from "next/navigation";
 import { BASE_URL, getSchools } from "@/Services";
 import { toast } from "react-toastify";
 import usePagePermission from "@/hooks/usePagePermission";
+import Image from "next/image";
 
 const SchoolInfo = () => {
   const { hasEditAccess, hasSubmitAccess } = usePagePermission()
@@ -343,7 +344,14 @@ const SchoolInfo = () => {
                       <FormLabel>School Logo</FormLabel>
                       {school.logo_image && (
                         <div className="mb-2">
-                          <img src={school.logo_image} alt="School Logo" style={{ maxWidth: "100px", maxHeight: "100px" }} />
+                          <Image
+                            src={school.logo_image}
+                            alt="School Logo"
+                            width={100}
+                            height={100}
+                            style={{ objectFit: "contain" }}
+                          />
+
                         </div>
                       )}
                       {isEditMode && (

@@ -1,10 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Form, Button, Container } from "react-bootstrap";
-import { addNewPage, getAllPages, getAllTemplates } from "@/Services";
+import { addNewPage, deletePageById, getAllPages, getAllTemplates } from "@/Services";
 import Table from "@/app/component/DataTable";
 import { FaEye, FaTrashAlt } from "react-icons/fa";
 import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 
 const AddPage = () => {
   const router = useRouter()
@@ -13,6 +14,9 @@ const AddPage = () => {
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [formValues, setFormValues] = useState({});
   const [title, setTitle] = useState("");
+  const [fieldErrors, setFieldErrors] = useState({});
+
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     fetchTemplates();
@@ -29,38 +33,90 @@ const AddPage = () => {
     const template = templates.find((t) => t._id === templateId);
     setSelectedTemplate(template);
     setFormValues({});
+    console.log(template);
+
   };
 
   const handleFieldChange = (value, fieldType, fieldName, isFile = false) => {
+    // Clear the error for the current field
+    setFieldErrors((prevErrors) => ({ ...prevErrors, [fieldName]: null }));
+
+    // Update the value
     if (isFile) {
-      setFormValues({ ...formValues, [fieldName]: value.target.files[0] });
+      setFormValues((prevValues) => ({
+        ...prevValues,
+        [fieldName]: value.target.files[0],
+      }));
     } else {
-      setFormValues({ ...formValues, [fieldName]: value });
+      setFormValues((prevValues) => ({
+        ...prevValues,
+        [fieldName]: value,
+      }));
     }
   };
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const formData = new FormData();
-    formData.append("title", title);
-    formData.append("templateId", selectedTemplate._id);
+    if (!selectedTemplate) {
+      toast.error("Please select a template.");
+      return;
+    }
 
+    const errors = {};
     selectedTemplate.fields.forEach((field) => {
       const value = formValues[field.name];
+
       if (field.type === "image") {
-        formData.append(field.name, value); // file
+        if (!value) {
+          errors[field.name] = `${field.name} is required`;
+        }
       } else {
-        formData.append(field.name, value); // string/html
+        if (!value || (typeof value === "string" && value.trim() === "")) {
+          errors[field.name] = `${field.name} is required`;
+        }
       }
     });
 
-    await addNewPage(formData);
-    alert("Page created!");
+    setFieldErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+      toast.error("Please fill all required fields");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const formData = new FormData();
+      formData.append("title", title);
+      formData.append("templateId", selectedTemplate._id);
+
+      selectedTemplate.fields.forEach((field) => {
+        const value = formValues[field.name];
+        formData.append(field.name, value);
+      });
+
+      await addNewPage(formData);
+      toast.success("Page created!");
+      fetchPagesData();
+
+      // Reset form
+      setTitle("");
+      setFormValues({});
+      setSelectedTemplate(null);
+      setFieldErrors({});
+    } catch (error) {
+      console.error("failed to add page!", error);
+      toast.error("Failed to add page!");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const renderField = (field) => {
     const { name, type } = field;
+    const error = fieldErrors[name];
 
     if (type === "image") {
       return (
@@ -71,7 +127,9 @@ const AddPage = () => {
             name={name}
             accept="image/*"
             onChange={(e) => handleFieldChange(e, type, name, true)}
+            isInvalid={!!error}
           />
+          {error && <Form.Text className="text-danger">{error}</Form.Text>}
         </Form.Group>
       );
     }
@@ -85,13 +143,14 @@ const AddPage = () => {
             rows={6}
             value={formValues[name] || ""}
             onChange={(e) => handleFieldChange(e.target.value, type, name)}
-            placeholder="Paste your HTML code here"
+            placeholder="Paste your HTML code / Plain Text here"
+            isInvalid={!!error}
           />
+          {error && <Form.Text className="text-danger">{error}</Form.Text>}
         </Form.Group>
       );
     }
 
-    // Default: text input
     return (
       <Form.Group key={name} className="mt-2">
         <Form.Label>{name}</Form.Label>
@@ -100,10 +159,13 @@ const AddPage = () => {
           name={name}
           value={formValues[name] || ""}
           onChange={(e) => handleFieldChange(e.target.value, type, name)}
+          isInvalid={!!error}
         />
+        {error && <Form.Text className="text-danger">{error}</Form.Text>}
       </Form.Group>
     );
   };
+
 
   const fetchPagesData = async () => {
     const res = await getAllPages();
@@ -117,26 +179,31 @@ const AddPage = () => {
       selector: (row, index) => index + 1,
       width: "60px"
     }, {
-      name: "PageName",
+      name: "Page Totle",
       selector: (row) => row?.title || "N/A",
-      width: "150px",
+      width: "200px",
       sortable: true,
     }, {
-      name: "PageContent",
-      selector: (row) => row.content.content || "N/A",
-      width: "150px"
+      name: "Page Template",
+      selector: (row) => row.templateId.name || "N/A",
     }, {
       name: "Actions",
       selector: (row) => (
         <div className="d-flex gap-1">
           <Button variant="success" size="sm" onClick={() => ViewPage(row._id)}><FaEye /></Button>
-          <Button variant="danger" size="sm"><FaTrashAlt /></Button>
+          <Button variant="danger" size="sm" onClick={() => deletePage(row._id)}><FaTrashAlt /></Button>
         </div>
       )
     }
   ]
   const ViewPage = async (id) => {
     router.push(`/website-management/view/${id}`)
+  }
+  const deletePage = async (id) => {
+    if (!confirm("Are you sure to want to delete this page?")) return
+    const res = await deletePageById(id);
+    toast.success("Page deleted !")
+    fetchPagesData()
   }
   return (
     <section>
@@ -147,6 +214,7 @@ const AddPage = () => {
               <Form.Label>Page Title</Form.Label>
               <Form.Control
                 type="text"
+                placeholder="Enter Page Title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 required
@@ -167,7 +235,7 @@ const AddPage = () => {
 
             {selectedTemplate?.fields?.map(renderField)}
 
-            <Button type="submit" className="mt-3">
+            <Button type="submit" className="mt-3" disabled={loading}>
               Save Page
             </Button>
           </Form>

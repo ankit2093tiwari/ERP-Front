@@ -434,18 +434,34 @@ export default function Sidebar({ isOpen }) {
         { title: "Add Notice", href: "/notice/all-module", icon: <FaAngleDoubleRight /> },
         { title: "Add Publication Images", href: "/website-management/publication-image", icon: <FaAngleDoubleRight /> },
         {
-            title: "Reports",
-            href: "/stock/reports/all-reports",
+            title: "Fit India Images",
+            href: "#",
             icon: <FaFileAlt />,
             isOpen: true,
             children: [
                 {
-                    title: "All Reports",
-                    href: "/website-management/reports/all-reports",
+                    title: "All Module",
+                    href: "/website-management/fit-india-images/all-module",
+                    icon: <FaAngleDoubleRight />,
+                },
+                {
+                    title: "Add Group",
+                    href: "/website-management/fit-india-images/add-group",
+                    icon: <FaAngleDoubleRight />,
+                },
+                {
+                    title: "Add Image",
+                    href: "/website-management/fit-india-images/add-image",
+                    icon: <FaAngleDoubleRight />,
+                },
+                {
+                    title: "Image Records",
+                    href: "/website-management/fit-india-images/image-records",
                     icon: <FaAngleDoubleRight />,
                 },
             ],
         },
+        { title: "Contact Details", href: "/master-entry/school-info", icon: <FaAngleDoubleRight /> },
     ];
     return (
         <div>

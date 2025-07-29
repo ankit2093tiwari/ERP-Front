@@ -67,7 +67,7 @@ const Complaint = () => {
     }
   };
 
-  const breadcrumbItems = [{ label: "Complaints", link: "/complaints" }]
+  const breadcrumbItems = [{ label: "Complaint Details", link: "/complaints" }]
 
   return (
     <>
@@ -82,9 +82,9 @@ const Complaint = () => {
       </div>
       <section>
         <Container>
-          <Button onClick={() => setShowAddForm(true)} className="btn-add">
+          {/* <Button onClick={() => setShowAddForm(true)} className="btn-add">
             <CgAddR /> Add Complaint
-          </Button>
+          </Button> */}
           <Row className="mt-1 mb-1">
             <Col>
               {showAddForm && (

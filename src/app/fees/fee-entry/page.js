@@ -354,82 +354,84 @@ const FeeEntry = () => {
       <section>
         <Container>
           <div className="cover-sheet">
-            <Row className="fromSheet">
+            <div className="studentHeading">
+              <h2> <FaSearch /> Select Criteria </h2>
+            </div>
+            <div className="formSheet">
+              <Row className="text-start">
+                <Col lg={4}>
+                  <FormGroup controlId="validationCustom08">
+                    <FormLabel className="labelForm">Select Class</FormLabel>
+                    <FormSelect
+                      value={selectedClass}
+                      onChange={(e) => setSelectedClass(e.target.value)}
+                    >
+                      <option value="">Select Class</option>
+                      {classList?.map((classItem) => (
+                        <option key={classItem?._id} value={classItem?._id}>
+                          {classItem?.class_name}
+                        </option>
+                      ))}
+                    </FormSelect>
+                  </FormGroup>
+                </Col>
+                <Col lg={4}>
+                  <FormGroup controlId="validationCustom09">
+                    <FormLabel className="labelForm">Select Section</FormLabel>
+                    <FormSelect
+                      value={selectedSection}
+                      onChange={(e) => setSelectedSection(e.target.value)}
+                      disabled={!selectedClass}
+                    >
+                      <option value="">Select Section</option>
+                      {sectionList?.map((sectionItem) => (
+                        <option key={sectionItem?._id} value={sectionItem?._id}>
+                          {sectionItem?.section_name} ({sectionItem?.section_code})
+                        </option>
+                      ))}
+                    </FormSelect>
+                  </FormGroup>
+                </Col>
+                <Col lg={4}>
+                  <FormGroup controlId="validationCustom10">
+                    <FormLabel className="labelForm">Select Student</FormLabel>
+                    <FormSelect
+                      value={selectedStudent?._id || ""}
+                      onChange={(e) => handleStudentSelect(e.target.value)}
+                      disabled={!selectedClass || !selectedSection || students.length === 0}
+                    >
+                      <option value="">Select Student</option>
+                      {students.map((student) => (
+                        <option key={student._id} value={student._id}>
+                          {student.first_name} {student.last_name} (Roll: {student.roll_no || 'N/A'})
+                        </option>
+                      ))}
+                    </FormSelect>
+                  </FormGroup>
+                </Col>
+              </Row>
+            </div>
+          </div>
+          {loading && (
+            <Row className="mt-3">
               <Col>
-                <div className="card shadow-none">
-                  <div className="studentHeading">
-                    <h2> <FaSearch /> Select Criteria </h2>
-                  </div>
-                  <div className="card-body">
-                    <Row className="text-start">
-                      <Col lg={4}>
-                        <FormGroup controlId="validationCustom08">
-                          <FormLabel className="labelForm">Select Class</FormLabel>
-                          <FormSelect
-                            value={selectedClass}
-                            onChange={(e) => setSelectedClass(e.target.value)}
-                          >
-                            <option value="">Select Class</option>
-                            {classList?.map((classItem) => (
-                              <option key={classItem?._id} value={classItem?._id}>
-                                {classItem?.class_name}
-                              </option>
-                            ))}
-                          </FormSelect>
-                        </FormGroup>
-                      </Col>
-                      <Col lg={4}>
-                        <FormGroup controlId="validationCustom09">
-                          <FormLabel className="labelForm">Select Section</FormLabel>
-                          <FormSelect
-                            value={selectedSection}
-                            onChange={(e) => setSelectedSection(e.target.value)}
-                            disabled={!selectedClass}
-                          >
-                            <option value="">Select Section</option>
-                            {sectionList?.map((sectionItem) => (
-                              <option key={sectionItem?._id} value={sectionItem?._id}>
-                                {sectionItem?.section_name} ({sectionItem?.section_code})
-                              </option>
-                            ))}
-                          </FormSelect>
-                        </FormGroup>
-                      </Col>
-                      <Col lg={4}>
-                        <FormGroup controlId="validationCustom10">
-                          <FormLabel className="labelForm">Select Student</FormLabel>
-                          <FormSelect
-                            value={selectedStudent?._id || ""}
-                            onChange={(e) => handleStudentSelect(e.target.value)}
-                            disabled={!selectedClass || !selectedSection || students.length === 0}
-                          >
-                            <option value="">Select Student</option>
-                            {students.map((student) => (
-                              <option key={student._id} value={student._id}>
-                                {student.first_name} {student.last_name} (Roll: {student.roll_no || 'N/A'})
-                              </option>
-                            ))}
-                          </FormSelect>
-                        </FormGroup>
-                      </Col>
-                    </Row>
-                  </div>
+                <div className="text-center">
+                  <p>Loading...</p>
                 </div>
               </Col>
             </Row>
-          </div>
-
-          <div className="cover-sheet">
-            {!loading && students.length === 0 && selectedClass && selectedSection && (
-              <Row className="mt-3">
-                <Col>
-                  <div className="alert alert-info">
-                    No students found for the selected class and section.
-                  </div>
-                </Col>
-              </Row>
-            )}
-            {selectedStudent && (
+          )}
+          {!loading && students.length === 0 && selectedClass && selectedSection && (
+            <Row className="mt-3">
+              <Col>
+                <div className="alert alert-danger">
+                  No students found for the selected class and section.
+                </div>
+              </Col>
+            </Row>
+          )}
+          {selectedStudent && (
+            <div className="cover-sheet">
               <Row className="mt-3">
                 <Col>
                   <div className="tableSheet">
@@ -527,16 +529,8 @@ const FeeEntry = () => {
                   </div>
                 </Col>
               </Row>
-            )}
-          </div>
-          {loading && (
-            <Row className="mt-3">
-              <Col>
-                <div className="text-center">
-                  <p>Loading...</p>
-                </div>
-              </Col>
-            </Row>
+            </div>
+
           )}
           {!selectedStudent && <Alert variant="info">Please select student to get Details.</Alert>}
 

@@ -1,13 +1,17 @@
 "use client";
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import Demo1 from "@/app/component/templates/Demo1";
-import Demo2 from "@/app/component/templates/Demo2";
+import AboutUsTemplate from "@/app/component/templates/AboutusTemplate";
+import ContactUsTemplate from "@/app/component/templates/ContactusTemplate";
 import { getPageById } from "@/Services";
+import ServicePageTemplate from "@/app/component/templates/ServicesTemplate";
+import HomeTemplate from "@/app/component/templates/homeTemplate";
 
 const componentMap = {
-  Demo1,
-  Demo2
+  AboutUsTemplate,
+  ContactUsTemplate,
+  ServicePageTemplate,
+  HomeTemplate
 };
 
 const ViewPage = () => {
@@ -17,7 +21,7 @@ const ViewPage = () => {
 
   useEffect(() => {
     const fetchPage = async () => {
-      const json = await getPageById(pageId); 
+      const json = await getPageById(pageId);
       if (json.success) {
         setPageData(json.data);
 
