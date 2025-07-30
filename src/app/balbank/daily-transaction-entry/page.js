@@ -159,7 +159,7 @@ const DailyTransactionEntry = () => {
     };
 
     const columns = [
-        { name: "#", selector: (row, i) => i + 1 },
+        { name: "#", selector: (row, i) => i + 1, width: "60px" },
         { name: "EntryDate", selector: row => row.entryDate },
         { name: "StudentName", selector: row => row.studentName },
         { name: "ItemName", selector: row => row.itemName },
@@ -233,54 +233,54 @@ const DailyTransactionEntry = () => {
                             </div>
                             <Form className="formSheet" onSubmit={handleSubmit}>
                                 <Row className="mb-3">
-                                    <Col md={6}>
-                                        <FormLabel>Adm No / Reg ID <span className="text-danger">*</span></FormLabel>
+                                    <Col md={4}>
+                                        <FormLabel className="labelForm">Enter Student Adm No/Registration ID<span className="text-danger">*</span></FormLabel>
                                         <FormControl value={studentId} onChange={e => setStudentId(e.target.value)} />
                                     </Col>
-                                    <Col md={6}>
-                                        <FormLabel>Date</FormLabel>
+                                    <Col md={4}>
+                                        <FormLabel className="labelForm">Date<span className="text-danger">*</span></FormLabel>
                                         <FormControl type="date" name="date" value={formData.date} disabled />
                                     </Col>
                                 </Row>
                                 <Row className="mb-2">
                                     <Col md={4}>
-                                        <FormLabel>Student Name</FormLabel>
+                                        <FormLabel className="labelForm">Student Name<span className="text-danger">*</span></FormLabel>
                                         <FormControl value={formData.studentName} disabled />
                                     </Col>
                                     <Col md={4}>
-                                        <FormLabel>Father Name</FormLabel>
+                                        <FormLabel className="labelForm">Father Name<span className="text-danger">*</span></FormLabel>
                                         <FormControl value={formData.fatherName} disabled />
                                     </Col>
                                     <Col md={4}>
-                                        <FormLabel>Class</FormLabel>
+                                        <FormLabel className="labelForm">Class<span className="text-danger">*</span></FormLabel>
                                         <FormControl value={formData.className} disabled />
                                     </Col>
                                 </Row>
                                 <Row className="mb-2">
                                     <Col md={4}>
-                                        <FormLabel>Section</FormLabel>
+                                        <FormLabel className="labelForm">Section<span className="text-danger">*</span></FormLabel>
                                         <FormControl value={formData.sectionName} disabled />
                                     </Col>
                                     <Col md={4}>
-                                        <FormLabel>Item Name <span className="text-danger">*</span></FormLabel>
+                                        <FormLabel className="labelForm">Item Name<span className="text-danger">*</span></FormLabel>
                                         <FormControl name="itemName" value={formData.itemName} onChange={handleChange} isInvalid={!!errors.itemName} />
                                     </Col>
                                     <Col md={4}>
-                                        <FormLabel>Amount Per Item <span className="text-danger">*</span></FormLabel>
+                                        <FormLabel className="labelForm">Amount Per Item<span className="text-danger">*</span></FormLabel>
                                         <FormControl name="amountPerItem" value={formData.amountPerItem} onChange={handleChange} isInvalid={!!errors.amountPerItem} />
                                     </Col>
                                 </Row>
                                 <Row className="mb-2">
                                     <Col md={4}>
-                                        <FormLabel>Item Quantity <span className="text-danger">*</span></FormLabel>
+                                        <FormLabel className="labelForm">Item Quantity<span className="text-danger">*</span></FormLabel>
                                         <FormControl name="itemQuantity" value={formData.itemQuantity} onChange={handleChange} isInvalid={!!errors.itemQuantity} />
                                     </Col>
                                     <Col md={4}>
-                                        <FormLabel>Total Amount <span className="text-danger">*</span></FormLabel>
+                                        <FormLabel className="labelForm">Total Amount <span className="text-danger">*</span></FormLabel>
                                         <FormControl name="amount" value={formData.amount} onChange={handleChange} isInvalid={!!errors.amount} />
                                     </Col>
                                     <Col md={4}>
-                                        <FormLabel>Mode of Payment <span className="text-danger">*</span></FormLabel>
+                                        <FormLabel className="labelForm">Mode of Payment<span className="text-danger">*</span></FormLabel>
                                         <FormSelect name="paymentMode" value={formData.paymentMode} onChange={handleChange} isInvalid={!!errors.paymentMode}>
                                             <option value="">Select</option>
                                             <option value="Cash">Cash</option>
@@ -292,7 +292,7 @@ const DailyTransactionEntry = () => {
                                 </Row>
                                 <Row>
                                     <Col md={12}>
-                                        <FormLabel>Description</FormLabel>
+                                        <FormLabel className="labelForm">Description</FormLabel>
                                         <FormControl as="textarea" rows={2} name="description" value={formData.description} onChange={handleChange} />
                                     </Col>
                                 </Row>

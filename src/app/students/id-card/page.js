@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import axios from "axios";
 import jsPDF from "jspdf";
 import {
   Form,
@@ -18,7 +17,7 @@ import {
 import DataTable from "@/app/component/DataTable";
 import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
-import { BASE_URL, getClasses, getSections, getStudentsByClassAndSection } from "@/Services";
+import { getClasses, getSchools, getSections, getStudentsByClassAndSection } from "@/Services";
 import useSessionId from "@/hooks/useSessionId";
 
 const GenerateIdCard = () => {
@@ -52,6 +51,27 @@ const GenerateIdCard = () => {
   }, [selectedClass]);
 
   useEffect(() => {
+    const fetchStudents = async () => {
+      setLoading(true);
+      setNoRecordsFound(false);
+      try {
+        const response = await getStudentsByClassAndSection(selectedClass, selectedSection)
+        if (response.data?.length > 0) {
+
+          setStudents(response.data);
+        } else {
+          setStudents([]);
+          setNoRecordsFound(true);
+        }
+        setSelectedStudents([]);
+        setSelectAll(false);
+      } catch (error) {
+        console.error("Failed to fetch students", error);
+        setStudents([]);
+        setNoRecordsFound(true);
+      }
+      setLoading(false);
+    };
     if (selectedClass && selectedSection) {
       fetchStudents();
     } else {
@@ -79,28 +99,6 @@ const GenerateIdCard = () => {
     }
   };
 
-  const fetchStudents = async () => {
-    setLoading(true);
-    setNoRecordsFound(false);
-    try {
-      const response = await getStudentsByClassAndSection(selectedClass, selectedSection)
-      if (response.data?.length > 0) {
-
-        setStudents(response.data);
-      } else {
-        setStudents([]);
-        setNoRecordsFound(true);
-      }
-      setSelectedStudents([]);
-      setSelectAll(false);
-    } catch (error) {
-      console.error("Failed to fetch students", error);
-      setStudents([]);
-      setNoRecordsFound(true);
-    }
-    setLoading(false);
-  };
-
   const handleSelectAll = () => {
     setSelectAll(!selectAll);
     setSelectedStudents(selectAll ? [] : students.map((student) => student._id));
@@ -126,8 +124,8 @@ const GenerateIdCard = () => {
   };
 
   const generatePDFBuffer = async () => {
-    const schoolResponse = await axios.get(`${BASE_URL}/api/schools/all`);
-    const schoolData = schoolResponse.data.data || [];
+    const schoolResponse = await getSchools()
+    const schoolData = schoolResponse.data || [];
     const schoolName = schoolData[0]?.school_name || "R.D.S. MEMORIAL PUBLIC SCHOOL";
     const schoolSub = schoolName.includes("(") ? `(${schoolName.split("(")[1]}` : "English Medium";
     const schoolPhone = schoolData[0]?.phone_no || "9876543210";

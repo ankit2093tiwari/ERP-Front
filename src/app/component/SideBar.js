@@ -34,7 +34,7 @@ export default function Sidebar({ isOpen }) {
             // Set authorities
             setAuthorities(decoded.data?.authorities || []);
         }
-    }, []);
+    }, [token]);
 
     const hasAccess = (moduleName) => {
         return authorities.some((auth) => auth.module === moduleName);
@@ -369,7 +369,7 @@ export default function Sidebar({ isOpen }) {
         { title: "Thought", href: "/thought", icon: <FaAngleDoubleRight /> },
     ];
     const complaintItems = [
-        { title: "Complaint", href: "/complaints", icon: <FaAngleDoubleRight /> },
+        { title: "Complaint", href: "/complaintdetails", icon: <FaAngleDoubleRight /> },
     ];
     const appointmentItems = [
         { title: "Appointment", href: "/appointment", icon: <FaAngleDoubleRight /> },
@@ -461,7 +461,7 @@ export default function Sidebar({ isOpen }) {
                 },
             ],
         },
-        { title: "Contact Details", href: "/master-entry/school-info", icon: <FaAngleDoubleRight /> },
+        { title: "Contact Details", href: "/website-management/contact-details", icon: <FaAngleDoubleRight /> },
     ];
     return (
         <div>
@@ -1001,7 +1001,7 @@ export default function Sidebar({ isOpen }) {
                         {hasAccess("complaintdetails") && (
                             <Accordion.Item className="nav-item" eventKey="complaints">
                                 <Accordion.Header>
-                                    <Link href="/complaints" className="nav-link">
+                                    <Link href="/complaintdetails" className="nav-link">
                                         <span>
                                             <FaBug /> {(isOpen || activeKey) && "Complaint Details"}
                                         </span>
@@ -1009,7 +1009,7 @@ export default function Sidebar({ isOpen }) {
                                 </Accordion.Header>
                             </Accordion.Item>
                         )}
-                        {hasAccess("importantsms") && (
+                        {/* {hasAccess("importantsms") && (
                             <Accordion.Item className="nav-item" eventKey="importantSMS">
                                 <Accordion.Header>
                                     <Link href="/importantSMS" className="nav-link">
@@ -1019,7 +1019,7 @@ export default function Sidebar({ isOpen }) {
                                     </Link>
                                 </Accordion.Header>
                             </Accordion.Item>
-                        )}
+                        )} */}
                         {hasAccess("syllabus") && (
                             <Accordion.Item className="nav-item" eventKey="syllabus">
                                 <Accordion.Header>

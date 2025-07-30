@@ -191,7 +191,7 @@ const AddFirstMenu = () => {
                         <Form onSubmit={handleSubmit} className="formSheet">
                             <Row>
                                 <Col lg={4}>
-                                    <FormLabel>Menu Name</FormLabel>
+                                    <FormLabel className="labelForm">Menu Name<span className="text-danger">*</span></FormLabel>
                                     <FormControl
                                         name="menuName"
                                         value={formData.menuName}
@@ -204,7 +204,7 @@ const AddFirstMenu = () => {
 
                                 </Col>
                                 <Col lg={4}>
-                                    <FormLabel className="labelForm">Menu Position *</FormLabel>
+                                    <FormLabel className="labelForm">Menu Position<span className="text-danger">*</span></FormLabel>
                                     <FormControl
                                         name="position"
                                         value={formData.position}
@@ -216,7 +216,7 @@ const AddFirstMenu = () => {
                                     )}
                                 </Col>
                                 <Col lg={4}>
-                                    <FormLabel className="labelForm">Status *</FormLabel>
+                                    <FormLabel className="labelForm">Status<span className="text-danger">*</span></FormLabel>
                                     <Form.Select
                                         name="status"
                                         value={formData.status}

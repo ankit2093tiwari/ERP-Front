@@ -3,10 +3,11 @@ import React, { useEffect, useState } from 'react';
 import Table from '@/app/component/DataTable';
 import { Container, Row, Col, Button } from 'react-bootstrap';
 import BreadcrumbComp from "@/app/component/Breadcrumb";
-import { getAllGatePasses } from '@/Services';
+import { deleteGatePassById, getAllGatePasses } from '@/Services';
 import { FaEdit, FaTrashAlt } from 'react-icons/fa';
 import usePagePermission from '@/hooks/usePagePermission';
 import { copyContent, printContent } from '@/app/utils';
+import { toast } from 'react-toastify';
 
 const GenerateGatePass = () => {
   const { hasEditAccess } = usePagePermission()
@@ -30,7 +31,16 @@ const GenerateGatePass = () => {
   }, []);
 
   const handleDelete = async (id) => {
-    alert(id)
+    if (!confirm("Are you sure, want to delete this record?")) return;
+
+    try {
+      await deleteGatePassById(id);
+      toast.success("Record deleted successfully!")
+      fetchGatePassData()
+    } catch (error) {
+      console.error('failed to delete record!', error)
+      toast.error('failed to delete record!')
+    }
   }
 
   const columns = [
@@ -89,7 +99,7 @@ const GenerateGatePass = () => {
       name: 'Action',
       cell: (row) => (
         <>
-          <Button variant='success' size='sm' className='me-1'><FaEdit /></Button>
+          {/* <Button variant='success' size='sm' className='me-1'><FaEdit /></Button> */}
           <Button variant='danger' size='sm' onClick={() => handleDelete(row._id)}><FaTrashAlt /></Button>
         </>
       )

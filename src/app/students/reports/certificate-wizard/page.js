@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react";
 import { Container, Row, Col, Form, FormGroup, Button, Alert } from "react-bootstrap";
-import axios from "axios";
 import { jsPDF } from "jspdf";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { getSchools, getStudentByRegistrationId } from "@/Services";
@@ -17,7 +16,40 @@ const CertificateWizard = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    if (registrationId.trim() !== "") {
+    const fetchStudentData = async () => {
+      setError("");
+      setSuccess("");
+      setStudent(null);
+      setLoading(true);
+
+      try {
+        const response = await getStudentByRegistrationId(registrationId)
+
+        if (response?.success) {
+          const studentData = response.data.find(
+            (student) => student.registration_id === registrationId
+          );
+          if (studentData) {
+            setStudent(studentData);
+            setSuccess("Student found successfully!");
+            setError("");
+          } else {
+            setError("No student found with this registration ID.");
+            setSuccess("");
+          }
+        } else {
+          setError("Failed to fetch student data.");
+          setSuccess("");
+        }
+      } catch (error) {
+        console.error("Error fetching student data:", error);
+        setError("Failed to fetch student data. Please try again.");
+        setSuccess("");
+      } finally {
+        setLoading(false);
+      }
+    };
+    if (registrationId.trim() !== "" && registrationId.trim().length < 6) {
       fetchStudentData();
     } else {
       setStudent(null);
@@ -38,40 +70,6 @@ const CertificateWizard = () => {
       }
     } catch (error) {
       console.error("Error fetching school data:", error);
-    }
-  };
-
-  const fetchStudentData = async () => {
-    setError("");
-    setSuccess("");
-    setStudent(null);
-    setLoading(true);
-
-    try {
-      const response = await getStudentByRegistrationId(registrationId)
-
-      if (response?.success) {
-        const studentData = response.data.find(
-          (student) => student.registration_id === registrationId
-        );
-        if (studentData) {
-          setStudent(studentData);
-          setSuccess("Student found successfully!");
-          setError("");
-        } else {
-          setError("No student found with this registration ID.");
-          setSuccess("");
-        }
-      } else {
-        setError("Failed to fetch student data.");
-        setSuccess("");
-      }
-    } catch (error) {
-      console.error("Error fetching student data:", error);
-      setError("Failed to fetch student data. Please try again.");
-      setSuccess("");
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -270,7 +268,7 @@ const CertificateWizard = () => {
                   <Row className="mb-3">
                     <Col lg={12}>
                       <FormGroup>
-                        <Form.Label>Type Adm No For Search Student & Enter*</Form.Label>
+                        <Form.Label className="labelForm">Type Adm No/Reg.ID For Search Student<span className="text-danger">*</span></Form.Label>
                         <Form.Control
                           type="text"
                           value={registrationId}

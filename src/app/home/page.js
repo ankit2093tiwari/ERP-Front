@@ -134,9 +134,9 @@ const Dashboard = () => {
                 action="Regular Time Table"
                 action2="Online Time Table"
                 action3="Adjust Time Table"
-                actionLink="/timetable/regular"
-                action2Link="/timetable/online"
-                action3Link="/timetable/adjust"
+                actionLink="/timetable/regular-timetable"
+                action2Link="/timetable/adjust-timetable"
+                action3Link="/timetable/adjust-timetable"
               />
               <Card
                 name="USERS"
@@ -156,9 +156,9 @@ const Dashboard = () => {
                 action="Add New Page"
                 action2="Contact Details"
                 action3="Add Notice"
-                actionLink="/website/add-page"
-                action2Link="/website/contact"
-                action3Link="/website/add-notice"
+                actionLink="/website-management/add-pages"
+                action2Link="/website-management/contact-details"
+                action3Link="/notice/addNotice"
               />
               <Card
                 name="HOME WORK"
@@ -167,9 +167,9 @@ const Dashboard = () => {
                 action="Add New Home Work"
                 action2="Subject Wise Home Work"
                 action3="All Home Work"
-                actionLink="/homework/add"
-                action2Link="/homework/subject-wise"
-                action3Link="/homework/all"
+                actionLink="/homework"
+                action2Link="/homework"
+                action3Link="/homework"
               />
             </div>
           </div>

@@ -185,11 +185,11 @@ const AddPublicationImage = () => {
                             <Form onSubmit={handleSubmit} className="formSheet">
                                 <Row className="mb-3">
                                     <Col lg={6}>
-                                        <FormLabel>Date *</FormLabel>
+                                        <FormLabel>Date<span className="text-danger">*</span></FormLabel>
                                         <FormControl value={formData.date} readOnly />
                                     </Col>
                                     <Col lg={6}>
-                                        <FormLabel>Image (jpeg, jpg, png, gif) *</FormLabel>
+                                        <FormLabel>Image (jpeg, jpg, png, gif)<span className="text-danger">*</span></FormLabel>
                                         <FormControl
                                             type="file"
                                             accept="image/jpeg,image/jpg,image/png,image/gif"

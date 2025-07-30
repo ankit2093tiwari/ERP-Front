@@ -109,8 +109,8 @@ const SyllabusUploadPage = () => {
         await fetchSubjects(record.classId); // ✅ ensures subject list is ready
 
         setFormData({
-            classId: record.classId,   // ✅ now works because it's an ObjectId string
-            subject: record.subject,   // ✅ also ObjectId
+            classId: record.classId,   
+            subject: record.subject,   
             file: null,
         });
     };
@@ -171,7 +171,6 @@ const SyllabusUploadPage = () => {
                     <Button
                         size="sm"
                         variant="success"
-                        className="me-1"
                         onClick={() => handleEdit(row)}
                     >
                         <FaEdit />

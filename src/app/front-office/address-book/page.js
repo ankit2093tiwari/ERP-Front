@@ -54,6 +54,86 @@ const AddressBook = () => {
     fetchAddressData();
   }, []);
 
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
+    validate(name, value);
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    // Validate all fields and collect errors
+    const validationErrors = {};
+    Object.entries(formData).forEach(([key, value]) => {
+      let error = '';
+      if (['mobileNo', 'homePhone', 'officePhone', 'faxNo'].includes(key)) {
+        if (value && !/^\d{10}$/.test(value)) {
+          error = `${key} must be 10 digits.`;
+        }
+      }
+      if (key === 'email' && value && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+        error = 'Invalid email format.';
+      }
+      if (!value && ['name', 'homePhone', 'presentAddress', 'mobileNo', 'location', 'email'].includes(key)) {
+        error = `${key} is required.`;
+      }
+      if (error) {
+        validationErrors[key] = error;
+      }
+    });
+
+    // Update errors state
+    setErrors(validationErrors);
+
+    // If errors exist, stop submission
+    if (Object.keys(validationErrors).length > 0) return;
+
+    try {
+      if (isEdit) {
+        await updateAddressBookById(editId, formData);
+        toast.success("Record updated successfully!");
+      } else {
+        await addNewAddressbook(formData);
+        toast.success("Address Book record added!");
+      }
+
+      setShowAddForm(false);
+      setIsEdit(false);
+      setEditId(null);
+      setFormData({
+        name: '', homePhone: '', presentAddress: '', mobileNo: '', location: '', email: '',
+        remarks: '', faxNo: '', officePhone: ''
+      });
+      fetchAddressData();
+    } catch (error) {
+      console.log('failed to save record', error)
+      toast.error("Error occurred while saving record.");
+    }
+  };
+
+
+  const handleEdit = (row) => {
+    setFormData({ ...row });
+    setEditId(row._id);
+    setIsEdit(true);
+    setShowAddForm(true);
+  };
+
+  const handleDelete = async (id) => {
+    if (confirm("Are you sure you want to delete this contact?")) {
+      try {
+        const response = await deleteAddressBookById(id);
+        toast.success(response?.message || "Addressbook deleted successfully!")
+        fetchAddressData()
+      } catch (error) {
+        console.error('failed to delete addressbook!', error)
+        toast.error(error.response?.data.message || 'failed to delete addressbook!')
+      }
+    }
+  };
+
+
   const handleCopy = () => {
     const headers = [
       "#", "Name", "Location", "Address", "Mobile No.", "email"
@@ -103,63 +183,12 @@ const AddressBook = () => {
       name: 'Actions',
       cell: row => (
         <div className="d-flex gap-1">
-          <button className="editButton" onClick={() => handleEdit(row)}><FaEdit /></button>
-          <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}><FaTrashAlt /></button>
+          <Button size='sm' variant='success' onClick={() => handleEdit(row)}><FaEdit /></Button>
+          <Button size='sm' variant='danger' onClick={() => handleDelete(row._id)}><FaTrashAlt /></Button>
         </div>
       )
     }
   ];
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-    validate(name, value);
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const validationErrors = {};
-    Object.entries(formData).forEach(([key, value]) => validate(key, value));
-    if (Object.values(errors).some(err => err)) return;
-
-    try {
-      if (isEdit) {
-        await updateAddressBookById(editId, formData);
-        toast.success("Record updated successfully!");
-      } else {
-        await addNewAddressbook(formData);
-        toast.success("Address Book record added!");
-      }
-      setShowAddForm(false);
-      setIsEdit(false);
-      setEditId(null);
-      setFormData({ name: '', homePhone: '', presentAddress: '', mobileNo: '', location: '', email: '', remarks: '', faxNo: '', officePhone: '' });
-      fetchAddressData();
-    } catch (error) {
-      toast.error("Error occurred while saving record.");
-    }
-  };
-
-  const handleEdit = (row) => {
-    setFormData({ ...row });
-    setEditId(row._id);
-    setIsEdit(true);
-    setShowAddForm(true);
-  };
-
-  const handleDelete = async (id) => {
-    if (confirm("Are you sure you want to delete this contact?")) {
-      try {
-        const response = await deleteAddressBookById(id);
-        toast.success(response?.message || "Addressbook deleted successfully!")
-        fetchAddressData()
-      } catch (error) {
-        console.error('failed to delete addressbook!', error)
-        toast.error(error.response?.data.message || 'failed to delete addressbook!')
-      }
-    }
-  };
-
   const breadcrumbItems = [
     { label: "Front Office", link: "/front-office/all-module" },
     { label: "Address Book", link: "null" }
@@ -257,7 +286,7 @@ const AddressBook = () => {
 
           <div className="tableSheet mt-4">
             <h2>Address Book Records</h2>
-            <Table columns={columns} data={data} handleCopy={handleCopy} handlePrint={handlePrint}/>
+            <Table columns={columns} data={data} handleCopy={handleCopy} handlePrint={handlePrint} />
           </div>
         </Container>
       </section>

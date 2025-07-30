@@ -5,6 +5,7 @@ import { toast } from "react-toastify";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import usePagePermission from "@/hooks/usePagePermission";
 import { addNewFitIndiaImage, getAllFitIndiaGroups } from "@/Services";
+import Image from "next/image";
 
 const AddFitIndiaImages = () => {
     const { hasSubmitAccess } = usePagePermission()
@@ -118,7 +119,7 @@ const AddFitIndiaImages = () => {
                         <Form onSubmit={handleSubmit} className="formSheet">
                             <Row className="mb-3">
                                 <Col lg={6}>
-                                    <FormLabel className="labelForm">Date</FormLabel>
+                                    <FormLabel className="labelForm">Date<span className="text-danger">*</span></FormLabel>
                                     <FormControl
                                         type="date"
                                         name="date"
@@ -129,7 +130,7 @@ const AddFitIndiaImages = () => {
 
                                 <Col lg={6}>
                                     <FormLabel className="labelForm">
-                                        Upload Image
+                                        Upload Image<span className="text-danger">*</span>
                                     </FormLabel>
                                     <FormControl
                                         type="file"
@@ -143,10 +144,11 @@ const AddFitIndiaImages = () => {
                                     )}
                                     {preview && (
                                         <div className="mt-2">
-                                            <img
+                                            <Image
                                                 src={preview}
                                                 alt="Preview"
-                                                style={{ maxWidth: "200px", maxHeight: "200px" }}
+                                                height={80}
+                                                width={120}
                                             />
                                         </div>
                                     )}
@@ -155,7 +157,7 @@ const AddFitIndiaImages = () => {
 
                             <Row className="mb-3">
                                 <Col lg={6}>
-                                    <FormLabel className="labelForm">Group Name</FormLabel>
+                                    <FormLabel className="labelForm">Group Name<span className="text-danger">*</span></FormLabel>
                                     <Form.Select
                                         name="groupName"
                                         value={imageData.groupName}

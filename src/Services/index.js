@@ -266,6 +266,10 @@ export const getAllStudents = async () => {
     const response = await axios.get(`${BASE_URL}/api/students/search`)
     return response?.data;
 }
+export const getTotalStudentsCount = async () => {
+    const response = await axios.get(`${BASE_URL}/api/students-total`)
+    return response?.data;
+}
 export const getStudentsData = async () => {
     const response = await axios.get(`${BASE_URL}/api/students`)
     return response?.data;
@@ -502,6 +506,14 @@ export const getFeeHistoryByStudentId = async (studentId) => {
 
 export const addNewFeeEntry = async (payload) => {
     const response = await axios.post(`${BASE_URL}/api/fee-entries`, payload)
+    return response?.data;
+}
+export const getAllFeeEntries = async () => {
+    const response = await axios.get(`${BASE_URL}/api/fee-entries`)
+    return response?.data;
+}
+export const getLimitedFeeEntries = async (limit) => {
+    const response = await axios.get(`${BASE_URL}/api/fee-entries-limit?limit=${limit}`)
     return response?.data;
 }
 
@@ -1397,6 +1409,10 @@ export const addNewGatePass = async (payload) => {
     const response = await axios.post(`${BASE_URL}/api/gate-pass`, payload)
     return response?.data;
 }
+export const deleteGatePassById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/gate-pass/${id}`,)
+    return response?.data;
+}
 export const getAllGatePasses = async () => {
     const response = await axios.get(`${BASE_URL}/api/gate-pass`)
     return response?.data;
@@ -1716,5 +1732,21 @@ export const getContactDetails = async () => {
 }
 export const updateContactDetail = async (payload) => {
     const response = await axios.put(`${BASE_URL}/api/contact-details`, payload)
+    return response?.data;
+}
+export const getAllComplaints = async () => {
+    const response = await axios.get(`${BASE_URL}/api/complaints`,)
+    return response?.data;
+}
+export const addNewComplaint = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/complaints`, payload)
+    return response?.data;
+}
+export const deleteComplaintById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/complaints/${id}`)
+    return response?.data;
+}
+export const updateComplaintById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/complaints/${id}`, payload)
     return response?.data;
 }

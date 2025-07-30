@@ -3,7 +3,9 @@ import usePagePermission from "@/hooks/usePagePermission";
 import { getContactDetails, updateContactDetail } from "@/Services";
 import React, { useEffect, useState } from "react";
 import { Container, Row, Col, Form, Button } from "react-bootstrap";
+import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { toast } from "react-toastify";
+import Image from "next/image";
 
 const ContactDetailsForm = () => {
     const { hasEditAccess } = usePagePermission()
@@ -112,117 +114,129 @@ const ContactDetailsForm = () => {
             toast.error(error?.response?.data?.message || "Failed to update contact details!");
         }
     };
-
+    const breadcrumbItems = [
+        { label: "Website Management", link: "/website-management/all-module" },
+        { label: "Contact Details", link: "null" },
+    ];
     return (
-        <section>
-            <Container>
-                <div className="cover-sheet">
-                    <div className="studentHeading">
-                        <h2>Contact Details</h2>
+        <>
+            <div className="breadcrumbSheet position-relative">
+                <Container>
+                    <Row className="mt-1 mb-1">
+                        <Col><BreadcrumbComp items={breadcrumbItems} /></Col>
+                    </Row>
+                </Container>
+            </div>
+            <section>
+                <Container>
+                    <div className="cover-sheet">
+                        <div className="studentHeading">
+                            <h2>Contact Details</h2>
+                        </div>
+                        <Form className="formSheet" onSubmit={handleSubmit}>
+                            <Row>
+                                <Col md={6}>
+                                    <Row>
+                                        <Col md={12}>
+                                            <Form.Group className="mb-3">
+                                                <Form.Label className="labelForm">School Name <span className="text-danger">*</span></Form.Label>
+                                                <Form.Control
+                                                    type="text"
+                                                    name="schoolName"
+                                                    value={formData.schoolName}
+                                                    onChange={handleChange}
+                                                />
+                                                {errors.schoolName && <div className="text-danger">{errors.schoolName}</div>}
+                                            </Form.Group>
+                                        </Col>
+
+                                        <Col md={12}>
+                                            <Form.Group className="mb-3">
+                                                <Form.Label className="labelForm">Phone No 1 <span className="text-danger">*</span></Form.Label>
+                                                <Form.Control
+                                                    type="text"
+                                                    name="phone1"
+                                                    value={formData.phone1}
+                                                    onChange={handleChange}
+                                                />
+                                                {errors.phone1 && <div className="text-danger">{errors.phone1}</div>}
+                                            </Form.Group>
+                                        </Col>
+
+                                        <Col md={12}>
+                                            <Form.Group className="mb-3">
+                                                <Form.Label className="labelForm">Phone No 2 <span className="text-danger">*</span></Form.Label>
+                                                <Form.Control
+                                                    type="text"
+                                                    name="phone2"
+                                                    value={formData.phone2}
+                                                    onChange={handleChange}
+                                                />
+                                                {errors.phone2 && <div className="text-danger">{errors.phone2}</div>}
+                                            </Form.Group>
+                                        </Col>
+
+                                        <Col md={12}>
+                                            <Form.Group className="mb-3">
+                                                <Form.Label className="labelForm">Email Address <span className="text-danger">*</span></Form.Label>
+                                                <Form.Control
+                                                    type="email"
+                                                    name="email"
+                                                    value={formData.email}
+                                                    onChange={handleChange}
+                                                />
+                                                {errors.email && <div className="text-danger">{errors.email}</div>}
+                                            </Form.Group>
+                                        </Col>
+
+                                        <Col md={12}>
+                                            <Form.Group className="mb-3">
+                                                <Form.Label className="labelForm">Address <span className="text-danger">*</span></Form.Label>
+                                                <Form.Control
+                                                    as="textarea"
+                                                    rows={2}
+                                                    name="address"
+                                                    value={formData.address}
+                                                    onChange={handleChange}
+                                                />
+                                                {errors.address && <div className="text-danger">{errors.address}</div>}
+                                            </Form.Group>
+                                        </Col>
+                                    </Row>
+                                </Col>
+                                <Col md={6}>
+                                    <Row>
+                                        <Col md={12} className="mb-4">
+                                            <Form.Group>
+                                                <Form.Label className="labelForm">Header Logo Image <span className="text-danger">*</span></Form.Label>
+                                                <Form.Control type="file" name="headerLogo" accept="image/*" onChange={handleChange} />
+                                                {errors.headerLogo && <div className="text-danger">{errors.headerLogo}</div>}
+                                                {headerPreview && <Image src={headerPreview} alt="Header Logo" width={60} height={60} className="mt-2 float-end" />}
+                                            </Form.Group>
+                                        </Col>
+
+                                        <Col md={12}>
+                                            <Form.Group>
+                                                <Form.Label className="labelForm">Footer Logo Image <span className="text-danger">*</span></Form.Label>
+                                                <Form.Control type="file" name="footerLogo" accept="image/*" onChange={handleChange} />
+                                                {errors.footerLogo && <div className="text-danger">{errors.footerLogo}</div>}
+                                                {footerPreview && <Image src={footerPreview} alt="Footer Logo" width={60} height={60} className="mt-2 float-end" />}
+                                            </Form.Group>
+                                        </Col>
+                                    </Row>
+                                </Col>
+                            </Row>
+
+                            {hasEditAccess && (
+                                <Button type="submit" variant="success" className="mt-3">
+                                    Update
+                                </Button>
+                            )}
+                        </Form>
                     </div>
-                    <Form className="formSheet" onSubmit={handleSubmit}>
-                        <Row>
-                            <Col md={6}>
-                                <Row>
-                                    <Col md={12}>
-                                        <Form.Group className="mb-3">
-                                            <Form.Label>School Name <span className="text-danger">*</span></Form.Label>
-                                            <Form.Control
-                                                type="text"
-                                                name="schoolName"
-                                                value={formData.schoolName}
-                                                onChange={handleChange}
-                                            />
-                                            {errors.schoolName && <div className="text-danger">{errors.schoolName}</div>}
-                                        </Form.Group>
-                                    </Col>
-
-                                    <Col md={12}>
-                                        <Form.Group className="mb-3">
-                                            <Form.Label>Phone No 1 <span className="text-danger">*</span></Form.Label>
-                                            <Form.Control
-                                                type="text"
-                                                name="phone1"
-                                                value={formData.phone1}
-                                                onChange={handleChange}
-                                            />
-                                            {errors.phone1 && <div className="text-danger">{errors.phone1}</div>}
-                                        </Form.Group>
-                                    </Col>
-
-                                    <Col md={12}>
-                                        <Form.Group className="mb-3">
-                                            <Form.Label>Phone No 2 <span className="text-danger">*</span></Form.Label>
-                                            <Form.Control
-                                                type="text"
-                                                name="phone2"
-                                                value={formData.phone2}
-                                                onChange={handleChange}
-                                            />
-                                            {errors.phone2 && <div className="text-danger">{errors.phone2}</div>}
-                                        </Form.Group>
-                                    </Col>
-
-                                    <Col md={12}>
-                                        <Form.Group className="mb-3">
-                                            <Form.Label>Email Address <span className="text-danger">*</span></Form.Label>
-                                            <Form.Control
-                                                type="email"
-                                                name="email"
-                                                value={formData.email}
-                                                onChange={handleChange}
-                                            />
-                                            {errors.email && <div className="text-danger">{errors.email}</div>}
-                                        </Form.Group>
-                                    </Col>
-
-                                    <Col md={12}>
-                                        <Form.Group className="mb-3">
-                                            <Form.Label>Address <span className="text-danger">*</span></Form.Label>
-                                            <Form.Control
-                                                as="textarea"
-                                                rows={2}
-                                                name="address"
-                                                value={formData.address}
-                                                onChange={handleChange}
-                                            />
-                                            {errors.address && <div className="text-danger">{errors.address}</div>}
-                                        </Form.Group>
-                                    </Col>
-                                </Row>
-                            </Col>
-                            <Col md={6}>
-                                <Row>
-                                    <Col md={12} className="mb-4">
-                                        <Form.Group>
-                                            <Form.Label>Header Logo Image <span className="text-danger">*</span></Form.Label>
-                                            <Form.Control type="file" name="headerLogo" accept="image/*" onChange={handleChange} />
-                                            {errors.headerLogo && <div className="text-danger">{errors.headerLogo}</div>}
-                                            {headerPreview && <img src={headerPreview} alt="Header Logo" width={60} className="mt-2 float-end" />}
-                                        </Form.Group>
-                                    </Col>
-
-                                    <Col md={12}>
-                                        <Form.Group>
-                                            <Form.Label>Footer Logo Image <span className="text-danger">*</span></Form.Label>
-                                            <Form.Control type="file" name="footerLogo" accept="image/*" onChange={handleChange} />
-                                            {errors.footerLogo && <div className="text-danger">{errors.footerLogo}</div>}
-                                            {footerPreview && <img src={footerPreview} alt="Footer Logo" width={60} className="mt-2 float-end" />}
-                                        </Form.Group>
-                                    </Col>
-                                </Row>
-                            </Col>
-                        </Row>
-
-                        {hasEditAccess && (
-                            <Button type="submit" variant="success" className="mt-3">
-                                Update
-                            </Button>
-                        )}
-                    </Form>
-                </div>
-            </Container>
-        </section>
+                </Container>
+            </section>
+        </>
     );
 };
 

@@ -167,12 +167,12 @@ const DailyDiary = () => {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-1">
-          <button className="editButton" onClick={() => handleEdit(row)}>
+          <Button size="sm" variant="success" onClick={() => handleEdit(row)}>
             <FaEdit />
-          </button>
-          <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
+          </Button>
+          <Button size="sm" variant="danger" onClick={() => handleDelete(row._id)}>
             <FaTrashAlt />
-          </button>
+          </Button>
         </div>
       ),
     },
@@ -212,7 +212,7 @@ const DailyDiary = () => {
               <Form className="formSheet">
                 <Row>
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Entry Date</FormLabel>
+                    <FormLabel className="labelForm">Entry Date<span className="text-danger">*</span></FormLabel>
                     <FormControl
                       type="date"
                       value={newEntry.entryDate}
@@ -225,7 +225,7 @@ const DailyDiary = () => {
                     )}
                   </Col>
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Teacher Name</FormLabel>
+                    <FormLabel className="labelForm">Teacher Name<span className="text-danger">*</span></FormLabel>
                     <FormControl
                       as="select"
                       value={newEntry.teacherName}
@@ -247,7 +247,7 @@ const DailyDiary = () => {
                 </Row>
                 <Row>
                   <Col lg={12}>
-                    <FormLabel className="labelForm">Work Details</FormLabel>
+                    <FormLabel className="labelForm">Work Details<span className="text-danger">*</span></FormLabel>
                     <FormControl
                       as="textarea"
                       rows={3}

@@ -234,7 +234,7 @@ const LastSubMenuPage = () => {
                                 <Form onSubmit={handleSubmit} className="formSheet">
                                     <Row className="mb-3">
                                         <Col lg={6}>
-                                            <FormLabel className="labelForm">Main Menu</FormLabel>
+                                            <FormLabel className="labelForm">Main Menu<span className="text-danger">*</span></FormLabel>
                                             <Form.Select name="menuName" value={formData.menuName} onChange={handleChange}>
                                                 <option value="">Select</option>
                                                 {mainMenus.map((m) => (
@@ -244,7 +244,7 @@ const LastSubMenuPage = () => {
                                             {errors.menuName && <div className="text-danger">{errors.menuName}</div>}
                                         </Col>
                                         <Col lg={6}>
-                                            <FormLabel className="labelForm">Sub Menu</FormLabel>
+                                            <FormLabel className="labelForm">Sub Menu<span className="text-danger">*</span></FormLabel>
                                             <Form.Select name="subMenuId" value={formData.subMenuId} onChange={handleChange}>
                                                 <option value="">Select</option>
                                                 {subMenus.map((s) => (
@@ -256,19 +256,19 @@ const LastSubMenuPage = () => {
                                     </Row>
                                     <Row className="mb-3">
                                         <Col lg={6}>
-                                            <FormLabel className="labelForm">Last Sub Menu Name</FormLabel>
+                                            <FormLabel className="labelForm">Last Sub Menu Name<span className="text-danger">*</span></FormLabel>
                                             <FormControl name="lastSubMenuName" value={formData.lastSubMenuName} onChange={handleChange} />
                                             {errors.lastSubMenuName && <div className="text-danger">{errors.lastSubMenuName}</div>}
                                         </Col>
                                         <Col lg={6}>
-                                            <FormLabel className="labelForm">Position</FormLabel>
+                                            <FormLabel className="labelForm">Position<span className="text-danger">*</span></FormLabel>
                                             <FormControl name="position" value={formData.position} onChange={handleChange} />
                                             {errors.position && <div className="text-danger">{errors.position}</div>}
                                         </Col>
                                     </Row>
                                     <Row>
                                         <Col lg={6}>
-                                            <FormLabel className="labelForm">Status</FormLabel>
+                                            <FormLabel className="labelForm">Status<span className="text-danger">*</span></FormLabel>
                                             <Form.Select name="status" value={formData.status} onChange={handleChange}>
                                                 <option value="Active">Active</option>
                                                 <option value="Inactive">Inactive</option>

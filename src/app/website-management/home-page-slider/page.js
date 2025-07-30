@@ -247,7 +247,7 @@ const AddSliderImage = () => {
                         <Form onSubmit={handleSubmit} className="formSheet">
                             <Row className="mb-3">
                                 <Col lg={6}>
-                                    <FormLabel className="labelForm">Date</FormLabel>
+                                    <FormLabel className="labelForm">Date<span className="text-danger">*</span></FormLabel>
                                     <FormControl
                                         type="date"
                                         name="date"
@@ -257,7 +257,7 @@ const AddSliderImage = () => {
                                 </Col>
 
                                 <Col lg={6}>
-                                    <FormLabel className="labelForm">Upload Image</FormLabel>
+                                    <FormLabel className="labelForm">Upload Image<span className="text-danger">*</span></FormLabel>
                                     <FormControl
                                         type="file"
                                         name="image"
@@ -270,10 +270,11 @@ const AddSliderImage = () => {
                                     )}
                                     {preview && (
                                         <div className="mt-2">
-                                            <img
+                                            <Image
+                                                height={80}
+                                                width={120}
                                                 src={preview}
                                                 alt="Preview"
-                                                style={{ maxWidth: "200px", maxHeight: "200px" }}
                                             />
                                         </div>
                                     )}

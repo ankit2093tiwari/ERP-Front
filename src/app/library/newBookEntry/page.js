@@ -624,9 +624,9 @@ const NewBookEntry = () => {
                                 </Col>
                             </Row>
                             {hasSubmitAccess && (
-                                <Row className="mb-2">
-                                    <Col className="text-center">
-                                        <Button className="btn btn-primary mt-4" type="submit">
+                                <Row className="mb-2 mt-4">
+                                    <Col>
+                                        <Button variant="success" type="submit">
                                             Submit
                                         </Button>
                                     </Col>

@@ -11,7 +11,7 @@ import { toast } from "react-toastify";
 import usePagePermission from "@/hooks/usePagePermission";
 
 const ReturnBook = () => {
-    const {hasSubmitAccess}=usePagePermission()
+    const { hasSubmitAccess } = usePagePermission()
     const breadcrumbItems = [
         { label: "Library", link: "/library/all-module" },
         { label: "Return Book", link: "null" },
@@ -38,14 +38,13 @@ const ReturnBook = () => {
         fetchIssuedBooks();
     }, []);
 
-    const fetchFineMaster = async () => {
-        const response = await getFineMaster();
-        selectedBook?.issuedToType === 'Student'
-            ? setPerDayFine(response?.data.studentFine)
-            : setPerDayFine(response?.data.teacherFine);
-    };
-
     useEffect(() => {
+        const fetchFineMaster = async () => {
+            const response = await getFineMaster();
+            selectedBook?.issuedToType === 'Student'
+                ? setPerDayFine(response?.data.studentFine)
+                : setPerDayFine(response?.data.teacherFine);
+        };
         if (selectedBook) fetchFineMaster();
     }, [selectedBook]);
 
@@ -96,7 +95,7 @@ const ReturnBook = () => {
         { name: "Issued To", selector: row => `${row.issuedToType}: ${row.issuedToName}`, sortable: true },
         { name: "Issue Period", selector: row => `${row.issuePeriod} Days`, sortable: true },
         { name: "Issue Date", selector: row => new Date(row.issueDate).toLocaleDateString(), sortable: true },
-        hasSubmitAccess &&{
+        hasSubmitAccess && {
             name: "Actions",
             cell: (row) => (
                 <div className="d-flex gap-1">

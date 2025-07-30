@@ -87,17 +87,17 @@ const Thought = () => {
       cell: (row) => (
         <div className="d-flex gap-1">
           {editRowId === row._id ? (
-            <button className="editButton" onClick={() => handleSave(row._id)}>
+            <Button size="sm" variant="success" onClick={() => handleSave(row._id)}>
               <FaSave />
-            </button>
+            </Button>
           ) : (
-            <button className="editButton" onClick={() => handleEdit(row)}>
+            <Button size="sm" variant="success" onClick={() => handleEdit(row)}>
               <FaEdit />
-            </button>
+            </Button>
           )}
-          <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
+          <Button size="sm" variant="danger" onClick={() => handleDelete(row._id)}>
             <FaTrashAlt />
-          </button>
+          </Button>
         </div>
       ),
     },
@@ -230,7 +230,7 @@ const Thought = () => {
               <Form className="formSheet">
                 <Row className="mb-3">
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Date</FormLabel>
+                    <FormLabel className="labelForm">Date<span className="text-danger">*</span></FormLabel>
                     <FormControl
                       type="date"
                       value={newThought.date}
@@ -242,7 +242,7 @@ const Thought = () => {
                     {newErrors.date && <div className="text-danger">{newErrors.date}</div>}
                   </Col>
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Thought Name</FormLabel>
+                    <FormLabel className="labelForm">Thought Name<span className="text-danger">*</span></FormLabel>
                     <FormControl
                       type="text"
                       placeholder="Enter Thought Name"

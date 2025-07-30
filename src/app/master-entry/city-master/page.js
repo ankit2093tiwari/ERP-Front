@@ -246,22 +246,22 @@ const StateCityMaster = () => {
       name: "Actions",
       cell: (row) =>
         editingState?._id === row._id ? (
-          <div className="d-flex flex-wrap gap-2 justify-content-start">
+          <div className="d-flex flex-wrap gap-1 justify-content-start">
             <Button size="sm" variant="success" onClick={() => handleUpdateState(row._id)}>
               <FaSave />
             </Button>
-            <Button size="sm" variant="secondary" onClick={() => setEditingState(null)}>
+            <Button size="sm" variant="danger" onClick={() => setEditingState(null)}>
               Cancel
             </Button>
           </div>
         ) : (
           <div className="d-flex gap-1">
-            <button className="editButton" onClick={() => handleEditState(row)}>
+            <Button size="sm" variant="success" onClick={() => handleEditState(row)}>
               <FaEdit />
-            </button>
-            <button className="editButton btn-danger" onClick={() => handleDeleteState(row._id)}>
+            </Button>
+            <Button size="sm" variant="danger" onClick={() => handleDeleteState(row._id)}>
               <FaTrashAlt />
-            </button>
+            </Button>
           </div>
         ),
     }
@@ -315,15 +315,13 @@ const StateCityMaster = () => {
             <Button
               variant="success"
               size="sm"
-              className="d-flex align-items-center justify-content-center"
               onClick={() => handleUpdateCity(row._id)}
             >
               <FaSave />
             </Button>
             <Button
-              variant="secondary"
+              variant="danger"
               size="sm"
-              className="d-flex align-items-center justify-content-center"
               onClick={() => setEditingCity(null)}
             >
               Cancel
@@ -331,12 +329,16 @@ const StateCityMaster = () => {
           </div>
         ) : (
           <div className="d-flex gap-1">
-            <button className="editButton" onClick={() => handleEditCity(row)}>
+            <Button
+              variant="success"
+              size="sm" onClick={() => handleEditCity(row)}>
               <FaEdit />
-            </button>
-            <button className="editButton btn-danger" onClick={() => handleDeleteCity(row._id)}>
+            </Button>
+            <Button
+              variant="danger"
+              size="sm" onClick={() => handleDeleteCity(row._id)}>
               <FaTrashAlt />
-            </button>
+            </Button>
           </div>
         ),
     }

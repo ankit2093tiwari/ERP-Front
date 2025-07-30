@@ -199,15 +199,15 @@ const SessionMasterPage = () => {
       cell: (row) =>
         hasEditAccess && (
           <div className="d-flex gap-1">
-            <button className="editButton btn-sm" onClick={() => handleEdit(row)}>
+            <Button size="sm" variant="success" onClick={() => handleEdit(row)}>
               <FaEdit />
-            </button>
-            <button
-              className="editButton btn-sm btn-danger"
+            </Button>
+            <Button
+              size="sm" variant="danger"
               onClick={() => handleDelete(row._id)}
             >
               <FaTrashAlt />
-            </button>
+            </Button>
           </div>
         ),
       ignoreRowClick: true,

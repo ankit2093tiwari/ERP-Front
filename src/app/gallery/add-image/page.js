@@ -13,9 +13,10 @@ import { toast } from "react-toastify";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { addNewGalleryImage, getAllGalleryGroups } from "@/Services";
 import usePagePermission from "@/hooks/usePagePermission";
+import Image from "next/image";
 
 const AddImage = () => {
-  const {hasSubmitAccess}=usePagePermission()
+  const { hasSubmitAccess } = usePagePermission()
   const fileInputRef = useRef(null)
   const today = new Date().toISOString().split("T")[0];
 
@@ -150,10 +151,11 @@ const AddImage = () => {
                   )}
                   {preview && (
                     <div className="mt-2">
-                      <img
+                      <Image
+                        height={80}
+                        width={120}
                         src={preview}
                         alt="Preview"
-                        style={{ maxWidth: "200px", maxHeight: "200px" }}
                       />
                     </div>
                   )}
@@ -192,11 +194,11 @@ const AddImage = () => {
                 </Col>
               </Row>
 
-             {hasSubmitAccess &&(
-               <Button type="submit" disabled={loading} className="btn btn-primary mt-4">
-                {loading ? "Uploading..." : "Add Image"}
-              </Button>
-             )}
+              {hasSubmitAccess && (
+                <Button type="submit" disabled={loading} className="btn btn-primary mt-4">
+                  {loading ? "Uploading..." : "Add Image"}
+                </Button>
+              )}
             </Form>
           </div>
         </Container>

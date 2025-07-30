@@ -211,7 +211,7 @@ const AddPage = () => {
         <div className="cover-sheet">
           <Form onSubmit={handleSubmit} className="formSheet">
             <Form.Group>
-              <Form.Label>Page Title</Form.Label>
+              <Form.Label>Page Title<span className="text-danger">*</span></Form.Label>
               <Form.Control
                 type="text"
                 placeholder="Enter Page Title"
@@ -222,7 +222,7 @@ const AddPage = () => {
             </Form.Group>
 
             <Form.Group>
-              <Form.Label>Select Template</Form.Label>
+              <Form.Label>Select Template<span className="text-danger">*</span></Form.Label>
               <Form.Select onChange={handleTemplateChange}>
                 <option>Select</option>
                 {templates.map((temp) => (

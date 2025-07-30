@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import { CgAddR } from "react-icons/cg";
-import {Form,Row,Col,Container,FormLabel,FormControl,Button,Alert,} from "react-bootstrap";
+import { Form, Row, Col, Container, FormLabel, FormControl, Button, Alert, } from "react-bootstrap";
 import Table from "@/app/component/DataTable";
 import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
@@ -211,7 +211,7 @@ const AddFitIndiaGroup = () => {
                             <Form className="formSheet">
                                 <Row className="mb-3">
                                     <Col lg={12}>
-                                        <FormLabel className="labelForm">Group Name</FormLabel>
+                                        <FormLabel className="labelForm">Group Name<span className="text-danger">*</span></FormLabel>
                                         <FormControl
                                             type="text"
                                             placeholder="Enter Group Name"

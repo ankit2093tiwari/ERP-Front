@@ -188,7 +188,7 @@ const AddSecondSubMenu = () => {
                         <Form onSubmit={handleSubmit} className="formSheet">
                             <Row className="mb-3">
                                 <Col lg={6}>
-                                    <FormLabel className="labelForm">Menu Name</FormLabel>
+                                    <FormLabel className="labelForm">Menu Name<span className="text-danger">*</span></FormLabel>
                                     <Form.Select
                                         name="menuName"
                                         value={formData.menuName}
@@ -207,7 +207,7 @@ const AddSecondSubMenu = () => {
 
 
                                 <Col lg={6}>
-                                    <FormLabel className="labelForm">Position</FormLabel>
+                                    <FormLabel className="labelForm">Position<span className="text-danger">*</span></FormLabel>
                                     <FormControl
                                         name="position"
                                         value={formData.position}
@@ -219,7 +219,7 @@ const AddSecondSubMenu = () => {
                             </Row>
                             <Row>
                                 <Col lg={6}>
-                                    <FormLabel className="labelForm">Sub Menu Name</FormLabel>
+                                    <FormLabel className="labelForm">Sub Menu Name<span className="text-danger">*</span></FormLabel>
                                     <FormControl
                                         name="subMenuName"
                                         value={formData.subMenuName}
@@ -228,7 +228,7 @@ const AddSecondSubMenu = () => {
                                     {errors.subMenuName && <div className="text-danger">{errors.subMenuName}</div>}
                                 </Col>
                                 <Col lg={6}>
-                                    <FormLabel className="labelForm">Status</FormLabel>
+                                    <FormLabel className="labelForm">Status<span className="text-danger">*</span></FormLabel>
                                     <Form.Select
                                         name="status"
                                         value={formData.status}

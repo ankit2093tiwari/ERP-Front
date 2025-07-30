@@ -34,9 +34,9 @@ const ExistingUser = () => {
   const allModules = [
     "masterentry", "students", "transport", "stock", "library", "fees", "hrd", "frontoffice", "studentattendance",
     "exam", "notice", "accounts", "advertising", "thought", "medical", "gallery",
-    "circular", "servicecall", "syllabus", "timetable", "mess", "homework", "copycorrection", 
+    "servicecall", "syllabus", "timetable", "homework", "copycorrection",
     "balbank", "youtubevideo", "events", "hostel", "sendsms", "chartfilling", "visitordetails",
-    "dailydairy", "complaintdetails", "appoinmentdetails", "importantsms", "usermanagement","websitemanagement"
+    "dailydairy", "complaintdetails", "appoinmentdetails", "importantsms", "usermanagement", "websitemanagement"
   ];
   const allActions = ["view", "edit", "submit"];
 
@@ -103,6 +103,9 @@ const ExistingUser = () => {
         actMap[act] = true;
       })
     );
+    if (isSuperAdmin && !modList.includes("usermanagement")) {
+      modList.push("usermanagement");
+    }
 
     setFormData({
       username: user.username || "",
@@ -192,7 +195,7 @@ const ExistingUser = () => {
   };
 
   const columns = [
-    { name: "#", selector: (row, i) => i + 1 },
+    { name: "#", selector: (row, i) => i + 1, width: "60px" },
     { name: "Username", selector: (row) => row.username },
     { name: "Full Name", selector: (row) => row.userfullname },
     { name: "User Type", selector: (row) => row.usertype },
@@ -201,18 +204,12 @@ const ExistingUser = () => {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-1">
-          {editingId === row._id ? (
-            <Button size='sm' variant="success" className="me-1" onClick={handleUpdate}>
-              <FaSave />
-            </Button>
-          ) : (
-            <Button size='sm' variant="success" className="me-1" onClick={() => handleEdit(row)}>
-              <FaEdit />
-            </Button>
-          )}
+          <Button size='sm' variant="success" className="me-1" onClick={() => handleEdit(row)}>
+            <FaEdit />
+          </Button>
           <Button
-          size="sm"
-          variant="danger"
+            size="sm"
+            variant="danger"
             onClick={() => handleDelete(row._id)}
           >
             <FaTrashAlt />

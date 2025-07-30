@@ -31,6 +31,14 @@ const AttendanceReport = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
+    const fetchClasses = async () => {
+      try {
+        const res = await getClasses();
+        setClassList(res.data || []);
+      } catch {
+        toast.error("Failed to fetch classes");
+      }
+    };
     fetchClasses();
     const today = new Date().toISOString().split("T")[0];
     setAttendanceDate(today);
@@ -44,15 +52,6 @@ const AttendanceReport = () => {
       setAttendanceId(null);
     }
   }, [selectedClass, selectedSection, attendanceDate]);
-
-  const fetchClasses = async () => {
-    try {
-      const res = await getClasses();
-      setClassList(res.data || []);
-    } catch {
-      toast.error("Failed to fetch classes");
-    }
-  };
 
   const fetchSections = async (classId) => {
     try {

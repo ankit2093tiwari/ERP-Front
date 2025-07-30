@@ -219,7 +219,7 @@ const ImageRecords = () => {
                                         {errors.image && <div className="text-danger mt-1">{errors.image}</div>}
                                         {preview && (
                                             <div className="mt-2">
-                                                <img src={preview} alt="Preview" style={{ maxWidth: "200px", maxHeight: "200px" }} />
+                                                <Image src={preview} alt="Preview" height={80} width={120}/>
                                             </div>
                                         )}
                                     </Col>

@@ -26,7 +26,7 @@ import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import axios from "axios";
-import { BASE_URL } from "@/Services";
+import { BASE_URL, getTotalStudentsCount } from "@/Services";
 import useSessionId from "@/hooks/useSessionId";
 
 
@@ -79,8 +79,7 @@ const Dashboard = () => {
   // Fetch student count data from API
   const fetchStudentData = async () => {
     try {
-      const response = await axios.get(`${BASE_URL}/api/students-total`);
-      const data = response.data;
+      const data = await getTotalStudentsCount()
 
       if (data.success) {
         setStudentCount(data.data.totalStudents);
@@ -278,9 +277,9 @@ const Dashboard = () => {
                   <Col lg={6}>
                     <div className="card widget-first overflow-hidden pt-4 mb-3">
                       <div className="card-body position-relative z-1">
-                        <h4 className="fw-normal mt-5 pt-7 mb-1 fw-bold text-start">Student</h4>
+                        <h4 className="fw-normal mt-5 pt-7 mb-1 fw-bold text-start text-dark">Students</h4>
                         <div className="hstack gap-2">
-                          <h5 className="card-title mb-0 fs-7">
+                          <h5 className="card-title mb-0 fs-7 text-dark">
                             {studentCount.toLocaleString()}
                           </h5>
                         </div>

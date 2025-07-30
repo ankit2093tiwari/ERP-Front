@@ -25,10 +25,9 @@ import { toast } from "react-toastify";
 
 const allModules = [
   "masterentry", "students", "transport", "stock", "library", "fees", "hrd", "frontoffice", "studentattendance",
-  "exam", "notice", "accounts", "advertising", "thought", "medical", "gallery",
-  "circular", "servicecall", "syllabus", "timetable", "mess", "homework", "copycorrection",
-  "balbank", "youtubevideo", "events", "hostel", "sendsms", "chartfilling", "visitordetails",
-  "dailydairy", "complaintdetails", "appoinmentdetails", "importantsms", "usermanagement","websitemanagement"
+  "exam", "notice", "accounts", "advertising", "thought", "medical", "gallery", "servicecall", "syllabus",
+  "timetable", "homework", "copycorrection", "balbank", "youtubevideo", "events", "hostel", "sendsms", "chartfilling",
+  "visitordetails", "dailydairy", "complaintdetails", "appoinmentdetails", "importantsms", "usermanagement", "websitemanagement"
 ];
 
 const allActions = ["view", "edit", "submit"];
@@ -88,8 +87,6 @@ const AddUser = () => {
 
     return authorities;
   };
-
-
 
 
   const resetForm = () => {
@@ -239,24 +236,24 @@ const AddUser = () => {
   useEffect(() => { fetchData(); }, []);
 
   const columns = [
-    { name: "#", selector: (row, i) => i + 1 },
+    { name: "#", selector: (row, i) => i + 1, width: "60px" },
     { name: "Username", selector: row => row.username },
     { name: "Full Name", selector: row => row.userfullname },
     { name: "User Type", selector: row => row.usertype },
     { name: "Status", selector: row => row.status },
-    hasEditAccess && {
-      name: "Actions",
-      cell: (row) => (
-        <div className="d-flex gap-1">
-          <button className="editButton" onClick={() => handleEdit(row)}>
-            <FaEdit />
-          </button>
-          <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
-            <FaTrashAlt />
-          </button>
-        </div>
-      )
-    },
+    // hasEditAccess && {
+    //   name: "Actions",
+    //   cell: (row) => (
+    //     <div className="d-flex gap-1">
+    //       <Button size="sm" variant="success" onClick={() => handleEdit(row)}>
+    //         <FaEdit />
+    //       </Button>
+    //       <Button size="sm" variant="danger" onClick={() => handleDelete(row._id)}>
+    //         <FaTrashAlt />
+    //       </Button>
+    //     </div>
+    //   )
+    // },
   ].filter(Boolean);
 
   const breadcrumbItems = [
