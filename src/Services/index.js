@@ -195,8 +195,28 @@ export const getCities = async () => {
     const response = await axios.get(`${BASE_URL}/api/all-cities`)
     return response?.data;
 }
+export const getAllDocumentUpload = async () => {
+    const response = await axios.get(`${BASE_URL}/api/document-uploads`)
+    return response?.data;
+}
+export const addNewDocumentUpload = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/document-uploads`, payload)
+    return response?.data;
+}
+export const updateDocumentUploadById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/document-uploads/${id}`, payload)
+    return response?.data;
+}
+export const deleteDocumentUploadById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/document-uploads/${id}`)
+    return response?.data;
+}
 export const getAllSubjects = async () => {
     const response = await axios.get(`${BASE_URL}/api/all-subject`);
+    return response?.data;
+};
+export const getAllUniqueSubjectCount = async () => {
+    const response = await axios.get(`${BASE_URL}/api/subject-count`);
     return response?.data;
 };
 export const getSubjectByClassId = async (classId) => {
@@ -661,6 +681,10 @@ export const getAllDepartments = async () => {
     const response = await axios.get(`${BASE_URL}/api/all-departments`)
     return response?.data;
 }
+export const getAllDepartmentsCount = async () => {
+    const response = await axios.get(`${BASE_URL}/api/count-departments`)
+    return response?.data;
+}
 
 export const getAllIssuedItems = async () => {
     const response = await axios.get(`${BASE_URL}/api/issued-items`)
@@ -973,6 +997,14 @@ export const addNewAdvertisementType = async (payload) => {
     const response = await axios.post(`${BASE_URL}/api/advertisings`, payload)
     return response?.data;
 }
+export const deleteAdvertisingTypeById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/advertisings/${id}`)
+    return response?.data;
+}
+export const updateAdvertisingTypeById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/advertisings/${id}`, payload)
+    return response?.data;
+}
 
 export const getAdvertisements = async () => {
     const response = await axios.get(`${BASE_URL}/api/advertisements`)
@@ -1139,8 +1171,13 @@ export const addNewBookEntry = async (payload) => {
     const response = await axios.post(`${BASE_URL}/api/book-entry`, payload)
     return response?.data;
 }
+
 export const getAllBooks = async () => {
     const response = await axios.get(`${BASE_URL}/api/book-entry`)
+    return response?.data;
+}
+export const getAllBooksCount = async () => {
+    const response = await axios.get(`${BASE_URL}/api/book-entry-count`)
     return response?.data;
 }
 
@@ -1173,6 +1210,10 @@ export const deleteIssuedBook = async (id) => {
 }
 export const returnIssueBookById = async (id, payload) => {
     const response = await axios.put(`${BASE_URL}/api/return-book/${id}`, payload)
+    return response?.data;
+}
+export const getAllReturnedBooks = async () => {
+    const response = await axios.get(`${BASE_URL}/api/return-book`)
     return response?.data;
 }
 export const getAllThoughts = async () => {
@@ -1748,5 +1789,21 @@ export const deleteComplaintById = async (id) => {
 }
 export const updateComplaintById = async (id, payload) => {
     const response = await axios.put(`${BASE_URL}/api/complaints/${id}`, payload)
+    return response?.data;
+}
+export const getAllImportantSMS = async () => {
+    const response = await axios.get(`${BASE_URL}/api/important-sms`)
+    return response?.data;
+}
+export const addNewImportantSMS = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/important-sms`, payload)
+    return response?.data;
+}
+export const updateSMSById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/important-sms/${id}`, payload)
+    return response?.data;
+}
+export const deleteSMSById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/important-sms/${id}`)
     return response?.data;
 }

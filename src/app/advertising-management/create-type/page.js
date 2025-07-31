@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
+import { FaEdit, FaTrashAlt, FaSave, FaTimes } from "react-icons/fa";
 import { CgAddR } from "react-icons/cg";
 import {
   Form,
@@ -13,12 +13,11 @@ import {
   FormControl,
   Button,
 } from "react-bootstrap";
-import axios from "axios";
 import Table from "@/app/component/DataTable";
 import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { toast } from "react-toastify";
-import { addNewAdvertisementType, getAdvertisementTypes, BASE_URL } from "@/Services";
+import { addNewAdvertisementType, getAdvertisementTypes, updateAdvertisingTypeById, deleteAdvertisingTypeById } from "@/Services";
 import usePagePermission from "@/hooks/usePagePermission";
 
 const CreateType = () => {
@@ -71,28 +70,28 @@ const CreateType = () => {
         <div className="d-flex gap-1">
           {editingId === row._id ? (
             <>
-              <button className="editButton" onClick={() => handleUpdate(row._id)}>
+              <Button size="sm" variant="success" onClick={() => handleUpdate(row._id)}>
                 <FaSave />
-              </button>
-              <button className="editButton btn-danger" onClick={() => setEditingId(null)}>
-                Cancel
-              </button>
+              </Button>
+              <Button size="sm" variant="danger" onClick={() => setEditingId(null)}>
+                <FaTimes />
+              </Button>
             </>
           ) : (
             <>
-              <button className="editButton" onClick={() => handleEdit(row)}>
+              <Button size="sm" variant="success" onClick={() => handleEdit(row)}>
                 <FaEdit />
-              </button>
-              <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
+              </Button>
+              <Button size="sm" variant="danger" onClick={() => handleDelete(row._id)}>
                 <FaTrashAlt />
-              </button>
+              </Button>
             </>
           )}
         </div>
       ),
       sortable: false,
     },
-  ].filter(Boolean); // ✅ This removes `false` if hasEditAccess is false
+  ].filter(Boolean); // This removes `false` if hasEditAccess is false
 
 
   const fetchData = async () => {
@@ -121,7 +120,7 @@ const CreateType = () => {
     }
 
     try {
-      await axios.put(`${BASE_URL}/api/advertisings/${id}`, editFormData);
+      await updateAdvertisingTypeById(id, editFormData)
       toast.success("Type updated successfully!");
       fetchData();
       setEditingId(null);
@@ -133,7 +132,7 @@ const CreateType = () => {
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this advertising type?")) {
       try {
-        await axios.delete(`${BASE_URL}/api/advertisings/${id}`);
+        await deleteAdvertisingTypeById(id)
         toast.success("Type deleted successfully!");
         fetchData();
       } catch (err) {

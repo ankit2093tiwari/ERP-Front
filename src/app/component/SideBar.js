@@ -350,10 +350,26 @@ export default function Sidebar({ isOpen }) {
                     icon: <FaAngleDoubleRight />,
                 },
                 {
+                    title: "Publisher Record Report",
+                    href: "/library/reports/publisher-report",
+                    icon: <FaAngleDoubleRight />,
+                },
+                {
                     title: "Book Bank",
                     href: "/library/reports/book-bank",
                     icon: <FaAngleDoubleRight />,
                 },
+                {
+                    title: "Issued/Returned Book reports",
+                    href: "/library/reports/issued-returned-book-report",
+                    icon: <FaAngleDoubleRight />,
+                },
+                {
+                    title: "Suggested Book Report",
+                    href: "/library/reports/suggested-book-report",
+                    icon: <FaAngleDoubleRight />,
+                },
+
             ],
         },
     ];
@@ -1009,17 +1025,17 @@ export default function Sidebar({ isOpen }) {
                                 </Accordion.Header>
                             </Accordion.Item>
                         )}
-                        {/* {hasAccess("importantsms") && (
+                        {hasAccess("importantsms") && (
                             <Accordion.Item className="nav-item" eventKey="importantSMS">
                                 <Accordion.Header>
-                                    <Link href="/importantSMS" className="nav-link">
+                                    <Link href="/importantsms" className="nav-link">
                                         <span>
                                             <FaEnvelope /> {(isOpen || activeKey) && "Important SMS"}
                                         </span>
                                     </Link>
                                 </Accordion.Header>
                             </Accordion.Item>
-                        )} */}
+                        )}
                         {hasAccess("syllabus") && (
                             <Accordion.Item className="nav-item" eventKey="syllabus">
                                 <Accordion.Header>

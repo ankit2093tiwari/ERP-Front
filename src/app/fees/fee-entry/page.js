@@ -10,15 +10,14 @@ import { FaSearch } from "react-icons/fa";
 import { addNewFeeEntry, deleteFeeEntryById, getAllPaymentMode, getClasses, getFeeGroupDataBySectionId, getFeeHistoryByStudentId, getFeeStructureByFeeGroupId, getFeeStructures, getSections, getStudentsByClassAndSection } from "@/Services";
 import useSessionId from "@/hooks/useSessionId";
 import usePagePermission from "@/hooks/usePagePermission";
+import Image from "next/image";
 
 const FeeEntry = () => {
   const { hasSubmitAccess, hasEditAccess } = usePagePermission()
   const selectedSessionId = useSessionId()
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const router = useRouter();
   const [feeGroupId, setFeeGroupId] = useState("")
-  const [data, setData] = useState([]);
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedSection, setSelectedSection] = useState("");
   const [classList, setClassList] = useState([]);
@@ -128,83 +127,6 @@ const FeeEntry = () => {
     }
 
   }
-  const feeColumns = [
-    { name: "#", selector: (row, index) => index + 1, width: "50px" },
-    { name: "RECEIPT NO", selector: (row) => row.receipt_no || "N/A" },
-    { name: "INSTALLMENT NAME", selector: (row) => row.installment_name || "N/A" },
-    { name: "REMARKS", selector: (row) => row.description || "N/A" },
-    { name: "STATUS", selector: (row) => row.status || "N/A" },
-    { name: "DATE", selector: (row) => row.date || "N/A" },
-    { name: "PAID AMOUNT", selector: (row) => row.paid_amount || "N/A" },
-    hasEditAccess && {
-      name: "Actions",
-      cell: (row) => (
-        <div className="d-flex gap-2">
-          {/* <button className="editButton" onClick={() => handleEdit(row._id)}>
-            <FaEdit />
-          </button> */}
-          <button className="editButton btn-danger" onClick={() => handleDeleteFeeRecord(row._id)}>
-            <FaTrashAlt />
-          </button>
-        </div>
-      ),
-    },
-  ];
-
-  const payFeeColumns = [
-    {
-      name: "",
-      cell: (row, index) => (
-        <input
-          type="checkbox"
-          checked={row.selected || false}
-          onChange={() => handleCheckboxChange(index)}
-          key={`cb-${index}-${row.selected}`}
-        />
-      ),
-      width: "50px"
-    },
-    {
-      name: "Installment",
-      selector: (row) => row.month,
-    },
-    {
-      name: "Admission Fee",
-      cell: (row, index) => (
-        <input
-          type="number"
-          className="form-control"
-          value={row.admissionFee}
-          onChange={(e) => handleInputChange(index, 'admissionFee', e.target.value)}
-          readOnly
-        />
-      ),
-    },
-    {
-      name: "Annual Fee",
-      cell: (row, index) => (
-        <input
-          type="number"
-          className="form-control"
-          value={row.annualFee}
-          onChange={(e) => handleInputChange(index, 'annualFee', e.target.value)}
-          readOnly
-        />
-      ),
-    },
-    {
-      name: "Tuition Fee",
-      cell: (row, index) => (
-        <input
-          type="number"
-          className="form-control"
-          value={row.tuitionFee}
-          onChange={(e) => handleInputChange(index, 'tuitionFee', e.target.value)}
-          readOnly
-        />
-      ),
-    },
-  ];
 
   const fetchFeeGroupData = async () => {
     try {
@@ -216,7 +138,6 @@ const FeeEntry = () => {
 
     }
   }
-  // console.log(selectedStudent);
 
   const getStructureDataByGroupId = async () => {
     try {
@@ -240,7 +161,6 @@ const FeeEntry = () => {
       console.log("Failed to fetch data", err);
     }
   };
-
 
   const handleCheckboxChange = (index) => {
     setPayFeeData(prevData => {
@@ -335,7 +255,83 @@ const FeeEntry = () => {
       setLoading(false);
     }
   };
+  const feeColumns = [
+    { name: "#", selector: (row, index) => index + 1, width: "50px" },
+    { name: "RECEIPT NO", selector: (row) => row.receipt_no || "N/A" },
+    { name: "INSTALLMENT NAME", selector: (row) => row.installment_name || "N/A" },
+    { name: "REMARKS", selector: (row) => row.description || "N/A" },
+    { name: "STATUS", selector: (row) => row.status || "N/A" },
+    { name: "DATE", selector: (row) => row.date || "N/A" },
+    { name: "PAID AMOUNT", selector: (row) => row.paid_amount || "N/A" },
+    hasEditAccess && {
+      name: "Actions",
+      cell: (row) => (
+        <div className="d-flex gap-2">
+          {/* <button className="editButton" onClick={() => handleEdit(row._id)}>
+            <FaEdit />
+          </button> */}
+          <button className="editButton btn-danger" onClick={() => handleDeleteFeeRecord(row._id)}>
+            <FaTrashAlt />
+          </button>
+        </div>
+      ),
+    },
+  ];
 
+  const payFeeColumns = [
+    {
+      name: "",
+      cell: (row, index) => (
+        <input
+          type="checkbox"
+          checked={row.selected || false}
+          onChange={() => handleCheckboxChange(index)}
+          key={`cb-${index}-${row.selected}`}
+        />
+      ),
+      width: "50px"
+    },
+    {
+      name: "Installment",
+      selector: (row) => row.month,
+    },
+    {
+      name: "Admission Fee",
+      cell: (row, index) => (
+        <input
+          type="number"
+          className="form-control"
+          value={row.admissionFee}
+          onChange={(e) => handleInputChange(index, 'admissionFee', e.target.value)}
+          readOnly
+        />
+      ),
+    },
+    {
+      name: "Annual Fee",
+      cell: (row, index) => (
+        <input
+          type="number"
+          className="form-control"
+          value={row.annualFee}
+          onChange={(e) => handleInputChange(index, 'annualFee', e.target.value)}
+          readOnly
+        />
+      ),
+    },
+    {
+      name: "Tuition Fee",
+      cell: (row, index) => (
+        <input
+          type="number"
+          className="form-control"
+          value={row.tuitionFee}
+          onChange={(e) => handleInputChange(index, 'tuitionFee', e.target.value)}
+          readOnly
+        />
+      ),
+    },
+  ];
   return (
     <>
       <div className="breadcrumbSheet">
@@ -442,19 +438,19 @@ const FeeEntry = () => {
                           <div className="idBox">
                             <div className="profilePhoto">
                               {selectedStudent.profile_Pic ? (
-                                <img
+                                <Image
                                   src={selectedStudent.profile_Pic}
                                   alt="Profile Pic"
-                                  width="100"
-                                  height="100"
+                                  width={100}
+                                  height={100}
                                   style={{ borderRadius: '50%', objectFit: 'cover' }}
                                 />
                               ) : (
-                                <img
+                                <Image
                                   src="/user.png"
                                   alt="Default Pic"
-                                  width="100"
-                                  height="100"
+                                  width={100}
+                                  height={100}
                                   style={{ borderRadius: '50%', objectFit: 'cover' }}
                                 />
                               )}

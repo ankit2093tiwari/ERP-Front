@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
+import { FaEdit, FaTrashAlt, FaSave, FaTimes } from "react-icons/fa";
 import { CgAddR } from "react-icons/cg";
 import {
   Form,
@@ -13,25 +13,23 @@ import {
   FormControl,
   Button,
 } from "react-bootstrap";
-import axios from "axios";
 import Table from "@/app/component/DataTable";
 import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { toast } from "react-toastify";
-import { BASE_URL } from "@/Services";
+import { addNewDocumentUpload, deleteDocumentUploadById, getAllDocumentUpload, updateDocumentUploadById } from "@/Services";
 import usePagePermission from "@/hooks/usePagePermission";
 
-
 const DocumentMasterPage = () => {
-const {hasEditAccess, hasSubmitAccess}=usePagePermission()
+  const { hasEditAccess, hasSubmitAccess } = usePagePermission();
 
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const [newDocumentName, setNewDocumentName] = useState("");
+  const [isAddFormOpen, setIsAddFormOpen] = useState(false);
+  const [isEditFormOpen, setIsEditFormOpen] = useState(false);
+  const [documentName, setDocumentName] = useState("");
   const [formError, setFormError] = useState("");
-  const [editingId, setEditingId] = useState(null);
-  const [editedName, setEditedName] = useState("");
+  const [editingDocument, setEditingDocument] = useState(null);
 
   const columns = [
     {
@@ -42,57 +40,36 @@ const {hasEditAccess, hasSubmitAccess}=usePagePermission()
     },
     {
       name: "Document Name",
-      cell: (row) =>
-        editingId === row._id ? (
-          <FormControl
-            type="text"
-            value={editedName}
-            onChange={(e) => setEditedName(e.target.value)}
-          />
-        ) : (
-          row.document_name || "N/A"
-        ),
+      cell: (row) => row.document_name || "N/A",
       sortable: true,
     },
     hasEditAccess && {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-1">
-          {editingId === row._id ? (
-            <button className="editButton" onClick={() => handleSave(row._id)}>
-              <FaSave />
-            </button>
-          ) : (
-            <button
-              className="editButton"
-              onClick={() => handleEdit(row._id, row.document_name)}
-            >
-              <FaEdit />
-            </button>
-          )}
-          <button
-            className="editButton btn-danger"
+          <Button
+            size="sm" variant="success"
+            onClick={() => handleEditClick(row)}
+          >
+            <FaEdit />
+          </Button>
+          <Button
+            size="sm" variant="danger"
             onClick={() => handleDelete(row._id)}
           >
             <FaTrashAlt />
-          </button>
+          </Button>
         </div>
       ),
+      width: "120px"
     },
-  ];
+  ].filter(Boolean);
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(
-        `${BASE_URL}/api/document-uploads`
-      );
-      const fetchedData = Array.isArray(res.data)
-        ? res.data
-        : Array.isArray(res.data?.data)
-          ? res.data.data
-          : [];
-      setData(fetchedData);
+      const res = await getAllDocumentUpload()
+      setData(res.data || []);
     } catch {
       toast.error("Failed to fetch documents.");
     } finally {
@@ -100,21 +77,22 @@ const {hasEditAccess, hasSubmitAccess}=usePagePermission()
     }
   };
 
-  const handleEdit = (id, name) => {
-    setEditingId(id);
-    setEditedName(name);
+  const handleEditClick = (document) => {
+    setEditingDocument(document);
+    setDocumentName(document.document_name);
+    setIsEditFormOpen(true);
   };
 
-  const handleSave = async (id) => {
-    if (!editedName.trim()) {
+  const handleSave = async () => {
+    if (!documentName.trim()) {
       toast.warning("Document name cannot be empty.");
       return;
     }
 
     const exists = data.find(
       (doc) =>
-        doc.document_name.trim().toLowerCase() === editedName.trim().toLowerCase() &&
-        doc._id !== id
+        doc.document_name.trim().toLowerCase() === documentName.trim().toLowerCase() &&
+        doc._id !== editingDocument._id
     );
 
     if (exists) {
@@ -123,20 +101,18 @@ const {hasEditAccess, hasSubmitAccess}=usePagePermission()
     }
 
     try {
-      const res = await axios.put(
-        `${BASE_URL}/api/document-uploads/${id}`,
-        { document_name: editedName }
-      );
-
-      const updated = res.data?.data;
+      const res = await updateDocumentUploadById(editingDocument._id, { document_name: documentName })
+      const updated = res?.data;
       if (updated) {
-        setData((prev) => [updated, ...prev.filter((doc) => doc._id !== id)]);
+        setData((prev) => [updated, ...prev.filter((doc) => doc._id !== editingDocument._id)]);
       } else {
         fetchData();
       }
 
       toast.success("Document updated successfully.");
-      setEditingId(null);
+      setIsEditFormOpen(false);
+      setEditingDocument(null);
+      setDocumentName("");
     } catch {
       toast.error("Failed to update document.");
     }
@@ -145,9 +121,7 @@ const {hasEditAccess, hasSubmitAccess}=usePagePermission()
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this document?")) {
       try {
-        await axios.delete(
-          `${BASE_URL}/api/document-uploads/${id}`
-        );
+        await deleteDocumentUploadById(id)
         toast.success("Document deleted successfully.");
         fetchData();
       } catch {
@@ -159,17 +133,15 @@ const {hasEditAccess, hasSubmitAccess}=usePagePermission()
   const handleAdd = async () => {
     setFormError("");
 
-    if (!newDocumentName.trim()) {
+    if (!documentName.trim()) {
       setFormError("Document name is required.");
-      toast.warning("Please enter a valid document name.", {
-        position: "top-right",
-      });
+      toast.warning("Please enter a valid document name.");
       return;
     }
 
     const exists = data.find(
       (doc) =>
-        doc.document_name.trim().toLowerCase() === newDocumentName.trim().toLowerCase()
+        doc.document_name.trim().toLowerCase() === documentName.trim().toLowerCase()
     );
 
     if (exists) {
@@ -179,12 +151,9 @@ const {hasEditAccess, hasSubmitAccess}=usePagePermission()
     }
 
     try {
-      const res = await axios.post(
-        `${BASE_URL}/api/document-uploads`,
-        { document_name: newDocumentName }
-      );
+      const res = await addNewDocumentUpload({ document_name: documentName })
 
-      const added = res?.data?.data;
+      const added = res?.data;
       if (added) {
         setData((prev) => [added, ...prev]);
       } else {
@@ -192,8 +161,8 @@ const {hasEditAccess, hasSubmitAccess}=usePagePermission()
       }
 
       toast.success("Document added successfully.");
-      setIsPopoverOpen(false);
-      setNewDocumentName("");
+      setIsAddFormOpen(false);
+      setDocumentName("");
       setFormError("");
     } catch {
       toast.error("Failed to add document.");
@@ -235,23 +204,21 @@ const {hasEditAccess, hasSubmitAccess}=usePagePermission()
 
       <section>
         <Container>
-         {
-          hasSubmitAccess && (
-             <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
-            <CgAddR /> Add Document
-          </Button>
-          )
-         }
+          {hasSubmitAccess && (
+            <Button onClick={() => setIsAddFormOpen(true)} className="btn-add">
+              <CgAddR /> Add Document
+            </Button>
+          )}
 
-          {isPopoverOpen && (
-            <div className="cover-sheet">
+          {isAddFormOpen && (
+            <div className="cover-sheet mb-4">
               <div className="studentHeading">
                 <h2>Add New Document</h2>
                 <button
                   className="closeForm"
                   onClick={() => {
-                    setIsPopoverOpen(false);
-                    setNewDocumentName("");
+                    setIsAddFormOpen(false);
+                    setDocumentName("");
                     setFormError("");
                   }}
                 >
@@ -261,13 +228,15 @@ const {hasEditAccess, hasSubmitAccess}=usePagePermission()
               <Form className="formSheet">
                 <Row className="mb-3">
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Document Name<span className="text-danger">*</span></FormLabel>
+                    <FormLabel className="labelForm">
+                      Document Name<span className="text-danger">*</span>
+                    </FormLabel>
                     <FormControl
                       type="text"
                       placeholder="Enter Document Name"
-                      value={newDocumentName}
+                      value={documentName}
                       onChange={(e) => {
-                        setNewDocumentName(e.target.value);
+                        setDocumentName(e.target.value);
                         setFormError("");
                       }}
                       isInvalid={!!formError}
@@ -277,8 +246,71 @@ const {hasEditAccess, hasSubmitAccess}=usePagePermission()
                     )}
                   </Col>
                 </Row>
-                <Button onClick={handleAdd} className="btn btn-primary">
+                <Button onClick={handleAdd} className="btn btn-primary me-2">
                   Add Document
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    setIsAddFormOpen(false);
+                    setDocumentName("");
+                    setFormError("");
+                  }}
+                >
+                  Cancel
+                </Button>
+              </Form>
+            </div>
+          )}
+
+          {isEditFormOpen && (
+            <div className="cover-sheet mb-4">
+              <div className="studentHeading">
+                <h2>Edit Document</h2>
+                <button
+                  className="closeForm"
+                  onClick={() => {
+                    setIsEditFormOpen(false);
+                    setEditingDocument(null);
+                    setDocumentName("");
+                  }}
+                >
+                  X
+                </button>
+              </div>
+              <Form className="formSheet">
+                <Row className="mb-3">
+                  <Col lg={6}>
+                    <FormLabel className="labelForm">
+                      Document Name<span className="text-danger">*</span>
+                    </FormLabel>
+                    <FormControl
+                      type="text"
+                      placeholder="Enter Document Name"
+                      value={documentName}
+                      onChange={(e) => {
+                        setDocumentName(e.target.value);
+                        setFormError("");
+                      }}
+                      isInvalid={!!formError}
+                    />
+                    {formError && (
+                      <div className="text-danger mt-1">{formError}</div>
+                    )}
+                  </Col>
+                </Row>
+                <Button onClick={handleSave} className="btn btn-primary me-2">
+                  Update Document
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    setIsEditFormOpen(false);
+                    setEditingDocument(null);
+                    setDocumentName("");
+                  }}
+                >
+                  Cancel
                 </Button>
               </Form>
             </div>
@@ -298,7 +330,6 @@ const {hasEditAccess, hasSubmitAccess}=usePagePermission()
           </div>
         </Container>
       </section>
-
     </>
   );
 };

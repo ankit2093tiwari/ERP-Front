@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import feeImg from "@/app/Assets/fee.webp";
-import studentImg from "@/app/Assets/contactImg.webp";
 import busImg from "@/app/Assets/bus.webp";
 import stocksImg from "@/app/Assets/stocks.webp";
 import payrollImg from "@/app/Assets/payroll.webp";
@@ -13,7 +12,6 @@ import timetable from "@/app/Assets/timetable.webp";
 import User from "@/app/Assets/user.webp";
 import Website from "@/app/Assets/website.webp";
 import HomeWork from "@/app/Assets/homeWork.webp";
-import Card1 from "./component/Card1";
 import { Row, Col } from "react-bootstrap"
 import { MdOutlineLibraryBooks, MdOutlineAccountTree } from "react-icons/md";
 import { FiUsers } from "react-icons/fi";
@@ -25,8 +23,9 @@ import Image from "next/image";
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import { useSelector } from "react-redux";
 import axios from "axios";
-import { BASE_URL, getTotalStudentsCount } from "@/Services";
+import { BASE_URL, getAllBooksCount, getAllDepartmentsCount, getAllEmployee, getAllUniqueSubjectCount, getTotalStudentsCount } from "@/Services";
 import useSessionId from "@/hooks/useSessionId";
 
 
@@ -35,6 +34,7 @@ const ReactApexChart = dynamic(() => import('react-apexcharts'), { ssr: false })
 
 const Dashboard = () => {
   const selectedSessionId = useSessionId();
+  const { token } = useSelector((state) => state.auth);
 
   const router = useRouter();
   const [dashboardData, setDashboardData] = useState([]);
@@ -42,18 +42,27 @@ const Dashboard = () => {
   const [studentCount, setStudentCount] = useState(0);
   const [studentsByClass, setStudentsByClass] = useState([]);
   const [thoughtOfTheDay, setThoughtOfTheDay] = useState("");
+  const [numberOfDepartment, setNumberOfDepartment] = useState(0)
+  const [numberOfBooks, setNumberOfBooks] = useState(0)
+  const [numberOSubjects, setNumberOfSubjects] = useState(0)
+  const [teachingStaff, setTeachingStaff] = useState(0)
+  const [nonTeachingStaff, setNonTeachingStaff] = useState(0)
 
   // Check authentication and fetch data
   useEffect(() => {
-    const token = localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
+    // const token = localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
     if (!token) {
       router.push('/');
     } else {
       fetchStudentData();
       fetchDashboardData();
       fetchThoughtOfTheDay();
+      fetchDepartmentCount();
+      fetchBookCount();
+      fetchStaffCount();
+      fetchSubjectCount()
     }
-  }, [router, selectedSessionId]);
+  }, [router, selectedSessionId, token]);
 
   // Fetch thought of the day
   const fetchThoughtOfTheDay = async () => {
@@ -74,7 +83,6 @@ const Dashboard = () => {
       setThoughtOfTheDay("Error loading today's thought");
     }
   };
-
 
   // Fetch student count data from API
   const fetchStudentData = async () => {
@@ -116,6 +124,49 @@ const Dashboard = () => {
     ];
     setDashboardData(mockData);
   };
+
+  const fetchDepartmentCount = async () => {
+    try {
+      const res = await getAllDepartmentsCount();
+      setNumberOfDepartment(res.data || 0)
+    } catch (error) {
+      console.error('failed to count departments!', error)
+    }
+  }
+  const fetchBookCount = async () => {
+    try {
+      const res = await getAllBooksCount();
+      setNumberOfBooks(res.data || 0)
+    } catch (error) {
+      console.error('failed to count books!', error)
+    }
+  }
+  const fetchStaffCount = async () => {
+    try {
+      const res = await getAllEmployee();
+      const employees = res.data || [];
+
+      // Count Teaching and Non-Teaching employees
+      const teachingCount = employees.filter(emp => emp.designation_name?.designation_type === 'Teaching').length || 0;
+      const nonTeachingCount = employees.length - teachingCount || 0;
+
+      setTeachingStaff(teachingCount || 0)
+      setNonTeachingStaff(nonTeachingCount || 0)
+    } catch (error) {
+      console.error('Failed to count staff!', error);
+    }
+  };
+  const fetchSubjectCount = async () => {
+    try {
+      const res = await getAllUniqueSubjectCount();
+      setNumberOfSubjects(res.uniqueSubjectCount || 0)
+
+    } catch (error) {
+      console.error('Failed to count staff!', error);
+    }
+  };
+
+
 
   // Radial Chart State
   const [state, setState] = useState({
@@ -294,7 +345,7 @@ const Dashboard = () => {
                         </div>
                         <h5 className="mt-2 pt-7 mb-1 text-center"> Subject </h5>
                         <div className="hstack d-block">
-                          <h5 className="card-title mb-0 fs-7"> 50 </h5>
+                          <h5 className="card-title mb-0 fs-7"> {numberOSubjects.toLocaleString() || "0"} </h5>
                         </div>
                       </div>
                     </div>
@@ -305,9 +356,9 @@ const Dashboard = () => {
                         <div className="iconBox">
                           <MdOutlineAccountTree />
                         </div>
-                        <h5 className="mt-2 pt-7 mb-1 text-center"> Department </h5>
+                        <h5 className="mt-2 pt-7 mb-1 text-center"> Departments </h5>
                         <div className="hstack d-block">
-                          <h5 className="card-title mb-0 fs-7">  850 </h5>
+                          <h5 className="card-title mb-0 fs-7">{numberOfDepartment.toLocaleString() || "0"}</h5>
                         </div>
                       </div>
                     </div>
@@ -320,7 +371,7 @@ const Dashboard = () => {
                         </div>
                         <h5 className="mt-2 pt-7 mb-1 text-center"> Teaching Staff </h5>
                         <div className="hstack d-block">
-                          <h5 className="card-title mb-0 fs-7"> 650 </h5>
+                          <h5 className="card-title mb-0 fs-7">{teachingStaff.toLocaleString() || "0"} </h5>
                         </div>
                       </div>
                     </div>
@@ -333,7 +384,7 @@ const Dashboard = () => {
                         </div>
                         <h5 className="mt-2 pt-7 mb-1 text-center"> Non-Teaching Staff </h5>
                         <div className="hstack d-block">
-                          <h5 className="card-title mb-0 fs-7"> 250 </h5>
+                          <h5 className="card-title mb-0 fs-7"> {nonTeachingStaff.toLocaleString() || "0"} </h5>
                         </div>
                       </div>
                     </div>
@@ -346,7 +397,7 @@ const Dashboard = () => {
                         </div>
                         <h5 className="mt-2 pt-7 mb-1 text-center"> Books </h5>
                         <div className="hstack d-block">
-                          <h5 className="card-title mb-0 fs-7"> 500 </h5>
+                          <h5 className="card-title mb-0 fs-7">{numberOfBooks.toLocaleString() || "0"} </h5>
                         </div>
                       </div>
                     </div>

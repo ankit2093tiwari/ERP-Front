@@ -278,10 +278,13 @@ const ExamMaster = () => {
       <section>
         <Container>
           <div className="cover-sheet">
+            <div className="studentHeading">
+              <h2>Exam Master</h2>
+            </div>
             <div className="formSheet mb-3">
               <Row className="mb-3">
                 <Col md={6}>
-                  <FormLabel>Exam Type *</FormLabel>
+                  <FormLabel className="labelForm">Exam Type<span className="text-danger">*</span></FormLabel>
                   <Form.Select
                     value={selectedExamType}
                     onChange={(e) => setSelectedExamType(e.target.value)}
@@ -295,7 +298,7 @@ const ExamMaster = () => {
                   </Form.Select>
                 </Col>
                 <Col md={6}>
-                  <FormLabel>Class *</FormLabel>
+                  <FormLabel className="labelForm">Class<span className="text-danger">*</span></FormLabel>
                   <Form.Select
                     value={selectedClass}
                     onChange={(e) => setSelectedClass(e.target.value)}

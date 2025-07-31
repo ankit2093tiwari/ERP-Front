@@ -65,9 +65,7 @@ export default function Header({ toggleSidebar, onLogout }) {
     };
 
     fetchSessions();
-  }, []);
-
-
+  }, [dispatch, selectedSessionId]);
 
 
   const toggleDarkMode = (checked) => {

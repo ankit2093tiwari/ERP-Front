@@ -219,96 +219,102 @@ const ClassTeacherAllotment = () => {
         </Container>
       </div>
 
-      <Container className="cover-sheet mt-4">
-        <div className="formSheet mb-4">
-          <Row className="mb-3">
-            <Col md={6}>
-              <Form.Label>Class <span className="text-danger">*</span></Form.Label>
-              <Form.Select
-                value={selectedClass}
-                onChange={(e) => {
-                  setSelectedClass(e.target.value);
-                  setErrors({ ...errors, class: "" });
-                }}
-              >
-                <option value="">Select Class</option>
-                {classes.map(cls => (
-                  <option key={cls._id} value={cls._id}>{cls.class_name}</option>
-                ))}
-              </Form.Select>
-              {errors.class && <div className="text-danger small mt-1">{errors.class}</div>}
-            </Col>
-            <Col md={6}>
-              <Form.Label>Section <span className="text-danger">*</span></Form.Label>
-              <Form.Select
-                value={selectedSection}
-                onChange={(e) => {
-                  setSelectedSection(e.target.value);
-                  setErrors({ ...errors, section: "" });
-                }}
-                disabled={!selectedClass}
-              >
-                <option value="">Select Section</option>
-                {sections.map(sec => (
-                  <option key={sec._id} value={sec._id}>{sec.section_name}</option>
-                ))}
-              </Form.Select>
-              {errors.section && <div className="text-danger small mt-1">{errors.section}</div>}
-            </Col>
-          </Row>
+      <section>
+        <Container >
+          <div className="cover-sheet">
+            <div className="studentHeading">
+              <h2>Allot Class Teacher</h2>
+            </div>
+            <div className="formSheet mb-4">
+              <Row className="mb-3">
+                <Col md={6}>
+                  <Form.Label>Class <span className="text-danger">*</span></Form.Label>
+                  <Form.Select
+                    value={selectedClass}
+                    onChange={(e) => {
+                      setSelectedClass(e.target.value);
+                      setErrors({ ...errors, class: "" });
+                    }}
+                  >
+                    <option value="">Select Class</option>
+                    {classes.map(cls => (
+                      <option key={cls._id} value={cls._id}>{cls.class_name}</option>
+                    ))}
+                  </Form.Select>
+                  {errors.class && <div className="text-danger small mt-1">{errors.class}</div>}
+                </Col>
+                <Col md={6}>
+                  <Form.Label>Section <span className="text-danger">*</span></Form.Label>
+                  <Form.Select
+                    value={selectedSection}
+                    onChange={(e) => {
+                      setSelectedSection(e.target.value);
+                      setErrors({ ...errors, section: "" });
+                    }}
+                    disabled={!selectedClass}
+                  >
+                    <option value="">Select Section</option>
+                    {sections.map(sec => (
+                      <option key={sec._id} value={sec._id}>{sec.section_name}</option>
+                    ))}
+                  </Form.Select>
+                  {errors.section && <div className="text-danger small mt-1">{errors.section}</div>}
+                </Col>
+              </Row>
 
-          <Row>
-            <Col md={6}>
-              <Form.Label>Teacher <span className="text-danger">*</span></Form.Label>
-              <Form.Select
-                value={selectedTeacher}
-                onChange={(e) => {
-                  setSelectedTeacher(e.target.value);
-                  setErrors({ ...errors, teacher: "" });
-                }}
-              >
-                <option value="">Select Teacher</option>
-                {teachers.map(tch => (
-                  <option key={tch._id} value={tch._id}>{tch.employee_name}</option>
-                ))}
-              </Form.Select>
-              {errors.teacher && <div className="text-danger small mt-1">{errors.teacher}</div>}
-            </Col>
-            <Col md={6}>
-              <Form.Label>Allot Date <span className="text-danger">*</span></Form.Label>
-              <Form.Control
-                type="date"
-                value={allotDate}
-                onChange={(e) => {
-                  setAllotDate(e.target.value);
-                  setErrors({ ...errors, date: "" });
-                }}
+              <Row>
+                <Col md={6}>
+                  <Form.Label>Teacher <span className="text-danger">*</span></Form.Label>
+                  <Form.Select
+                    value={selectedTeacher}
+                    onChange={(e) => {
+                      setSelectedTeacher(e.target.value);
+                      setErrors({ ...errors, teacher: "" });
+                    }}
+                  >
+                    <option value="">Select Teacher</option>
+                    {teachers.map(tch => (
+                      <option key={tch._id} value={tch._id}>{tch.employee_name}</option>
+                    ))}
+                  </Form.Select>
+                  {errors.teacher && <div className="text-danger small mt-1">{errors.teacher}</div>}
+                </Col>
+                <Col md={6}>
+                  <Form.Label>Allot Date <span className="text-danger">*</span></Form.Label>
+                  <Form.Control
+                    type="date"
+                    value={allotDate}
+                    onChange={(e) => {
+                      setAllotDate(e.target.value);
+                      setErrors({ ...errors, date: "" });
+                    }}
+                  />
+                  {errors.date && <div className="text-danger small mt-1">{errors.date}</div>}
+                </Col>
+              </Row>
+              {
+                hasSubmitAccess && (
+                  <Button className="mt-3" onClick={handleSubmit} disabled={loading}>
+                    {loading ? <Spinner animation="border" size="sm" /> : "Submit"}
+                  </Button>
+                )
+              }
+            </div>
+          </div>
+          <div className="tableSheet">
+            {fetching ? (
+              <p>Loading...</p>
+            ) : (
+              <Table
+                columns={columns}
+                data={allotments}
+                handleCopy={handleCopy}
+                handlePrint={handlePrint}
               />
-              {errors.date && <div className="text-danger small mt-1">{errors.date}</div>}
-            </Col>
-          </Row>
-          {
-            hasSubmitAccess && (
-              <Button className="mt-3" onClick={handleSubmit} disabled={loading}>
-                {loading ? <Spinner animation="border" size="sm" /> : "Submit"}
-              </Button>
-            )
-          }
-        </div>
-
-        <div className="tableSheet">
-          {fetching ? (
-            <p>Loading...</p>
-          ) : (
-            <Table
-              columns={columns}
-              data={allotments}
-              handleCopy={handleCopy}
-              handlePrint={handlePrint}
-            />
-          )}
-        </div>
-      </Container>
+            )}
+          </div>
+        </Container>
+      </section>
     </>
   );
 };

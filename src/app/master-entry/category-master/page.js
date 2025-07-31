@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
+import { FaEdit, FaTrashAlt, FaSave, FaTimes } from "react-icons/fa";
 import { CgAddR } from "react-icons/cg";
 import {
   Form,
@@ -25,11 +25,11 @@ const CategoryMasterPage = () => {
 
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [newCategoryName, setNewCategoryName] = useState("");
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [isAddFormOpen, setIsAddFormOpen] = useState(false);
+  const [isEditFormOpen, setIsEditFormOpen] = useState(false);
+  const [categoryName, setCategoryName] = useState("");
   const [fieldError, setFieldError] = useState("");
-  const [editingId, setEditingId] = useState(null);
-  const [editedName, setEditedName] = useState("");
+  const [editingCategory, setEditingCategory] = useState(null);
 
   const columns = [
     {
@@ -40,44 +40,122 @@ const CategoryMasterPage = () => {
     },
     {
       name: "Category Name",
-      cell: (row) =>
-        editingId === row._id ? (
-          <FormControl
-            type="text"
-            value={editedName}
-            onChange={(e) => setEditedName(e.target.value)}
-          />
-        ) : (
-          row.category_name || "N/A"
-        ),
+      selector: (row) => row.category_name || "N/A",
       sortable: true,
     },
     hasEditAccess && {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-1">
-          {editingId === row._id ? (
-            <button className="editButton" onClick={() => handleSave(row._id)}>
-              <FaSave />
-            </button>
-          ) : (
-            <button
-              className="editButton"
-              onClick={() => handleEdit(row._id, row.category_name)}
-            >
-              <FaEdit />
-            </button>
-          )}
-          <button
-            className="editButton btn-danger"
+          <Button
+          size="sm" variant="success"
+            onClick={() => handleEditClick(row)}
+          >
+            <FaEdit />
+          </Button>
+          <Button
+          size="sm" variant="danger"
             onClick={() => handleDelete(row._id)}
           >
             <FaTrashAlt />
-          </button>
+          </Button>
         </div>
       ),
+      width: "120px"
     },
-  ];
+  ].filter(Boolean);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const response = await getCategories()
+      setData(response?.data)
+    } catch (err) {
+      toast.error("Failed to fetch data. Please try again later.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEditClick = (category) => {
+    setEditingCategory(category);
+    setCategoryName(category.category_name);
+    setIsEditFormOpen(true);
+  };
+
+  const handleSave = async () => {
+    if (!categoryName.trim()) {
+      toast.warning("Category name cannot be empty.");
+      return;
+    }
+
+    const exists = data.find(
+      (cat) =>
+        cat.category_name.trim().toLowerCase() === categoryName.trim().toLowerCase() && 
+        cat._id !== editingCategory._id
+    );
+
+    if (exists) {
+      toast.warning("Category with this name already exists!");
+      return;
+    }
+
+    try {
+      const res = await updateCategory(editingCategory._id, { category_name: categoryName })
+      toast.success("Category updated successfully!");
+      fetchData();
+      setIsEditFormOpen(false);
+      setEditingCategory(null);
+      setCategoryName("");
+    } catch (error) {
+      toast.error("Failed to update category. Please try again later.");
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (confirm("Are you sure you want to delete this category?")) {
+      try {
+        await deleteCategory(id)
+        toast.success("Category deleted successfully");
+        fetchData();
+      } catch (error) {
+        toast.error("Failed to delete category. Please try again later.");
+      }
+    }
+  };
+
+  const handleAdd = async () => {
+    if (!categoryName.trim()) {
+      setFieldError("Category name is required.");
+      toast.warning("Please enter a valid category name.");
+      return;
+    }
+
+    const exists = data.find(
+      (cat) =>
+        cat.category_name.trim().toLowerCase() === categoryName.trim().toLowerCase()
+    );
+
+    if (exists) {
+      setFieldError("Category already exists.");
+      toast.warning("Category already exists!");
+      return;
+    }
+
+    try {
+      const response = await addCategory({
+        category_name: categoryName,
+      });
+
+      toast.success("Category added successfully!");
+      fetchData();
+      setCategoryName("");
+      setIsAddFormOpen(false);
+      setFieldError("");
+    } catch (error) {
+      toast.error("Failed to add category. Please try again later.");
+    }
+  };
 
   const handlePrint = () => {
     const tableHeaders = [["#", "Category Name"]];
@@ -95,103 +173,6 @@ const CategoryMasterPage = () => {
     );
     copyContent(headers, rows);
   };
-
-  const fetchData = async () => {
-    setLoading(true);
-    try {
-      const response = await getCategories()
-      setData(response?.data)
-    } catch (err) {
-      toast.error("Failed to fetch data. Please try again later.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleEdit = (id, name) => {
-    setEditingId(id);
-    setEditedName(name);
-  };
-
-  const handleSave = async (id) => {
-    if (!editedName.trim()) {
-      toast.warning("Category name cannot be empty.");
-      return;
-    }
-
-    const exists = data.find(
-      (cat) =>
-        cat.category_name.trim().toLowerCase() ===
-        editedName.trim().toLowerCase() && cat._id !== id
-    );
-
-    if (exists) {
-      toast.warning("Category with this name already exists!");
-      setEditingId(null);
-      return;
-    }
-
-    try {
-      const res = await updateCategory(id, { category_name: editedName })
-      toast.success("Category updated successfully!");
-      fetchData()
-
-      setEditingId(null);
-    } catch (error) {
-      toast.error("Failed to update category. Please try again later.");
-    }
-  };
-
-  const handleDelete = async (id) => {
-    if (confirm("Are you sure you want to delete this category?")) {
-      try {
-        await deleteCategory(id)
-        toast.success("Category deleted successfully");
-        fetchData(); // re-fetch and resort
-      } catch (error) {
-        toast.error("Failed to delete category. Please try again later.", {
-          position: "top-right",
-        });
-      }
-    }
-  };
-
-  const handleAdd = async () => {
-    if (!newCategoryName.trim()) {
-      setFieldError("Category name is required.");
-      toast.warning("Please enter a valid category name.");
-      return;
-    }
-
-    const exists = data.find(
-      (cat) =>
-        cat.category_name.trim().toLowerCase() ===
-        newCategoryName.trim().toLowerCase()
-    );
-
-    if (exists) {
-      setFieldError("Category already exists.");
-      toast.warning("Category already exists!");
-      setIsPopoverOpen(false);
-      setNewCategoryName("");
-      return;
-    }
-
-    try {
-      const response = await addCategory({
-        category_name: newCategoryName,
-      });
-
-      toast.success("Category added successfully!");
-      fetchData();
-      setNewCategoryName("");
-      setIsPopoverOpen(false);
-      setFieldError(""); // Clear any previous error
-    } catch (error) {
-      toast.error("Failed to add category. Please try again later.");
-    }
-  };
-
 
   useEffect(() => {
     fetchData();
@@ -217,20 +198,21 @@ const CategoryMasterPage = () => {
       <section>
         <Container>
           {hasSubmitAccess && (
-            <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
+            <Button onClick={() => setIsAddFormOpen(true)} className="btn-add">
               <CgAddR /> Add Category
             </Button>
           )}
 
-          {isPopoverOpen && (
-            <div className="cover-sheet">
+          {isAddFormOpen && (
+            <div className="cover-sheet mb-4">
               <div className="studentHeading">
                 <h2>Add New Category</h2>
                 <button
                   className="closeForm"
                   onClick={() => {
-                    setIsPopoverOpen(false);
-                    setNewCategoryName("");
+                    setIsAddFormOpen(false);
+                    setCategoryName("");
+                    setFieldError("");
                   }}
                 >
                   X
@@ -239,23 +221,85 @@ const CategoryMasterPage = () => {
               <Form className="formSheet">
                 <Row className="mb-3">
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Category Name<span className="text-danger">*</span></FormLabel>
+                    <FormLabel className="labelForm">
+                      Category Name<span className="text-danger">*</span>
+                    </FormLabel>
                     <FormControl
                       type="text"
                       placeholder="Enter Category Name"
-                      value={newCategoryName}
+                      value={categoryName}
                       onChange={(e) => {
-                        setNewCategoryName(e.target.value);
+                        setCategoryName(e.target.value);
                         if (fieldError) setFieldError("");
                       }}
                       isInvalid={!!fieldError}
                     />
                     {fieldError && <div className="text-danger mt-1">{fieldError}</div>}
-
                   </Col>
                 </Row>
-                <Button onClick={handleAdd} className="btn btn-primary">
+                <Button onClick={handleAdd} className="btn btn-primary me-2">
                   Add Category
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    setIsAddFormOpen(false);
+                    setCategoryName("");
+                    setFieldError("");
+                  }}
+                >
+                  Cancel
+                </Button>
+              </Form>
+            </div>
+          )}
+
+          {isEditFormOpen && (
+            <div className="cover-sheet mb-4">
+              <div className="studentHeading">
+                <h2>Edit Category</h2>
+                <button
+                  className="closeForm"
+                  onClick={() => {
+                    setIsEditFormOpen(false);
+                    setEditingCategory(null);
+                    setCategoryName("");
+                  }}
+                >
+                  X
+                </button>
+              </div>
+              <Form className="formSheet">
+                <Row className="mb-3">
+                  <Col lg={6}>
+                    <FormLabel className="labelForm">
+                      Category Name<span className="text-danger">*</span>
+                    </FormLabel>
+                    <FormControl
+                      type="text"
+                      placeholder="Enter Category Name"
+                      value={categoryName}
+                      onChange={(e) => {
+                        setCategoryName(e.target.value);
+                        if (fieldError) setFieldError("");
+                      }}
+                      isInvalid={!!fieldError}
+                    />
+                    {fieldError && <div className="text-danger mt-1">{fieldError}</div>}
+                  </Col>
+                </Row>
+                <Button onClick={handleSave} className="btn btn-primary me-2">
+                  Update Category
+                </Button>
+                <Button
+                  variant="secondary"
+                  onClick={() => {
+                    setIsEditFormOpen(false);
+                    setEditingCategory(null);
+                    setCategoryName("");
+                  }}
+                >
+                  Cancel
                 </Button>
               </Form>
             </div>

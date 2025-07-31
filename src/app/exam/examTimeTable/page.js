@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Container, Row, Col, Form, Button, Spinner, Alert } from 'react-bootstrap';
 import BreadcrumbComp from "@/app/component/Breadcrumb";
-import { getClasses, getAllExamTypes, BASE_URL, getExamsTimeTable } from '@/Services';
+import { getClasses, getAllExamTypes, getExamsTimeTable } from '@/Services';
 import DataTable from '@/app/component/DataTable';
 import { copyContent, printContent } from "@/app/utils";
 import useSessionId from '@/hooks/useSessionId';
@@ -150,9 +150,12 @@ const ExamTimeTable = () => {
         </Container>
       </div>
       <section>
-        <Container fluid className="mt-4 studentHeading">
-          <h2>Exam Time Table</h2>
+        <Container>
+
           <div className="cover-sheet">
+            <div className='studentHeading'>
+              <h2>Exam Time Table</h2>
+            </div>
             <div className='formSheet'>
               <Row className="mb-3">
                 <Col md={5}>
