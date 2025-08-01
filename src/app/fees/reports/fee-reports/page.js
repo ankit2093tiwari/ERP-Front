@@ -10,34 +10,16 @@ import BreadcrumbComp from "@/app/component/Breadcrumb";
 const Page = () => {
     const cardData = [
         {
-            href: "/library/reports/book-bank",
-            icon: <Image src="/module/library/library.png" className="studentIcon" width={100} height={100} alt="" />,
-            title: "Book Bank",
-            description: "Check all books record",
+            href: "/fees/reports/all-collection",
+            icon: <Image src="/module/fees/datewise.png" className="studentIcon" width={100} height={100} alt="" />,
+            title: "All Collection",
+            description: "Check total Colection of fee",
         },
         {
-            href: "/library/reports/publisher-report",
-            icon: <Image src="/module/library/library1.png" className="studentIcon" width={100} height={100} alt="" />,
-            title: "Publisher Records",
-            description: "Check all publishers record",
-        },
-        {
-            href: "/library/reports/issued-returned-book-report",
-            icon: <Image src="/module/library/library2.png" className="studentIcon" width={100} height={100} alt="" />,
-            title: "Issued/Returned Books",
-            description: "Check issued/returned books record",
-        },
-        {
-            href: "/library/reports/suggested-book-report",
-            icon: <Image src="/module/library/library3.png" className="studentIcon" width={100} height={100} alt="" />,
-            title: "Suggested Books Reports",
-            description: "Check issued/returned books record",
-        },
-        {
-            href: "/library/reports/pay-fine-records",
-            icon: <Image src="/module/library/library4.png" className="studentIcon" width={100} height={100} alt="" />,
-            title: "Pay Fine Reports",
-            description: "Check all retuned bookm fine report",
+            href: "/fees/reports/daywise-collection",
+            icon: <Image src="/module/fees/dailywise.png" className="studentIcon" width={100} height={100} alt="" />,
+            title: "Daily Wise Collection",
+            description: "Check Fee Collection dailywise",
         },
     ];
 
@@ -57,7 +39,7 @@ const Page = () => {
             <section>
                 <Container>
                     <div className="studentHeading">
-                        <h2>Library Reports</h2>
+                        <h2>Fees Reports</h2>
                         <small>Manage your basic details....</small>
                     </div>
                     <div className="cardContainer">

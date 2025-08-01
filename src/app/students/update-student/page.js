@@ -362,7 +362,7 @@ const UpdatePage = () => {
                 <Tab eventKey="Basic Details" title="Basic Details" className='cover-sheet'>
                   <div className="studentHeading"><h2> Search & Update Fields of Student  </h2> </div>
                   <Form className="formSheet" >
-                    <Row className="mb-3">
+                    <Row className="mb-1">
                       <Col lg={12}>
                         <FormGroup as={Col} lg="12" md="12">
 
@@ -377,7 +377,7 @@ const UpdatePage = () => {
 
                       </Col>
                     </Row>
-                    <Row className="mb-3">
+                    <Row className="mb-1">
                       <FormGroup as={Col} md="3" controlId="validationCustom01">
                         <FormLabel className="labelForm">Student name</FormLabel>
                         <FormControl
@@ -420,7 +420,7 @@ const UpdatePage = () => {
 
                       </FormGroup>
                     </Row>
-                    <Row className="mb-3">
+                    <Row className="mb-1">
                       <FormGroup as={Col} md="3" controlId="validationCustom04">
                         <FormLabel className="labelForm" >Father Name</FormLabel>
                         <FormControl
@@ -666,14 +666,14 @@ const UpdatePage = () => {
                           <option value="3">Cottage</option>
                           <option value="4">Movable Dwelling</option>
                           <option value="5">Bungalow</option>
-                          <option value="5">Duplex</option>
-                          <option value="5">Mansion</option>
+                          <option value="6">Duplex</option>
+                          <option value="7">Mansion</option>
                         </FormSelect>
                       </FormGroup>
-                      <FormGroup as={Col} md="3" controlId="validationCustom10">
+                      <FormGroup as={Col} md="3" controlId="validationCustom21">
                         <FormLabel className="labelForm">Date Of Admission</FormLabel>
                         <FormControl
-                          value={student?.date_of_admission ? new Date(student?.date_of_admission).toISOString().split('T')[0] : ""}
+                          value={student.date_of_admission ? new Date(student.date_of_admission).toISOString().split('T')[0] : ""}
                           onChange={(e) => setStudent({ ...student, date_of_admission: e.target.value })}
                           type="date"
                           name="date_of_admission"
@@ -681,10 +681,10 @@ const UpdatePage = () => {
                         />
                         <p className="error">{studentError.date_of_admission_error}</p>
                       </FormGroup>
-                      <FormGroup as={Col} md="3" controlId="validationCustom10">
+                      <FormGroup as={Col} md="3" controlId="validationCustom22">
                         <FormLabel className="labelForm">Date Of Joining</FormLabel>
                         <FormControl
-                          value={student?.date_of_joining ? new Date(student?.date_of_joining).toISOString().split('T')[0] : ""}
+                          value={student.date_of_joining ? new Date(student.date_of_joining).toISOString().split('T')[0] : ""}
                           onChange={(e) => setStudent({ ...student, date_of_joining: e.target.value })}
                           type="date"
                           name="date_of_joining "
@@ -695,7 +695,7 @@ const UpdatePage = () => {
                       <FormGroup as={Col} md="3" controlId="validationCustom23">
                         <FormLabel className="labelForm">Board Registration Number</FormLabel>
                         <FormControl
-                          value={student?.board_Registration_Number}
+                          value={student.board_Registration_Number || ""}
                           onChange={handleChange}
                           type="text"
                           name="board_Registration_Number"
@@ -707,7 +707,7 @@ const UpdatePage = () => {
                       <FormGroup as={Col} md="3" controlId="validationCustom24">
                         <FormLabel className="labelForm">Scholar No</FormLabel>
                         <FormControl
-                          value={student?.scholar_No}
+                          value={student.scholar_No || ""}
                           onChange={handleChange}
                           type="text"
                           name="scholar_No"
@@ -718,7 +718,7 @@ const UpdatePage = () => {
                       <FormGroup as={Col} md="3" controlId="validationCustom25">
                         <FormLabel className="labelForm">Name of School Last Attended</FormLabel>
                         <FormControl
-                          value={student?.last_School_Name}
+                          value={student.last_School_Name || ""}
                           onChange={handleChange}
                           type="text"
                           name="last_School_Name"
@@ -729,7 +729,7 @@ const UpdatePage = () => {
                       <FormGroup as={Col} md="3" controlId="validationCustom26">
                         <FormLabel className="labelForm">SR. No</FormLabel>
                         <FormControl
-                          value={student?.sr_No}
+                          value={student.sr_No || ""}
                           onChange={handleChange}
                           type="text"
                           name="sr_No"
@@ -763,7 +763,7 @@ const UpdatePage = () => {
                       <FormGroup as={Col} md="3" controlId="validationCustom28">
                         <FormLabel className="labelForm">Bank Account No</FormLabel>
                         <FormControl
-                          value={student?.bank_Account_No}
+                          value={student.bank_Account_No || ""}
                           onChange={handleChange}
                           type="text"
                           name="bank_Account_No"
@@ -773,7 +773,7 @@ const UpdatePage = () => {
                       <FormGroup as={Col} md="3" controlId="validationCustom29">
                         <FormLabel className="labelForm">A/C Name</FormLabel>
                         <FormControl
-                          value={student?.account_Name}
+                          value={student.account_Name || ""}
                           onChange={handleChange}
                           type="text"
                           name="account_Name"
@@ -783,7 +783,7 @@ const UpdatePage = () => {
                       <FormGroup as={Col} md="3" controlId="validationCustom30">
                         <FormLabel className="labelForm">Bank Name</FormLabel>
                         <FormControl
-                          value={student?.bank_Name}
+                          value={student.bank_Name || ""}
                           onChange={handleChange}
                           type="text"
                           name="bank_Name"
@@ -793,7 +793,7 @@ const UpdatePage = () => {
                       <FormGroup as={Col} md="3" controlId="validationCustom31">
                         <FormLabel className="labelForm">IFSC Code</FormLabel>
                         <FormControl
-                          value={student?.ifsc_Code}
+                          value={student.ifsc_Code || ""}
                           onChange={handleChange}
                           type="text"
                           name="ifsc_Code"
@@ -870,20 +870,10 @@ const UpdatePage = () => {
                       </FormGroup>
                     </Row>
                     <Row className='mb-3'>
-                      {/* <FormGroup as={Col} md="6" controlId="validationCustom38">
-                        <FormLabel className="labelForm">City/District</FormLabel>
-                        <FormControl
-                          value={student?.city_district}
-                          onChange={handleChange}
-                          type="text"
-                          name="city_district"
-                          placeholder="City/District"
-                        />
-                      </FormGroup> */}
                       <FormGroup as={Col} md="6" controlId="validationCustom40">
                         <FormLabel className="labelForm">Pin No</FormLabel>
                         <FormControl
-                          value={student?.pin_no}
+                          value={student.pin_no || ""}
                           onChange={handleChange}
                           type="text"
                           name="pin_no"
@@ -912,7 +902,7 @@ const UpdatePage = () => {
                           documents from this section.
                         </p>
                         <div className="p-4">
-                          <Row className="mb-3">
+                          <Row className="mb-1">
                             <FormGroup as={Col} md="6" controlId="validationCustom001">
                               <FormLabel className="labelForm">Birth Certificate</FormLabel>
                               <FormControl
@@ -922,7 +912,7 @@ const UpdatePage = () => {
                               />
                             </FormGroup>
                           </Row>
-                          <Row className="mb-3">
+                          <Row className="mb-1">
                             <FormGroup as={Col} md="6" controlId="validationCustom002">
                               <FormLabel className="labelForm">Caste Certificate</FormLabel>
                               <FormControl
@@ -932,7 +922,7 @@ const UpdatePage = () => {
                               />
                             </FormGroup>
                           </Row>
-                          <Row className="mb-3">
+                          <Row className="mb-1">
                             <FormGroup as={Col} md="6" controlId="validationCustom003">
                               <FormLabel className="labelForm">Character Certificate</FormLabel>
                               <FormControl
@@ -942,7 +932,7 @@ const UpdatePage = () => {
                               />
                             </FormGroup>
                           </Row>
-                          <Row className="mb-3">
+                          <Row className="mb-1">
                             <FormGroup as={Col} md="6" controlId="validationCustom003">
                               <FormLabel className="labelForm">Migration Certificate</FormLabel>
                               <FormControl
@@ -952,7 +942,7 @@ const UpdatePage = () => {
                               />
                             </FormGroup>
                           </Row>
-                          <Row className="mb-3">
+                          <Row className="mb-1">
                             <FormGroup as={Col} md="6" controlId="validationCustom004">
                               <FormLabel className="labelForm">MarkSheet</FormLabel>
                               <FormControl
@@ -962,7 +952,7 @@ const UpdatePage = () => {
                               />
                             </FormGroup>
                           </Row>
-                          <Row className="mb-3">
+                          <Row className="mb-1">
                             <FormGroup as={Col} md="6" controlId="validationCustom005">
                               <FormLabel className="labelForm">Previous Year Result</FormLabel>
                               <FormControl
@@ -972,7 +962,7 @@ const UpdatePage = () => {
                               />
                             </FormGroup>
                           </Row>
-                          <Row className="mb-3">
+                          <Row className="mb-1">
                             <FormGroup as={Col} md="6" controlId="validationCustom006">
                               <FormLabel className="labelForm">Doc TTL</FormLabel>
                               <FormControl
@@ -982,7 +972,7 @@ const UpdatePage = () => {
                               />
                             </FormGroup>
                           </Row>
-                          <Row className="mb-3">
+                          <Row className="mb-1">
                             <FormGroup as={Col} md="6" controlId="validationCustom007">
                               <FormLabel className="labelForm">Transfer Certificate (TC)</FormLabel>
                               <FormControl

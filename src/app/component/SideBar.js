@@ -162,7 +162,31 @@ export default function Sidebar({ isOpen }) {
         // { title: "Fee Entryy", href: "/fees/feeEntryy", icon: <FaAngleDoubleRight /> },
         { title: "Concession Entry", href: "/fees/concession-entry", icon: <FaAngleDoubleRight /> },
         { title: "Cheque Bounce Entry", href: "/fees/cheque-bounce", icon: <FaAngleDoubleRight /> },
+        {
+            title: "Reports",
+            href: "/fees/reports/fee-reports",
+            icon: <FaFileAlt />,
+            isOpen: true,
+            children: [
+                {
+                    title: "All Reports",
+                    href: "/fees/reports/fee-reports",
+                    icon: <FaAngleDoubleRight />,
+                },
+                {
+                    title: "All Collection",
+                    href: "/fees/reports/all-collection",
+                    icon: <FaAngleDoubleRight />,
+                },
+                {
+                    title: "Dailywise Collection",
+                    href: "/fees/reports/daywise-collection",
+                    icon: <FaAngleDoubleRight />,
+                },
+            ],
+        },
     ];
+
 
     const frontItems = [
         { title: "All Modules", href: "/front-office/all-module", icon: <FaAngleDoubleRight /> },
@@ -323,6 +347,11 @@ export default function Sidebar({ isOpen }) {
                     href: "/hrd/facultyAttendence/markPresent",
                     icon: <FaAngleDoubleRight />,
                 },
+                {
+                    title: "Mark Half Day",
+                    href: "/hrd/facultyAttendence/mark-halfDay",
+                    icon: <FaAngleDoubleRight />,
+                },
             ],
         },
     ];
@@ -367,6 +396,11 @@ export default function Sidebar({ isOpen }) {
                 {
                     title: "Suggested Book Report",
                     href: "/library/reports/suggested-book-report",
+                    icon: <FaAngleDoubleRight />,
+                },
+                {
+                    title: "Pay Fine Reports",
+                    href: "/library/reports/pay-fine-records",
                     icon: <FaAngleDoubleRight />,
                 },
 
@@ -625,15 +659,39 @@ export default function Sidebar({ isOpen }) {
                                     </span>
                                 </Accordion.Header>
                                 <Accordion.Body>
-                                    <ul style={{ listStyle: "none", paddingLeft: isOpen || activeKey ? "20px" : "0" }}>
+                                    <ul style={{ listStyle: "none", paddingLeft: (isOpen || sidebarHover) ? "20px" : "0" }}>
                                         {feeItems.map((item, index) => (
-                                            <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
-                                                {item.icon}
-                                                <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>
-                                                    <Link href={item.href}>
-                                                        {item.title}
-                                                    </Link>
-                                                </span>
+                                            <li key={index} style={{ padding: "5px 0" }}>
+                                                <div style={{ display: "flex", alignItems: "center" }}>
+                                                    {item.icon}
+                                                    <span
+                                                        style={{
+                                                            marginLeft: "10px",
+                                                            display: (isOpen || sidebarHover) ? "inline" : "none",
+                                                        }}
+                                                    >
+                                                        <Link href={item.href}>{item.title}</Link>
+                                                    </span>
+                                                </div>
+                                                {item.children && activeKey === "fee" && (
+                                                    <ul style={{ listStyle: "none", paddingLeft: "20px" }}>
+                                                        {item.children.map((child, childIndex) => (
+                                                            <li
+                                                                key={childIndex}
+                                                                style={{
+                                                                    padding: "5px 0",
+                                                                    display: "flex",
+                                                                    alignItems: "center",
+                                                                }}
+                                                            >
+                                                                {child.icon}
+                                                                <span style={{ marginLeft: "10px" }}>
+                                                                    <Link href={child.href}>{child.title}</Link>
+                                                                </span>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                )}
                                             </li>
                                         ))}
                                     </ul>

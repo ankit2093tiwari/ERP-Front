@@ -126,9 +126,9 @@ const ExpenseEntry = () => {
 
   const columns = [
     { name: "#", selector: (row, i) => i + 1, width: "60px" },
-    { name: "Date", selector: (row) => new Date(row.date).toLocaleDateString(),sortable:true  },
-    { name: "Item Name", selector: (row) => row.itemName,sortable:true  },
-    { name: "Amount", selector: (row) => row.amount,sortable:true },
+    { name: "Date", selector: (row) => new Date(row.date).toLocaleDateString(), sortable: true },
+    { name: "Item Name", selector: (row) => row.itemName, sortable: true },
+    { name: "Amount", selector: (row) => row.amount, sortable: true },
     { name: "Description", selector: (row) => row.description || "-" },
     hasEditAccess && {
       name: "Actions",

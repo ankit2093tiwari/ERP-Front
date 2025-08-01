@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Form, Row, Col, Container, FormLabel, Button, Breadcrumb, FormSelect, Alert } from "react-bootstrap";
 import Table from "@/app/component/DataTable";
 import styles from "@/app/students/assign-roll-no/page.module.css";
@@ -15,7 +15,7 @@ const SpeechRecognition =
     : null;
 const StudentBulkUpdate = () => {
   const selectedSessionId = useSessionId();
-  const {hasEditAccess}=usePagePermission()
+  const { hasEditAccess } = usePagePermission()
 
   const [classList, setClassList] = useState([]);
   const [sectionList, setSectionList] = useState([]);
@@ -45,49 +45,8 @@ const StudentBulkUpdate = () => {
     }
   }, [selectedClass]);
 
-  useEffect(() => {
-    if (selectedClass && selectedSection) {
-      fetchStudents();
-    } else {
-      // Reset students when section is cleared
-      setStudents([]);
-      setUpdatedStudents([]);
-      setShowUpdateButton(false);
-      setNoRecordsFound(false);
-    }
-  }, [selectedClass, selectedSection]);
 
-  // Voice recognition logic
-  useEffect(() => {
-    if (!SpeechRecognition) return;
 
-    const recognition = new SpeechRecognition();
-    recognition.continuous = true;
-    recognition.interimResults = false;
-    recognition.lang = "en-US";
-    recognitionRef.current = recognition;
-
-    recognition.onresult = (event) => {
-      const transcript = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
-      console.log("Heard:", transcript);
-
-      if (transcript.includes("update students") && showUpdateButton) {
-        handleUpdateStudents();
-      }
-    };
-
-    recognition.onerror = (event) => {
-      console.error("Speech recognition error:", event.error);
-    };
-
-    if (isListening) {
-      recognition.start();
-    } else {
-      recognition.stop();
-    }
-
-    return () => recognition.stop();
-  }, [isListening, showUpdateButton]);
 
   const fetchClasses = async () => {
     try {
@@ -106,8 +65,27 @@ const StudentBulkUpdate = () => {
       console.error("Failed to fetch sections", error);
     }
   };
+  const handleUpdateStudents = useCallback(async () => {
+    try {
+      const response = await updateBulkStudents({ students: updatedStudents });
 
-  const fetchStudents = async () => {
+      if (response?.success) {
+        toast.success(response?.message);
+        setSelectedClass("");
+        setSelectedSection("");
+        setStudents([]);
+        setUpdatedStudents([]);
+        setShowUpdateButton(false);
+        setNoRecordsFound(false);
+      } else {
+        toast.error(response?.message);
+      }
+    } catch (error) {
+      console.error("Failed to update students", error);
+      toast.error("Error updating students.");
+    }
+  }, [updatedStudents]);
+  const fetchStudents = useCallback(async () => {
     setLoading(true);
     setNoRecordsFound(false);
     try {
@@ -130,7 +108,48 @@ const StudentBulkUpdate = () => {
       setNoRecordsFound(true);
     }
     setLoading(false);
-  };
+  }, [selectedClass, selectedSection]);
+  useEffect(() => {
+    if (selectedClass && selectedSection) {
+      fetchStudents();
+    } else {
+      setStudents([]);
+      setUpdatedStudents([]);
+      setShowUpdateButton(false);
+      setNoRecordsFound(false);
+    }
+  }, [selectedClass, selectedSection, fetchStudents]);
+  useEffect(() => {
+    if (!SpeechRecognition) return;
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = true;
+    recognition.interimResults = false;
+    recognition.lang = "en-US";
+    recognitionRef.current = recognition;
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
+      console.log("Heard:", transcript);
+
+      if (transcript.includes("update students") && showUpdateButton) {
+        handleUpdateStudents(); // ✅ safe now since it's wrapped in useCallback
+      }
+    };
+
+    recognition.onerror = (event) => {
+      console.error("Speech recognition error:", event.error);
+    };
+
+    if (isListening) {
+      recognition.start();
+    } else {
+      recognition.stop();
+    }
+
+    return () => recognition.stop();
+  }, [isListening, showUpdateButton, handleUpdateStudents]); // ✅ added handleUpdateStudents
+
 
   const handleClassChange = (event) => {
     const classId = event.target.value;
@@ -147,28 +166,8 @@ const StudentBulkUpdate = () => {
     setUpdatedStudents(updatedList);
   };
 
-  const handleUpdateStudents = async () => {
-    try {
-      const response = await updateBulkStudents({ students: updatedStudents });
 
-      if (response?.success) {
-        toast.success(response?.message);
-        setSelectedClass("");
-        setSelectedSection("");
-        setStudents([]);
-        setUpdatedStudents([]);
-        setShowUpdateButton(false);
-        setNoRecordsFound(false);
-        // Optionally hide update button or reset flags
-        setShowUpdateButton(false);
-      } else {
-        toast.error(response?.message);
-      }
-    } catch (error) {
-      console.error("Failed to update students", error);
-      toast.error("Error updating students.");
-    }
-  };
+
 
 
   const columns = [
@@ -334,7 +333,7 @@ const StudentBulkUpdate = () => {
                 ) : students.length > 0 ? (
                   <Table columns={columns} data={students} />
                 ) : (
-                  <p className="text-center text-danger">Please select both class and section to view students.</p>
+                  <Alert variant="primary">Please select both class and section to view students.</Alert>
                 )}
               </div>
             </Col>

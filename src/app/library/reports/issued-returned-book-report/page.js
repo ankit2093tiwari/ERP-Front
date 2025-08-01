@@ -1,13 +1,14 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { Container, Row, Col, } from "react-bootstrap";
+import { Container, Row, Col, Spinner } from "react-bootstrap";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { copyContent, printContent } from "@/app/utils";
 import { getAllIssuedBooks, getFineMaster, returnIssueBookById } from "@/Services";
 import Table from "@/app/component/DataTable";
 
 const ReturnBookReport = () => {
+    const [loading, setLoading] = useState(false)
     const breadcrumbItems = [
         { label: "Library", link: "/library/all-module" },
         { label: "Return Book", link: "null" },
@@ -16,8 +17,16 @@ const ReturnBookReport = () => {
     const [data, setData] = useState([]);
 
     const fetchIssuedBooks = async () => {
-        const response = await getAllIssuedBooks();
-        setData(response.data);
+        try {
+            setLoading(true)
+            const response = await getAllIssuedBooks();
+            setData(response.data);
+        } catch (error) {
+            console.error('failed to fetch data', error)
+        }
+        finally {
+            setLoading(false)
+        }
     };
 
     useEffect(() => {
@@ -70,11 +79,18 @@ const ReturnBookReport = () => {
             <section>
                 <Container>
                     <div className="tableSheet mt-4">
-                        <h2>Returned Book Records</h2>
-                        <Table columns={columns}
-                            data={data}
-                            handleCopy={handleCopyIssuedBooks}
-                            handlePrint={handlePrintIssuedBooks} />
+                        <h2>Issued / Returned Book Records</h2>
+                        {loading ? (
+                            <div className="text-center py-5">
+                                <Spinner animation="border" variant="primary" />
+                            </div>
+                        ) : (
+                            <Table columns={columns}
+                                data={data}
+                                handleCopy={handleCopyIssuedBooks}
+                                handlePrint={handlePrintIssuedBooks} />
+                        )}
+
                     </div>
                 </Container>
             </section>

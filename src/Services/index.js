@@ -536,6 +536,21 @@ export const getLimitedFeeEntries = async (limit) => {
     const response = await axios.get(`${BASE_URL}/api/fee-entries-limit?limit=${limit}`)
     return response?.data;
 }
+export const getDailyWiseFeeCollection = async ({ date, classId }) => {
+    const response = await axios.get(`${BASE_URL}/api/daywise-feecollection`, {
+        params: {
+            date,
+            classId,
+        },
+    })
+    return response?.data;
+}
+export const getDateWiseFeeCollection = async (filter) => {
+    const response = await axios.get(`${BASE_URL}/api/datewise-feecollection`, {
+        params: filter,
+    })
+    return response?.data;
+}
 
 export const addNewFixedAmount = async (payload) => {
     const response = await axios.post(`${BASE_URL}/api/create-fixed-amounts`, payload)
@@ -987,7 +1002,10 @@ export const createFacultyAttendance = async (payload) => {
     const response = await axios.post(`${BASE_URL}/api/faculty-attendance`, payload)
     return response?.data;
 }
-
+export const facultyHalfDayMark = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/faculty-half-day`, payload)
+    return response?.data;
+}
 
 export const getAdvertisementTypes = async () => {
     const response = await axios.get(`${BASE_URL}/api/advertisings`)

@@ -64,13 +64,13 @@ const Page = () => {
       description: "Check Basic Details Of Notice",
     },
     {
-      href: "/hrd/notice-records",
+      href: "/hrd/newEmployee",
       icon: <Image src="/module/hrd/newEmployee.png" className="studentIcon" width={100} height={100} alt="" />,
       title: "New Employee",
       description: "Check Basic Details Of Notice",
     },
     {
-      href: "/hrd/notice-records",
+      href: "/hrd/facultyAttendence/all-module",
       icon: <Image src="/module/hrd/attendance.png" className="studentIcon" width={100} height={100} alt="" />,
       title: "Faculty Attendance",
       description: "Check Basic Details Of Notice",

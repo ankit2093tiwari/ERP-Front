@@ -79,7 +79,10 @@ const ReturnBook = () => {
         }
 
         try {
-            const response = await returnIssueBookById(selectedBookId, { remarks });
+            const response = await returnIssueBookById(selectedBookId, {
+                remarks,
+                fineAmount: payableAmount,
+            });
             toast.success(response.message || "Book returned successfully");
             setSelectedBook(null);
             fetchIssuedBooks();
@@ -88,6 +91,7 @@ const ReturnBook = () => {
             toast.error(error?.response?.data?.message || "Failed to return book");
         }
     };
+
 
     const columns = [
         { name: "#", selector: (row, index) => index + 1, width: "60px" },
