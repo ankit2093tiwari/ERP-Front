@@ -1,12 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import {
-  FaEdit,
-  FaTrashAlt,
-  FaSave,
-  FaTimes,
-} from "react-icons/fa";
+import { FaEdit, FaTrashAlt, FaTimes } from "react-icons/fa";
 import { CgAddR } from "react-icons/cg";
 import {
   Form,
@@ -33,12 +28,13 @@ import {
 import usePagePermission from "@/hooks/usePagePermission";
 
 const AddDoctorProfile = () => {
-  const { hasEditAccess, hasSubmitAccess } = usePagePermission()
+  const { hasEditAccess, hasSubmitAccess } = usePagePermission();
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [fieldError, setFieldError] = useState({});
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const [editingId, setEditingId] = useState(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [currentDoctorId, setCurrentDoctorId] = useState(null);
   const [specialistOptions, setSpecialistOptions] = useState([]);
   const [formData, setFormData] = useState({
     doctor_name: "",
@@ -48,157 +44,50 @@ const AddDoctorProfile = () => {
     specialist: "",
     description: "",
   });
-  const [editFormData, setEditFormData] = useState({
-    doctor_name: "",
-    mobile_no: "",
-    email_id: "",
-    address: "",
-    specialist: "",
-    description: "",
-  });
 
   const columns = [
-    {
-      name: "#",
-      selector: (row, index) => index + 1,
-      width: "80px",
-    },
-    {
-      name: "Doctor Name",
-      cell: (row) =>
-        editingId === row._id ? (
-          <FormControl
-            type="text"
-            value={editFormData.doctor_name}
-            onChange={(e) =>
-              setEditFormData({ ...editFormData, doctor_name: e.target.value })
-            }
-          />
-        ) : (
-          row.doctor_name || "N/A"
-        ),
-    },
-    {
-      name: "Mobile No",
-      cell: (row) =>
-        editingId === row._id ? (
-          <FormControl
-            type="text"
-            value={editFormData.mobile_no}
-            onChange={(e) =>
-              setEditFormData({ ...editFormData, mobile_no: e.target.value })
-            }
-          />
-        ) : (
-          row.mobile_no || "N/A"
-        ),
-    },
-    {
-      name: "Email ID",
-      cell: (row) =>
-        editingId === row._id ? (
-          <FormControl
-            type="email"
-            value={editFormData.email_id}
-            onChange={(e) =>
-              setEditFormData({ ...editFormData, email_id: e.target.value })
-            }
-          />
-        ) : (
-          row.email_id || "N/A"
-        ),
-    },
-    {
-      name: "Address",
-      cell: (row) =>
-        editingId === row._id ? (
-          <FormControl
-            type="text"
-            value={editFormData.address}
-            onChange={(e) =>
-              setEditFormData({ ...editFormData, address: e.target.value })
-            }
-          />
-        ) : (
-          row.address || "N/A"
-        ),
-    },
+    { name: "#", selector: (row, index) => index + 1, width: "80px" },
+    { name: "Doctor Name", selector: (row) => row.doctor_name || "N/A" },
+    { name: "Mobile No", selector: (row) => row.mobile_no || "N/A" },
+    { name: "Email ID", selector: (row) => row.email_id || "N/A" },
+    { name: "Address", selector: (row) => row.address || "N/A" },
     {
       name: "Specialist",
-      cell: (row) =>
-        editingId === row._id ? (
-          <FormSelect
-            value={editFormData.specialist}
-            onChange={(e) =>
-              setEditFormData({ ...editFormData, specialist: e.target.value })
-            }
-          >
-            <option value="">Select</option>
-            {specialistOptions.map((option) => (
-              <option key={option._id} value={option._id}>
-                {option.check_up_type}
-              </option>
-            ))}
-          </FormSelect>
-        ) : (
-          row.specialist?.check_up_type || "N/A"
-        ),
+      selector: (row) => row.specialist?.check_up_type || "N/A",
     },
-    {
-      name: "Description",
-      cell: (row) =>
-        editingId === row._id ? (
-          <FormControl
-            as="textarea"
-            value={editFormData.description}
-            onChange={(e) =>
-              setEditFormData({ ...editFormData, description: e.target.value })
-            }
-          />
-        ) : (
-          row.description || "N/A"
-        ),
-    },
+    { name: "Description", selector: (row) => row.description || "N/A" },
     hasEditAccess && {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-1">
-          {editingId === row._id ? (
-            <>
-              <Button
-                variant="success"
-                size="sm"
-                onClick={() => handleUpdate(row._id)}
-              >
-                <FaSave />
-              </Button>
-              <Button
-                variant="danger"
-                size="sm"
-                onClick={() => setEditingId(null)}
-              >
-                <FaTimes />
-              </Button>
-            </>
-          ) : (
-            <>
-              <button className="editButton" onClick={() => handleEdit(row)}>
-                <FaEdit />
-              </button>
-              <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
-                <FaTrashAlt />
-              </button>
-            </>
-          )}
+          <Button
+            variant="success"
+            size="sm"
+            onClick={() => handleEdit(row)}
+          >
+            <FaEdit />
+          </Button>
+          <Button
+            variant="danger"
+            size="sm"
+            onClick={() => handleDelete(row._id)}
+          >
+            <FaTrashAlt />
+          </Button>
         </div>
       ),
     },
   ];
 
+  useEffect(() => {
+    fetchData();
+    fetchSpecialists();
+  }, []);
+
   const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await getAllDoctors()
+      const res = await getAllDoctors();
       setData(res.data || []);
     } catch (err) {
       console.error(err);
@@ -210,7 +99,7 @@ const AddDoctorProfile = () => {
 
   const fetchSpecialists = async () => {
     try {
-      const res = await getAllCheckupTypes()
+      const res = await getAllCheckupTypes();
       setSpecialistOptions(res.data || []);
     } catch (err) {
       console.error(err);
@@ -218,9 +107,25 @@ const AddDoctorProfile = () => {
     }
   };
 
+  const handleAddClick = () => {
+    setIsEditing(false);
+    setCurrentDoctorId(null);
+    setFormData({
+      doctor_name: "",
+      mobile_no: "",
+      email_id: "",
+      address: "",
+      specialist: "",
+      description: "",
+    });
+    setFieldError({});
+    setIsFormOpen(true);
+  };
+
   const handleEdit = (doctor) => {
-    setEditingId(doctor._id);
-    setEditFormData({
+    setIsEditing(true);
+    setCurrentDoctorId(doctor._id);
+    setFormData({
       doctor_name: doctor.doctor_name || "",
       mobile_no: doctor.mobile_no || "",
       email_id: doctor.email_id || "",
@@ -228,95 +133,89 @@ const AddDoctorProfile = () => {
       specialist: doctor.specialist?._id || "",
       description: doctor.description || "",
     });
+    setFieldError({});
+    setIsFormOpen(true);
   };
 
-  const handleUpdate = async (id) => {
-    const { doctor_name, mobile_no, email_id, specialist, address } = editFormData;
+  const validateForm = () => {
+    const { doctor_name, mobile_no, email_id, address, specialist } = formData;
+    let errors = {};
 
-    if (!doctor_name.trim() || !mobile_no.trim() || !email_id.trim() || !specialist || !address.trim()) {
-      toast.error("Please fill all required fields.");
-      return;
-    }
+    if (!doctor_name.trim()) errors.doctor_name = "Doctor name is required";
+    else if (!/^[a-zA-Z\s]+$/.test(doctor_name))
+      errors.doctor_name = "Only letters allowed";
 
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email_id)) {
-      toast.error("Enter valid email address.");
-      return;
+    if (!mobile_no.trim()) errors.mobile_no = "Mobile number is required";
+    else if (!/^\d{10}$/.test(mobile_no))
+      errors.mobile_no = "Must be 10 digits";
+
+    if (!email_id.trim()) errors.email_id = "Email is required";
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email_id))
+      errors.email_id = "Invalid email format";
+
+    if (!address.trim()) errors.address = "Address is required";
+    if (!specialist) errors.specialist = "Specialist is required";
+
+    setFieldError(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+    // Clear error when user starts typing
+    if (fieldError[name]) {
+      setFieldError((prev) => ({ ...prev, [name]: "" }));
     }
+  };
+
+  const handleSubmit = async () => {
+    if (!validateForm()) return;
 
     try {
-      const response = await updateDoctorProfileById(id, editFormData);
-      toast.success(response?.message || "Profile updated successfully");
+      if (isEditing) {
+        const response = await updateDoctorProfileById(
+          currentDoctorId,
+          formData
+        );
+        toast.success(response?.message || "Doctor updated successfully");
+      } else {
+        const exists = data.some((doc) => doc.email_id === formData.email_id);
+        if (exists) {
+          toast.error("Email already exists");
+          return;
+        }
+        const response = await addNewDoctorProfile(formData);
+        toast.success(response?.message || "Doctor added successfully");
+      }
       fetchData();
-      setEditingId(null);
+      setIsFormOpen(false);
     } catch (err) {
       console.error(err);
-      toast.error("Update failed");
+      toast.error(`Failed to ${isEditing ? "update" : "add"} doctor`);
     }
   };
 
   const handleDelete = async (id) => {
-    if (confirm("Are you sure?")) {
+    if (confirm("Are you sure you want to delete this doctor?")) {
       try {
-        await deleteDoctorProfileById(id)
-        toast.success("Doctor deleted");
+        await deleteDoctorProfileById(id);
+        toast.success("Doctor deleted successfully");
         fetchData();
       } catch (err) {
         console.error(err);
-        toast.error("Delete failed");
+        toast.error("Failed to delete doctor");
       }
-    }
-  };
-
-  const handleAdd = async () => {
-    const { doctor_name, mobile_no, email_id, address, specialist } = formData;
-    let errors = {};
-
-    if (!doctor_name.trim()) errors.doctor_name = "doctor name is required";
-    else if (!/^[a-zA-Z\s]+$/.test(doctor_name)) errors.doctor_name = "Only letters";
-
-    if (!mobile_no.trim()) errors.mobile_no = "mobile no. is required";
-    else if (!/^\d{10}$/.test(mobile_no)) errors.mobile_no = "10 digit number";
-
-    if (!email_id.trim()) errors.email_id = "email id is required";
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email_id)) errors.email_id = "Invalid email";
-
-    if (!address.trim()) errors.address = "address is required";
-    if (!specialist) errors.specialist = "Select a specialist";
-
-    if (Object.keys(errors).length) {
-      setFieldError(errors);
-      return;
-    }
-
-    try {
-      const exists = data.find((doc) => doc.email_id === email_id);
-      if (exists) {
-        toast.error("Email already exists");
-        return;
-      }
-
-      const response = await addNewDoctorProfile(formData);
-      toast.success(response?.message || "Doctor added");
-      fetchData();
-      setFormData({
-        doctor_name: "",
-        mobile_no: "",
-        email_id: "",
-        address: "",
-        specialist: "",
-        description: "",
-      });
-      setIsPopoverOpen(false);
-      setFieldError({});
-    } catch (err) {
-      console.error(err);
-      toast.error("Add failed");
     }
   };
 
   const handlePrint = () => {
-    const headers = [["#", "Doctor Name", "Mobile", "Email", "Address", "Specialist", "Description"]];
+    const headers = [
+      ["#", "Doctor Name", "Mobile", "Email", "Address", "Specialist", "Description"]
+    ];
     const rows = data.map((row, i) => [
       i + 1,
       row.doctor_name || "N/A",
@@ -336,11 +235,6 @@ const AddDoctorProfile = () => {
     );
     copyContent(headers, rows);
   };
-
-  useEffect(() => {
-    fetchData();
-    fetchSpecialists();
-  }, []);
 
   const breadcrumbItems = [
     { label: "Medical", link: "/medical/all-module" },
@@ -362,16 +256,21 @@ const AddDoctorProfile = () => {
       <section>
         <Container>
           {hasSubmitAccess && (
-            <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
+            <Button onClick={handleAddClick} className="btn-add">
               <CgAddR /> Add Doctor Profile
             </Button>
           )}
 
-          {isPopoverOpen && (
+          {isFormOpen && (
             <div className="cover-sheet">
               <div className="studentHeading">
-                <h2>Add New Doctor</h2>
-                <button className="closeForm" onClick={() => setIsPopoverOpen(false)}>X</button>
+                <h2>{isEditing ? "Edit Doctor" : "Add New Doctor"}</h2>
+                <button 
+                  className="closeForm" 
+                  onClick={() => setIsFormOpen(false)}
+                >
+                  <FaTimes />
+                </button>
               </div>
 
               <Form className="formSheet">
@@ -379,28 +278,28 @@ const AddDoctorProfile = () => {
                   <Col lg={6}>
                     <FormLabel>Doctor Name<span className="text-danger">*</span></FormLabel>
                     <FormControl
+                      name="doctor_name"
                       type="text"
                       value={formData.doctor_name}
-                      onChange={(e) => {
-                        setFormData({ ...formData, doctor_name: e.target.value });
-                        if (fieldError.doctor_name) setFieldError((prev) => ({ ...prev, doctor_name: "" }));
-                      }}
+                      onChange={handleInputChange}
                       isInvalid={!!fieldError.doctor_name}
                     />
-                    <Form.Control.Feedback type="invalid">{fieldError.doctor_name}</Form.Control.Feedback>
+                    <Form.Control.Feedback type="invalid">
+                      {fieldError.doctor_name}
+                    </Form.Control.Feedback>
                   </Col>
                   <Col lg={6}>
                     <FormLabel>Mobile No<span className="text-danger">*</span></FormLabel>
                     <FormControl
+                      name="mobile_no"
                       type="text"
                       value={formData.mobile_no}
-                      onChange={(e) => {
-                        setFormData({ ...formData, mobile_no: e.target.value });
-                        if (fieldError.mobile_no) setFieldError((prev) => ({ ...prev, mobile_no: "" }));
-                      }}
+                      onChange={handleInputChange}
                       isInvalid={!!fieldError.mobile_no}
                     />
-                    <Form.Control.Feedback type="invalid">{fieldError.mobile_no}</Form.Control.Feedback>
+                    <Form.Control.Feedback type="invalid">
+                      {fieldError.mobile_no}
+                    </Form.Control.Feedback>
                   </Col>
                 </Row>
 
@@ -408,28 +307,28 @@ const AddDoctorProfile = () => {
                   <Col lg={6}>
                     <FormLabel>Email ID<span className="text-danger">*</span></FormLabel>
                     <FormControl
+                      name="email_id"
                       type="email"
                       value={formData.email_id}
-                      onChange={(e) => {
-                        setFormData({ ...formData, email_id: e.target.value });
-                        if (fieldError.email_id) setFieldError((prev) => ({ ...prev, email_id: "" }));
-                      }}
+                      onChange={handleInputChange}
                       isInvalid={!!fieldError.email_id}
                     />
-                    <Form.Control.Feedback type="invalid">{fieldError.email_id}</Form.Control.Feedback>
+                    <Form.Control.Feedback type="invalid">
+                      {fieldError.email_id}
+                    </Form.Control.Feedback>
                   </Col>
                   <Col lg={6}>
                     <FormLabel>Address<span className="text-danger">*</span></FormLabel>
                     <FormControl
+                      name="address"
                       type="text"
                       value={formData.address}
-                      onChange={(e) => {
-                        setFormData({ ...formData, address: e.target.value });
-                        if (fieldError.address) setFieldError((prev) => ({ ...prev, address: "" }));
-                      }}
+                      onChange={handleInputChange}
                       isInvalid={!!fieldError.address}
                     />
-                    <Form.Control.Feedback type="invalid">{fieldError.address}</Form.Control.Feedback>
+                    <Form.Control.Feedback type="invalid">
+                      {fieldError.address}
+                    </Form.Control.Feedback>
                   </Col>
                 </Row>
 
@@ -437,31 +336,44 @@ const AddDoctorProfile = () => {
                   <Col lg={6}>
                     <FormLabel>Specialist<span className="text-danger">*</span></FormLabel>
                     <FormSelect
+                      name="specialist"
                       value={formData.specialist}
-                      onChange={(e) => {
-                        setFormData({ ...formData, specialist: e.target.value });
-                        if (fieldError.specialist) setFieldError((prev) => ({ ...prev, specialist: "" }));
-                      }}
+                      onChange={handleInputChange}
                       isInvalid={!!fieldError.specialist}
                     >
                       <option value="">Select</option>
                       {specialistOptions.map((s) => (
-                        <option key={s._id} value={s._id}>{s.check_up_type}</option>
+                        <option key={s._id} value={s._id}>
+                          {s.check_up_type}
+                        </option>
                       ))}
                     </FormSelect>
-                    <Form.Control.Feedback type="invalid">{fieldError.specialist}</Form.Control.Feedback>
+                    <Form.Control.Feedback type="invalid">
+                      {fieldError.specialist}
+                    </Form.Control.Feedback>
                   </Col>
                   <Col lg={6}>
                     <FormLabel>Description</FormLabel>
                     <FormControl
+                      name="description"
                       as="textarea"
                       value={formData.description}
-                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      onChange={handleInputChange}
                     />
                   </Col>
                 </Row>
 
-                <Button onClick={handleAdd} className="btn btn-primary">Add Doctor</Button>
+                <div className="d-flex gap-1">
+                  <Button variant="success" onClick={handleSubmit} >
+                    {isEditing ? "Update Doctor" : "Add Doctor"}
+                  </Button>
+                  <Button 
+                    variant="danger" 
+                    onClick={() => setIsFormOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                </div>
               </Form>
             </div>
           )}

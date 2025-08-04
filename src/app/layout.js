@@ -19,6 +19,7 @@ import SpeechRecognitionProvider from "@/app/component/SpeechRecognitionProvider
 import { handleVoiceCommand as voiceCommandHandler } from "@/app/component/command";
 import "@/Services";
 import axios from "axios";
+import Loader from "./component/Loader";
 
 export default function RootLayout({ children }) {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
@@ -59,7 +60,7 @@ export default function RootLayout({ children }) {
   };
 
   const handleLogout = () => {
-    if(!confirm("Are you sure to want to logout?")) return
+    if (!confirm("Are you sure to want to logout?")) return
     localStorage.clear()
     sessionStorage.removeItem("authToken");
     setIsAuthenticated(false);
@@ -74,9 +75,7 @@ export default function RootLayout({ children }) {
     return (
       <html lang="en">
         <body>
-          <div className="d-flex justify-content-center align-items-center vh-100">
-            Loading...
-          </div>
+          <Loader />
         </body>
       </html>
     );

@@ -420,7 +420,7 @@ const Dashboard = () => {
                   <div className="card-body bgPurple thought-of-day ">
                     <div className="thought-content d-flex flex-column justify-contend-center align-items-center">
                       <p className="notice-title mb-1 text-white fw-bold">{thoughtOfTheDay || "ALWAYS BE HAPPY"}  </p>
-                      <div className="thought-date">{new Date().toISOString().split('T')[0]}</div>
+                      <div className="thought-date">{new Date().toLocaleDateString('en-GB')}</div>
                     </div>
                   </div>
                 </div>

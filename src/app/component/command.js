@@ -1,35 +1,39 @@
 export const handleVoiceCommand = (command, router, handleLogout) => {
+  const normalizedCommand = command.toLowerCase();
+
   const routeCommands = [
-    { keyword: "logout", action: handleLogout },
-    { keyword: "dashboard", action: () => router.replace("/") },
-    { keyword: "login", action: () => router.replace("/login") },
-    { keyword: "Student", action: () => router.replace("/students/all-module") },
-    { keyword: "go to master entry", action: () => router.replace("/master-entry/all-module") },
-    { keyword: "go to transport", action: () => router.replace("/Transport/all-module") },
-    { keyword: "go to fees", action: () => router.replace("/fees/all-module") },
-    { keyword: "go to medical", action: () => router.replace("/medical/all-module") },
-    { keyword: "go to stock", action: () => router.replace("/stock/all-module") },
-    { keyword: "go to notice", action: () => router.replace("/notice/all-module") },
-    { keyword: "go to home", action: () => router.replace("/home") },
-    { keyword: "go to advertising management", action: () => router.replace("/advertising-management/all-module") },
-    { keyword: "go to appointment", action: () => router.replace("/appointment") },
-    { keyword: "go to dailydairy", action: () => router.replace("/dailyDairy") },
-    { keyword: "go to exam", action: () => router.replace("/exam/all-module") },
-    { keyword: "go to front office", action: () => router.replace("/front-office/all-module") },
-    { keyword: "go to gallery", action: () => router.replace("/gallery/all-module") },
-    { keyword: "go to hrd", action: () => router.replace("/hrd/allModule") },
-    { keyword: "go to important SMS", action: () => router.replace("/importantSMS") },
-    { keyword: "go to library", action: () => router.replace("/library/all-module") },
-    { keyword: "go to student attendance", action: () => router.replace("/studentAttendence/allModule") },
-    { keyword: "go to thought", action: () => router.replace("/thought") },
-    { keyword: "go to user management", action: () => router.replace("/userManagement/all-module") },
-    { keyword: "go to accounts", action: () => router.replace("/accounts/all-module") },
+    { keywords: ["logout", "exit site"], action: handleLogout },
+    { keywords: ["dashboard", "home screen"], action: () => router.replace("/") },
+    // { keywords: ["login", "log in"], action: () => router.replace("/login") },
+    { keywords: ["student", "student module"], action: () => router.replace("/students/all-module") },
+    { keywords: ["master","master entry"], action: () => router.replace("/master-entry/all-module") },
+    { keywords: ["transport"], action: () => router.replace("/Transport/all-module") },
+    { keywords: ["fees", "fees module"], action: () => router.replace("/fees/all-module") },
+    { keywords: ["medical"], action: () => router.replace("/medical/all-module") },
+    { keywords: ["stock"], action: () => router.replace("/stock/all-module") },
+    { keywords: ["notice"], action: () => router.replace("/notice/all-module") },
+    { keywords: ["home"], action: () => router.replace("/home") },
+    { keywords: ["advertising", "advertising management"], action: () => router.replace("/advertising-management/all-module") },
+    { keywords: ["appointment"], action: () => router.replace("/appointment") },
+    { keywords: ["dailydairy", "daily dairy"], action: () => router.replace("/dailyDairy") },
+    { keywords: ["exam"], action: () => router.replace("/exam/all-module") },
+    { keywords: ["front office"], action: () => router.replace("/front-office/all-module") },
+    { keywords: ["gallery"], action: () => router.replace("/gallery/all-module") },
+    { keywords: ["hrd"], action: () => router.replace("/hrd/allModule") },
+    { keywords: ["important sms"], action: () => router.replace("/importantSMS") },
+    { keywords: ["library"], action: () => router.replace("/library/all-module") },
+    { keywords: ["student attendance"], action: () => router.replace("/studentAttendence/allModule") },
+    { keywords: ["thought"], action: () => router.replace("/thought") },
+    { keywords: ["user management"], action: () => router.replace("/userManagement/all-module") },
+    { keywords: ["accounts"], action: () => router.replace("/accounts/all-module") },
   ];
 
   for (const cmd of routeCommands) {
-    if (command.includes(cmd.keyword)) {
-      cmd.action();
-      break;
+    for (const keyword of cmd.keywords) {
+      if (normalizedCommand.includes(keyword)) {
+        cmd.action();
+        return;  // Found match, exit loop
+      }
     }
   }
 };

@@ -883,6 +883,24 @@ export const deleteLoanById = async (id) => {
     return response?.data;
 }
 
+
+export const getAllIssuedLoans = async () => {
+    const response = await axios.get(`${BASE_URL}/api/issue-loan`)
+    return response?.data;
+}
+export const issueNewLoan = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/issue-loan`, payload)
+    return response?.data;
+}
+export const deleteIssuedLoanById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/issue-loan/${id}`)
+    return response?.data;
+}
+export const updateIssuedLoanById = async (id,payload) => {
+    const response = await axios.put(`${BASE_URL}/api/issue-loan/${id}`,payload)
+    return response?.data;
+}
+
 export const getAllAppoinmentNatures = async () => {
     const response = await axios.get(`${BASE_URL}/api/all-nature`)
     return response?.data;

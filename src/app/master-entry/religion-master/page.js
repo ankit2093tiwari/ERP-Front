@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
+import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import { CgAddR } from "react-icons/cg";
 import {
   Form,
@@ -13,78 +13,35 @@ import {
   FormControl,
   Button,
 } from "react-bootstrap";
-import axios from "axios";
 import Table from "@/app/component/DataTable";
 import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { toast } from "react-toastify";
-import { addNewReligion, deleteReligionById, getReligions, updateReligionById } from "@/Services";
+import {
+  addNewReligion,
+  deleteReligionById,
+  getReligions,
+  updateReligionById,
+} from "@/Services";
 import usePagePermission from "@/hooks/usePagePermission";
 
 const ReligionMasterPage = () => {
-  const { hasSubmitAccess, hasEditAccess } = usePagePermission()
+  const { hasSubmitAccess, hasEditAccess } = usePagePermission();
 
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [isAddFormOpen, setIsAddFormOpen] = useState(false);
+  const [isEditFormOpen, setIsEditFormOpen] = useState(false);
   const [newReligionName, setNewReligionName] = useState("");
-  const [editingId, setEditingId] = useState(null);
-  const [editedName, setEditedName] = useState("");
-  const [fieldError, setFieldError] = useState("")
-  const columns = [
-    {
-      name: "#",
-      selector: (row, index) => index + 1,
-      sortable: false,
-      width: "80px",
-    },
-    {
-      name: "Religion Name",
-      selector: (row) => row.religion_name,
-      cell: (row) =>
-        editingId === row._id ? (
-          <FormControl
-            type="text"
-            value={editedName}
-            onChange={(e) => setEditedName(e.target.value)}
-          />
-        ) : (
-          row.religion_name || "N/A"
-        ),
-      sortable: true,
-    },
-    hasEditAccess && {
-      name: "Actions",
-      cell: (row) => (
-        <div className="d-flex gap-1">
-          {editingId === row._id ? (
-            <button className="editButton" onClick={() => handleSave(row._id)}>
-              <FaSave />
-            </button>
-          ) : (
-            <button
-              className="editButton"
-              onClick={() => handleEdit(row._id, row.religion_name)}
-            >
-              <FaEdit />
-            </button>
-          )}
-          <button
-            className="editButton btn-danger"
-            onClick={() => handleDelete(row._id)}
-          >
-            <FaTrashAlt />
-          </button>
-        </div>
-      ),
-    },
-  ];
+  const [editReligionId, setEditReligionId] = useState(null);
+  const [editReligionName, setEditReligionName] = useState("");
+  const [fieldError, setFieldError] = useState("");
 
   const fetchData = async () => {
     setLoading(true);
     try {
-      const res = await getReligions()
-      setData(res.data)
+      const res = await getReligions();
+      setData(res.data);
     } catch (err) {
       toast.error("Failed to fetch data.");
     } finally {
@@ -93,35 +50,35 @@ const ReligionMasterPage = () => {
   };
 
   const handleEdit = (id, name) => {
-    setEditingId(id);
-    setEditedName(name);
+    setEditReligionId(id);
+    setEditReligionName(name);
+    setIsEditFormOpen(true);
   };
 
-  const handleSave = async (id) => {
-    if (!editedName.trim()) {
+  const handleUpdate = async () => {
+    if (!editReligionName.trim()) {
       toast.warning("Religion name cannot be empty.");
       return;
     }
 
     const exists = data.find(
       (item) =>
-        item.religion_name.trim().toLowerCase() === editedName.trim().toLowerCase() &&
-        item._id !== id
+        item.religion_name.trim().toLowerCase() ===
+          editReligionName.trim().toLowerCase() && item._id !== editReligionId
     );
 
     if (exists) {
       toast.warning("Religion name already exists!");
-      setEditingId(null);
       return;
     }
 
     try {
-      const res = await updateReligionById(id, {
-        religion_name: editedName,
-      })
+      await updateReligionById(editReligionId, {
+        religion_name: editReligionName,
+      });
       toast.success("Religion updated successfully!");
       fetchData();
-      setEditingId(null);
+      setIsEditFormOpen(false);
     } catch (err) {
       toast.error("Failed to update religion.");
     }
@@ -130,12 +87,11 @@ const ReligionMasterPage = () => {
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this religion?")) {
       try {
-        await deleteReligionById(id)
+        await deleteReligionById(id);
         toast.success("Religion deleted successfully!");
         fetchData();
       } catch (err) {
         toast.error("Failed to delete religion.");
-        console.log("failed to delete record", err)
       }
     }
   };
@@ -148,7 +104,8 @@ const ReligionMasterPage = () => {
     }
     const exists = data.find(
       (item) =>
-        item.religion_name.trim().toLowerCase() === newReligionName.trim().toLowerCase()
+        item.religion_name.trim().toLowerCase() ===
+        newReligionName.trim().toLowerCase()
     );
     if (exists) {
       toast.warning("Religion already exists!");
@@ -157,35 +114,71 @@ const ReligionMasterPage = () => {
     }
 
     try {
-      const res = await addNewReligion({
+      await addNewReligion({
         religion_name: newReligionName,
-      })
+      });
       toast.success("Religion added successfully!");
-      fetchData()
+      fetchData();
       setNewReligionName("");
-      setIsPopoverOpen(false);
+      setIsAddFormOpen(false);
     } catch (err) {
-      toast.error(err?.response?.data?.messsage || "Failed to add religion.");
-      console.log("Failed to add religion", err);
-
+      toast.error(err?.response?.data?.message || "Failed to add religion.");
     }
   };
 
   const handlePrint = () => {
     const tableHeaders = [["#", "Religion Name"]];
-    const tableRows = data.map((row, index) => [index + 1, row.religion_name || "N/A"]);
+    const tableRows = data.map((row, index) => [
+      index + 1,
+      row.religion_name || "N/A",
+    ]);
     printContent(tableHeaders, tableRows);
   };
 
   const handleCopy = () => {
     const headers = ["#", "Religion Name"];
-    const rows = data.map((row, index) => `${index + 1}\t${row.religion_name || "N/A"}`);
+    const rows = data.map(
+      (row, index) => `${index + 1}\t${row.religion_name || "N/A"}`
+    );
     copyContent(headers, rows);
   };
 
   useEffect(() => {
     fetchData();
   }, []);
+
+  const columns = [
+    {
+      name: "#",
+      selector: (row, index) => index + 1,
+      sortable: false,
+      width: "80px",
+    },
+    {
+      name: "Religion Name",
+      selector: (row) => row.religion_name,
+      sortable: true,
+    },
+    hasEditAccess && {
+      name: "Actions",
+      cell: (row) => (
+        <div className="d-flex gap-1">
+          <Button
+            size="sm" variant="success"
+            onClick={() => handleEdit(row._id, row.religion_name)}
+          >
+            <FaEdit />
+          </Button>
+          <Button
+            size="sm" variant="danger"
+            onClick={() => handleDelete(row._id)}
+          >
+            <FaTrashAlt />
+          </Button>
+        </div>
+      ),
+    },
+  ].filter(Boolean); // Remove false if hasEditAccess is false
 
   const breadcrumbItems = [
     { label: "Master Entry", link: "/master-entry/all-module" },
@@ -206,22 +199,20 @@ const ReligionMasterPage = () => {
 
       <section>
         <Container>
-          {
-            hasSubmitAccess && (
-              <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
-                <CgAddR /> Add Religion
-              </Button>
-            )
-          }
+          {hasSubmitAccess && (
+            <Button onClick={() => setIsAddFormOpen(true)} className="btn-add">
+              <CgAddR /> Add Religion
+            </Button>
+          )}
 
-          {isPopoverOpen && (
+          {isAddFormOpen && (
             <div className="cover-sheet">
               <div className="studentHeading">
                 <h2>Add New Religion</h2>
                 <button
                   className="closeForm"
                   onClick={() => {
-                    setIsPopoverOpen(false);
+                    setIsAddFormOpen(false);
                     setNewReligionName("");
                   }}
                 >
@@ -231,19 +222,58 @@ const ReligionMasterPage = () => {
               <Form className="formSheet">
                 <Row className="mb-3">
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Religion Name<span className="text-danger">*</span></FormLabel>
+                    <FormLabel className="labelForm">
+                      Religion Name<span className="text-danger">*</span>
+                    </FormLabel>
                     <FormControl
                       type="text"
                       placeholder="Enter Religion Name"
                       value={newReligionName}
                       isInvalid={!!fieldError}
-                      onChange={(e) => { setNewReligionName(e.target.value); if (fieldError) setFieldError("") }}
+                      onChange={(e) => {
+                        setNewReligionName(e.target.value);
+                        if (fieldError) setFieldError("");
+                      }}
                     />
-                    {fieldError && <p className="text-danger">{fieldError}</p>}
+                    {fieldError && (
+                      <p className="text-danger">{fieldError}</p>
+                    )}
                   </Col>
                 </Row>
                 <Button onClick={handleAdd} className="btn btn-primary">
                   Add Religion
+                </Button>
+              </Form>
+            </div>
+          )}
+
+          {isEditFormOpen && (
+            <div className="cover-sheet">
+              <div className="studentHeading">
+                <h2>Edit Religion</h2>
+                <button
+                  className="closeForm"
+                  onClick={() => setIsEditFormOpen(false)}
+                >
+                  X
+                </button>
+              </div>
+              <Form className="formSheet">
+                <Row className="mb-3">
+                  <Col lg={6}>
+                    <FormLabel className="labelForm">
+                      Religion Name<span className="text-danger">*</span>
+                    </FormLabel>
+                    <FormControl
+                      type="text"
+                      placeholder="Enter Religion Name"
+                      value={editReligionName}
+                      onChange={(e) => setEditReligionName(e.target.value)}
+                    />
+                  </Col>
+                </Row>
+                <Button onClick={handleUpdate} className="btn btn-primary">
+                  Update Religion
                 </Button>
               </Form>
             </div>

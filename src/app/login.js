@@ -14,7 +14,7 @@ const SpeechRecognition =
     : null;
 
 export default function LoginPage({ onLogin }) {
-  const [username, setUSERNAME] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [sessions, setSessions] = useState([]);
   // const [sessionId, setSessionId] = useState("");
@@ -68,20 +68,6 @@ export default function LoginPage({ onLogin }) {
     };
   }, [isListening]);
 
-  // useEffect(() => {
-  //   const fetchSessions = async () => {
-  //     const response = await axios.get(`${BASE_URL}/api/all-session`);
-  //     const sessionData = response?.data?.data || [];
-  //     setSessions(sessionData);
-
-  //     if (sessionData.length > 0) {
-  //       setSessionId(sessionData[0]._id);   //by default selected recent/current sesssion
-  //     }
-  //   };
-
-  //   fetchSessions();
-  // }, []);
-
 
   // Handle login
   const handleLogin = async (e) => {
@@ -134,7 +120,7 @@ export default function LoginPage({ onLogin }) {
               id="username"
               type="text"
               value={username}
-              onChange={(e) => setUSERNAME(e.target.value)}
+              onChange={(e) => setUsername(e.target.value)}
               className="inputField"
               required
             />

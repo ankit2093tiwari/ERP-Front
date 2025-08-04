@@ -354,6 +354,7 @@ export default function Sidebar({ isOpen }) {
                 },
             ],
         },
+        { title: "Issue Loan", href: "/hrd/issue-loan", icon: <FaAngleDoubleRight /> },
     ];
     const libraryItems = [
         { title: "All Modules", href: "/library/all-module", icon: <FaAngleDoubleRight /> },
