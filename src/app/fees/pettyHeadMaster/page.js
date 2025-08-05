@@ -68,17 +68,17 @@ const PettyHeadMaster = () => {
       cell: (row) => (
         <div className="d-flex gap-1">
           {editingId === row._id ? (
-            <button className="editButton" onClick={() => handleSave(row._id)}>
+            <Button size="sm" variant="success" onClick={() => handleSave(row._id)}>
               <FaSave />
-            </button>
+            </Button>
           ) : (
-            <button className="editButton" onClick={() => handleEditClick(row)}>
+            <Button size="sm" variant="success" onClick={() => handleEditClick(row)}>
               <FaEdit />
-            </button>
+            </Button>
           )}
-          <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
+          <Button size="sm" variant="danger" onClick={() => handleDelete(row._id)}>
             <FaTrashAlt />
-          </button>
+          </Button>
         </div>
       ),
     },
@@ -290,7 +290,7 @@ const PettyHeadMaster = () => {
                     <Form.Control.Feedback type="invalid">{fieldError.head_type}</Form.Control.Feedback>
                   </Col>
                 </Row>
-                <Button onClick={handleAdd} className="btn btn-primary mt-3">
+                <Button onClick={handleAdd} className="mt-3" variant="success">
                   Add Petty Head
                 </Button>
               </Form>

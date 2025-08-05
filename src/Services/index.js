@@ -1,8 +1,8 @@
 import axios from "axios";
 import { store } from "@/Redux/store";
 
-export const BASE_URL = 'https://erp-backend-fy3n.onrender.com'
-// export const BASE_URL = 'http://localhost:8000'
+// export const BASE_URL = 'https://erp-backend-fy3n.onrender.com'
+export const BASE_URL = 'http://localhost:8000'
 
 
 axios.interceptors.request.use((config) => {
@@ -46,6 +46,10 @@ axios.interceptors.response.use(
     }
 );
 
+export const adminLogin = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/login`, payload);
+    return response?.data;
+};
 export const getSessions = async () => {
     const response = await axios.get(`${BASE_URL}/api/all-session`);
     return response?.data;
@@ -487,6 +491,18 @@ export const getAllPaymentMode = async () => {
     const response = await axios.get(`${BASE_URL}/api/all-payment-mode`)
     return response?.data;
 }
+export const addNewPaymentMode = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/create-payment-mode`, payload)
+    return response?.data;
+}
+export const updatePaymentModeById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/update-payment-mode/${id}`, payload)
+    return response?.data;
+}
+export const deletePaymentModeById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/delete-payment-mode/${id}`)
+    return response?.data;
+}
 
 export const getFeeStructures = async () => {
     const response = await axios.get(`${BASE_URL}/api/all-fee-structure`)
@@ -896,8 +912,8 @@ export const deleteIssuedLoanById = async (id) => {
     const response = await axios.delete(`${BASE_URL}/api/issue-loan/${id}`)
     return response?.data;
 }
-export const updateIssuedLoanById = async (id,payload) => {
-    const response = await axios.put(`${BASE_URL}/api/issue-loan/${id}`,payload)
+export const updateIssuedLoanById = async (id, payload) => {
+    const response = await axios.put(`${BASE_URL}/api/issue-loan/${id}`, payload)
     return response?.data;
 }
 

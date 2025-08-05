@@ -16,7 +16,7 @@ const DashboardFee = () => {
   const [barChartSeries, setBarChartSeries] = useState([]);
   const [donutChartSeries, setDonutChartSeries] = useState([0, 0, 0]);
 
-  const totalFeeAmount = 250000; // hardcoded for now. get exact amount to be collected
+  const totalFeeAmount = 850000; // hardcoded for now. get exact amount to be collected
 
   const barChartOptions = {
     chart: { id: "fee-bar" },

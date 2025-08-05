@@ -42,9 +42,24 @@ const IssueLoan = () => {
     fetchIssuedLoans();
   }, []);
 
+
+   const { loanAmount, installments, interest } = formData;
   useEffect(() => {
-    calculateMonthlyAmount();
-  }, [formData.loanAmount, formData.installments, formData.interest]);
+    const amount = parseFloat(loanAmount) || 0;
+    const installmentCount = parseInt(installments) || 0;
+    const interestRate = parseFloat(interest) || 0;
+
+    if (amount > 0 && installmentCount > 0) {
+      const totalPayable = amount + (amount * interestRate) / 100;
+      const monthly = (totalPayable / installmentCount).toFixed(2);
+      setFormData((prev) => ({ ...prev, monthlyAmount: monthly }));
+    } else {
+      setFormData((prev) => ({ ...prev, monthlyAmount: "" }));
+    }
+  }, [loanAmount, installments, interest]);
+ 
+
+
 
   const fetchLoanTypes = async () => {
     try {
@@ -88,21 +103,6 @@ const IssueLoan = () => {
       setFormData({ ...formData, [name]: interestValue.toString() });
     } else {
       setFormData({ ...formData, [name]: value });
-    }
-  };
-
-  const calculateMonthlyAmount = () => {
-    const { loanAmount, installments, interest } = formData;
-    const amount = parseFloat(loanAmount) || 0;
-    const installmentCount = parseInt(installments) || 0;
-    const interestRate = parseFloat(interest) || 0;
-
-    if (amount > 0 && installmentCount > 0) {
-      const totalPayable = amount + (amount * interestRate) / 100;
-      const monthly = (totalPayable / installmentCount).toFixed(2);
-      setFormData((prev) => ({ ...prev, monthlyAmount: monthly }));
-    } else {
-      setFormData((prev) => ({ ...prev, monthlyAmount: "" }));
     }
   };
 
@@ -204,14 +204,14 @@ const IssueLoan = () => {
     const rows = loans?.map((row, index) => (
       [index + 1, row.loanType?.LoanName || "N/A", row.employee?.employee_name || "N/A", row.loanAmount || "0", row.interest || "0", row.monthlyAmount || "0", row.createdBy || "N/A", row.updatedBy || "N/A"].join('\t')
     ))
-    copyContent(headers,rows)
+    copyContent(headers, rows)
   }
   const handlePrint = () => {
     const headers = [["#", "Loan Type", "Employee", "Loan Amount", "Interest (%)", "Monthly Amount", "CreatedBy", "UpdatedBy"]]
     const rows = loans?.map((row, index) => (
       [index + 1, row.loanType?.LoanName || "N/A", row.employee?.employee_name || "N/A", row.loanAmount || "0", row.interest || "0", row.monthlyAmount || "0", row.createdBy || "N/A", row.updatedBy || "N/A"]
     ))
-    printContent(headers,rows)
+    printContent(headers, rows)
   }
   const breadcrumbItems = [
     { label: "HRD", link: "/hrd/all-module" },
@@ -327,7 +327,7 @@ const IssueLoan = () => {
                 {loading ? (
                   <p>Loading...</p>
                 ) : loans.length > 0 ? (
-                  <Table columns={columns} data={loans} handleCopy={handleCopy} handlePrint={handlePrint}/>
+                  <Table columns={columns} data={loans} handleCopy={handleCopy} handlePrint={handlePrint} />
                 ) : (
                   <Alert variant="info">No records found.</Alert>
                 )}

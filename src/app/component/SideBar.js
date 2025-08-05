@@ -152,6 +152,7 @@ export default function Sidebar({ isOpen }) {
         { title: "Installment Master", href: "/fees/installmentMaster", icon: <FaAngleDoubleRight /> },
         { title: "Head Master", href: "/fees/headMaster", icon: <FaAngleDoubleRight /> },
         { title: "Fee Group", href: "/fees/feeGroup", icon: <FaAngleDoubleRight /> },
+        { title: "Payment Master", href: "/fees/payment-master", icon: <FaAngleDoubleRight /> },
         { title: "Fee Setting", href: "/fees/feeSetting", icon: <FaAngleDoubleRight /> },
         { title: "Bank Master", href: "/fees/bank-master", icon: <FaAngleDoubleRight /> },
         { title: "Petty Head", href: "/fees/pettyHeadMaster", icon: <FaAngleDoubleRight /> },

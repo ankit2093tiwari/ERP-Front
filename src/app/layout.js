@@ -16,10 +16,8 @@ import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import LoginPage from "./login";
 import SpeechRecognitionProvider from "@/app/component/SpeechRecognitionProvider";
-import { handleVoiceCommand as voiceCommandHandler } from "@/app/component/command";
 import "@/Services";
 import axios from "axios";
-import Loader from "./component/Loader";
 
 export default function RootLayout({ children }) {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
@@ -67,15 +65,14 @@ export default function RootLayout({ children }) {
     router.replace("/login");
   };
 
-  const handleCommand = (command) => {
-    voiceCommandHandler(command, router, handleLogout);
-  };
 
   if (isLoading) {
     return (
       <html lang="en">
         <body>
-          <Loader />
+          <div className="d-flex justify-content-center align-items-center vh-100">
+            <p>Loading...</p>
+          </div>
         </body>
       </html>
     );
@@ -101,7 +98,7 @@ export default function RootLayout({ children }) {
                   </div>
                 </div>
                 <ToastContainer position="top-right" autoClose={5000} />
-                <SpeechRecognitionProvider onCommand={handleCommand} />
+                <SpeechRecognitionProvider />
               </>
             ) : (
               <LoginPage onLogin={handleLogin} />

@@ -2,8 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { BASE_URL } from "@/Services";
-import axios from "axios";
+import { adminLogin } from "@/Services";
 import { useDispatch } from "react-redux";
 import { setAuthToken } from "@/Redux/Slices/authSlice";
 
@@ -16,8 +15,6 @@ const SpeechRecognition =
 export default function LoginPage({ onLogin }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [sessions, setSessions] = useState([]);
-  // const [sessionId, setSessionId] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -29,44 +26,44 @@ export default function LoginPage({ onLogin }) {
   const timeoutRef = useRef(null);
 
   // Voice recognition logic
-  useEffect(() => {
-    if (!SpeechRecognition) return;
+  // useEffect(() => {
+  //   if (!SpeechRecognition) return;
 
-    const recognition = new SpeechRecognition();
-    recognition.continuous = true;
-    recognition.interimResults = false;
-    recognition.lang = "en-US";
-    recognitionRef.current = recognition;
+  //   const recognition = new SpeechRecognition();
+  //   recognition.continuous = true;
+  //   recognition.interimResults = false;
+  //   recognition.lang = "en-US";
+  //   recognitionRef.current = recognition;
 
-    recognition.onresult = (event) => {
-      const transcript = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
-      console.log("Heard:", transcript);
-      if (transcript.includes("login")) {
-        handleLogin(new Event("submit"));
-      }
-    };
+  //   recognition.onresult = (event) => {
+  //     const transcript = event.results[event.results.length - 1][0].transcript.trim().toLowerCase();
+  //     console.log("Heard:", transcript);
+  //     if (transcript.includes("login")) {
+  //       handleLogin(new Event("submit"));
+  //     }
+  //   };
 
-    recognition.onerror = (event) => {
-      console.error("Speech recognition error:", event.error);
-    };
+  //   recognition.onerror = (event) => {
+  //     console.error("Speech recognition error:", event.error);
+  //   };
 
-    if (isListening) {
-      recognition.start();
+  //   if (isListening) {
+  //     recognition.start();
 
-      timeoutRef.current = setTimeout(() => {
-        recognition.stop();
-        setIsListening(false);
-      }, 5000);
-    } else {
-      recognition.stop();
-      clearTimeout(timeoutRef.current);
-    }
+  //     timeoutRef.current = setTimeout(() => {
+  //       recognition.stop();
+  //       setIsListening(false);
+  //     }, 5000);
+  //   } else {
+  //     recognition.stop();
+  //     clearTimeout(timeoutRef.current);
+  //   }
 
-    return () => {
-      recognition.stop();
-      clearTimeout(timeoutRef.current);
-    };
-  }, [isListening]);
+  //   return () => {
+  //     recognition.stop();
+  //     clearTimeout(timeoutRef.current);
+  //   };
+  // }, [isListening]);
 
 
   // Handle login
@@ -82,12 +79,7 @@ export default function LoginPage({ onLogin }) {
     }
 
     try {
-      const res = await axios.post(`${BASE_URL}/api/login`, {
-        username,
-        password,
-      });
-
-      const data = res.data;
+      const data = await adminLogin({ username, password })
       if (data.success) {
         dispatch(setAuthToken(data.token)); //to save in redux 
         onLogin && onLogin(data.token, rememberMe);
@@ -137,16 +129,6 @@ export default function LoginPage({ onLogin }) {
               required
             />
           </div>
-          {/* <div className="formGroup">
-            <label htmlFor="">Session<span className="text-danger">*</span></label>
-            <select value={sessionId} onChange={(e) => setSessionId(e.target.value)}>
-              {
-                sessions?.map((s) => (
-                  <option key={s._id} value={s._id}>{s.sessionName}</option>
-                ))
-              }
-            </select>
-          </div> */}
           <div className="rememberMe">
             <input
               id="rememberMe"
@@ -170,13 +152,13 @@ export default function LoginPage({ onLogin }) {
         </form>
       </div>
 
-      <button
+      {/* <button
         type="button"
         onClick={() => setIsListening((prev) => !prev)}
         className="mic-button"
       >
         🎤 {isListening ? "Listening..." : ""}
-      </button>
+      </button> */}
     </div>
   );
 }

@@ -25,9 +25,9 @@ const breadcrumbItems = [
   { label: "fee-Group", link: "null" },
 ];
 const FeeGroup = () => {
-  const {hasSubmitAccess,hasEditAccess}=usePagePermission()
+  const { hasSubmitAccess, hasEditAccess } = usePagePermission()
 
-  const selectedSessionId=useSessionId()
+  const selectedSessionId = useSessionId()
   const [loading, setLoading] = useState(false);
   const [classList, setClassList] = useState([]);
   const [sectionList, setSectionList] = useState([]);
@@ -213,6 +213,9 @@ const FeeGroup = () => {
         ) : (
           row.group_name
         ),
+
+      width: '150px',
+      sortable: true
     },
     {
       name: "Section",
@@ -249,7 +252,9 @@ const FeeGroup = () => {
         ) : (
           row.section_name
         );
+     
       },
+       width:'350px'
     }
     ,
     {
@@ -264,27 +269,30 @@ const FeeGroup = () => {
             }
           />
         ) : (
-          row.late_fine_per_day
+          `₹${row.late_fine_per_day}`
         ),
+
     },
-    hasEditAccess &&{
+    hasEditAccess && {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-1">
           {editId === row._id ? (
-            <button className="editButton" onClick={() => handleSave(row._id)}>
+            <Button size="sm" variant="success" onClick={() => handleSave(row._id)}>
               <FaSave />
-            </button>
+            </Button>
           ) : (
-            <button className="editButton" onClick={() => handleEdit(row)}>
+            <Button size="sm" variant="success" onClick={() => handleEdit(row)}>
               <FaEdit />
-            </button>
+            </Button>
           )}
-          <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
+          <Button size="sm" variant="danger" onClick={() => handleDelete(row._id)}>
             <FaTrashAlt />
-          </button>
+          </Button>
         </div>
       ),
+
+      width: '100px'
     },
   ];
 
@@ -321,10 +329,10 @@ const FeeGroup = () => {
 
       <section>
         <Container>
-          {hasSubmitAccess &&(
+          {hasSubmitAccess && (
             <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
-            <CgAddR /> Add Fee Group
-          </Button>
+              <CgAddR /> Add Fee Group
+            </Button>
           )}
 
           {isPopoverOpen && (

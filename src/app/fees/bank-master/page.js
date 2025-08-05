@@ -11,64 +11,46 @@ import { toast } from "react-toastify";
 import { addNewBank, deleteBankById, getAllBanks, updateBankById } from "@/Services";
 import usePagePermission from "@/hooks/usePagePermission";
 
+
 const BankMaster = () => {
-  const {hasSubmitAccess,hasEditAccess}=usePagePermission()
+  const { hasSubmitAccess, hasEditAccess } = usePagePermission();
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [newBank, setNewBank] = useState("");
   const [fieldError, setFieldError] = useState("");
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
+  const [isAddPopoverOpen, setIsAddPopoverOpen] = useState(false);
+  const [isEditPopoverOpen, setIsEditPopoverOpen] = useState(false);
   const [editId, setEditId] = useState(null);
-  const [editedName, setEditedName] = useState("");
+  const [editBankName, setEditBankName] = useState("");
 
   const columns = [
     {
       name: "#",
       selector: (row, index) => index + 1,
-      sortable: false,
       width: "80px",
     },
     {
       name: "Bank Name",
       selector: (row) => row.bank_name || "N/A",
-      cell: (row) =>
-        editId === row._id ? (
-          <FormControl
-            type="text"
-            value={editedName}
-            onChange={(e) => setEditedName(e.target.value)}
-          />
-        ) : (
-          row.bank_name
-        ),
-      sortable: true,
+      sortable:true
     },
-    hasEditAccess &&{
+    hasEditAccess && {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-1">
-          {editId === row._id ? (
-            <button
-              className="editButton btn-success"
-              onClick={() => handleSave(row._id)}
-            >
-              <FaSave />
-            </button>
-          ) : (
-            <button
-              className="editButton"
-              onClick={() => handleEdit(row._id, row.bank_name)}
-            >
-              <FaEdit />
-            </button>
-          )}
-          <button
-            className="editButton btn-danger"
+          <Button
+            size="sm" variant="success"
+            onClick={() => handleEditFormOpen(row._id, row.bank_name)}
+          >
+            <FaEdit />
+          </Button>
+          <Button
+            size="sm" variant="danger"
             onClick={() => handleDelete(row._id)}
           >
             <FaTrashAlt />
-          </button>
+          </Button>
         </div>
       ),
     },
@@ -78,7 +60,7 @@ const BankMaster = () => {
     setLoading(true);
     setError("");
     try {
-      const response = await getAllBanks()
+      const response = await getAllBanks();
       if (response.success) {
         setData(response.data);
       } else {
@@ -92,24 +74,24 @@ const BankMaster = () => {
     }
   };
 
-  const handleEdit = (id, name) => {
+  const handleEditFormOpen = (id, name) => {
     setEditId(id);
-    setEditedName(name);
+    setEditBankName(name);
+    setFieldError("");
+    setIsEditPopoverOpen(true);
   };
 
-  const handleSave = async (id) => {
-    if (!editedName.trim()) {
-      toast.error("Bank name cannot be empty.");
+  const handleUpdateBank = async () => {
+    if (!editBankName.trim()) {
+      setFieldError("Bank name cannot be empty.");
       return;
     }
 
     try {
-      const res = await updateBankById(id, {
-        bank_name: editedName,
-      })
-      toast.success("Bank name updated successfully.");
+      await updateBankById(editId, { bank_name: editBankName });
+      toast.success("Bank updated successfully.");
+      setIsEditPopoverOpen(false);
       fetchData();
-      setEditId(null);
     } catch (err) {
       console.log("failed to update bank", err);
       toast.error("Failed to update bank.");
@@ -119,7 +101,7 @@ const BankMaster = () => {
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this bank?")) {
       try {
-        await deleteBankById(id)
+        await deleteBankById(id);
         toast.success("Bank deleted successfully.");
         fetchData();
       } catch (err) {
@@ -130,7 +112,6 @@ const BankMaster = () => {
   };
 
   const handleAdd = async () => {
-    // Simple validation
     if (!newBank.trim()) {
       setFieldError("Bank name is required.");
       return;
@@ -139,13 +120,11 @@ const BankMaster = () => {
       return;
     }
 
-    setFieldError("");
-
     try {
-      const response = await addNewBank({ bank_name: newBank })
+      await addNewBank({ bank_name: newBank });
       toast.success("Bank added successfully.");
       setNewBank("");
-      setIsPopoverOpen(false);
+      setIsAddPopoverOpen(false);
       fetchData();
     } catch (err) {
       console.log("failed to add bank", err);
@@ -153,14 +132,10 @@ const BankMaster = () => {
     }
   };
 
-  const handlePrint = async () => {
-    const tableHeaders = [["#", "Bank Name"]];
-    const tableRows = data.map((row, index) => [
-      index + 1,
-      row.bank_name || "N/A",
-    ]);
-
-    printContent(tableHeaders, tableRows);
+  const handlePrint = () => {
+    const headers = [["#", "Bank Name"]];
+    const rows = data.map((row, index) => [index + 1, row.bank_name || "N/A"]);
+    printContent(headers, rows);
   };
 
   const handleCopy = () => {
@@ -194,26 +169,26 @@ const BankMaster = () => {
 
       <section>
         <Container>
-          {hasSubmitAccess &&(
+          {hasSubmitAccess && (
             <Button
-            onClick={() => {
-              setIsPopoverOpen(true);
-              setFieldError("");
-              setNewBank("");
-            }}
-            className="btn-add"
-          >
-            <CgAddR /> Add New Bank
-          </Button>
+              onClick={() => {
+                setIsAddPopoverOpen(true);
+                setFieldError("");
+                setNewBank("");
+              }}
+              className="btn-add"
+            >
+              <CgAddR /> Add New Bank
+            </Button>
           )}
 
-          {isPopoverOpen && (
+          {isAddPopoverOpen && (
             <div className="cover-sheet">
               <div className="studentHeading">
                 <h2>Add New Bank</h2>
                 <button
                   className="closeForm"
-                  onClick={() => setIsPopoverOpen(false)}
+                  onClick={() => setIsAddPopoverOpen(false)}
                 >
                   X
                 </button>
@@ -226,18 +201,50 @@ const BankMaster = () => {
                       type="text"
                       placeholder="Enter Bank Name"
                       value={newBank}
-                      onChange={(e) => {
-                        setNewBank(e.target.value);
-                        if (fieldError) setFieldError("")
-                      }}
+                      onChange={(e) => setNewBank(e.target.value)}
                       isInvalid={!!fieldError}
                     />
-
-                    <Form.Control.Feedback type="invalid">{fieldError}</Form.Control.Feedback>
+                    <Form.Control.Feedback type="invalid">
+                      {fieldError}
+                    </Form.Control.Feedback>
                   </Col>
                 </Row>
                 <Button onClick={handleAdd} className="btn btn-primary mt-3">
                   Add Bank
+                </Button>
+              </Form>
+            </div>
+          )}
+
+          {isEditPopoverOpen && (
+            <div className="cover-sheet">
+              <div className="studentHeading">
+                <h2>Edit Bank</h2>
+                <button
+                  className="closeForm"
+                  onClick={() => setIsEditPopoverOpen(false)}
+                >
+                  X
+                </button>
+              </div>
+              <Form className="formSheet">
+                <Row>
+                  <Col lg={6}>
+                    <FormLabel className="labelForm">Bank Name</FormLabel>
+                    <FormControl
+                      type="text"
+                      placeholder="Enter Bank Name"
+                      value={editBankName}
+                      onChange={(e) => setEditBankName(e.target.value)}
+                      isInvalid={!!fieldError}
+                    />
+                    <Form.Control.Feedback type="invalid">
+                      {fieldError}
+                    </Form.Control.Feedback>
+                  </Col>
+                </Row>
+                <Button onClick={handleUpdateBank} className="btn btn-primary mt-3">
+                  Update Bank
                 </Button>
               </Form>
             </div>

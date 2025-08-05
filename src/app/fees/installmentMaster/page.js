@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
+import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import { CgAddR } from 'react-icons/cg';
 import {
   Form,
@@ -25,16 +25,18 @@ import {
 import usePagePermission from "@/hooks/usePagePermission";
 
 const InstallmentMaster = () => {
-const {hasSubmitAccess,hasEditAccess}=usePagePermission()
+  const { hasSubmitAccess, hasEditAccess } = usePagePermission();
 
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
   const [newInstallment, setNewInstallment] = useState("");
   const [newError, setNewError] = useState("");
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const [editingId, setEditingId] = useState(null);
-  const [editedName, setEditedName] = useState("");
+  const [isAddFormOpen, setIsAddFormOpen] = useState(false);
+
+  const [editForm, setEditForm] = useState({ open: false, id: null, name: "" });
+  const [editError, setEditError] = useState("");
 
   const fetchData = async () => {
     setLoading(true);
@@ -65,28 +67,28 @@ const {hasSubmitAccess,hasEditAccess}=usePagePermission()
       toast.success(response?.message || "Installment added successfully");
       fetchData();
       setNewInstallment("");
-      setIsPopoverOpen(false);
+      setIsAddFormOpen(false);
       setNewError("");
     } catch (err) {
       toast.error(err?.response?.data?.message || "Failed to add installment.");
     }
   };
 
-  const handleEdit = (row) => {
-    setEditingId(row._id);
-    setEditedName(row.installment_name);
+  const handleEditClick = (row) => {
+    setEditForm({ open: true, id: row._id, name: row.installment_name });
+    setEditError("");
   };
 
-  const handleUpdate = async (id) => {
-    if (!editedName.trim()) {
-      toast.warning("Installment name cannot be empty");
+  const handleUpdate = async () => {
+    if (!editForm.name.trim()) {
+      setEditError("Installment name is required");
       return;
     }
     try {
-      const response = await updateInstallmentById(id, { installment_name: editedName });
+      const response = await updateInstallmentById(editForm.id, { installment_name: editForm.name });
       toast.success(response?.message || "Installment updated successfully");
       fetchData();
-      setEditingId(null);
+      setEditForm({ open: false, id: null, name: "" });
     } catch (err) {
       toast.error(err?.response?.data?.message || "Failed to update installment.");
     }
@@ -129,46 +131,23 @@ const {hasSubmitAccess,hasEditAccess}=usePagePermission()
     },
     {
       name: "Installment Name",
-      cell: (row) =>
-        editingId === row._id ? (
-          <FormControl
-            type="text"
-            value={editedName}
-            onChange={(e) => setEditedName(e.target.value)}
-            isInvalid={!editedName.trim()}
-          />
-        ) : (
-          row.installment_name || "N/A"
-        ),
+      selector: (row) => row.installment_name || "N/A",
       sortable: true,
     },
-    hasEditAccess &&{
+    hasEditAccess && {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-1">
-          {editingId === row._id ? (
-            <>
-              <button className="editButton" onClick={() => handleUpdate(row._id)}>
-                <FaSave />
-              </button>
-              <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
-                <FaTrashAlt />
-              </button>
-            </>
-          ) : (
-            <>
-              <button className="editButton" onClick={() => handleEdit(row)}>
-                <FaEdit />
-              </button>
-              <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
-                <FaTrashAlt />
-              </button>
-            </>
-          )}
+          <Button size="sm" variant="success" onClick={() => handleEditClick(row)}>
+            <FaEdit />
+          </Button>
+          <Button size="sm" variant="danger" onClick={() => handleDelete(row._id)}>
+            <FaTrashAlt />
+          </Button>
         </div>
       ),
     },
-  ];
+  ].filter(Boolean);
 
   const breadcrumbItems = [
     { label: "Fee", link: "/fees/all-module" },
@@ -186,24 +165,27 @@ const {hasSubmitAccess,hasEditAccess}=usePagePermission()
           </Row>
         </Container>
       </div>
+
       <section>
         <Container>
-         {hasSubmitAccess &&(
-           <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
-            <CgAddR /> Add Installment
-          </Button>
-         )}
+          {hasSubmitAccess && (
+            <Button onClick={() => setIsAddFormOpen(true)} className="btn-add">
+              <CgAddR /> Add Installment
+            </Button>
+          )}
 
-          {isPopoverOpen && (
+          {isAddFormOpen && (
             <div className="cover-sheet">
               <div className="studentHeading">
                 <h2>Add New Installment</h2>
-                <button className="closeForm" onClick={() => setIsPopoverOpen(false)}>X</button>
+                <button className="closeForm" onClick={() => setIsAddFormOpen(false)}>X</button>
               </div>
               <Form className="formSheet">
                 <Row>
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Installment Name <span className="text-danger">*</span></FormLabel>
+                    <FormLabel className="labelForm">
+                      Installment Name <span className="text-danger">*</span>
+                    </FormLabel>
                     <FormControl
                       type="text"
                       placeholder="Enter Installment Name"
@@ -221,6 +203,41 @@ const {hasSubmitAccess,hasEditAccess}=usePagePermission()
                 </Row>
                 <Button onClick={handleAdd} className="btn btn-primary mt-3">
                   Add Installment
+                </Button>
+              </Form>
+            </div>
+          )}
+
+          {/* Edit Form */}
+          {editForm.open && (
+            <div className="cover-sheet">
+              <div className="studentHeading">
+                <h2>Edit Installment</h2>
+                <button className="closeForm" onClick={() => setEditForm({ open: false, id: null, name: "" })}>X</button>
+              </div>
+              <Form className="formSheet">
+                <Row>
+                  <Col lg={6}>
+                    <FormLabel className="labelForm">
+                      Installment Name <span className="text-danger">*</span>
+                    </FormLabel>
+                    <FormControl
+                      type="text"
+                      placeholder="Enter Installment Name"
+                      value={editForm.name}
+                      isInvalid={!!editError}
+                      onChange={(e) => {
+                        setEditForm({ ...editForm, name: e.target.value });
+                        if (editError) setEditError("");
+                      }}
+                    />
+                    <Form.Control.Feedback type="invalid">
+                      {editError}
+                    </Form.Control.Feedback>
+                  </Col>
+                </Row>
+                <Button onClick={handleUpdate} className="btn btn-primary mt-3">
+                  Update Installment
                 </Button>
               </Form>
             </div>

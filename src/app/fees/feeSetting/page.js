@@ -118,14 +118,11 @@ const FeeSetting = () => {
     hasEditAccess &&{
       name: "Actions",
       cell: (row) => (
-        <button
-          className="editButton"
-          onClick={() => setIsEditing(true)}
-          disabled={isEditing}
+        <Button size="sm" variant="success" onClick={() => setIsEditing(true)} disabled={isEditing}
         >
           <FaEdit className="me-1" />
           Edit
-        </button>
+        </Button>
       ),
     },
   ];
