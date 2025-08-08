@@ -6,10 +6,10 @@ import Image from "next/image";
 import { GiHamburgerMenu } from "react-icons/gi";
 import { useDispatch } from 'react-redux';
 import { setSessionId } from '@/Redux/Slices/sessionSlice';
-import { BASE_URL, getSessions } from '@/Services';
-import axios from 'axios';
+import { changeAdminPassword, getSessions } from '@/Services';
 import useSessionId from '@/hooks/useSessionId';
 import { useRouter } from 'next/navigation';
+import { toast } from 'react-toastify';
 
 export default function Header({ toggleSidebar, onLogout }) {
   const router = useRouter()
@@ -20,7 +20,7 @@ export default function Header({ toggleSidebar, onLogout }) {
   const [sessions, setSessions] = useState([]);
   const [selectedSession, setSelectedSession] = useState(null);
   const [formData, setFormData] = useState({
-    email: "",
+    username: "",
     currentPassword: "",
     newPassword: "",
     confirmPassword: "",
@@ -81,44 +81,72 @@ export default function Header({ toggleSidebar, onLogout }) {
   }, [isDarkMode]);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  setFormData({
+    ...formData,
+    [e.target.name]: e.target.value
+  });
+
+  setMessage("");
+};
+
 
   const handlePasswordChange = async () => {
-    if (formData.newPassword !== formData.confirmPassword) {
+    const { username, currentPassword, newPassword, confirmPassword } = formData;
+
+    // Basic validations
+    if (username.trim() === "") {
+      setMessage("Username is required!");
+      return;
+    }
+    if (currentPassword.trim() === "") {
+      setMessage("Current password is required!");
+      return;
+    }
+
+    // New password validations
+    if (newPassword.trim() === "") {
+      setMessage("New password is required!");
+      return;
+    }
+    if (newPassword.length < 5) {
+      setMessage("New password must be at least 5 characters long.");
+      return;
+    }
+    if (newPassword.length > 18) {
+      setMessage("New password cannot be more than 18 characters.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
       setMessage("New password and confirm password do not match.");
       return;
     }
 
     try {
-      const response = await axios.post(`${BASE_URL}/api/change-password`, {
-        email: formData.email,
-        currentPassword: formData.currentPassword,
-        newPassword: formData.newPassword,
+      const result = await changeAdminPassword({
+        username: username.trim(),
+        currentPassword: currentPassword.trim(),
+        newPassword: newPassword.trim(),
       });
 
-      const result = response.data;
-      setMessage(result.message);
-
       if (result.success) {
+        toast.success("Password changed successfully");
+        setFormData({
+          username: "",
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        });
         setTimeout(() => {
           setShowModal(false);
-          setFormData({
-            email: "",
-            currentPassword: "",
-            newPassword: "",
-            confirmPassword: "",
-          });
-          setMessage("");
         }, 1500);
       }
     } catch (error) {
-      setMessage(
+      toast.error(
         error?.response?.data?.message || "Something went wrong. Try again."
       );
     }
-
   };
+
 
   const handleSessionChange = (sessionId) => {
     const session = sessions.find((s) => s._id === sessionId);
@@ -221,11 +249,11 @@ export default function Header({ toggleSidebar, onLogout }) {
         <Modal.Body>
           <Form>
             <Form.Group className="mb-3">
-              <Form.Label>Email</Form.Label>
+              <Form.Label>Username</Form.Label>
               <Form.Control
-                type="email"
-                name="email"
-                value={formData.email}
+                type="text"
+                name="username"
+                value={formData.username}
                 onChange={handleChange}
               />
             </Form.Group>

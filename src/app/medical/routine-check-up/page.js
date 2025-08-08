@@ -402,7 +402,7 @@ const RoutineCheckUp = () => {
                     {isEditing ? "Update Check-Up" : "Add Check-Up"}
                   </Button>
                   <Button
-                    variant="secondary"
+                    variant="danger"
                     onClick={() => setIsFormOpen(false)}
                   >
                     Cancel

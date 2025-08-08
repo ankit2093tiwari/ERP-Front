@@ -81,10 +81,18 @@ const PaymentModeMaster = () => {
         if (!newPaymentMode.trim()) {
             setFieldError("Payment mode is required.");
             return;
-        } else if (newPaymentMode.length < 3 || newPaymentMode.length > 50) {
-            setFieldError("Payment mode must be 3–50 characters.");
+        } else if (newPaymentMode.length < 3 || newPaymentMode.length > 20) {
+            setFieldError("Payment mode must be 3-20 characters.");
             return;
         }
+
+
+        const isDuplicate = data.some(mode => mode.payment_mode.toLowerCase() === newPaymentMode.trim().toLowerCase())
+        if (isDuplicate) {
+            setFieldError("Payment mode already exists.");
+            return;
+        }
+
 
         setFieldError("");
 

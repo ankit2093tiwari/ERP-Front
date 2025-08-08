@@ -4,7 +4,7 @@ import Link from "next/link";
 import SubCard from "@/app/component/SubCard";
 import Image from "next/image";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
-import { Container, Row , Col } from "react-bootstrap";
+import { Container, Row, Col } from "react-bootstrap";
 
 const Page = () => {
   const cardData = [
@@ -37,6 +37,12 @@ const Page = () => {
       icon: <Image src="/module/fees/feeGroup.png" className="studentIcon" width={100} height={100} alt="" />,
       title: "Fee Group",
       description: "Add Basic Details of Fee Group",
+    },
+     {
+      href: "/fees/payment-master",
+      icon: <Image src="/module/fees/transferYear.png" className="studentIcon" width={100} height={100} alt="" />,
+      title: "Payment Master",
+      description: "Add Payment types..",
     },
     {
       href: "/fees/feeSetting",
@@ -87,16 +93,10 @@ const Page = () => {
       description: "Add Basic Details of Cheque Bounce",
     },
     {
-      href: "/fees/cheque-bounce",
-      icon: <Image src="/module/fees/transferYear.png" className="studentIcon" width={100} height={100} alt="" />,
-      title: "Transfer to Next Year",
-      description: "Add Basic Details of Cheque Bounce",
-    },
-    {
-      href: "/fees/cheque-bounce",
+      href: "/fees/reports/fee-reports",
       icon: <Image src="/module/fees/report.png" className="studentIcon" width={100} height={100} alt="" />,
       title: "Reports",
-      description: "Add Basic Details of Cheque Bounce",
+      description: "Check All Fees Reports",
     },
   ];
 

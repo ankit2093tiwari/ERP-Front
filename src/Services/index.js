@@ -48,6 +48,10 @@ export const adminLogin = async (payload) => {
     const response = await axios.post(`${BASE_URL}/api/login`, payload);
     return response?.data;
 };
+export const changeAdminPassword = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/change-password`, payload);
+    return response?.data;
+};
 export const getSessions = async () => {
     const response = await axios.get(`${BASE_URL}/api/all-session`);
     return response?.data;

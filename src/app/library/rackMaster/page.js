@@ -172,7 +172,7 @@ const RackAndShelfManager = () => {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-1">
-          <Button variant="info" size="sm" onClick={() => handleEditShelf(row)}><FaEdit /></Button>
+          <Button variant="success" size="sm" onClick={() => handleEditShelf(row)}><FaEdit /></Button>
           <Button variant="danger" size="sm" onClick={() => handleDeleteShelf(row._id)}><FaTrashAlt /></Button>
         </div>
       ),
@@ -186,7 +186,7 @@ const RackAndShelfManager = () => {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-1">
-          <Button variant="info" size="sm" onClick={() => handleEditRack(row)}><FaEdit /></Button>
+          <Button variant="success" size="sm" onClick={() => handleEditRack(row)}><FaEdit /></Button>
           <Button variant="danger" size="sm" onClick={() => handleDeleteRack(row._id)}><FaTrashAlt /></Button>
         </div>
       ),
@@ -239,7 +239,7 @@ const RackAndShelfManager = () => {
                         }}
                       />
                       <Form.Control.Feedback type="invalid">{errors.rackName}</Form.Control.Feedback>
-                      <Button variant="primary" className="mt-3 w-100" onClick={handleAddRack}>
+                      <Button variant="success" className="mt-3 w-100" onClick={handleAddRack}>
                         {editRackId ? "Update Rack" : "Add Rack"}
                       </Button>
                     </div>
@@ -276,7 +276,7 @@ const RackAndShelfManager = () => {
                         }}
                       />
                       <Form.Control.Feedback type="invalid">{errors.shelfName}</Form.Control.Feedback>
-                      <Button variant="primary" className="mt-3 w-100" onClick={handleAddShelf}>
+                      <Button variant="success" className="mt-3 w-100" onClick={handleAddShelf}>
                         {editShelfId ? "Update Shelf" : "Add Shelf"}
                       </Button>
                     </div>

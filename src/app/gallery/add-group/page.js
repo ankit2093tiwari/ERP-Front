@@ -3,16 +3,7 @@ import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import { CgAddR } from "react-icons/cg";
-import {
-  Form,
-  Row,
-  Col,
-  Container,
-  FormLabel,
-  FormControl,
-  Button,
-  Alert,
-} from "react-bootstrap";
+import {Form,Row,Col,Container,FormLabel,FormControl,Button,Alert,} from "react-bootstrap";
 import Table from "@/app/component/DataTable";
 import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
@@ -56,8 +47,7 @@ const AddGalleryGroup = () => {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-1">
-          <button
-            className="editButton"
+          <Button size="sm" variant="success"
             onClick={() => {
               setIsEditMode(true);
               setIsPopoverOpen(true);
@@ -67,13 +57,12 @@ const AddGalleryGroup = () => {
             }}
           >
             <FaEdit />
-          </button>
-          <button
-            className="editButton btn-danger"
+          </Button>
+          <Button size="sm" variant="danger"
             onClick={() => handleDelete(row._id)}
           >
             <FaTrashAlt />
-          </button>
+          </Button>
         </div>
       ),
     },
@@ -238,7 +227,7 @@ const AddGalleryGroup = () => {
                     </Form.Control.Feedback>
                   </Col>
                 </Row>
-                <Button onClick={handleFormSubmit} className="btn btn-primary">
+                <Button variant="success" onClick={handleFormSubmit}>
                   {isEditMode ? "Update Group" : "Add Group"}
                 </Button>
               </Form>

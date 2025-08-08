@@ -144,8 +144,13 @@ const SpeechRecognitionProvider = ({ onCommand }) => {
       {focusedField && (() => {
         const domType = focusedField.getAttribute("type") || "";
         const disallowedTypes = ["file", "date", "number", "password", "time", "radio", "checkbox", "datetime-local", "month", "week", "color"];
+
         if (focusedField.tagName === "INPUT" && disallowedTypes.includes(domType)) return null;
         if (focusedField.readOnly || focusedField.disabled) return null;
+
+        const rect = focusedField.getBoundingClientRect();
+        if (rect.width < 10 || rect.height < 10) return null; // hidden or off-screen input
+
         return (
           <button
             ref={micRef}
@@ -172,10 +177,10 @@ const SpeechRecognitionProvider = ({ onCommand }) => {
             }}
           >
             🎤
-            {/* <img src='/mic.png' height={30} width={30} alt="micbtn" /> */}
           </button>
         );
       })()}
+
 
     </>
   );

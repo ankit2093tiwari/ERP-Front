@@ -1,8 +1,7 @@
 "use client";
-
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { FaEdit, FaTrashAlt, FaSave, FaTimes } from "react-icons/fa";
+import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import { CgAddR } from "react-icons/cg";
 import { Form, Row, Col, Container, FormLabel, FormControl, FormSelect, Button, Alert } from "react-bootstrap";
 import Table from "@/app/component/DataTable";
@@ -13,15 +12,17 @@ import { addNewAdvertisement, deleteAdvertisementById, getAdvertisements, getAdv
 import usePagePermission from "@/hooks/usePagePermission";
 
 const AdvertisementPage = () => {
-  const {hasEditAccess,hasSubmitAccess}=usePagePermission()
+  const { hasEditAccess, hasSubmitAccess } = usePagePermission();
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const [editingId, setEditingId] = useState(null);
+  const [isAddFormOpen, setIsAddFormOpen] = useState(false);
+  const [isEditFormOpen, setIsEditFormOpen] = useState(false);
+  const [currentEditId, setCurrentEditId] = useState(null);
   const [advertisementTypes, setAdvertisementTypes] = useState([]);
 
-
   const today = new Date().toISOString().split("T")[0];
+  
+  // Form state for adding new advertisement
   const [formData, setFormData] = useState({
     advertisement_type: "",
     advertisement_name: "",
@@ -33,18 +34,7 @@ const AdvertisementPage = () => {
     publish_date: today,
   });
 
-
-  // Form errors for add form
-  const [formErrors, setFormErrors] = useState({
-    advertisement_type: "",
-    advertisement_name: "",
-    page_no: "",
-    size: "",
-    amount: "",
-    publish_date: "",
-  });
-
-  // Form data for editing existing advertisement
+  // Form state for editing advertisement
   const [editFormData, setEditFormData] = useState({
     advertisement_type: "",
     advertisement_name: "",
@@ -53,11 +43,11 @@ const AdvertisementPage = () => {
     amount: "",
     remark: "",
     file: null,
-    publish_date: "",
+    publish_date: today,
   });
 
-  // Form errors for edit form
-  const [editFormErrors, setEditFormErrors] = useState({
+  // Form errors
+  const [errors, setErrors] = useState({
     advertisement_type: "",
     advertisement_name: "",
     page_no: "",
@@ -65,48 +55,6 @@ const AdvertisementPage = () => {
     amount: "",
     publish_date: "",
   });
-
-  // Validate form function
-  const validateForm = (formData, isEdit = false) => {
-    const errors = {};
-    let isValid = true;
-
-    if (!formData.advertisement_type) {
-      errors.advertisement_type = "Advertisement type is required";
-      isValid = false;
-    }
-    if (!formData.advertisement_name) {
-      errors.advertisement_name = "Advertisement name is required";
-      isValid = false;
-    }
-    if (!formData.page_no) {
-      errors.page_no = "Page number is required";
-      isValid = false;
-    }
-    if (!formData.size) {
-      errors.size = "Size is required";
-      isValid = false;
-    }
-    if (!formData.amount) {
-      errors.amount = "Amount is required";
-      isValid = false;
-    } else if (isNaN(formData.amount)) {
-      errors.amount = "Amount must be a number";
-      isValid = false;
-    }
-    if (!formData.publish_date) {
-      errors.publish_date = "Publish date is required";
-      isValid = false;
-    }
-
-    if (isEdit) {
-      setEditFormErrors(errors);
-    } else {
-      setFormErrors(errors);
-    }
-
-    return isValid;
-  };
 
   // Table columns configuration
   const columns = [
@@ -118,202 +66,63 @@ const AdvertisementPage = () => {
     },
     {
       name: "Advertisement Type",
-      cell: (row) => editingId === row._id ? (
-        <>
-          <FormSelect
-            name="advertisement_type"
-            value={editFormData.advertisement_type}
-            onChange={(e) => {
-              setEditFormData({ ...editFormData, advertisement_type: e.target.value });
-              setEditFormErrors({ ...editFormErrors, advertisement_type: "" });
-            }}
-            isInvalid={!!editFormErrors.advertisement_type}
-          >
-            <option value="">Select Type</option>
-            {advertisementTypes.map((type) => (
-              <option key={type._id} value={type._id}>
-                {type.type_name}
-              </option>
-            ))}
-          </FormSelect>
-        </>
-      ) : (
-        row.advertisement_type?.type_name || "N/A"
-      ),
+      selector: (row) => row.advertisement_type?.type_name || "N/A",
       sortable: true
     },
     {
       name: "Advertisement Name",
-      cell: (row) => editingId === row._id ? (
-        <>
-          <FormControl
-            type="text"
-            value={editFormData.advertisement_name}
-            onChange={(e) => {
-              setEditFormData({ ...editFormData, advertisement_name: e.target.value });
-              setEditFormErrors({ ...editFormErrors, advertisement_name: "" });
-            }}
-            isInvalid={!!editFormErrors.advertisement_name}
-          />
-        </>
-      ) : (
-        row.advertisement_name || "N/A"
-      ),
+      selector: (row) => row.advertisement_name || "N/A",
       sortable: true
     },
     {
       name: "Page No",
-      cell: (row) => editingId === row._id ? (
-        <>
-          <FormControl
-            type="text"
-            value={editFormData.page_no}
-            onChange={(e) => {
-              setEditFormData({ ...editFormData, page_no: e.target.value });
-              setEditFormErrors({ ...editFormErrors, page_no: "" });
-            }}
-            isInvalid={!!editFormErrors.page_no}
-          />
-
-        </>
-      ) : (
-        row.page_no || "N/A"
-      ),
+      selector: (row) => row.page_no || "N/A",
       sortable: true
     },
     {
       name: "Size",
-      cell: (row) => editingId === row._id ? (
-        <>
-          <FormControl
-            type="text"
-            value={editFormData.size}
-            onChange={(e) => {
-              setEditFormData({ ...editFormData, size: e.target.value });
-              setEditFormErrors({ ...editFormErrors, size: "" });
-            }}
-            isInvalid={!!editFormErrors.size}
-          />
-
-        </>
-      ) : (
-        row.size || "N/A"
-      ),
+      selector: (row) => row.size || "N/A",
       sortable: true
     },
     {
       name: "Amount",
-      cell: (row) => editingId === row._id ? (
-        <>
-          <FormControl
-            type="text"
-            value={editFormData.amount}
-            onChange={(e) => {
-              setEditFormData({ ...editFormData, amount: e.target.value });
-              setEditFormErrors({ ...editFormErrors, amount: "" });
-            }}
-            isInvalid={!!editFormErrors.amount}
-          />
-
-        </>
-      ) : (
-        row.amount || "N/A"
-      ),
+      selector: (row) => row.amount || "N/A",
       sortable: true
     },
     {
       name: "Remark",
-      cell: (row) => editingId === row._id ? (
-        <FormControl
-          as="textarea"
-          rows={1}
-          value={editFormData.remark}
-          onChange={(e) => setEditFormData({ ...editFormData, remark: e.target.value })}
-        />
-      ) : (
-        row.remark || "N/A"
-      ),
+      selector: (row) => row.remark || "N/A",
       sortable: true
     },
     {
       name: "Publish Date",
-      cell: (row) => editingId === row._id ? (
-        <>
-          <FormControl
-            type="date"
-            value={editFormData.publish_date ? new Date(editFormData.publish_date).toISOString().split('T')[0] : ""}
-            onChange={(e) => {
-              setEditFormData({ ...editFormData, publish_date: e.target.value });
-              setEditFormErrors({ ...editFormErrors, publish_date: "" });
-            }}
-            isInvalid={!!editFormErrors.publish_date}
-          />
-
-        </>
-      ) : (
-        row.publish_date ? new Date(row.publish_date).toLocaleDateString() : "N/A"
-      ),
+      selector: (row) => row.publish_date ? new Date(row.publish_date).toLocaleDateString() : "N/A",
       sortable: true
     },
-    hasEditAccess &&{
+    hasEditAccess && {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-1">
-          {editingId === row._id ? (
-            <>
-              <Button
-                variant="success"
-                size="sm"
-                title="Save"
-                onClick={() => handleUpdate(row._id)}
-              >
-                <FaSave />
-              </Button>
-
-              <Button
-                variant="outline-secondary"
-                size="sm"
-                title="Cancel"
-                onClick={() => {
-                  setEditingId(null);
-                  setEditFormErrors({
-                    advertisement_type: "",
-                    advertisement_name: "",
-                    page_no: "",
-                    size: "",
-                    amount: "",
-                    publish_date: "",
-                  });
-                }}
-              >
-                <FaTimes />
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button
-                variant="warning"
-                size="sm"
-                title="Edit"
-                onClick={() => handleEdit(row)}
-              >
-                <FaEdit />
-              </Button>
-
-              <Button
-                variant="danger"
-                size="sm"
-                title="Delete"
-                onClick={() => handleDelete(row._id)}
-              >
-                <FaTrashAlt />
-              </Button>
-            </>
-          )}
+          <Button
+            variant="success"
+            size="sm"
+            title="Edit"
+            onClick={() => handleEdit(row)}
+          >
+            <FaEdit />
+          </Button>
+          <Button
+            variant="danger"
+            size="sm"
+            title="Delete"
+            onClick={() => handleDelete(row._id)}
+          >
+            <FaTrashAlt />
+          </Button>
         </div>
       ),
     }
-  ].filter(Boolean);;
+  ].filter(Boolean);
 
   // Fetch advertisements data
   const fetchData = async () => {
@@ -340,20 +149,64 @@ const AdvertisementPage = () => {
     }
   };
 
+  // Validate form function
+  const validateForm = (formData) => {
+    const newErrors = {};
+    let isValid = true;
+
+    if (!formData.advertisement_type) {
+      newErrors.advertisement_type = "Advertisement type is required";
+      isValid = false;
+    }
+    if (!formData.advertisement_name) {
+      newErrors.advertisement_name = "Advertisement name is required";
+      isValid = false;
+    }
+    if (!formData.page_no) {
+      newErrors.page_no = "Page number is required";
+      isValid = false;
+    }
+    if (!formData.size) {
+      newErrors.size = "Size is required";
+      isValid = false;
+    }
+    if (!formData.amount) {
+      newErrors.amount = "Amount is required";
+      isValid = false;
+    } else if (isNaN(formData.amount)) {
+      newErrors.amount = "Amount must be a number";
+      isValid = false;
+    }
+    if (!formData.publish_date) {
+      newErrors.publish_date = "Publish date is required";
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+    return isValid;
+  };
+
   // Handle form input changes for add form
   const handleChange = (e) => {
     const { name, value, files } = e.target;
-    setFormData((prevData) => ({
-      ...prevData,
+    setFormData(prev => ({
+      ...prev,
       [name]: files ? files[0] : value,
     }));
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: "" }));
+    }
+  };
 
-    // Clear error when field is changed
-    if (formErrors[name]) {
-      setFormErrors({
-        ...formErrors,
-        [name]: "",
-      });
+  // Handle form input changes for edit form
+  const handleEditChange = (e) => {
+    const { name, value, files } = e.target;
+    setEditFormData(prev => ({
+      ...prev,
+      [name]: files ? files[0] : value,
+    }));
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: "" }));
     }
   };
 
@@ -373,19 +226,10 @@ const AdvertisementPage = () => {
       });
 
       const response = await addNewAdvertisement(form);
-      fetchData();
-      setFormData({
-        advertisement_type: "",
-        advertisement_name: "",
-        page_no: "",
-        size: "",
-        amount: "",
-        remark: "",
-        file: null,
-        publish_date: "",
-      });
-      setIsPopoverOpen(false);
       toast.success(response?.data?.message || "Advertisement added successfully!");
+      fetchData();
+      resetAddForm();
+      setIsAddFormOpen(false);
     } catch (error) {
       console.error("Error adding advertisement:", error);
       toast.error(error.response?.data?.message || "Failed to add advertisement.");
@@ -394,7 +238,7 @@ const AdvertisementPage = () => {
 
   // Edit an advertisement
   const handleEdit = (advertisement) => {
-    setEditingId(advertisement._id);
+    setCurrentEditId(advertisement._id);
     setEditFormData({
       advertisement_type: advertisement.advertisement_type?._id || "",
       advertisement_name: advertisement.advertisement_name || "",
@@ -402,14 +246,15 @@ const AdvertisementPage = () => {
       size: advertisement.size || "",
       amount: advertisement.amount || "",
       remark: advertisement.remark || "",
-      file: null, // Don't pre-fill file for edit
-      publish_date: advertisement.publish_date ? new Date(advertisement.publish_date).toISOString().split('T')[0] : "",
+      file: null,
+      publish_date: advertisement.publish_date ? new Date(advertisement.publish_date).toISOString().split('T')[0] : today,
     });
+    setIsEditFormOpen(true);
   };
 
   // Update an advertisement
-  const handleUpdate = async (id) => {
-    if (!validateForm(editFormData, true)) {
+  const handleUpdate = async () => {
+    if (!validateForm(editFormData)) {
       toast.warn("Please fill all required fields correctly");
       return;
     }
@@ -422,10 +267,11 @@ const AdvertisementPage = () => {
         }
       });
 
-      const response = await updateAdvertisementById(id, form);
+      const response = await updateAdvertisementById(currentEditId, form);
       toast.success(response?.message || "Advertisement updated successfully!");
       fetchData();
-      setEditingId(null);
+      resetEditForm();
+      setIsEditFormOpen(false);
     } catch (error) {
       console.error("Error updating advertisement:", error);
       toast.error(error.response?.data?.message || "Failed to update advertisement.");
@@ -444,6 +290,51 @@ const AdvertisementPage = () => {
         toast.error(error.response?.data?.message || "Failed to delete advertisement.");
       }
     }
+  };
+
+  // Reset add form
+  const resetAddForm = () => {
+    setFormData({
+      advertisement_type: "",
+      advertisement_name: "",
+      page_no: "",
+      size: "",
+      amount: "",
+      remark: "",
+      file: null,
+      publish_date: today,
+    });
+    setErrors({
+      advertisement_type: "",
+      advertisement_name: "",
+      page_no: "",
+      size: "",
+      amount: "",
+      publish_date: "",
+    });
+  };
+
+  // Reset edit form
+  const resetEditForm = () => {
+    setCurrentEditId(null);
+    setEditFormData({
+      advertisement_type: "",
+      advertisement_name: "",
+      page_no: "",
+      size: "",
+      amount: "",
+      remark: "",
+      file: null,
+      publish_date: today,
+    });
+    setErrors({
+      advertisement_type: "",
+      advertisement_name: "",
+      page_no: "",
+      size: "",
+      amount: "",
+      publish_date: "",
+    });
   };
 
   // Print table data
@@ -465,7 +356,6 @@ const AdvertisementPage = () => {
       row.publish_date ? new Date(row.publish_date).toLocaleDateString() : "N/A",
     ]);
     printContent(tableHeaders, tableRows);
-    toast.success("Printing initiated");
   };
 
   // Copy table data
@@ -508,31 +398,28 @@ const AdvertisementPage = () => {
 
       <section>
         <Container>
-        {hasSubmitAccess &&(
+          {hasSubmitAccess && (
             <Button
-            onClick={() => setIsPopoverOpen(true)}
-            className="btn-add"
-          >
-            <CgAddR /> Add Advertisement
-          </Button>
-        )}
+              onClick={() => {
+                setIsAddFormOpen(true);
+                resetAddForm();
+              }}
+              className="btn-add"
+            >
+              <CgAddR /> Add Advertisement
+            </Button>
+          )}
 
-          {isPopoverOpen && (
+          {/* Add Form */}
+          {isAddFormOpen && (
             <div className="cover-sheet">
               <div className="studentHeading">
                 <h2>Add New Advertisement</h2>
                 <button
                   className="closeForm"
                   onClick={() => {
-                    setIsPopoverOpen(false);
-                    setFormErrors({
-                      advertisement_type: "",
-                      advertisement_name: "",
-                      page_no: "",
-                      size: "",
-                      amount: "",
-                      publish_date: "",
-                    });
+                    setIsAddFormOpen(false);
+                    resetAddForm();
                   }}
                 >
                   X
@@ -546,7 +433,7 @@ const AdvertisementPage = () => {
                       name="advertisement_type"
                       value={formData.advertisement_type}
                       onChange={handleChange}
-                      isInvalid={!!formErrors.advertisement_type}
+                      isInvalid={!!errors.advertisement_type}
                     >
                       <option value="">Select Type</option>
                       {advertisementTypes.map((type) => (
@@ -556,7 +443,7 @@ const AdvertisementPage = () => {
                       ))}
                     </FormSelect>
                     <Form.Control.Feedback type="invalid">
-                      {formErrors.advertisement_type}
+                      {errors.advertisement_type}
                     </Form.Control.Feedback>
                   </Col>
                   <Col lg={6}>
@@ -566,10 +453,10 @@ const AdvertisementPage = () => {
                       name="publish_date"
                       value={formData.publish_date}
                       onChange={handleChange}
-                      isInvalid={!!formErrors.publish_date}
+                      isInvalid={!!errors.publish_date}
                     />
                     <Form.Control.Feedback type="invalid">
-                      {formErrors.publish_date}
+                      {errors.publish_date}
                     </Form.Control.Feedback>
                   </Col>
                   <Col lg={6}>
@@ -580,10 +467,10 @@ const AdvertisementPage = () => {
                       value={formData.advertisement_name}
                       onChange={handleChange}
                       placeholder="Enter Advertisement Name"
-                      isInvalid={!!formErrors.advertisement_name}
+                      isInvalid={!!errors.advertisement_name}
                     />
                     <Form.Control.Feedback type="invalid">
-                      {formErrors.advertisement_name}
+                      {errors.advertisement_name}
                     </Form.Control.Feedback>
                   </Col>
                   <Col lg={6}>
@@ -594,10 +481,10 @@ const AdvertisementPage = () => {
                       value={formData.size}
                       onChange={handleChange}
                       placeholder="Enter Size"
-                      isInvalid={!!formErrors.size}
+                      isInvalid={!!errors.size}
                     />
                     <Form.Control.Feedback type="invalid">
-                      {formErrors.size}
+                      {errors.size}
                     </Form.Control.Feedback>
                   </Col>
                   <Col lg={6}>
@@ -608,10 +495,10 @@ const AdvertisementPage = () => {
                       value={formData.page_no}
                       onChange={handleChange}
                       placeholder="Enter Page Number"
-                      isInvalid={!!formErrors.page_no}
+                      isInvalid={!!errors.page_no}
                     />
                     <Form.Control.Feedback type="invalid">
-                      {formErrors.page_no}
+                      {errors.page_no}
                     </Form.Control.Feedback>
                   </Col>
                   <Col lg={6}>
@@ -630,10 +517,10 @@ const AdvertisementPage = () => {
                       value={formData.amount}
                       onChange={handleChange}
                       placeholder="Enter Amount"
-                      isInvalid={!!formErrors.amount}
+                      isInvalid={!!errors.amount}
                     />
                     <Form.Control.Feedback type="invalid">
-                      {formErrors.amount}
+                      {errors.amount}
                     </Form.Control.Feedback>
                   </Col>
                   <Col lg={6}>
@@ -648,8 +535,140 @@ const AdvertisementPage = () => {
                     />
                   </Col>
                 </Row>
-                <Button onClick={handleAdd} className="btn btn-primary">
+                <Button variant="success" onClick={handleAdd}>
                   Add Advertisement
+                </Button>
+              </Form>
+            </div>
+          )}
+
+          {/* Edit Form */}
+          {isEditFormOpen && (
+            <div className="cover-sheet">
+              <div className="studentHeading">
+                <h2>Edit Advertisement</h2>
+                <button
+                  className="closeForm"
+                  onClick={() => {
+                    setIsEditFormOpen(false);
+                    resetEditForm();
+                  }}
+                >
+                  X
+                </button>
+              </div>
+              <Form className="formSheet">
+                <Row className="mb-3">
+                  <Col lg={6}>
+                    <FormLabel className="labelForm">Advertisement Type*</FormLabel>
+                    <FormSelect
+                      name="advertisement_type"
+                      value={editFormData.advertisement_type}
+                      onChange={handleEditChange}
+                      isInvalid={!!errors.advertisement_type}
+                    >
+                      <option value="">Select Type</option>
+                      {advertisementTypes.map((type) => (
+                        <option key={type._id} value={type._id}>
+                          {type.type_name}
+                        </option>
+                      ))}
+                    </FormSelect>
+                    <Form.Control.Feedback type="invalid">
+                      {errors.advertisement_type}
+                    </Form.Control.Feedback>
+                  </Col>
+                  <Col lg={6}>
+                    <FormLabel className="labelForm">Publish Date*</FormLabel>
+                    <FormControl
+                      type="date"
+                      name="publish_date"
+                      value={editFormData.publish_date}
+                      onChange={handleEditChange}
+                      isInvalid={!!errors.publish_date}
+                    />
+                    <Form.Control.Feedback type="invalid">
+                      {errors.publish_date}
+                    </Form.Control.Feedback>
+                  </Col>
+                  <Col lg={6}>
+                    <FormLabel className="labelForm">Advertisement Name*</FormLabel>
+                    <FormControl
+                      type="text"
+                      name="advertisement_name"
+                      value={editFormData.advertisement_name}
+                      onChange={handleEditChange}
+                      placeholder="Enter Advertisement Name"
+                      isInvalid={!!errors.advertisement_name}
+                    />
+                    <Form.Control.Feedback type="invalid">
+                      {errors.advertisement_name}
+                    </Form.Control.Feedback>
+                  </Col>
+                  <Col lg={6}>
+                    <FormLabel className="labelForm">Size*</FormLabel>
+                    <FormControl
+                      type="text"
+                      name="size"
+                      value={editFormData.size}
+                      onChange={handleEditChange}
+                      placeholder="Enter Size"
+                      isInvalid={!!errors.size}
+                    />
+                    <Form.Control.Feedback type="invalid">
+                      {errors.size}
+                    </Form.Control.Feedback>
+                  </Col>
+                  <Col lg={6}>
+                    <FormLabel className="labelForm">Page No*</FormLabel>
+                    <FormControl
+                      type="text"
+                      name="page_no"
+                      value={editFormData.page_no}
+                      onChange={handleEditChange}
+                      placeholder="Enter Page Number"
+                      isInvalid={!!errors.page_no}
+                    />
+                    <Form.Control.Feedback type="invalid">
+                      {errors.page_no}
+                    </Form.Control.Feedback>
+                  </Col>
+                  <Col lg={6}>
+                    <FormLabel className="labelForm">File</FormLabel>
+                    <FormControl
+                      type="file"
+                      name="file"
+                      onChange={handleEditChange}
+                    />
+                  </Col>
+                  <Col lg={6}>
+                    <FormLabel className="labelForm">Amount*</FormLabel>
+                    <FormControl
+                      type="text"
+                      name="amount"
+                      value={editFormData.amount}
+                      onChange={handleEditChange}
+                      placeholder="Enter Amount"
+                      isInvalid={!!errors.amount}
+                    />
+                    <Form.Control.Feedback type="invalid">
+                      {errors.amount}
+                    </Form.Control.Feedback>
+                  </Col>
+                  <Col lg={6}>
+                    <FormLabel className="labelForm">Remark</FormLabel>
+                    <FormControl
+                      as="textarea"
+                      rows={1}
+                      name="remark"
+                      value={editFormData.remark}
+                      onChange={handleEditChange}
+                      placeholder="Enter Remark"
+                    />
+                  </Col>
+                </Row>
+                <Button variant="success" onClick={handleUpdate} >
+                  Update Advertisement
                 </Button>
               </Form>
             </div>

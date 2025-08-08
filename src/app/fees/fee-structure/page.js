@@ -397,20 +397,18 @@ const FeeStatement = () => {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-1">
-          <button
-            className="editButton btn-primary"
+          <Button size="sm" variant="success"
             onClick={() => handleEdit(row._id)}
             title="Edit"
           >
             <FaEdit />
-          </button>
-          <button
-            className="editButton btn-danger"
+          </Button>
+          <Button size="sm" variant="danger"
             onClick={() => handleDelete(row._id)}
             title="Delete"
           >
             <FaTrashAlt />
-          </button>
+          </Button>
         </div>
       ),
     },
@@ -603,7 +601,7 @@ const FeeStatement = () => {
           )}
 
           <div className="tableSheet">
-            <h2>Fee Records</h2>
+            <h2>Fee Structure Records</h2>
             {loading && <p>Loading...</p>}
             {!loading && data.length > 0 ? (
               <Table

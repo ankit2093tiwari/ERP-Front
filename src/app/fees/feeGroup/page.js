@@ -152,8 +152,8 @@ const FeeGroup = () => {
       section_name: row.raw_section_ids || [],
       late_fine_per_day: row.late_fine_per_day,
     });
-    console.log("Fetched Sections:", sectionList);
-    console.log("Editing Row:", row);
+    // console.log("Fetched Sections:", sectionList);
+    // console.log("Editing Row:", row);
 
   };
 

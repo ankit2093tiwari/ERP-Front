@@ -195,7 +195,7 @@ const AddImage = () => {
               </Row>
 
               {hasSubmitAccess && (
-                <Button type="submit" disabled={loading} className="btn btn-primary mt-4">
+                <Button variant="success" type="submit" disabled={loading}>
                   {loading ? "Uploading..." : "Add Image"}
                 </Button>
               )}

@@ -1,33 +1,38 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { FaEdit, FaTrashAlt, FaSave, FaTimes } from "react-icons/fa";
-import { Row, Col, Container, Button, FormControl } from "react-bootstrap";
+import { FaEdit, FaTrashAlt } from "react-icons/fa";
+import { Row, Col, Container, Button, FormControl, Form, FormLabel } from "react-bootstrap";
 import Image from "next/image";
 import Table from "@/app/component/DataTable";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { toast } from "react-toastify";
-import { deleteGalleryImageRecordById, getAllIGalleryImages, updateGalleryImageRecordById } from "@/Services";
+import {
+  deleteGalleryImageRecordById,
+  getAllIGalleryImages,
+  updateGalleryImageRecordById,
+} from "@/Services";
 import usePagePermission from "@/hooks/usePagePermission";
 
 const ImageRecord = () => {
-  const { hasEditAccess } = usePagePermission()
+  const { hasEditAccess } = usePagePermission();
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [editingId, setEditingId] = useState(null);
-  const [editFormData, setEditFormData] = useState({
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editId, setEditId] = useState(null);
+  const [formData, setFormData] = useState({
     image: "",
     shortText: "",
     date: "",
-    groupName: ""
+    groupName: "",
   });
 
   const isValidUrl = (url) => {
     try {
       new URL(url);
       return true;
-    } catch (e) {
+    } catch {
       return false;
     }
   };
@@ -42,27 +47,10 @@ const ImageRecord = () => {
     {
       name: "Group",
       selector: (row) => row.groupName?.groupName || "N/A",
-      sortable: false,
     },
     {
       name: "Image",
       cell: (row) => {
-        if (editingId === row._id) {
-          return (
-            <FormControl
-              type="file"
-              accept="image/*"
-              onChange={(e) => {
-                const file = e.target.files[0];
-                if (file) {
-                  setEditFormData({ ...editFormData, image: file });
-                }
-              }}
-            />
-
-          );
-        }
-
         const imageUrl = row.image;
         if (!imageUrl || !isValidUrl(imageUrl)) {
           return <span>No Image</span>;
@@ -73,87 +61,39 @@ const ImageRecord = () => {
             alt="Gallery"
             width={50}
             height={50}
-            style={{ objectFit: 'cover' }}
-            onError={(e) => {
-              e.target.onerror = null;
-              e.target.src = '/placeholder-image.jpg';
-            }}
+            style={{ objectFit: "cover" }}
           />
         );
       },
-      sortable: false,
     },
     {
       name: "Short Text",
-      cell: (row) => {
-        if (editingId === row._id) {
-          return (
-            <FormControl
-              type="text"
-              value={editFormData.shortText}
-              onChange={(e) => setEditFormData({ ...editFormData, shortText: e.target.value })}
-              placeholder="Short Text"
-            />
-          );
-        }
-        return row.shortText || "N/A";
-      },
-      sortable: true,
+      selector: (row) => row.shortText || "N/A",
     },
     {
       name: "Date",
-      cell: (row) => {
-        if (editingId === row._id) {
-          return (
-            <FormControl
-              type="date"
-              value={editFormData.date ? new Date(editFormData.date).toISOString().split('T')[0] : ""}
-              onChange={(e) => setEditFormData({ ...editFormData, date: e.target.value })}
-            />
-          );
-        }
-        return new Date(row.date).toLocaleDateString() || "N/A";
-      },
-      sortable: false,
+      selector: (row) => (row.date ? new Date(row.date).toLocaleDateString() : "N/A"),
     },
     hasEditAccess && {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-1">
-          {editingId === row._id ? (
-            <>
-              <button className="editButton"
-                onClick={() => handleUpdate(row._id)}
-                disabled={loading}
-              >
-                <FaSave />
-              </button>
-              <button className="editButton btn-danger"
-                onClick={() => setEditingId(null)}
-              >
-                <FaTimes />
-              </button>
-            </>
-          ) : (
-            <>
-              <button className="editButton" onClick={() => handleEdit(row)}>
-                <FaEdit />
-              </button>
-              <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
-                <FaTrashAlt />
-              </button>
-            </>
-          )}
+          <Button size="sm" variant="success" onClick={() => handleEdit(row)}>
+            <FaEdit />
+          </Button>
+          <Button size="sm" variant="danger" onClick={() => handleDelete(row._id)}>
+            <FaTrashAlt />
+          </Button>
         </div>
       ),
     },
-  ];
+  ].filter(Boolean);
 
   const fetchData = async () => {
     setLoading(true);
     setError("");
     try {
-      const response = await getAllIGalleryImages()
+      const response = await getAllIGalleryImages();
       const fetchedData = response.data || [];
       setData(
         fetchedData.map((item) => ({
@@ -173,32 +113,36 @@ const ImageRecord = () => {
   };
 
   const handleEdit = (image) => {
-    setEditingId(image._id);
-    setEditFormData({
+    setEditId(image._id);
+    setFormData({
       image: image.image || "",
       shortText: image.shortText || "",
-      date: image.date || "",
-      groupName: image.groupName?._id || ""
+      date: image.date ? new Date(image.date).toISOString().split("T")[0] : "",
+      groupName: image.groupName?._id || "",
     });
+    setIsFormOpen(true);
   };
 
-  const handleUpdate = async (id) => {
-    if (!editFormData.image || !editFormData.shortText.trim() || !editFormData.date) {
+  const handleUpdate = async () => {
+    if (!formData.shortText.trim() || !formData.date) {
       toast.warn("Please fill all required fields.");
       return;
     }
-    const formData = new FormData();
-    formData.append("image", editFormData.image);
-    formData.append("shortText", editFormData.shortText);
-    formData.append("date", editFormData.date);
-    formData.append("groupName", editFormData.groupName)
+
+    const updateData = new FormData();
+    if (formData.image instanceof File) {
+      updateData.append("image", formData.image);
+    }
+    updateData.append("shortText", formData.shortText);
+    updateData.append("date", formData.date);
+    updateData.append("groupName", formData.groupName);
 
     try {
       setLoading(true);
-      await updateGalleryImageRecordById(id, formData);
-      toast.success("Data Updated Successfully")
+      await updateGalleryImageRecordById(editId, updateData);
+      toast.success("Data Updated Successfully");
       fetchData();
-      setEditingId(null);
+      closeForm();
     } catch (error) {
       console.error("Error updating data:", error);
       setError("Failed to update image. Please try again later.");
@@ -211,9 +155,9 @@ const ImageRecord = () => {
     if (confirm("Are you sure you want to delete this entry?")) {
       try {
         setLoading(true);
-        const response = await deleteGalleryImageRecordById(id)
-        if (response?.success) toast.success("Record Deleted Successfully")
-        fetchData()
+        const response = await deleteGalleryImageRecordById(id);
+        if (response?.success) toast.success("Record Deleted Successfully");
+        fetchData();
       } catch (error) {
         console.error("Error deleting data:", error);
         setError("Failed to delete data. Please try again later.");
@@ -223,13 +167,24 @@ const ImageRecord = () => {
     }
   };
 
+  const closeForm = () => {
+    setIsFormOpen(false);
+    setEditId(null);
+    setFormData({
+      image: "",
+      shortText: "",
+      date: "",
+      groupName: "",
+    });
+  };
+
   useEffect(() => {
     fetchData();
   }, []);
 
   const breadcrumbItems = [
     { label: "Gallery", link: "/gallery/all-module" },
-    { label: "Image Record", link: "null" }
+    { label: "Image Record", link: "null" },
   ];
 
   return (
@@ -246,18 +201,80 @@ const ImageRecord = () => {
 
       <section>
         <Container>
+          {isFormOpen && (
+            <div className="cover-sheet">
+              <div className="studentHeading">
+                <h2>Edit Image Record</h2>
+                <button className="closeForm" onClick={closeForm}>
+                  X
+                </button>
+              </div>
+              <Form className="formSheet">
+                <Row className="mb-3">
+                  <Col lg={6}>
+                    <FormLabel>Image</FormLabel>
+                    <FormControl
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          setFormData({ ...formData, image: file });
+                        }
+                      }}
+                    />
+                    {formData.image && !(formData.image instanceof File) && (
+                      <div className="mt-2">
+                        <Image
+                          src={formData.image}
+                          alt="Preview"
+                          width={80}
+                          height={80}
+                          style={{ objectFit: "cover" }}
+                        />
+                      </div>
+                    )}
+                  </Col>
+                  <Col lg={6}>
+                    <FormLabel>Short Text</FormLabel>
+                    <FormControl
+                      type="text"
+                      value={formData.shortText}
+                      onChange={(e) => setFormData({ ...formData, shortText: e.target.value })}
+                    />
+                  </Col>
+                </Row>
+                <Row className="mb-3">
+                  <Col lg={6}>
+                    <FormLabel>Date</FormLabel>
+                    <FormControl
+                      type="date"
+                      value={formData.date}
+                      onChange={(e) => setFormData({ ...formData, date: e.target.value })}
+                    />
+                  </Col>
+                  {/* <Col lg={6}>
+                    <FormLabel>Group Name</FormLabel>
+                    <FormControl
+                      type="text"
+                      value={formData.groupName}
+                      onChange={(e) => setFormData({ ...formData, groupName: e.target.value })}
+                    />
+                  </Col> */}
+                </Row>
+                <Button variant="success" onClick={handleUpdate} disabled={loading}>
+                  Update Record
+                </Button>
+              </Form>
+            </div>
+          )}
+
           <div className="tableSheet">
             <h2>Images Records</h2>
             {loading ? (
               <p>Loading...</p>
             ) : (
-              <Table
-                columns={columns}
-                data={data}
-                pagination
-                highlightOnHover
-                responsive
-              />
+              <Table columns={columns} data={data} pagination highlightOnHover responsive />
             )}
           </div>
         </Container>

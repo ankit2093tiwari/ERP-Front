@@ -11,7 +11,6 @@ import {
   FormControl,
   Button,
 } from "react-bootstrap";
-import axios from "axios";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { toast } from "react-toastify";
 import { addNewNotice } from "@/Services";
@@ -163,7 +162,7 @@ const AddNotice = () => {
 
               {hasSubmitAccess && (
                 <div className="d-flex justify-content-between mt-3">
-                  <Button variant="primary" onClick={handleAdd}>
+                  <Button variant="success" onClick={handleAdd}>
                     Add Notice
                   </Button>
                 </div>

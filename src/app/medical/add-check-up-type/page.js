@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { FaEdit, FaTrashAlt, FaSave, FaTimes } from "react-icons/fa";
+import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import { CgAddR } from "react-icons/cg";
 import {
   Form,
@@ -17,19 +17,24 @@ import Table from "@/app/component/DataTable";
 import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { toast } from "react-toastify";
-import { addNewCheckupType, deleteCheckupTypeById, getAllCheckupTypes, updateCheckupTypeById } from "@/Services";
+import {
+  addNewCheckupType,
+  deleteCheckupTypeById,
+  getAllCheckupTypes,
+  updateCheckupTypeById,
+} from "@/Services";
 import usePagePermission from "@/hooks/usePagePermission";
 
 const AddCheckUp = () => {
-  const { hasEditAccess, hasSubmitAccess } = usePagePermission()
+  const { hasEditAccess, hasSubmitAccess } = usePagePermission();
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
-  const [editingId, setEditingId] = useState(null);
-  const [editedName, setEditedName] = useState("");
   const [formData, setFormData] = useState({ check_up_type: "" });
   const [fieldError, setFieldError] = useState({});
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editId, setEditId] = useState(null);
 
   const columns = [
     {
@@ -40,51 +45,29 @@ const AddCheckUp = () => {
     },
     {
       name: "Check-Up Type",
-      cell: (row) =>
-        editingId === row._id ? (
-          <FormControl
-            type="text"
-            value={editedName}
-            onChange={(e) => setEditedName(e.target.value)}
-          />
-        ) : (
-          row.check_up_type || "N/A"
-        ),
+      selector: (row) => row.check_up_type || "N/A",
       sortable: true,
     },
     hasEditAccess && {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-1">
-          {editingId === row._id ? (
-            <>
-              <Button size="sm" variant="success" onClick={() => handleUpdate(row._id)}>
-                <FaSave />
-              </Button>
-              <Button size="sm" variant="danger" onClick={() => setEditingId(null)}>
-                <FaTimes />
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button size="sm" variant="success" onClick={() => handleEdit(row)}>
-                <FaEdit />
-              </Button>
-              <Button size="sm" variant="danger" onClick={() => handleDelete(row._id)}>
-                <FaTrashAlt />
-              </Button>
-            </>
-          )}
+          <Button size="sm" variant="success" onClick={() => handleEdit(row)}>
+            <FaEdit />
+          </Button>
+          <Button size="sm" variant="danger" onClick={() => handleDelete(row._id)}>
+            <FaTrashAlt />
+          </Button>
         </div>
       ),
     },
-  ];
+  ].filter(Boolean);
 
   const fetchData = async () => {
     setLoading(true);
     setError("");
     try {
-      const res = await getAllCheckupTypes()
+      const res = await getAllCheckupTypes();
       setData(res.data || []);
     } catch (err) {
       console.error(err);
@@ -94,74 +77,73 @@ const AddCheckUp = () => {
     }
   };
 
-  const handleEdit = (checkUp) => {
-    setEditingId(checkUp._id);
-    setEditedName(checkUp.check_up_type);
+  // Open form for adding
+  const openAddForm = () => {
+    setFormData({ check_up_type: "" });
+    setFieldError({});
+    setIsEditMode(false);
+    setEditId(null);
+    setIsPopoverOpen(true);
   };
 
-  const handleUpdate = async (id) => {
-    if (!editedName.trim()) {
-      toast.error("Check-up type cannot be empty");
+  // Open form for editing
+  const handleEdit = (checkUp) => {
+    setFormData({ check_up_type: checkUp.check_up_type });
+    setFieldError({});
+    setIsEditMode(true);
+    setEditId(checkUp._id);
+    setIsPopoverOpen(true);
+  };
+
+  // Save form (Add or Update)
+  const handleSave = async () => {
+    const { check_up_type } = formData;
+    let errors = {};
+    if (!check_up_type.trim()) {
+      errors.check_up_type = "Check-up type is required";
+    }
+    if (Object.keys(errors).length > 0) {
+      setFieldError(errors);
       return;
     }
+
     try {
-      await updateCheckupTypeById(id, {
-        check_up_type: editedName,
-      })
-      toast.success("Check-up type updated successfully");
+      if (isEditMode) {
+        await updateCheckupTypeById(editId, { check_up_type: check_up_type.trim() });
+        toast.success("Check-up type updated successfully");
+      } else {
+        const alreadyExists = data.some(
+          (item) =>
+            item.check_up_type.toLowerCase() === check_up_type.trim().toLowerCase()
+        );
+        if (alreadyExists) {
+          toast.error("Check-up type already exists.");
+          return;
+        }
+        await addNewCheckupType({ check_up_type: check_up_type.trim() });
+        toast.success("Check-up type added successfully");
+      }
       fetchData();
-      setEditingId(null);
+      setIsPopoverOpen(false);
+      setFormData({ check_up_type: "" });
+      setEditId(null);
+      setIsEditMode(false);
     } catch (err) {
       console.error(err);
-      toast.error("Failed to update check-up type");
+      toast.error(`Failed to ${isEditMode ? "update" : "add"} check-up type`);
     }
   };
 
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this check-up type?")) {
       try {
-        await deleteCheckupTypeById(id)
+        await deleteCheckupTypeById(id);
         toast.success("Check-up type deleted successfully");
         fetchData();
       } catch (err) {
         console.error(err);
         toast.error("Failed to delete check-up type");
       }
-    }
-  };
-
-  const handleAdd = async () => {
-    const { check_up_type } = formData;
-    let errors = {};
-    if (!check_up_type.trim()) {
-      errors.check_up_type = "Check-up type is required";
-    }
-
-    if (Object.keys(errors).length > 0) {
-      setFieldError(errors);
-      return;
-    }
-
-    const alreadyExists = data.some(
-      (item) => item.check_up_type.toLowerCase() === check_up_type.trim().toLowerCase()
-    );
-    if (alreadyExists) {
-      toast.error("Check-up type already exists.");
-      return;
-    }
-
-    try {
-      await addNewCheckupType({
-        check_up_type: check_up_type.trim(),
-      })
-      toast.success("Check-up type added successfully");
-      fetchData();
-      setFormData({ check_up_type: "" });
-      setFieldError({});
-      setIsPopoverOpen(false);
-    } catch (err) {
-      console.error(err);
-      toast.error("Failed to add check-up type");
     }
   };
 
@@ -173,7 +155,9 @@ const AddCheckUp = () => {
 
   const handleCopy = () => {
     const headers = ["#", "Check-Up Type"];
-    const rows = data.map((row, index) => `${index + 1}\t${row.check_up_type || "N/A"}`);
+    const rows = data.map(
+      (row, index) => `${index + 1}\t${row.check_up_type || "N/A"}`
+    );
     copyContent(headers, rows);
   };
 
@@ -203,7 +187,7 @@ const AddCheckUp = () => {
           {error && <Alert variant="danger">{error}</Alert>}
 
           {hasSubmitAccess && (
-            <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
+            <Button onClick={openAddForm} className="btn-add">
               <CgAddR /> Add Check-Up Type
             </Button>
           )}
@@ -211,13 +195,15 @@ const AddCheckUp = () => {
           {isPopoverOpen && (
             <div className="cover-sheet">
               <div className="studentHeading">
-                <h2>Add New Check-Up Type</h2>
+                <h2>{isEditMode ? "Edit Check-Up Type" : "Add New Check-Up Type"}</h2>
                 <button
                   className="closeForm"
                   onClick={() => {
                     setIsPopoverOpen(false);
                     setFormData({ check_up_type: "" });
                     setFieldError({});
+                    setEditId(null);
+                    setIsEditMode(false);
                   }}
                 >
                   X
@@ -234,7 +220,10 @@ const AddCheckUp = () => {
                       onChange={(e) => {
                         setFormData({ check_up_type: e.target.value });
                         if (fieldError.check_up_type) {
-                          setFieldError((prev) => ({ ...prev, check_up_type: "" }));
+                          setFieldError((prev) => ({
+                            ...prev,
+                            check_up_type: "",
+                          }));
                         }
                       }}
                       isInvalid={!!fieldError.check_up_type}
@@ -244,8 +233,8 @@ const AddCheckUp = () => {
                     </Form.Control.Feedback>
                   </Col>
                 </Row>
-                <Button onClick={handleAdd} className="btn btn-primary">
-                  Add Check-Up Type
+                <Button onClick={handleSave} className="btn btn-primary">
+                  {isEditMode ? "Update Check-Up Type" : "Add Check-Up Type"}
                 </Button>
               </Form>
             </div>
