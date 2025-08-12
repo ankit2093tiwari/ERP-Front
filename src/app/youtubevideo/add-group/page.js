@@ -213,7 +213,7 @@ const AddYoutubeVideoGroup = () => {
                                         )}
                                     </Col>
                                 </Row>
-                                <Button onClick={handleAddOrUpdate} className="btn btn-primary">
+                                <Button onClick={handleAddOrUpdate} variant="success">
                                     {isEditing ? "Update Group" : "Add Group"}
                                 </Button>
                             </Form>

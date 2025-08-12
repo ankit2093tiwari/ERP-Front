@@ -33,8 +33,7 @@ const AddPage = () => {
     const template = templates.find((t) => t._id === templateId);
     setSelectedTemplate(template);
     setFormValues({});
-    console.log(template);
-
+    // console.log(template);
   };
 
   const handleFieldChange = (value, fieldType, fieldName, isFile = false) => {
@@ -185,7 +184,7 @@ const AddPage = () => {
       sortable: true,
     }, {
       name: "Page Template",
-      selector: (row) => row.templateId.name || "N/A",
+      selector: (row) => row.templateId?.name || "N/A",
     }, {
       name: "Actions",
       selector: (row) => (

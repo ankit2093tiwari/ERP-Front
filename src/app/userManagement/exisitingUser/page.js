@@ -155,8 +155,9 @@ const ExistingUser = () => {
         await axios.delete(`${BASE_URL}/api/delete-user/${id}`);
         toast.success("User deleted.");
         fetchData();
-      } catch {
-        toast.error("Failed to delete user.");
+      } catch (error) {
+        console.error("failed to delete User:", error);
+        toast.error(error.response?.data?.message || "Failed to delete user.");
       }
     }
   };
@@ -370,9 +371,9 @@ const ExistingUser = () => {
                 )}
 
                 <div className="mt-3">
-                  <Button onClick={handleUpdate}>Update User</Button>
+                  <Button onClick={handleUpdate} variant="success">Update User</Button>
                   <Button
-                    variant="secondary"
+                    variant="danger"
                     className="ms-2"
                     onClick={resetForm}
                   >

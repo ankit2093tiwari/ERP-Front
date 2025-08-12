@@ -314,10 +314,10 @@ const AddUser = () => {
                     <FormLabel>User Type</FormLabel>
                     <FormSelect name="usertype" value={formData.usertype} onChange={handleChange}>
                       <option value="">Select</option>
+                       <option value="admin">Admin</option>
                       <option value="fees">Fees</option>
                       <option value="other">Other</option>
-                      <option value="superadmin">Superadmin</option>
-                      <option value="admin">Admin</option>
+                      {/* <option value="superadmin">Superadmin</option> */}
                     </FormSelect>
                   </Col>
                   <Col>
@@ -366,7 +366,7 @@ const AddUser = () => {
                     </Col>
                   ))}
                 </Row>
-                <Button className="mt-3" onClick={handleSubmit}>
+                <Button className="mt-3" variant="success" onClick={handleSubmit}>
                   {editingId ? "Update User" : "Add User"}
                 </Button>
               </Form>

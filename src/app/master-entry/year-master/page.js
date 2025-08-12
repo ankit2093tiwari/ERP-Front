@@ -115,7 +115,7 @@ const SessionMasterPage = () => {
     if (!formData.start_date) errors.start_date = "Start date is required";
     if (!formData.end_date) errors.end_date = "End date is required";
     if (formData.start_date > formData.end_date) errors.end_date = "End date must be after start date";
-    if (!formData.class_id.length) errors.class_id = "At least one class is required";
+    // if (!formData.class_id.length) errors.class_id = "At least one class is required";
     return errors;
   };
 

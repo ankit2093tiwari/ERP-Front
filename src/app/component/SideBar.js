@@ -14,7 +14,9 @@ import { RiUserFollowLine, RiBankCard2Line } from "react-icons/ri";
 import { Image } from "react-bootstrap";
 import { jwtDecode } from "jwt-decode";
 import { useSelector } from "react-redux";
+import { usePathname } from "next/navigation";
 export default function Sidebar({ isOpen }) {
+    const pathname = usePathname()
     const [activeKey, setActiveKey] = useState(null);
     const [sidebarHover, setSidebarHover] = useState(false);
     const [userName, setUserName] = useState("User Name");
@@ -40,7 +42,11 @@ export default function Sidebar({ isOpen }) {
         return authorities.some((auth) => auth.module === moduleName);
     };
 
-
+    // Helper function to check if a link is active
+    const isActiveLink = (href) => {
+        return pathname === href ||
+            (href !== "/" && pathname.startsWith(href));
+    };
     // Function to handle accordion toggle
     const handleAccordionToggle = (key) => {
         setActiveKey(activeKey === key ? null : key);
@@ -481,6 +487,7 @@ export default function Sidebar({ isOpen }) {
         { title: "Add 1st Menu", href: "/website-management/add-main-menu", icon: <FaAngleDoubleRight /> },
         { title: "Add 2nd Sub Menu", href: "/website-management/add-sub-menu", icon: <FaAngleDoubleRight /> },
         { title: "Add 3rd Sub Menu", href: "/website-management/add-last-sub-menu", icon: <FaAngleDoubleRight /> },
+        { title: "Add Templates", href: "/website-management/add-template", icon: <FaAngleDoubleRight /> },
         { title: "Add Pages", href: "/website-management/add-pages", icon: <FaAngleDoubleRight /> },
         { title: "Add Image Gallery", href: "/gallery/all-module", icon: <FaAngleDoubleRight /> },
         { title: "Add Notice", href: "/notice/all-module", icon: <FaAngleDoubleRight /> },
@@ -537,7 +544,7 @@ export default function Sidebar({ isOpen }) {
                         {/* Single items */}
                         <Accordion.Item eventKey="dashboard" className="nav-item">
                             <Accordion.Header>
-                                <Link href="/" className="nav-link">
+                                <Link href="/" className={isActiveLink("/") ? "active-parent" : "nav-link"}>
                                     <span>
                                         <FaGauge /> {(isOpen || sidebarHover) && "Dashboard"}
                                     </span>
@@ -546,7 +553,7 @@ export default function Sidebar({ isOpen }) {
                         </Accordion.Item>
                         <Accordion.Item eventKey="home" className="nav-item">
                             <Accordion.Header>
-                                <Link href="/home" className="nav-link">
+                                <Link href="/home" className={isActiveLink("/home") ? "active-parent" : "nav-link"}>
                                     <span>
                                         <FaHome /> {(isOpen || sidebarHover) && "Home"}
                                     </span>
@@ -557,7 +564,7 @@ export default function Sidebar({ isOpen }) {
                         {hasAccess("masterentry") && (
                             <Accordion.Item eventKey="masterEntry">
                                 <Accordion.Header>
-                                    <span>
+                                    <span className={masterEntryItems.some(item => isActiveLink(item.href)) ? "active-parent" : ""}>
                                         <FaGauge />
                                         {(isOpen || sidebarHover) && "Master Entry"}
                                     </span>
@@ -568,7 +575,7 @@ export default function Sidebar({ isOpen }) {
                                             <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
                                                 {item.icon}
                                                 <span style={{ display: (isOpen || sidebarHover) ? "inline" : "none" }}>
-                                                    <Link href={item.href}>
+                                                    <Link href={item.href} className={isActiveLink(item.href) ? "active" : ""}>
                                                         {item.title}
                                                     </Link>
                                                 </span>
@@ -582,7 +589,7 @@ export default function Sidebar({ isOpen }) {
                         {hasAccess("students") && (
                             <Accordion.Item eventKey="students">
                                 <Accordion.Header>
-                                    <span style={{ display: "flex", alignItems: "center" }}>
+                                    <span style={{ display: "flex", alignItems: "center" }} className={studentItems.some(item => isActiveLink(item.href)) ? "active-parent" : ""}>
                                         <FaUserGraduate style={{ marginRight: (isOpen || sidebarHover) ? "10px" : "0" }} />
                                         {(isOpen || sidebarHover) && "Students"}
                                     </span>
@@ -594,7 +601,7 @@ export default function Sidebar({ isOpen }) {
                                                 <div style={{ display: "flex", alignItems: "center" }}>
                                                     {item.icon}
                                                     <span style={{ marginLeft: "10px", display: (isOpen || sidebarHover) ? "inline" : "none" }}>
-                                                        <Link href={item.href}>{item.title}</Link>
+                                                        <Link href={item.href} className={isActiveLink(item.href) ? "active" : ""}>{item.title}</Link>
                                                     </span>
                                                 </div>
                                                 {item.children && activeKey === "students" && (
@@ -603,7 +610,7 @@ export default function Sidebar({ isOpen }) {
                                                             <li key={childIndex} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
                                                                 {child.icon}
                                                                 <span style={{ marginLeft: "10px" }}>
-                                                                    <Link href={child.href}>{child.title}</Link>
+                                                                    <Link href={child.href} className={isActiveLink(child.href) ? "active" : ""}>{child.title}</Link>
                                                                 </span>
                                                             </li>
                                                         ))}
@@ -619,7 +626,7 @@ export default function Sidebar({ isOpen }) {
                         {hasAccess("transport") && (
                             <Accordion.Item eventKey="transport">
                                 <Accordion.Header>
-                                    <span style={{ display: "flex", alignItems: "center" }}>
+                                    <span style={{ display: "flex", alignItems: "center" }} className={transportItems.some(item => isActiveLink(item.href)) ? "active-parent" : ""}>
                                         <FaBus style={{ marginRight: (isOpen || sidebarHover) ? "10px" : "0" }} />
                                         {(isOpen || sidebarHover) && "Transport"}
                                     </span>
@@ -631,7 +638,7 @@ export default function Sidebar({ isOpen }) {
                                                 <div style={{ display: "flex", alignItems: "center" }}>
                                                     {item.icon}
                                                     <span style={{ marginLeft: "10px", display: (isOpen || sidebarHover) ? "inline" : "none" }}>
-                                                        <Link href={item.href}>{item.title}</Link>
+                                                        <Link href={item.href} className={isActiveLink(item.href) ? "active" : ""}>{item.title}</Link>
                                                     </span>
                                                 </div>
                                                 {item.children && activeKey === "transport" && (
@@ -640,7 +647,7 @@ export default function Sidebar({ isOpen }) {
                                                             <li key={childIndex} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
                                                                 {child.icon}
                                                                 <span style={{ marginLeft: "10px" }}>
-                                                                    <Link href={child.href}>{child.title}</Link>
+                                                                    <Link href={child.href} className={isActiveLink(child.href) ? "active" : ""}>{child.title}</Link>
                                                                 </span>
                                                             </li>
                                                         ))}
@@ -655,7 +662,7 @@ export default function Sidebar({ isOpen }) {
                         {hasAccess('fees') && (
                             <Accordion.Item eventKey="fee">
                                 <Accordion.Header>
-                                    <span style={{ display: "flex", alignItems: "center" }}>
+                                    <span style={{ display: "flex", alignItems: "center" }} className={feeItems.some(item => isActiveLink(item.href)) ? "active-parent" : ""}>
                                         <FaRupeeSign style={{ marginRight: isOpen || activeKey ? "10px" : "0" }} />
                                         {(isOpen || activeKey) && "Fees"}
                                     </span>
@@ -672,7 +679,7 @@ export default function Sidebar({ isOpen }) {
                                                             display: (isOpen || sidebarHover) ? "inline" : "none",
                                                         }}
                                                     >
-                                                        <Link href={item.href}>{item.title}</Link>
+                                                        <Link href={item.href} className={isActiveLink(item.href) ? "active" : ""}>{item.title}</Link>
                                                     </span>
                                                 </div>
                                                 {item.children && activeKey === "fee" && (
@@ -688,7 +695,7 @@ export default function Sidebar({ isOpen }) {
                                                             >
                                                                 {child.icon}
                                                                 <span style={{ marginLeft: "10px" }}>
-                                                                    <Link href={child.href}>{child.title}</Link>
+                                                                    <Link href={child.href} className={isActiveLink(child.href) ? "active" : ""}>{child.title}</Link>
                                                                 </span>
                                                             </li>
                                                         ))}
@@ -700,10 +707,156 @@ export default function Sidebar({ isOpen }) {
                                 </Accordion.Body>
                             </Accordion.Item>
                         )}
+                        {hasAccess('studentattendance') && (
+                            <Accordion.Item eventKey="sudentAttendence">
+                                <Accordion.Header>
+                                    <span style={{ display: "flex", alignItems: "center" }} className={studentAttendenceItems.some(item => isActiveLink(item.href)) ? "active-parent" : ""}>
+                                        <RiUserFollowLine style={{ marginRight: isOpen || activeKey ? "10px" : "0" }} />
+                                        {(isOpen || activeKey) && "Student Attendence"}
+                                    </span>
+                                </Accordion.Header>
+                                <Accordion.Body>
+                                    <ul style={{ listStyle: "none", paddingLeft: isOpen || activeKey ? "20px" : "0" }}>
+                                        {studentAttendenceItems.map((item, index) => (
+                                            <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
+                                                {item.icon}
+                                                <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>
+                                                    <Link href={item.href} className={isActiveLink(item.href) ? "active" : ""}>
+                                                        {item.title}
+                                                    </Link>
+                                                </span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </Accordion.Body>
+                            </Accordion.Item>
+                        )}
+                        {hasAccess("hrd") && (
+                            <Accordion.Item eventKey="HRD">
+                                <Accordion.Header>
+                                    <span style={{ display: "flex", alignItems: "center" }} className={hrdItems.some(item => isActiveLink(item.href)) ? "active-parent" : ""}>
+                                        <TiContacts style={{ marginRight: (isOpen || sidebarHover) ? "10px" : "0" }} />
+                                        {(isOpen || sidebarHover) && "HRD"}
+                                    </span>
+                                </Accordion.Header>
+                                <Accordion.Body>
+                                    <ul style={{ listStyle: "none", paddingLeft: (isOpen || sidebarHover) ? "20px" : "0" }}>
+                                        {hrdItems.map((item, index) => (
+                                            <li key={index} style={{ padding: "5px 0" }}>
+                                                <div style={{ display: "flex", alignItems: "center" }}>
+                                                    {item.icon}
+                                                    <span style={{ marginLeft: "10px", display: (isOpen || sidebarHover) ? "inline" : "none" }}>
+                                                        <Link href={item.href} className={isActiveLink(item.href) ? "active" : ""}>{item.title}</Link>
+                                                    </span>
+                                                </div>
+                                                {item.children && activeKey === "HRD" && (
+                                                    <ul style={{ listStyle: "none", paddingLeft: "20px" }}>
+                                                        {item.children.map((child, childIndex) => (
+                                                            <li key={childIndex} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
+                                                                {child.icon}
+                                                                <span style={{ marginLeft: "10px" }}>
+                                                                    <Link href={child.href} className={isActiveLink(child.href) ? "active" : ""}>{child.title}</Link>
+                                                                </span>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                )}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </Accordion.Body>
+                            </Accordion.Item>
+                        )}
+                        {hasAccess("exam") && (
+                            <Accordion.Item eventKey="exams">
+                                <Accordion.Header>
+                                    <span style={{ display: "flex", alignItems: "center" }} className={examItems.some(item => isActiveLink(item.href)) ? "active-parent" : ""}>
+                                        <FaFileAlt style={{ marginRight: isOpen || activeKey ? "10px" : "0" }} />
+                                        {(isOpen || activeKey) && "Exams"}
+                                    </span>
+                                </Accordion.Header>
+                                <Accordion.Body>
+                                    <ul style={{ listStyle: "none", paddingLeft: isOpen || activeKey ? "20px" : "0" }}>
+                                        {examItems.map((item, index) => (
+                                            <li key={index} style={{ padding: "5px 0" }}>
+                                                <div style={{ display: "flex", alignItems: "center" }}>
+                                                    {item.icon}
+                                                    <span style={{ marginLeft: "10px", display: (isOpen || activeKey) ? "inline" : "none" }}>
+                                                        {item.children ? (
+                                                            <span>{item.title}</span>
+                                                        ) : (
+                                                            <Link href={item.href} className={isActiveLink(item.href) ? "active" : ""}>{item.title}</Link>
+                                                        )}
+                                                    </span>
+                                                </div>
+                                                {item.children && activeKey === "exams" && (
+                                                    <ul style={{ listStyle: "none", paddingLeft: "20px" }}>
+                                                        {item.children.map((child, childIndex) => (
+                                                            <li key={childIndex} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
+                                                                {child.icon}
+                                                                <span style={{ marginLeft: "10px" }}>
+                                                                    <Link href={child.href} className={isActiveLink(child.href) ? "active" : ""}>{child.title}</Link>
+                                                                </span>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                )}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </Accordion.Body>
+                            </Accordion.Item>
+                        )}
+                        {hasAccess("syllabus") && (
+                            <Accordion.Item className="nav-item" eventKey="syllabus">
+                                <Accordion.Header>
+                                    <Link href="/syllabus" className="nav-link">
+                                        <span>
+                                            <MdOutlineLibraryBooks /> {(isOpen || activeKey) && "Syllabus detail"}
+                                        </span>
+                                    </Link>
+                                </Accordion.Header>
+                            </Accordion.Item>
+                        )}
+                        {hasAccess("homework") && (
+                            <Accordion.Item className="nav-item" eventKey="homework">
+                                <Accordion.Header>
+                                    <Link href="/homework" className="nav-link">
+                                        <span>
+                                            <MdOutlineHomeWork /> {(isOpen || activeKey) && "Home Work"}
+                                        </span>
+                                    </Link>
+                                </Accordion.Header>
+                            </Accordion.Item>
+                        )}
+                        {hasAccess('timetable') && (
+                            <Accordion.Item eventKey="timetable">
+                                <Accordion.Header>
+                                    <span style={{ display: "flex", alignItems: "center" }} className={timetableItems.some(item => isActiveLink(item.href)) ? "active-parent" : ""}>
+                                        <FaTable style={{ marginRight: isOpen || activeKey ? "10px" : "0" }} />
+                                        {(isOpen || activeKey) && "Time Table"}
+                                    </span>
+                                </Accordion.Header>
+                                <Accordion.Body>
+                                    <ul style={{ listStyle: "none", paddingLeft: isOpen || activeKey ? "20px" : "0" }}>
+                                        {timetableItems.map((item, index) => (
+                                            <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
+                                                {item.icon}
+                                                <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>
+                                                    <Link href={item.href} className={isActiveLink(item.href) ? "active" : ""}>
+                                                        {item.title}
+                                                    </Link>
+                                                </span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </Accordion.Body>
+                            </Accordion.Item>
+                        )}
                         {hasAccess("frontoffice") && (
                             <Accordion.Item eventKey="front-office">
                                 <Accordion.Header>
-                                    <span style={{ display: "flex", alignItems: "center" }}>
+                                    <span style={{ display: "flex", alignItems: "center" }} className={frontItems.some(item => isActiveLink(item.href)) ? "active-parent" : ""}>
                                         <FaBusinessTime style={{ marginRight: isOpen || activeKey ? "10px" : "0" }} />
                                         {(isOpen || activeKey) && "Front Office"}
                                     </span>
@@ -714,7 +867,7 @@ export default function Sidebar({ isOpen }) {
                                             <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
                                                 {item.icon}
                                                 <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>
-                                                    <Link href={item.href}>
+                                                    <Link href={item.href} className={isActiveLink(item.href) ? "active" : ""}>
                                                         {item.title}
                                                     </Link>
                                                 </span>
@@ -727,7 +880,7 @@ export default function Sidebar({ isOpen }) {
                         {hasAccess("stock") && (
                             <Accordion.Item eventKey="stock">
                                 <Accordion.Header>
-                                    <span style={{ display: "flex", alignItems: "center" }}>
+                                    <span style={{ display: "flex", alignItems: "center" }} className={stockItems.some(item => isActiveLink(item.href)) ? "active-parent" : ""}>
                                         <FaBoxOpen style={{ marginRight: (isOpen || sidebarHover) ? "10px" : "0" }} />
                                         {(isOpen || sidebarHover) && "Stock"}
                                     </span>
@@ -744,7 +897,7 @@ export default function Sidebar({ isOpen }) {
                                                             display: (isOpen || sidebarHover) ? "inline" : "none",
                                                         }}
                                                     >
-                                                        <Link href={item.href}>{item.title}</Link>
+                                                        <Link href={item.href} className={isActiveLink(item.href) ? "active" : ""}>{item.title}</Link>
                                                     </span>
                                                 </div>
                                                 {item.children && activeKey === "stock" && (
@@ -760,7 +913,7 @@ export default function Sidebar({ isOpen }) {
                                                             >
                                                                 {child.icon}
                                                                 <span style={{ marginLeft: "10px" }}>
-                                                                    <Link href={child.href}>{child.title}</Link>
+                                                                    <Link href={child.href} className={isActiveLink(child.href) ? "active" : ""}>{child.title}</Link>
                                                                 </span>
                                                             </li>
                                                         ))}
@@ -775,7 +928,7 @@ export default function Sidebar({ isOpen }) {
                         {hasAccess("accounts") && (
                             <Accordion.Item eventKey="account">
                                 <Accordion.Header>
-                                    <span style={{ display: "flex", alignItems: "center" }}>
+                                    <span style={{ display: "flex", alignItems: "center" }} className={accountItems.some(item => isActiveLink(item.href)) ? "active-parent" : ""}>
                                         <MdAccountBalance style={{ marginRight: isOpen || activeKey ? "10px" : "0" }} />
                                         {(isOpen || activeKey) && "Accounts"}
                                     </span>
@@ -786,7 +939,7 @@ export default function Sidebar({ isOpen }) {
                                             <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
                                                 {item.icon}
                                                 <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>
-                                                    <Link href={item.href}>
+                                                    <Link href={item.href} className={isActiveLink(item.href) ? "active" : ""}>
                                                         {item.title}
                                                     </Link>
                                                 </span>
@@ -799,7 +952,7 @@ export default function Sidebar({ isOpen }) {
                         {hasAccess("medical") && (
                             <Accordion.Item eventKey="medical">
                                 <Accordion.Header>
-                                    <span style={{ display: "flex", alignItems: "center" }}>
+                                    <span style={{ display: "flex", alignItems: "center" }} className={medicalItems.some(item => isActiveLink(item.href)) ? "active-parent" : ""}>
                                         <FaBriefcaseMedical style={{ marginRight: isOpen || activeKey ? "10px" : "0" }} />
                                         {(isOpen || activeKey) && "Medical"}
                                     </span>
@@ -810,7 +963,7 @@ export default function Sidebar({ isOpen }) {
                                             <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
                                                 {item.icon}
                                                 <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>
-                                                    <Link href={item.href}>
+                                                    <Link href={item.href} className={isActiveLink(item.href) ? "active" : ""}>
                                                         {item.title}
                                                     </Link>
                                                 </span>
@@ -824,7 +977,7 @@ export default function Sidebar({ isOpen }) {
                         {hasAccess("gallery") && (
                             <Accordion.Item eventKey="gallery">
                                 <Accordion.Header>
-                                    <span style={{ display: "flex", alignItems: "center" }}>
+                                    <span style={{ display: "flex", alignItems: "center" }} className={galleryItems.some(item => isActiveLink(item.href)) ? "active-parent" : ""}>
                                         <FaPhotoVideo style={{ marginRight: isOpen || activeKey ? "10px" : "0" }} />
                                         {(isOpen || activeKey) && "Gallery"}
                                     </span>
@@ -835,7 +988,7 @@ export default function Sidebar({ isOpen }) {
                                             <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
                                                 {item.icon}
                                                 <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>
-                                                    <Link href={item.href}>
+                                                    <Link href={item.href} className={isActiveLink(item.href) ? "active" : ""}>
                                                         {item.title}
                                                     </Link>
                                                 </span>
@@ -848,7 +1001,7 @@ export default function Sidebar({ isOpen }) {
                         {hasAccess("advertising") && (
                             <Accordion.Item eventKey="advertising-management">
                                 <Accordion.Header>
-                                    <span style={{ display: "flex", alignItems: "center" }}>
+                                    <span style={{ display: "flex", alignItems: "center" }} className={advertisingItems.some(item => isActiveLink(item.href)) ? "active-parent" : ""}>
                                         <FaNewspaper style={{ marginRight: isOpen || activeKey ? "10px" : "0" }} />
                                         {(isOpen || activeKey) && "Advertising Management"}
                                     </span>
@@ -859,7 +1012,7 @@ export default function Sidebar({ isOpen }) {
                                             <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
                                                 {item.icon}
                                                 <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>
-                                                    <Link href={item.href}>
+                                                    <Link href={item.href} className={isActiveLink(item.href) ? "active" : ""}>
                                                         {item.title}
                                                     </Link>
                                                 </span>
@@ -869,50 +1022,10 @@ export default function Sidebar({ isOpen }) {
                                 </Accordion.Body>
                             </Accordion.Item>
                         )}
-                        {hasAccess("exam") && (
-                            <Accordion.Item eventKey="exams">
-                                <Accordion.Header>
-                                    <span style={{ display: "flex", alignItems: "center" }}>
-                                        <FaFileAlt style={{ marginRight: isOpen || activeKey ? "10px" : "0" }} />
-                                        {(isOpen || activeKey) && "Exams"}
-                                    </span>
-                                </Accordion.Header>
-                                <Accordion.Body>
-                                    <ul style={{ listStyle: "none", paddingLeft: isOpen || activeKey ? "20px" : "0" }}>
-                                        {examItems.map((item, index) => (
-                                            <li key={index} style={{ padding: "5px 0" }}>
-                                                <div style={{ display: "flex", alignItems: "center" }}>
-                                                    {item.icon}
-                                                    <span style={{ marginLeft: "10px", display: (isOpen || activeKey) ? "inline" : "none" }}>
-                                                        {item.children ? (
-                                                            <span>{item.title}</span>
-                                                        ) : (
-                                                            <Link href={item.href}>{item.title}</Link>
-                                                        )}
-                                                    </span>
-                                                </div>
-                                                {item.children && activeKey === "exams" && (
-                                                    <ul style={{ listStyle: "none", paddingLeft: "20px" }}>
-                                                        {item.children.map((child, childIndex) => (
-                                                            <li key={childIndex} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
-                                                                {child.icon}
-                                                                <span style={{ marginLeft: "10px" }}>
-                                                                    <Link href={child.href}>{child.title}</Link>
-                                                                </span>
-                                                            </li>
-                                                        ))}
-                                                    </ul>
-                                                )}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </Accordion.Body>
-                            </Accordion.Item>
-                        )}
                         {hasAccess("notice") && (
                             <Accordion.Item eventKey="notice">
                                 <Accordion.Header>
-                                    <span style={{ display: "flex", alignItems: "center" }}>
+                                    <span style={{ display: "flex", alignItems: "center" }} className={noticeItems.some(item => isActiveLink(item.href)) ? "active-parent" : ""}>
                                         <FaBell style={{ marginRight: isOpen || activeKey ? "10px" : "0" }} />
                                         {(isOpen || activeKey) && "Notice"}
                                     </span>
@@ -923,7 +1036,7 @@ export default function Sidebar({ isOpen }) {
                                             <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
                                                 {item.icon}
                                                 <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>
-                                                    <Link href={item.href}>
+                                                    <Link href={item.href} className={isActiveLink(item.href) ? "active" : ""}>
                                                         {item.title}
                                                     </Link>
                                                 </span>
@@ -933,46 +1046,10 @@ export default function Sidebar({ isOpen }) {
                                 </Accordion.Body>
                             </Accordion.Item>
                         )}
-                        {hasAccess("hrd") && (
-                            <Accordion.Item eventKey="HRD">
-                                <Accordion.Header>
-                                    <span style={{ display: "flex", alignItems: "center" }}>
-                                        <TiContacts style={{ marginRight: (isOpen || sidebarHover) ? "10px" : "0" }} />
-                                        {(isOpen || sidebarHover) && "HRD"}
-                                    </span>
-                                </Accordion.Header>
-                                <Accordion.Body>
-                                    <ul style={{ listStyle: "none", paddingLeft: (isOpen || sidebarHover) ? "20px" : "0" }}>
-                                        {hrdItems.map((item, index) => (
-                                            <li key={index} style={{ padding: "5px 0" }}>
-                                                <div style={{ display: "flex", alignItems: "center" }}>
-                                                    {item.icon}
-                                                    <span style={{ marginLeft: "10px", display: (isOpen || sidebarHover) ? "inline" : "none" }}>
-                                                        <Link href={item.href}>{item.title}</Link>
-                                                    </span>
-                                                </div>
-                                                {item.children && activeKey === "HRD" && (
-                                                    <ul style={{ listStyle: "none", paddingLeft: "20px" }}>
-                                                        {item.children.map((child, childIndex) => (
-                                                            <li key={childIndex} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
-                                                                {child.icon}
-                                                                <span style={{ marginLeft: "10px" }}>
-                                                                    <Link href={child.href}>{child.title}</Link>
-                                                                </span>
-                                                            </li>
-                                                        ))}
-                                                    </ul>
-                                                )}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </Accordion.Body>
-                            </Accordion.Item>
-                        )}
                         {hasAccess('library') && (
                             <Accordion.Item eventKey="library">
                                 <Accordion.Header>
-                                    <span style={{ display: "flex", alignItems: "center" }}>
+                                    <span style={{ display: "flex", alignItems: "center" }} className={libraryItems.some(item => isActiveLink(item.href)) ? "active-parent" : ""}>
                                         <FaBoxOpen style={{ marginRight: (isOpen || sidebarHover) ? "10px" : "0" }} />
                                         {(isOpen || sidebarHover) && "Library"}
                                     </span>
@@ -989,7 +1066,7 @@ export default function Sidebar({ isOpen }) {
                                                             display: (isOpen || sidebarHover) ? "inline" : "none",
                                                         }}
                                                     >
-                                                        <Link href={item.href}>{item.title}</Link>
+                                                        <Link href={item.href} className={isActiveLink(item.href) ? "active" : ""}>{item.title}</Link>
                                                     </span>
                                                 </div>
                                                 {item.children && activeKey === "library" && (
@@ -1005,7 +1082,7 @@ export default function Sidebar({ isOpen }) {
                                                             >
                                                                 {child.icon}
                                                                 <span style={{ marginLeft: "10px" }}>
-                                                                    <Link href={child.href}>{child.title}</Link>
+                                                                    <Link href={child.href} className={isActiveLink(child.href) ? "active" : ""}>{child.title}</Link>
                                                                 </span>
                                                             </li>
                                                         ))}
@@ -1020,7 +1097,7 @@ export default function Sidebar({ isOpen }) {
                         {hasAccess("sendsms") && (
                             <Accordion.Item eventKey="sendsms">
                                 <Accordion.Header>
-                                    <span style={{ display: "flex", alignItems: "center" }}>
+                                    <span style={{ display: "flex", alignItems: "center" }} className={sendBulkSmsItems.some(item => isActiveLink(item.href)) ? "active-parent" : ""}>
                                         <FaSms style={{ marginRight: isOpen || activeKey ? "10px" : "0" }} />
                                         {(isOpen || activeKey) && "Send Bulk SMS"}
                                     </span>
@@ -1031,7 +1108,7 @@ export default function Sidebar({ isOpen }) {
                                             <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
                                                 {item.icon}
                                                 <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>
-                                                    <Link href={item.href}>
+                                                    <Link href={item.href} className={isActiveLink(item.href) ? "active" : ""}>
                                                         {item.title}
                                                     </Link>
                                                 </span>
@@ -1088,7 +1165,7 @@ export default function Sidebar({ isOpen }) {
                         {hasAccess("importantsms") && (
                             <Accordion.Item className="nav-item" eventKey="importantSMS">
                                 <Accordion.Header>
-                                    <Link href="/importantsms" className="nav-link">
+                                    <Link href="/importantSMS" className="nav-link">
                                         <span>
                                             <FaEnvelope /> {(isOpen || activeKey) && "Important SMS"}
                                         </span>
@@ -1096,56 +1173,11 @@ export default function Sidebar({ isOpen }) {
                                 </Accordion.Header>
                             </Accordion.Item>
                         )}
-                        {hasAccess("syllabus") && (
-                            <Accordion.Item className="nav-item" eventKey="syllabus">
-                                <Accordion.Header>
-                                    <Link href="/syllabus" className="nav-link">
-                                        <span>
-                                            <MdOutlineLibraryBooks /> {(isOpen || activeKey) && "Syllabus detail"}
-                                        </span>
-                                    </Link>
-                                </Accordion.Header>
-                            </Accordion.Item>
-                        )}
-                        {hasAccess("homework") && (
-                            <Accordion.Item className="nav-item" eventKey="homework">
-                                <Accordion.Header>
-                                    <Link href="/homework" className="nav-link">
-                                        <span>
-                                            <MdOutlineHomeWork /> {(isOpen || activeKey) && "Home Work"}
-                                        </span>
-                                    </Link>
-                                </Accordion.Header>
-                            </Accordion.Item>
-                        )}
-                        {hasAccess('timetable') && (
-                            <Accordion.Item eventKey="timetable">
-                                <Accordion.Header>
-                                    <span style={{ display: "flex", alignItems: "center" }}>
-                                        <FaTable style={{ marginRight: isOpen || activeKey ? "10px" : "0" }} />
-                                        {(isOpen || activeKey) && "Time Table"}
-                                    </span>
-                                </Accordion.Header>
-                                <Accordion.Body>
-                                    <ul style={{ listStyle: "none", paddingLeft: isOpen || activeKey ? "20px" : "0" }}>
-                                        {timetableItems.map((item, index) => (
-                                            <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
-                                                {item.icon}
-                                                <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>
-                                                    <Link href={item.href}>
-                                                        {item.title}
-                                                    </Link>
-                                                </span>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </Accordion.Body>
-                            </Accordion.Item>
-                        )}
+                        
                         {hasAccess('visitordetails') && (
                             <Accordion.Item eventKey="visitordetails">
                                 <Accordion.Header>
-                                    <span style={{ display: "flex", alignItems: "center" }}>
+                                    <span style={{ display: "flex", alignItems: "center" }} className={visitorDetailsItems.some(item => isActiveLink(item.href)) ? "active-parent" : ""}>
                                         <FaArrowRightArrowLeft style={{ marginRight: isOpen || activeKey ? "10px" : "0" }} />
                                         {(isOpen || activeKey) && "Visitor Details"}
                                     </span>
@@ -1156,7 +1188,7 @@ export default function Sidebar({ isOpen }) {
                                             <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
                                                 {item.icon}
                                                 <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>
-                                                    <Link href={item.href}>
+                                                    <Link href={item.href} className={isActiveLink(item.href) ? "active" : ""}>
                                                         {item.title}
                                                     </Link>
                                                 </span>
@@ -1169,7 +1201,7 @@ export default function Sidebar({ isOpen }) {
                         {hasAccess('balbank') && (
                             <Accordion.Item eventKey="balbank">
                                 <Accordion.Header>
-                                    <span style={{ display: "flex", alignItems: "center" }}>
+                                    <span style={{ display: "flex", alignItems: "center" }} className={balbankItems.some(item => isActiveLink(item.href)) ? "active-parent" : ""}>
                                         <RiBankCard2Line style={{ marginRight: isOpen || activeKey ? "10px" : "0" }} />
                                         {(isOpen || activeKey) && "Bal Bank"}
                                     </span>
@@ -1180,7 +1212,7 @@ export default function Sidebar({ isOpen }) {
                                             <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
                                                 {item.icon}
                                                 <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>
-                                                    <Link href={item.href}>
+                                                    <Link href={item.href} className={isActiveLink(item.href) ? "active" : ""}>
                                                         {item.title}
                                                     </Link>
                                                 </span>
@@ -1193,7 +1225,7 @@ export default function Sidebar({ isOpen }) {
                         {hasAccess('youtubevideo') && (
                             <Accordion.Item eventKey="youtubevideo">
                                 <Accordion.Header>
-                                    <span style={{ display: "flex", alignItems: "center" }}>
+                                    <span style={{ display: "flex", alignItems: "center" }} className={youtubeVideoItems.some(item => isActiveLink(item.href)) ? "active-parent" : ""}>
                                         <FaYoutube style={{ marginRight: isOpen || activeKey ? "10px" : "0" }} />
                                         {(isOpen || activeKey) && "Youtube Video"}
                                     </span>
@@ -1204,31 +1236,7 @@ export default function Sidebar({ isOpen }) {
                                             <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
                                                 {item.icon}
                                                 <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>
-                                                    <Link href={item.href}>
-                                                        {item.title}
-                                                    </Link>
-                                                </span>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </Accordion.Body>
-                            </Accordion.Item>
-                        )}
-                        {hasAccess('studentattendance') && (
-                            <Accordion.Item eventKey="sudentAttendence">
-                                <Accordion.Header>
-                                    <span style={{ display: "flex", alignItems: "center" }}>
-                                        <RiUserFollowLine style={{ marginRight: isOpen || activeKey ? "10px" : "0" }} />
-                                        {(isOpen || activeKey) && "Student Attendence"}
-                                    </span>
-                                </Accordion.Header>
-                                <Accordion.Body>
-                                    <ul style={{ listStyle: "none", paddingLeft: isOpen || activeKey ? "20px" : "0" }}>
-                                        {studentAttendenceItems.map((item, index) => (
-                                            <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
-                                                {item.icon}
-                                                <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>
-                                                    <Link href={item.href}>
+                                                    <Link href={item.href} className={isActiveLink(item.href) ? "active" : ""}>
                                                         {item.title}
                                                     </Link>
                                                 </span>
@@ -1252,7 +1260,7 @@ export default function Sidebar({ isOpen }) {
                                             <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
                                                 {item.icon}
                                                 <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>
-                                                    <Link href={item.href}>
+                                                    <Link href={item.href} className={isActiveLink(item.href) ? "active" : ""}>
                                                         {item.title}
                                                     </Link>
                                                 </span>
@@ -1265,7 +1273,7 @@ export default function Sidebar({ isOpen }) {
                         {hasAccess('copycorrection') && (
                             <Accordion.Item eventKey="copycorrection">
                                 <Accordion.Header>
-                                    <span style={{ display: "flex", alignItems: "center" }}>
+                                    <span style={{ display: "flex", alignItems: "center" }} className={copycorrectionItems.some(item => isActiveLink(item.href)) ? "active-parent" : ""}>
                                         <MdLibraryBooks style={{ marginRight: isOpen || activeKey ? "10px" : "0" }} />
                                         {(isOpen || activeKey) && "Copy Correction"}
                                     </span>
@@ -1276,7 +1284,7 @@ export default function Sidebar({ isOpen }) {
                                             <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
                                                 {item.icon}
                                                 <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>
-                                                    <Link href={item.href}>
+                                                    <Link href={item.href} className={isActiveLink(item.href) ? "active" : ""}>
                                                         {item.title}
                                                     </Link>
                                                 </span>
@@ -1289,7 +1297,7 @@ export default function Sidebar({ isOpen }) {
                         {hasAccess("usermanagement") && (
                             <Accordion.Item eventKey="userManagement">
                                 <Accordion.Header>
-                                    <span style={{ display: "flex", alignItems: "center" }}>
+                                    <span style={{ display: "flex", alignItems: "center" }} className={userItems.some(item => isActiveLink(item.href)) ? "active-parent" : ""}>
                                         <FaUsersCog style={{ marginRight: isOpen || activeKey ? "10px" : "0" }} />
                                         {(isOpen || activeKey) && "User Management"}
                                     </span>
@@ -1300,7 +1308,7 @@ export default function Sidebar({ isOpen }) {
                                             <li key={index} style={{ padding: "5px 0", display: "flex", alignItems: "center" }}>
                                                 {item.icon}
                                                 <span style={{ display: isOpen || activeKey ? "inline" : "none" }}>
-                                                    <Link href={item.href}>
+                                                    <Link href={item.href} className={isActiveLink(item.href) ? "active" : ""}>
                                                         {item.title}
                                                     </Link>
                                                 </span>
@@ -1313,7 +1321,7 @@ export default function Sidebar({ isOpen }) {
                         {hasAccess("websitemanagement") && (
                             <Accordion.Item eventKey="websitemanagement">
                                 <Accordion.Header>
-                                    <span style={{ display: "flex", alignItems: "center" }}>
+                                    <span style={{ display: "flex", alignItems: "center" }} className={websitemanagementItems.some(item => isActiveLink(item.href)) ? "active-parent" : ""}>
                                         <FaGlobe style={{ marginRight: (isOpen || sidebarHover) ? "10px" : "0" }} />
                                         {(isOpen || sidebarHover) && "Website Management"}
                                     </span>
@@ -1330,7 +1338,7 @@ export default function Sidebar({ isOpen }) {
                                                             display: (isOpen || sidebarHover) ? "inline" : "none",
                                                         }}
                                                     >
-                                                        <Link href={item.href}>{item.title}</Link>
+                                                        <Link href={item.href} className={isActiveLink(item.href) ? "active" : ""}>{item.title}</Link>
                                                     </span>
                                                 </div>
                                                 {item.children && activeKey === "websitemanagement" && (
@@ -1346,7 +1354,7 @@ export default function Sidebar({ isOpen }) {
                                                             >
                                                                 {child.icon}
                                                                 <span style={{ marginLeft: "10px" }}>
-                                                                    <Link href={child.href}>{child.title}</Link>
+                                                                    <Link href={child.href} className={isActiveLink(child.href) ? "active" : ""}>{child.title}</Link>
                                                                 </span>
                                                             </li>
                                                         ))}

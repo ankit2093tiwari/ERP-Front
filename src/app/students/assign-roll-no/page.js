@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect,useCallback } from "react";
 import {
   Form,
   Row,
@@ -45,7 +45,34 @@ const {hasEditAccess}=usePagePermission()
   useEffect(() => {
     fetchClasses();
   }, [selectedSessionId]);
-
+const fetchStudents = useCallback(async () => {
+  setLoading(true);
+  setNoRecordsFound(false);
+  try {
+    const response = await getStudentsByClassAndSection(selectedClass, selectedSection);
+    if (response.data && response.data.length > 0) {
+      const sortedStudents = [...response.data].sort((a, b) =>
+        a.first_name.localeCompare(b.first_name)
+      );
+      const studentsWithRollNo = sortedStudents.map((student) => ({
+        ...student,
+        roll_no: student.roll_no || "",
+      }));
+      setStudents(studentsWithRollNo);
+      setShowButtons(true);
+    } else {
+      setStudents([]);
+      setNoRecordsFound(true);
+      setShowButtons(false);
+    }
+  } catch (error) {
+    console.error("Failed to fetch students", error);
+    setStudents([]);
+    setNoRecordsFound(true);
+  } finally {
+    setLoading(false);
+  }
+}, [selectedClass, selectedSection]);
   useEffect(() => {
     if (selectedClass) {
       fetchSections(selectedClass);
@@ -66,7 +93,7 @@ const {hasEditAccess}=usePagePermission()
       setIsEditing(false);
       setNoRecordsFound(false);
     }
-  }, [selectedClass, selectedSection]);
+  }, [selectedClass, selectedSection,fetchStudents]);
 
   const fetchClasses = async () => {
     try {
@@ -86,34 +113,6 @@ const {hasEditAccess}=usePagePermission()
     }
   };
 
-  const fetchStudents = async () => {
-    setLoading(true);
-    setNoRecordsFound(false);
-    try {
-      const response = await getStudentsByClassAndSection(selectedClass, selectedSection);
-      if (response.data && response.data.length > 0) {
-        const sortedStudents = [...response.data].sort((a, b) =>
-          a.first_name.localeCompare(b.first_name)
-        );
-        const studentsWithRollNo = sortedStudents.map((student) => ({
-          ...student,
-          roll_no: student.roll_no || "",
-        }));
-        setStudents(studentsWithRollNo);
-        setShowButtons(true);
-      } else {
-        setStudents([]);
-        setNoRecordsFound(true);
-        setShowButtons(false);
-      }
-    } catch (error) {
-      console.error("Failed to fetch students", error);
-      setStudents([]);
-      setNoRecordsFound(true);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleEditRollNo = () => {
     setIsEditing(true);

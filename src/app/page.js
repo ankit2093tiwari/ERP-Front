@@ -25,8 +25,9 @@ import 'react-calendar/dist/Calendar.css';
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { useSelector } from "react-redux";
 import axios from "axios";
-import { BASE_URL, getAllBooksCount, getAllDepartmentsCount, getAllEmployee, getAllUniqueSubjectCount, getTotalStudentsCount } from "@/Services";
+import { BASE_URL, getAllBooksCount, getAllDepartmentsCount, getAllEmployee, getAllImportantSMS, getAllUniqueSubjectCount, getStudentEvaluations, getTotalStudentsCount } from "@/Services";
 import useSessionId from "@/hooks/useSessionId";
+import { set } from "react-hook-form";
 
 
 // Dynamically import ReactApexChart with SSR disabled
@@ -47,6 +48,8 @@ const Dashboard = () => {
   const [numberOSubjects, setNumberOfSubjects] = useState(0)
   const [teachingStaff, setTeachingStaff] = useState(0)
   const [nonTeachingStaff, setNonTeachingStaff] = useState(0)
+  const [notifications, setNotifications] = useState([])
+  const [studentEvaluations, setStudentEvaluations] = useState([]);
 
   // Check authentication and fetch data
   useEffect(() => {
@@ -60,7 +63,9 @@ const Dashboard = () => {
       fetchDepartmentCount();
       fetchBookCount();
       fetchStaffCount();
-      fetchSubjectCount()
+      fetchSubjectCount();
+      fetchNotifications();
+      fetchStudentEvaluations();
     }
   }, [router, selectedSessionId, token]);
 
@@ -166,6 +171,23 @@ const Dashboard = () => {
     }
   };
 
+  const fetchNotifications = async () => {
+    try {
+      const res = await getAllImportantSMS()
+      const filteredData = res.data.filter((d => d.status == "active"))
+      setNotifications(filteredData || [])
+    } catch (error) {
+      console.error("Error fetching notifications:", error);
+    }
+  };
+  const fetchStudentEvaluations = async () => {
+    try {
+      const res = await getStudentEvaluations(3);
+      setStudentEvaluations(res.data || []);
+    } catch (error) {
+      console.error("Error fetching student evaluations:", error);
+    }
+  };
 
 
   // Radial Chart State
@@ -522,50 +544,56 @@ const Dashboard = () => {
                   <div className="card-body position-relative z-1 notice-box-wrap text-start">
                     <Table>
                       <tbody>
-                        <tr>
-                          <td>
-                            <div className="d-flex align-items-center">
-                              <Image alt="users" width={40} height={40} className="rounded-circle" src="/user.webp" />
-                              <div className="profileTable">
-                                <h6> Sunil Joshi </h6>
-                                <span> Class IV </span>
-                              </div></div>
-                          </td>
-                          <td> 95% </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <div className="d-flex align-items-center">
-                              <Image alt="users" width={40} height={40} className="rounded-circle" src="/user.webp" />
-                              <div className="profileTable">
-                                <h6> Sunil Joshi </h6>
-                                <span> Class IV </span>
-                              </div></div>
-                          </td>
-                          <td> 95% </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <div className="d-flex align-items-center">
-                              <Image alt="users" width={40} height={40} className="rounded-circle" src="/user.webp" />
-                              <div className="profileTable">
-                                <h6> Sunil Joshi </h6>
-                                <span> Class IV </span>
-                              </div></div>
-                          </td>
-                          <td> 95% </td>
-                        </tr>
-                        <tr>
-                          <td>
-                            <div className="d-flex align-items-center">
-                              <Image alt="users" width={40} height={40} className="rounded-circle" src="/user.webp" />
-                              <div className="profileTable">
-                                <h6> Sunil Joshi </h6>
-                                <span> Class IV </span>
-                              </div></div>
-                          </td>
-                          <td> 95% </td>
-                        </tr>
+                        {studentEvaluations.length > 0 ? (
+                          studentEvaluations?.map((evaluation, evalIndex) => (
+                            evaluation.evaluations.map((studentEval, studentIndex) => (
+                              <tr key={`${evalIndex}-${studentIndex}`}>
+                                <td>
+                                  <div className="d-flex align-items-center">
+                                    <Image
+                                      alt="users"
+                                      width={40}
+                                      height={40}
+                                      className="rounded-circle"
+                                      src="/user.webp"
+                                    />
+                                    <div className="profileTable">
+                                      <h6>{studentEval.studentId.first_name}</h6>
+                                    </div>
+                                  </div>
+                                </td>
+                                <td>
+                                  <small> {evaluation.classId.class_name} - {evaluation.sectionId.section_name}</small>
+                                </td>
+                              </tr>
+                            ))
+                          ))
+                        ) : (
+                          <>
+                            <tr>
+                              <td>
+                                <div className="d-flex align-items-center">
+                                  <Image alt="users" width={40} height={40} className="rounded-circle" src="/user.webp" />
+                                  <div className="profileTable">
+                                    <h6> Sunil Joshi </h6>
+                                    <span> Class IV </span>
+                                  </div></div>
+                              </td>
+                              <td> 95% </td>
+                            </tr>
+                            <tr>
+                              <td>
+                                <div className="d-flex align-items-center">
+                                  <Image alt="users" width={40} height={40} className="rounded-circle" src="/user.webp" />
+                                  <div className="profileTable">
+                                    <h6> Sunil Joshi </h6>
+                                    <span> Class IV </span>
+                                  </div></div>
+                              </td>
+                              <td> 95% </td>
+                            </tr>
+                          </>
+                        )}
                       </tbody>
                     </Table>
                   </div>
@@ -578,38 +606,19 @@ const Dashboard = () => {
                   </div>
                   <div className="card-body position-relative z-1 notice-box-wrap text-start">
                     <div className="">
-                      <div className="notice-list">
-                        <div className="post-date bg-skyblue">{new Date().toISOString().split('T')[0]}</div>
-                        <h6 className="notice-title"><a href="#">Great School manag mene esom text of the
-                          printing.</a></h6>
-                        <div className="entry-meta"> Jennyfar Lopez / <span>5 min ago</span></div>
-                      </div>
-                      <div className="notice-list">
-                        <div className="post-date bg-yellow">16 June, 2024</div>
-                        <h6 className="notice-title"><a href="#">Great School manag printing.</a></h6>
-                        <div className="entry-meta"> Jennyfar Lopez / <span>5 min ago</span></div>
-                      </div>
-                      <div className="notice-list">
-                        <div className="post-date bg-pink">16 June, 2024</div>
-                        <h6 className="notice-title"><a href="#">Great School manag meneesom.</a></h6>
-                        <div className="entry-meta"> Jennyfar Lopez / <span>5 min ago</span></div>
-                      </div>
-                      <div className="notice-list">
-                        <div className="post-date bg-skyblue">16 June, 2024</div>
-                        <h6 className="notice-title"><a href="#">Great School manag mene esom text of the
-                          printing.</a></h6>
-                        <div className="entry-meta"> Jennyfar Lopez / <span>5 min ago</span></div>
-                      </div>
-                      <div className="notice-list">
-                        <div className="post-date bg-yellow">28 July, 2024</div>
-                        <h6 className="notice-title"><a href="#">Great School manag printing.</a></h6>
-                        <div className="entry-meta"> Jennyfar Lopez / <span>5 min ago</span></div>
-                      </div>
-                      <div className="notice-list">
-                        <div className="post-date bg-pink">16 August, 2024</div>
-                        <h6 className="notice-title"><a href="#">Great School manag meneesom.</a></h6>
-                        <div className="entry-meta"> Jennyfar Lopez / <span>5 min ago</span></div>
-                      </div>
+                      {notifications.length === 0 ? (
+                        <p className="text-center">No notifications available</p>
+                      ) : (
+                        notifications.map((not, index) => (
+                          <div className="notice-list" key={index}>
+                            <div className={index % 2 == 0 ? 'post-date bg-skyblue' : 'post-date bg-pink'}>{new Date(not?.entryDate).toISOString().split('T')[0]}</div>
+                            <h6 className="notice-title text-capitalize"><a href="#">{not?.detail}</a></h6>
+                            <h5>To- {not.sendTo || "All"}</h5>
+                            <div className="entry-meta text-capitalize"> {not?.sendBy || "Principal"} / <span>2 min ago</span></div>
+                          </div>
+                        ))
+                      )}
+
                     </div>
                   </div>
                 </div>

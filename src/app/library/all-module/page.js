@@ -68,18 +68,18 @@ const Page = () => {
       title: "Return Book",
       description: "Add Basic Details of Return Book",
     },
-    {
-      href: "/library/publisher",
-      icon: <Image src="/module/library/repairbook.png" className="studentIcon" width={100} height={100} alt="" />,
-      title: "Book Under Repair",
-      description: "Add Basic Details of Under Repair",
-    },
-    {
-      href: "/master-entry/caste-master",
-      icon: <Image src="/module/library/barCode.png" className="studentIcon" width={100} height={100} alt="" />,
-      title: "Generate Bar Code",
-      description: "Generate All Books Bar Codes",
-    },
+    // {
+    //   href: "/library/publisher",
+    //   icon: <Image src="/module/library/repairbook.png" className="studentIcon" width={100} height={100} alt="" />,
+    //   title: "Book Under Repair",
+    //   description: "Add Basic Details of Under Repair",
+    // },
+    // {
+    //   href: "/master-entry/caste-master",
+    //   icon: <Image src="/module/library/barCode.png" className="studentIcon" width={100} height={100} alt="" />,
+    //   title: "Generate Bar Code",
+    //   description: "Generate All Books Bar Codes",
+    // },
     {
       href: "/master-entry/caste-master",
       icon: <Image src="/module/library/report.png" className="studentIcon" width={100} height={100} alt="" />,

@@ -5,6 +5,38 @@ import { Container, Form, Button, Row, Col } from "react-bootstrap";
 import { FaTrash } from "react-icons/fa";
 import { toast } from "react-toastify";
 
+// Predefined allowed fields per template
+const allowedFields = {
+    HomeTemplate: [
+        "bannerImage",
+        "introTitle",
+        "introContent",
+        "features",
+        "footerNote"
+    ],
+    AboutUsTemplate: [
+        "mainImage",
+        "aboutText",
+        "mission",
+        "vision"
+    ],
+    ContactUsTemplate: [
+        "bannerImage",
+        "address",
+        "phone",
+        "email",
+        "mapEmbedUrl",
+        "additionalInfo"
+    ],
+    ServicePageTemplate: [
+        "bannerImage",
+        "introTitle",
+        "introContent",
+        "services",
+        "conclusion"
+    ]
+};
+
 const AddTemplate = () => {
     const [templateName, setTemplateName] = useState("");
     const [componentName, setComponentName] = useState("");
@@ -17,12 +49,11 @@ const AddTemplate = () => {
     };
 
     const addField = () => {
-        setFields([...fields, { name: "", type: "text" }]);
+        setFields(prev => [...prev, { name: "", type: "text" }]);
     };
 
     const removeField = (index) => {
-        const updatedFields = fields.filter((_, i) => i !== index);
-        setFields(updatedFields);
+        setFields(prev => prev.filter((_, i) => i !== index));
     };
 
     const handleSubmit = async (e) => {
@@ -40,8 +71,8 @@ const AddTemplate = () => {
 
         try {
             const payload = {
-                name: templateName,
-                componentName: componentName, // Fixed here
+                name: templateName.trim(),
+                componentName: componentName.trim(),
                 fields,
             };
 
@@ -66,7 +97,7 @@ const AddTemplate = () => {
                         <h2>Add Page Template</h2>
                     </div>
                     <Form onSubmit={handleSubmit} className="formSheet">
-                        <Form.Group className="mb-3">
+                        <Form.Group className="mb-3" controlId="templateName">
                             <Form.Label>Template Name</Form.Label>
                             <Form.Control
                                 type="text"
@@ -77,28 +108,42 @@ const AddTemplate = () => {
                             />
                         </Form.Group>
 
-                        <Form.Group className="mb-3">
+                        <Form.Group className="mb-3" controlId="componentName">
                             <Form.Label>Component Name</Form.Label>
-                            <Form.Control
-                                type="text"
-                                placeholder="e.g. HomeTemplate"
+                            <Form.Select
                                 value={componentName}
-                                onChange={(e) => setComponentName(e.target.value)}
+                                onChange={(e) => {
+                                    setComponentName(e.target.value);
+                                    setFields([{ name: "", type: "text" }]); // reset fields
+                                }}
                                 required
-                            />
+                            >
+                                <option value="">-- Select Template --</option>
+                                <option value="HomeTemplate">Home Template</option>
+                                <option value="AboutUsTemplate">About Us Template</option>
+                                <option value="ContactUsTemplate">Contact Us Template</option>
+                                <option value="ServicePageTemplate">Service Page Template</option>
+                            </Form.Select>
                         </Form.Group>
 
                         <h5>Fields</h5>
                         {fields.map((field, index) => (
                             <Row key={index} className="align-items-end mb-2">
                                 <Col md={5}>
-                                    <Form.Control
-                                        type="text"
-                                        placeholder="Field Name"
+                                    <Form.Select
                                         value={field.name}
                                         onChange={(e) => handleFieldChange(index, "name", e.target.value)}
                                         required
-                                    />
+                                        disabled={!componentName}
+                                    >
+                                        <option value="">-- Select Field --</option>
+                                        {componentName &&
+                                            allowedFields[componentName]?.map((fieldOption) => (
+                                                <option key={fieldOption} value={fieldOption}>
+                                                    {fieldOption}
+                                                </option>
+                                            ))}
+                                    </Form.Select>
                                 </Col>
                                 <Col md={5}>
                                     <Form.Select
@@ -110,23 +155,29 @@ const AddTemplate = () => {
                                         <option value="image">Image</option>
                                     </Form.Select>
                                 </Col>
-                                <Col md={2}>
-                                    <Button variant="danger" size="sm" onClick={() => removeField(index)}>
-                                        <FaTrash />
-                                    </Button>
+                                <Col md={2} className="text-end">
+                                    {fields.length > 1 && (
+                                        <Button
+                                            variant="danger"
+                                            size="sm"
+                                            onClick={() => removeField(index)}
+                                        >
+                                            <FaTrash />
+                                        </Button>
+                                    )}
                                 </Col>
                             </Row>
                         ))}
 
-                        <Row>
-                            <Col md={6}>
-                                <Button variant="secondary" onClick={addField}>
+                        <Row className="mt-3">
+                            <Col>
+                                <Button variant="secondary" onClick={addField} disabled={!componentName}>
                                     + Add Field
                                 </Button>
-
-                                <Button type="submit" variant="success" className="mx-2">
+                                <Button type="submit" variant="success" className="ms-2">
                                     Save Template
-                                </Button></Col>
+                                </Button>
+                            </Col>
                         </Row>
                     </Form>
                 </div>

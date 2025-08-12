@@ -8,7 +8,7 @@ import Image from "next/image";
 
 export default function UserProfile() {
   const user = useSelector((state) => state.auth.user);
-  console.log(user.authorities);
+  // console.log(user.authorities);
 
   const breadcrumbItems = [{ label: "Profile", link: null }];
 
@@ -51,7 +51,7 @@ export default function UserProfile() {
                   {user.usertype || "N/A"}
                 </Badge>
               </div>
-<hr/>
+              <hr />
               <Row className="my-4">
                 <Col md={6} className="mb-3">
                   <strong>Username:</strong>

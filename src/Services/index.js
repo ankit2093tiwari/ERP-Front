@@ -579,6 +579,19 @@ export const deleteFeeEntryById = async (id) => {
     return response?.data;
 }
 
+export const addNewChequeBounceEntry = async (payload) => {
+    const response = await axios.post(`${BASE_URL}/api/cheque-bounce`, payload)
+    return response?.data;
+}
+export const getAllChequeBounceEntries = async () => {
+    const response = await axios.get(`${BASE_URL}/api/cheque-bounce`)
+    return response?.data;
+}
+export const deleteChequeBounceEntryById = async (id) => {
+    const response = await axios.delete(`${BASE_URL}/api/cheque-bounce/${id}`)
+    return response?.data;
+}
+
 export const getStudentsByClassAndSection = async (classId, sectionId) => {
     const response = await axios.get(`${BASE_URL}/api/students/search?class_name=${classId}&section_name=${sectionId}`)
     return response?.data;
@@ -1623,6 +1636,10 @@ export const deleteTimeTableById = async (id) => {
 
 export const getAllStudentEvaluations = async (classId, sectionId, evalDate) => {
     const response = await axios.get(`${BASE_URL}/api/student-evaluation?classId=${classId}&sectionId=${sectionId}&evalDate=${evalDate}`);
+    return response?.data;
+}
+export const getStudentEvaluations = async (limit = 10) => {
+    const response = await axios.get(`${BASE_URL}/api/student-evaluations?limit=${limit}`);
     return response?.data;
 }
 export const addNewStudentEvaluation = async (payload) => {

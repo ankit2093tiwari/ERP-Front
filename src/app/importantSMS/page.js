@@ -83,6 +83,7 @@ const ImportantSMS = () => {
   };
   const resetForm = () => {
     setFormData({ entryDate: todayDate, sendBy: '', sendTo: '', detail: '', status: '' })
+    setEditingId(null);
   }
   const handleEdit = (id) => {
     const row = data.find(d => d._id === id);
@@ -94,6 +95,7 @@ const ImportantSMS = () => {
       setFormData(formattedData);
       setEditingId(id);
     }
+    setIsFormOpen(true);
   };
 
 

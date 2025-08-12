@@ -9,6 +9,7 @@ import { copyContent, printContent } from "@/app/utils";
 import { addNewSchoolAccount, getAllSchoolAccounts, updateSchoolAccountById } from "@/Services";
 import { toast } from "react-toastify";
 import usePagePermission from "@/hooks/usePagePermission";
+import { CgAddR } from "react-icons/cg";
 
 const SchoolAccount = () => {
   const { hasEditAccess } = usePagePermission()
@@ -157,6 +158,14 @@ const SchoolAccount = () => {
 
       <section>
         <Container>
+          {
+            data?.length == 0 && (
+              <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
+                <CgAddR /> Add School Account
+              </Button>
+            )
+          }
+
           {isPopoverOpen && (
             <div className="cover-sheet">
               <div className="studentHeading">
@@ -175,7 +184,7 @@ const SchoolAccount = () => {
                     />
                   </Col>
                 </Row>
-                <Button onClick={handleAdd} className="btn btn-primary mt-3">
+                <Button onClick={handleAdd} variant="success" className="mt-3">
                   Add
                 </Button>
                 {error && <p className="text-danger mt-2">{error}</p>}

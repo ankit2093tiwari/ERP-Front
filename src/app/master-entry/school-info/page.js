@@ -191,7 +191,7 @@ const SchoolInfo = () => {
                 <div className="studentHeading d-flex justify-content-between align-items-center">
                   <h2>School Information</h2>
                   {!isEditMode && hasExistingSchool && hasEditAccess && (
-                    <Button variant="primary" onClick={() => setIsEditMode(true)}>
+                    <Button variant="success" onClick={() => setIsEditMode(true)}>
                       Edit School Info
                     </Button>
                   )}
@@ -362,11 +362,11 @@ const SchoolInfo = () => {
 
                   {isEditMode ? (
                     <div className="d-flex gap-2 mt-4">
-                      <Button type="submit" variant="primary" disabled={loading}>
+                      <Button type="submit" variant="success" disabled={loading}>
                         {loading ? "Saving..." : hasExistingSchool ? "Update" : "Create"}
                       </Button>
-                      <button
-                        className="editButton btn-danger fs-6"
+                      <Button
+                        variant="danger"
                         onClick={() => {
                           setIsEditMode(false);
                           setErrors({});
@@ -374,12 +374,12 @@ const SchoolInfo = () => {
                         disabled={loading}
                       >
                         Cancel
-                      </button>
+                      </Button>
                     </div>
                   ) : !hasExistingSchool ? (
                     <div className="mt-4">
                       {
-                        hasSubmitAccess && <Button variant="primary" onClick={() => setIsEditMode(true)}>
+                        hasSubmitAccess && <Button variant="success" onClick={() => setIsEditMode(true)}>
                           Create School Information
                         </Button>
                       }

@@ -158,7 +158,7 @@ const SpeechRecognitionProvider = ({ onCommand }) => {
             style={{
               position: "absolute",
               top: micPosition.top + 6 + "px",
-              left: micPosition.left - 10 + "px",
+              left: micPosition.left - 5 + "px",
               zIndex: 9999,
               backgroundColor: listening ? "#28a745" : "#007bff",
               color: "#fff",

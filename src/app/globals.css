@@ -1426,3 +1426,17 @@ input::-webkit-inner-spin-button {
 {
   padding: 5px 10px 5px 6px !important;
 } */
+
+
+/* Active link styling */
+.sidebar .nav-link.active,
+.sidebar .nav-link.active span,
+.sidebar .active-parent,
+.sidebar .active-parent span {
+    font-weight: bold;
+}
+
+/* For links inside accordion body */
+.sidebar .accordion-body a.active {
+    color: blue !important;
+}
