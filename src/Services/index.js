@@ -435,6 +435,10 @@ export const getAllPickupPoints = async () => {
     const response = await axios.get(`${BASE_URL}/api/pickup-points`);
     return response?.data;
 }
+export const getPickupPointsByRouteId = async (id) => {
+    const response = await axios.get(`${BASE_URL}/api/pickup-points/${id}`);
+    return response?.data;
+}
 export const addNewFeeGroup = async (payload) => {
     const response = await axios.post(`${BASE_URL}/api/add-fee-groups`, payload)
     return response?.data;
@@ -567,6 +571,10 @@ export const getDateWiseFeeCollection = async (filter) => {
     const response = await axios.get(`${BASE_URL}/api/datewise-feecollection`, {
         params: filter,
     })
+    return response?.data;
+}
+export const yearlyFeeCollection = async () => {
+    const response = await axios.get(`${BASE_URL}/api/total-fee-collection`)
     return response?.data;
 }
 

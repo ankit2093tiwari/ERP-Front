@@ -267,7 +267,7 @@ const HeadMasterPage = () => {
                     </Form.Control.Feedback>
                   </Col>
                 </Row>
-                <Button onClick={handleFormSubmit} className="btn btn-primary mt-3">
+                <Button onClick={handleFormSubmit} variant="success" className="mt-3">
                   {editingId ? "Update" : "Add"} Head Master
                 </Button>
               </Form>

@@ -209,7 +209,7 @@ const BankMaster = () => {
                     </Form.Control.Feedback>
                   </Col>
                 </Row>
-                <Button onClick={handleAdd} className="btn btn-primary mt-3">
+                <Button onClick={handleAdd} variant="success" className="mt-3">
                   Add Bank
                 </Button>
               </Form>
@@ -243,7 +243,7 @@ const BankMaster = () => {
                     </Form.Control.Feedback>
                   </Col>
                 </Row>
-                <Button onClick={handleUpdateBank} className="btn btn-primary mt-3">
+                <Button onClick={handleUpdateBank} variant="success" className="mt-3">
                   Update Bank
                 </Button>
               </Form>

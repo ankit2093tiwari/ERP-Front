@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import Table from "@/app/component/DataTable";
-import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
+import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import {
   Form,
   Row,
@@ -11,63 +11,51 @@ import {
   FormLabel,
   FormControl,
   Button,
-  Breadcrumb,
 } from "react-bootstrap";
 import { CgAddR } from "react-icons/cg";
 import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { toast } from "react-toastify";
-import { addNewVehicleType, deleteVehicleTypeById, getAllVehicleTypes, updateVehicleTypeById } from "@/Services";
+import {
+  addNewVehicleType,
+  deleteVehicleTypeById,
+  getAllVehicleTypes,
+  updateVehicleTypeById,
+} from "@/Services";
 import usePagePermission from "@/hooks/usePagePermission";
 
 const VehicleRecords = () => {
-  const {hasSubmitAccess,hasEditAccess}=usePagePermission()
+  const { hasSubmitAccess, hasEditAccess } = usePagePermission();
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [editRowId, setEditRowId] = useState(null);
-  const [editValues, setEditValues] = useState({});
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [newVehicle, setNewVehicle] = useState({ type_name: "" });
-  const [fieldError, setFieldError] = useState("")
-  const handleInputChange = (e, field) => {
-    setEditValues({ ...editValues, [field]: e.target.value });
-  };
+
+  const [showForm, setShowForm] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [formValues, setFormValues] = useState({ type_name: "" });
+  const [editId, setEditId] = useState(null);
+  const [fieldError, setFieldError] = useState("");
 
   const columns = [
     { name: "#", selector: (row, index) => index + 1, width: "80px" },
-    {
-      name: "Vehicle Type",
-      selector: (row) =>
-        editRowId === row._id ? (
-          <FormControl
-            type="text"
-            value={editValues.type_name}
-            onChange={(e) => handleInputChange(e, "type_name")}
-          />
-        ) : (
-          row.type_name || "N/A"
-        ),
-    },
-    hasEditAccess &&{
+    { name: "Vehicle Type", selector: (row) => row.type_name || "N/A",sortable:true },
+    hasEditAccess && {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-1">
-          {editRowId === row._id ? (
-            <button className="editButton" onClick={() => handleSave(row._id)}>
-              <FaSave />
-            </button>
-          ) : (
-            <button className="editButton" onClick={() => handleEdit(row._id)}>
-              <FaEdit />
-            </button>
-          )}
-          <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
+          <Button size="sm" variant="success"
+            onClick={() => handleEditClick(row)}
+          >
+            <FaEdit />
+          </Button>
+          <Button size="sm" variant="danger"
+            onClick={() => handleDelete(row._id)}
+          >
             <FaTrashAlt />
-          </button>
+          </Button>
         </div>
       ),
     },
-  ].filter(Boolean);;
+  ].filter(Boolean);
 
   const fetchData = async () => {
     setLoading(true);
@@ -83,77 +71,74 @@ const VehicleRecords = () => {
     }
   };
 
+  const handleFormChange = (e) => {
+    setFormValues({ ...formValues, type_name: e.target.value });
+    if (fieldError) setFieldError("");
+  };
 
-  const handleAdd = async () => {
-    const trimmed = newVehicle.type_name.trim();
+  const handleFormSubmit = async () => {
+    const trimmed = formValues.type_name.trim();
     if (!trimmed) {
-      toast.warning("Please enter a vehicle type.");
-      setFieldError("Please enter a vehicle type.")
+      setFieldError("Please enter a vehicle type.");
       return;
     }
-
-    if (data.some((vehicle) => vehicle.type_name.toLowerCase() === trimmed.toLowerCase())) {
-      toast.warning("This vehicle type already exists!");
+    if (
+      data.some(
+        (v) =>
+          v.type_name.toLowerCase() === trimmed.toLowerCase() &&
+          v._id !== editId
+      )
+    ) {
       setFieldError("This vehicle type already exists!");
       return;
     }
 
     try {
-      const response = await addNewVehicleType({
-        type_name: trimmed,
-      })
-      toast.success("Vehicle type added successfully!");
-      fetchData()
-      setNewVehicle({ type_name: "" });
-      setShowAddForm(false);
-      setFieldError("");
+      if (isEditMode) {
+        await updateVehicleTypeById(editId, { type_name: trimmed });
+        toast.success("Vehicle type updated successfully!");
+      } else {
+        await addNewVehicleType({ type_name: trimmed });
+        toast.success("Vehicle type added successfully!");
+      }
+      fetchData();
+      handleFormClose();
     } catch (error) {
-      console.log("Failed to add vehicle type..", error)
-      toast.error("Failed to add vehicle type.");
+      toast.error(
+        isEditMode
+          ? "Failed to update vehicle type."
+          : "Failed to add vehicle type."
+      );
     }
   };
 
-  const handleEdit = (id) => {
-    setEditRowId(id);
-    const item = data.find((row) => row._id === id);
-    setEditValues({ ...item });
+  const handleFormClose = () => {
+    setShowForm(false);
+    setIsEditMode(false);
+    setFormValues({ type_name: "" });
+    setEditId(null);
+    setFieldError("");
   };
 
-  const handleSave = async (id) => {
-    const trimmed = editValues?.type_name?.trim();
-    if (!trimmed) {
-      toast.warning("Vehicle type cannot be empty.");
-      return;
-    }
+  const handleAddClick = () => {
+    setIsEditMode(false);
+    setFormValues({ type_name: "" });
+    setShowForm(true);
+  };
 
-    const exists = data.find(
-      (v) =>
-        v.type_name.trim().toLowerCase() === trimmed.toLowerCase() && v._id !== id
-    );
-    if (exists) {
-      toast.warning("Vehicle type already exists.");
-      setEditRowId(null); // Auto-close edit on duplicate
-      return;
-    }
-
-    try {
-      await updateVehicleTypeById(id, {
-        type_name: trimmed,
-      })
-      toast.success("Vehicle type updated successfully!");
-      fetchData()
-      setEditRowId(null);
-    } catch (error) {
-      toast.error("Failed to update vehicle type.");
-    }
+  const handleEditClick = (row) => {
+    setIsEditMode(true);
+    setFormValues({ type_name: row.type_name });
+    setEditId(row._id);
+    setShowForm(true);
   };
 
   const handleDelete = async (id) => {
     if (confirm("Are you sure you want to delete this vehicle?")) {
       try {
-        await deleteVehicleTypeById(id)
+        await deleteVehicleTypeById(id);
         toast.success("Vehicle type deleted successfully!");
-        fetchData()
+        fetchData();
       } catch (error) {
         toast.error("Failed to delete vehicle type.");
       }
@@ -168,7 +153,9 @@ const VehicleRecords = () => {
 
   const handleCopy = () => {
     const headers = ["#", "Vehicle Type Name"];
-    const rows = data.map((row, index) => `${index + 1}\t${row.type_name || "N/A"}`);
+    const rows = data.map(
+      (row, index) => `${index + 1}\t${row.type_name || "N/A"}`
+    );
     copyContent(headers, rows);
   };
 
@@ -195,36 +182,47 @@ const VehicleRecords = () => {
 
       <section>
         <Container>
-         {hasSubmitAccess &&(
-           <Button onClick={() => setShowAddForm(true)} className="btn-add">
-            <CgAddR /> Add Vehicle
-          </Button>
-         )}
+          {hasSubmitAccess && (
+            <Button onClick={handleAddClick} className="btn-add">
+              <CgAddR /> Add Vehicle
+            </Button>
+          )}
 
-          {showAddForm && (
+          {showForm && (
             <div className="cover-sheet">
               <div className="studentHeading">
-                <h2>Add Vehicle Type</h2>
-                <button className="closeForm" onClick={() => setShowAddForm(false)}>X</button>
+                <h2>
+                  {isEditMode ? "Edit Vehicle Type" : "Add Vehicle Type"}
+                </h2>
+                <button className="closeForm" onClick={handleFormClose}>
+                  X
+                </button>
               </div>
               <Form className="formSheet">
                 <Row className="mb-3">
                   <Col>
-                    <FormLabel className="labelForm">Vehicle Type<span className="text-danger">*</span></FormLabel>
+                    <FormLabel className="labelForm">
+                      Vehicle Type<span className="text-danger">*</span>
+                    </FormLabel>
                     <FormControl
                       type="text"
                       placeholder="Enter Vehicle Type"
-                      value={newVehicle.type_name}
-                      onChange={(e) => { setNewVehicle({ type_name: e.target.value }); if (fieldError) setFieldError("") }}
+                      value={formValues.type_name}
+                      onChange={handleFormChange}
                       isInvalid={!!fieldError}
                     />
-                    {fieldError && <p className="text-danger">{fieldError}</p>}
+                    {fieldError && (
+                      <p className="text-danger">{fieldError}</p>
+                    )}
                   </Col>
                 </Row>
                 <Row>
                   <Col>
-                    <Button onClick={handleAdd} className="btn btn-primary mt-4">
-                      Add Vehicle
+                    <Button
+                    variant="success"
+                      onClick={handleFormSubmit}
+                    >
+                      {isEditMode ? "Update Vehicle" : "Add Vehicle"}
                     </Button>
                   </Col>
                 </Row>
@@ -239,7 +237,12 @@ const VehicleRecords = () => {
                 {loading ? (
                   <p>Loading...</p>
                 ) : data.length > 0 ? (
-                  <Table columns={columns} data={data} handleCopy={handleCopy} handlePrint={handlePrint} />
+                  <Table
+                    columns={columns}
+                    data={data}
+                    handleCopy={handleCopy}
+                    handlePrint={handlePrint}
+                  />
                 ) : (
                   <p>No data available.</p>
                 )}

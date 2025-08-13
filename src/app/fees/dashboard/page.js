@@ -6,6 +6,7 @@ import Chart from "react-apexcharts";
 import { getAllFeeEntries, getLimitedFeeEntries, getTotalStudentsCount } from "@/Services";
 import useSessionId from "@/hooks/useSessionId";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
+import { getExpectedYearlyFees } from "@/app/utils";
 
 const DashboardFee = () => {
   const selectedSessionId = useSessionId();
@@ -15,9 +16,11 @@ const DashboardFee = () => {
   const [barChartCategories, setBarChartCategories] = useState([]);
   const [barChartSeries, setBarChartSeries] = useState([]);
   const [donutChartSeries, setDonutChartSeries] = useState([0, 0, 0]);
-
-  const totalFeeAmount = 850000; // hardcoded for now. get exact amount to be collected
-
+  const [totalFeeAmount, setTotalFeeAmount] = useState(860000); // Default value, will be updated later
+  const fetchTotalFeeAmount = async () => {
+    const result = await getExpectedYearlyFees();
+    setTotalFeeAmount(result.totalExpectedAmount);
+  }
   const barChartOptions = {
     chart: { id: "fee-bar" },
     xaxis: {
@@ -87,7 +90,7 @@ const DashboardFee = () => {
 
       const totalCollected = admissionTotal + annualTotal + tuitionTotal + lateFeeTotal;
       const pendingAmount = totalFeeAmount - totalCollected;
-      const defaulters = Math.floor(pendingAmount / 5000); // or any logic
+      const defaulters = Math.floor(pendingAmount / 5000);
 
       setDonutChartSeries([
         totalCollected > 0 ? totalCollected : 0,
@@ -99,6 +102,7 @@ const DashboardFee = () => {
     fetchAllFeeEntries();
     fetchRecentFeeEntries();
     fetchTotalStudent();
+    fetchTotalFeeAmount();
   }, [selectedSessionId]);
 
   const formatAmount = (amount) => {
@@ -149,7 +153,7 @@ const DashboardFee = () => {
           </Row>
 
           <Row className="mb-4">
-            <Col md={6}>
+            <Col md={8}>
               <Card className="shadow-sm">
                 <Card.Header style={{ backgroundColor: "#f1f1f1", fontWeight: "bold" }}>
                   Monthly Fee Collection
@@ -159,7 +163,7 @@ const DashboardFee = () => {
                 </Card.Body>
               </Card>
             </Col>
-            <Col md={6}>
+            <Col md={4}>
               <Card className="shadow-sm">
                 <Card.Header style={{ backgroundColor: "#f1f1f1", fontWeight: "bold" }}>
                   Fee Distribution

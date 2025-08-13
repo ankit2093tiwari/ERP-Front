@@ -19,12 +19,14 @@ import { toast } from "react-toastify";
 import {
   addDailyDiaryRecord,
   deleteDailyDiaryRecord,
+  getAllEmployee,
   getAllTeachers,
   getDailyDiaryRecords,
   updateDailyDiaryRecord,
 } from "@/Services";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import usePagePermission from "@/hooks/usePagePermission";
+import { copyContent, printContent } from "../utils";
 
 const DailyDiary = () => {
   const { hasEditAccess, hasSubmitAccess, moduleName } = usePagePermission()
@@ -55,7 +57,7 @@ const DailyDiary = () => {
 
   const fetchTeachers = async () => {
     try {
-      const response = await getAllTeachers();
+      const response = await getAllEmployee();
       setTeachers(response?.data || []);
     } catch (err) {
       toast.error("Failed to fetch teachers");
@@ -157,7 +159,7 @@ const DailyDiary = () => {
     {
       name: "Teacher Name",
       selector: (row) =>
-        `${row.teacherName?.first_name || "N/A"} ${row.teacherName?.last_name || ""}`,
+        `${row.teacherName?.employee_name || "N/A"}`,
     },
     {
       name: "Work Details",
@@ -178,6 +180,28 @@ const DailyDiary = () => {
     },
   ].filter(Boolean);
 
+const handleCopy = () => {
+  const headers = [
+    "Entry Date",
+    "Teacher Name",
+    "Work Details",
+  ];
+  const rows = data.map((row) => [
+    row.entryDate ? new Date(row.entryDate).toLocaleDateString() : "N/A",
+    row.teacherName?.employee_name || "N/A",
+    row.workDetails || "N/A",
+  ].join("\t"));
+  copyContent(headers, rows);
+};
+const handlePrint = () => {
+  const header = [["Entry Date", "Teacher Name", "Work Details"]];
+  const rows = data.map((row) => [
+    row.entryDate ? new Date(row.entryDate).toLocaleDateString() : "N/A",
+    row.teacherName?.employee_name || "N/A",
+    row.workDetails || "N/A",
+  ]);
+  printContent(header, rows);
+};
   return (
     <>
       <div className="breadcrumbSheet position-relative">
@@ -236,7 +260,7 @@ const DailyDiary = () => {
                       <option value="">Select Teacher</option>
                       {teachers.map((t) => (
                         <option key={t._id} value={t._id}>
-                          {t.first_name} {t.last_name}
+                          {t.employee_name} 
                         </option>
                       ))}
                     </FormControl>
@@ -309,7 +333,7 @@ const DailyDiary = () => {
                       <option value="">Select Teacher</option>
                       {teachers.map((t) => (
                         <option key={t._id} value={t._id}>
-                          {t.first_name} {t.last_name}
+                          {t.employee_name}
                         </option>
                       ))}
                     </FormControl>
@@ -334,7 +358,7 @@ const DailyDiary = () => {
                     )}
                   </Col>
                 </Row>
-                <Button onClick={handleUpdate} className="btn btn-success mt-3">
+                <Button onClick={handleUpdate} variant="success" className="mt-3">
                   Update Entry
                 </Button>
               </Form>
@@ -343,7 +367,7 @@ const DailyDiary = () => {
 
           <div className="tableSheet mt-4">
             <h2>Daily Diary Records</h2>
-            {loading ? <p>Loading...</p> : <Table columns={columns} data={data} />}
+            {loading ? <p>Loading...</p> : <Table columns={columns} data={data} handleCopy={handleCopy} handlePrint={handlePrint} />}
           </div>
         </Container>
       </section>

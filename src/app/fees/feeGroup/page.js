@@ -418,7 +418,7 @@ const FeeGroup = () => {
                     <Form.Control.Feedback type="invalid">{formErrors.late_fine_per_day}</Form.Control.Feedback>
                   </Col>
                 </Row>
-                <Button onClick={handleAdd} className="btn btn-primary mt-3">
+                <Button onClick={handleAdd} variant="success" className="mt-3">
                   Add Fee Group
                 </Button>
               </Form>

@@ -180,19 +180,28 @@ const Dashboard = () => {
       console.error("Error fetching notifications:", error);
     }
   };
-  const fetchStudentEvaluations = async () => {
-    try {
-      const res = await getStudentEvaluations(3);
-      setStudentEvaluations(res.data || []);
-    } catch (error) {
-      console.error("Error fetching student evaluations:", error);
-    }
-  };
+ const fetchStudentEvaluations = async () => {
+  try {
+    const res = await getStudentEvaluations(5);
+    const formattedData = res.data.flatMap((eva) =>
+      eva.evaluations
+        .filter((e) => e.eval === "Excellent")
+        .map((student) => ({
+          ...student,
+          className: eva.classId?.class_name || "",
+          sectionName: eva.sectionId?.section_name || "",
+        }))
+    );
+    setStudentEvaluations(formattedData || []);
+  } catch (error) {
+    console.error("Error fetching student evaluations:", error);
+  }
+};
 
 
   // Radial Chart State
   const [state, setState] = useState({
-    series: [67],
+    series: [83],
     options: {
       chart: {
         height: 400,
@@ -545,29 +554,30 @@ const Dashboard = () => {
                     <Table>
                       <tbody>
                         {studentEvaluations.length > 0 ? (
-                          studentEvaluations?.map((evaluation, evalIndex) => (
-                            evaluation.evaluations.map((studentEval, studentIndex) => (
-                              <tr key={`${evalIndex}-${studentIndex}`}>
-                                <td>
-                                  <div className="d-flex align-items-center">
-                                    <Image
-                                      alt="users"
-                                      width={40}
-                                      height={40}
-                                      className="rounded-circle"
-                                      src="/user.webp"
-                                    />
-                                    <div className="profileTable">
-                                      <h6>{studentEval.studentId.first_name}</h6>
-                                    </div>
+                          studentEvaluations?.map((studentEval, index) => (
+                            <tr key={index}>
+                              <td>
+                                <div className="d-flex align-items-center">
+                                  <Image
+                                    alt="users"
+                                    width={40}
+                                    height={40}
+                                    className="rounded-circle"
+                                    src="/user.webp"
+                                  />
+                                  <div className="profileTable">
+                                    <h6 className="text-capitalize">{`${studentEval.studentId.first_name} ${studentEval.studentId.last_name}`  || "Unknown"}</h6>
                                   </div>
-                                </td>
-                                <td>
-                                  <small> {evaluation.classId.class_name} - {evaluation.sectionId.section_name}</small>
-                                </td>
-                              </tr>
-                            ))
+                                </div>
+                              </td>
+                              <td>
+                                <small>
+                                  {studentEval.className} - {studentEval.sectionName}
+                                </small>
+                              </td>
+                            </tr>
                           ))
+
                         ) : (
                           <>
                             <tr>

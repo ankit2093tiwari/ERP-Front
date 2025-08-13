@@ -2,8 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import Table from '@/app/component/DataTable';
-import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
-import { Container, Row, Col, Breadcrumb, Form, FormLabel, FormGroup, FormControl, FormSelect, Button } from 'react-bootstrap';
+import { FaEdit, FaTrashAlt } from "react-icons/fa";
+import { Container, Row, Col, Form, FormLabel, FormGroup, FormControl, FormSelect, Button } from 'react-bootstrap';
 import { CgAddR } from 'react-icons/cg';
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import DatePicker from "react-datepicker";
@@ -17,10 +17,10 @@ const FuelFilling = () => {
   const { hasEditAccess, hasSubmitAccess } = usePagePermission()
   const [data, setData] = useState([]);
   const [vehicles, setVehicles] = useState([]);
-  const [editRowId, setEditRowId] = useState(null);
-  const [updatedData, setUpdatedData] = useState({});
   const [loading, setLoading] = useState(false);
-  const [showAddForm, setShowAddForm] = useState(false);
+
+  const [showForm, setShowForm] = useState(false);
+  const [editingId, setEditingId] = useState(null);
   const [errors, setErrors] = useState({});
 
   const [formData, setFormData] = useState({
@@ -34,149 +34,34 @@ const FuelFilling = () => {
   });
 
   const columns = [
-    {
-      name: '#',
-      selector: (row, index) => index + 1,
-      width: '80px',
-    },
-    {
-      name: 'Date',
-      selector: row => new Date(row.date).toLocaleDateString(),
-      sortable: true,
-    },
-    {
-      name: 'Vehicle No',
-      selector: row =>
-        editRowId === row._id ? (
-          <FormSelect
-            value={updatedData.Vehicle_No}
-            onChange={(e) => handleUpdateChange(e, 'Vehicle_No')}
-            isInvalid={!!errors.Vehicle_No}
-          >
-            <option value="">Select Vehicle</option>
-            {vehicles.map(vehicle => (
-              <option key={vehicle._id} value={vehicle.Vehicle_No}>
-                {vehicle.Vehicle_No}
-              </option>
-            ))}
-          </FormSelect>
-        ) : (
-          row.Vehicle_No
-        ),
-      sortable: true,
-    },
-    {
-      name: 'Amount Per Litre',
-      selector: row =>
-        editRowId === row._id ? (
-          <FormControl
-            type="number"
-            value={updatedData.Amount_per_Liter}
-            onChange={(e) => handleUpdateChange(e, 'Amount_per_Liter')}
-            min="0.1"
-            step="0.01"
-            isInvalid={!!errors.Amount_per_Liter}
-          />
-        ) : (
-          `${row.Amount_per_Liter} Rs.`
-        ),
-      sortable: true,
-    },
-    {
-      name: 'Quantity',
-      selector: row =>
-        editRowId === row._id ? (
-          <FormControl
-            type="number"
-            value={updatedData.Quantity_of_diesel}
-            onChange={(e) => handleUpdateChange(e, 'Quantity_of_diesel')}
-            min="0.1"
-            step="0.01"
-            isInvalid={!!errors.Quantity_of_diesel}
-          />
-        ) : (
-          row.Quantity_of_diesel
-        ),
-      sortable: true,
-    },
-    {
-      name: 'Previous Reading',
-      selector: row =>
-        editRowId === row._id ? (
-          <FormControl
-            type="number"
-            value={updatedData.PreviousReading}
-            onChange={(e) => handleUpdateChange(e, 'PreviousReading')}
-            min="0"
-            isInvalid={!!errors.PreviousReading}
-          />
-        ) : (
-          row.PreviousReading
-        ),
-      sortable: true,
-    },
-    {
-      name: 'New Reading',
-      selector: row =>
-        editRowId === row._id ? (
-          <FormControl
-            type="number"
-            value={updatedData.NewReading}
-            onChange={(e) => handleUpdateChange(e, 'NewReading')}
-            min={updatedData.PreviousReading ? parseInt(updatedData.PreviousReading) + 1 : 0}
-            isInvalid={!!errors.NewReading}
-          />
-        ) : (
-          row.NewReading
-        ),
-      sortable: true,
-    },
-    {
-      name: 'Total Amount',
-      selector: row => `${row.Quantity_of_diesel * row.Amount_per_Liter} Rs.`,
-      sortable: true,
-    },
+    { name: '#', selector: (row, index) => index + 1, width: '80px' },
+    { name: 'Date', selector: row => new Date(row.date).toLocaleDateString() || "N/A", sortable: true },
+    { name: 'Vehicle No', selector: row => row.Vehicle_No || "N/A", sortable: true },
+    { name: 'Amount Per Litre', selector: row => `${row.Amount_per_Liter} Rs.` || "N/A", sortable: true },
+    { name: 'Quantity', selector: row => row.Quantity_of_diesel || "N/A", sortable: true },
+    { name: 'Previous Reading', selector: row => row.PreviousReading || "N/A", sortable: true },
+    { name: 'New Reading', selector: row => row.NewReading || "N/A", sortable: true },
+    { name: 'Total Amount', selector: row => `${row.Quantity_of_diesel * row.Amount_per_Liter} Rs.` || "N/A", sortable: true },
     hasEditAccess && {
       name: 'Action',
       cell: row => (
-        <div style={{ display: 'flex' }}>
-          {editRowId === row._id ? (
-            <button className='editButton btn-success'
-              onClick={() => handleUpdate(row._id)}
-            >
-              <FaSave />
-            </button>
-          ) : (
-            <button className='editButton'
-              onClick={() => handleEditClick(row)}
-            >
-              <FaEdit />
-            </button>
-          )}
-          <button className="editButton btn-danger"
-            onClick={() => handleDelete(row._id)}
-          >
-            <FaTrashAlt />
-          </button>
+        <div className='d-flex gap-1'>
+          <Button size='sm' variant='success' onClick={() => handleEdit(row)}><FaEdit /></Button>
+          <Button size='sm' variant='danger' onClick={() => handleDelete(row._id)}><FaTrashAlt /></Button>
         </div>
       ),
     }
-  ];
-  const validateForm = (formValues, isEdit = false) => {
+  ].filter(Boolean);
+
+  const validateForm = (values) => {
     const newErrors = {};
-
-    if (!formValues.Vehicle_No) newErrors.Vehicle_No = "Vehicle No is required";
-    if (!formValues.Filled_Station) newErrors.Filled_Station = "Filled Station is required";
-    if (!formValues.Quantity_of_diesel || formValues.Quantity_of_diesel <= 0)
-      newErrors.Quantity_of_diesel = "Valid quantity is required";
-    if (!formValues.PreviousReading || formValues.PreviousReading < 0)
-      newErrors.PreviousReading = "Valid reading is required";
-    if (!formValues.Amount_per_Liter || formValues.Amount_per_Liter <= 0)
-      newErrors.Amount_per_Liter = "Valid amount is required";
-    if (!formValues.NewReading || formValues.NewReading <= formValues.PreviousReading)
-      newErrors.NewReading = "New reading must be greater than previous";
-    if (!formValues.date) newErrors.date = "Date is required";
-
+    if (!values.Vehicle_No) newErrors.Vehicle_No = "Vehicle No is required";
+    if (!values.Filled_Station) newErrors.Filled_Station = "Filled Station is required";
+    if (!values.Quantity_of_diesel || values.Quantity_of_diesel <= 0) newErrors.Quantity_of_diesel = "Valid quantity is required";
+    if (!values.PreviousReading || values.PreviousReading < 0) newErrors.PreviousReading = "Valid reading is required";
+    if (!values.Amount_per_Liter || values.Amount_per_Liter <= 0) newErrors.Amount_per_Liter = "Valid amount is required";
+    if (!values.NewReading || values.NewReading <= values.PreviousReading) newErrors.NewReading = "New reading must be greater than previous";
+    if (!values.date) newErrors.date = "Date is required";
     return newErrors;
   };
 
@@ -184,7 +69,7 @@ const FuelFilling = () => {
     try {
       const response = await getAllVehicles()
       setVehicles(response.data);
-    } catch (err) {
+    } catch {
       toast.error("Failed to fetch vehicles");
     }
   };
@@ -194,7 +79,7 @@ const FuelFilling = () => {
     try {
       const response = await getAllFuelFillings()
       setData(response.data);
-    } catch (err) {
+    } catch {
       toast.error("Failed to fetch fuel fillings");
     } finally {
       setLoading(false);
@@ -204,31 +89,17 @@ const FuelFilling = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
-    // Clear error when user types
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
-    }
+    if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
   const handleDateChange = (date) => {
     setFormData({ ...formData, date });
-    if (errors.date) {
-      setErrors(prev => ({ ...prev, date: '' }));
-    }
-  };
-
-  const handleUpdateChange = (e, field) => {
-    setUpdatedData({ ...updatedData, [field]: e.target.value });
-    // Clear error when user types
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
-    }
+    if (errors.date) setErrors(prev => ({ ...prev, date: '' }));
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const formErrors = validateForm(formData);
-
     if (Object.keys(formErrors).length > 0) {
       setErrors(formErrors);
       toast.error("Please fix the errors in the form");
@@ -236,28 +107,23 @@ const FuelFilling = () => {
     }
 
     try {
-      const response = await addNewFuelFilling(formData)
-      toast.success("Fuel filling added successfully");
-      fetchFuelFillings()
-      setShowAddForm(false);
-      setFormData({
-        Vehicle_No: '',
-        Filled_Station: '',
-        Quantity_of_diesel: '',
-        PreviousReading: '',
-        Amount_per_Liter: '',
-        NewReading: '',
-        date: new Date()
-      });
-      setErrors({});
+      if (editingId) {
+        await updateFuelFillingById(editingId, formData);
+        toast.success("Fuel filling updated successfully");
+      } else {
+        await addNewFuelFilling(formData);
+        toast.success("Fuel filling added successfully");
+      }
+      fetchFuelFillings();
+      handleCloseForm();
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to create fuel filling");
+      toast.error(err.response?.data?.message || "Failed to save fuel filling");
     }
   };
 
-  const handleEditClick = (row) => {
-    setEditRowId(row._id);
-    setUpdatedData({
+  const handleEdit = (row) => {
+    setEditingId(row._id);
+    setFormData({
       Vehicle_No: row.Vehicle_No,
       Filled_Station: row.Filled_Station,
       Quantity_of_diesel: row.Quantity_of_diesel,
@@ -266,26 +132,7 @@ const FuelFilling = () => {
       NewReading: row.NewReading,
       date: new Date(row.date)
     });
-    setErrors({});
-  };
-
-  const handleUpdate = async (id) => {
-    const formErrors = validateForm(updatedData, true);
-
-    if (Object.keys(formErrors).length > 0) {
-      setErrors(formErrors);
-      toast.error("Please fix the errors in the form");
-      return;
-    }
-
-    try {
-      await updateFuelFillingById(id, updatedData)
-      toast.success("Fuel filling updated successfully");
-      fetchFuelFillings();
-      setEditRowId(null);
-    } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to update fuel filling");
-    }
+    setShowForm(true);
   };
 
   const handleDelete = async (id) => {
@@ -300,10 +147,23 @@ const FuelFilling = () => {
     }
   };
 
+  const handleCloseForm = () => {
+    setShowForm(false);
+    setEditingId(null);
+    setFormData({
+      Vehicle_No: '',
+      Filled_Station: '',
+      Quantity_of_diesel: '',
+      PreviousReading: '',
+      Amount_per_Liter: '',
+      NewReading: '',
+      date: new Date()
+    });
+    setErrors({});
+  };
+
   const handlePrint = () => {
-    const headers = [
-      ["#", "Date", "Vehicle No", "Amount/Litre", "Quantity", "Prev Reading", "New Reading", "Total Amount"]
-    ];
+    const headers = [["#", "Date", "Vehicle No", "Amount/Litre", "Quantity", "Prev Reading", "New Reading", "Total Amount"]];
     const rows = data.map((row, index) => [
       index + 1,
       new Date(row.date).toLocaleDateString(),
@@ -340,9 +200,7 @@ const FuelFilling = () => {
       <div className="breadcrumbSheet position-relative">
         <Container>
           <Row className="mt-1 mb-1">
-            <Col>
-              <BreadcrumbComp items={breadcrumbItems} />
-            </Col>
+            <Col><BreadcrumbComp items={breadcrumbItems} /></Col>
           </Row>
         </Container>
       </div>
@@ -352,40 +210,35 @@ const FuelFilling = () => {
           <Row>
             <Col>
               {hasSubmitAccess && (
-                  <Button onClick={() => setShowAddForm(true)} className="btn-add">
-                    <CgAddR /> New Fuel Filling
-                  </Button>
-                )}
+                <Button onClick={() => setShowForm(true)} className="btn-add">
+                  <CgAddR /> New Fuel Filling
+                </Button>
+              )}
 
-              {showAddForm && (
+              {showForm && (
                 <div className="cover-sheet">
                   <div className="studentHeading">
-                    <h2>Add Fuel Filling</h2>
-                    <button className='closeForm' onClick={() => setShowAddForm(false)}> X </button>
+                    <h2>{editingId ? "Edit Fuel Filling" : "Add Fuel Filling"}</h2>
+                    <button className='closeForm' onClick={handleCloseForm}> X </button>
                   </div>
                   <Form onSubmit={handleSubmit} className='formSheet'>
                     <Row className="mb-3">
-                      <FormGroup as={Col} lg="4" controlId="validationCustom01">
+                      <FormGroup as={Col} lg="4">
                         <FormLabel className="labelForm">Vehicle No<span className='text-danger'>*</span></FormLabel>
                         <FormSelect
                           name="Vehicle_No"
                           value={formData.Vehicle_No}
                           onChange={handleChange}
                           isInvalid={!!errors.Vehicle_No}
-
                         >
                           <option value="">Select Vehicle</option>
                           {vehicles.map(vehicle => (
-                            <option key={vehicle._id} value={vehicle.Vehicle_No}>
-                              {vehicle.Vehicle_No}
-                            </option>
+                            <option key={vehicle._id} value={vehicle.Vehicle_No}>{vehicle.Vehicle_No}</option>
                           ))}
                         </FormSelect>
-                        <FormControl.Feedback type="invalid">
-                          {errors.Vehicle_No}
-                        </FormControl.Feedback>
+                        <FormControl.Feedback type="invalid">{errors.Vehicle_No}</FormControl.Feedback>
                       </FormGroup>
-                      <FormGroup as={Col} lg="4" controlId="validationCustom02">
+                      <FormGroup as={Col} lg="4">
                         <FormLabel className="labelForm">Filled Station<span className='text-danger'>*</span></FormLabel>
                         <FormControl
                           placeholder='Enter Filled Station Name'
@@ -395,11 +248,9 @@ const FuelFilling = () => {
                           onChange={handleChange}
                           isInvalid={!!errors.Filled_Station}
                         />
-                        <FormControl.Feedback type="invalid">
-                          {errors.Filled_Station}
-                        </FormControl.Feedback>
+                        <FormControl.Feedback type="invalid">{errors.Filled_Station}</FormControl.Feedback>
                       </FormGroup>
-                      <FormGroup as={Col} lg="4" controlId="validationCustom03">
+                      <FormGroup as={Col} lg="4">
                         <FormLabel className="labelForm">Quantity<span className='text-danger'>*</span></FormLabel>
                         <FormControl
                           placeholder='Enter Quantity in litre'
@@ -411,13 +262,11 @@ const FuelFilling = () => {
                           step="0.01"
                           isInvalid={!!errors.Quantity_of_diesel}
                         />
-                        <FormControl.Feedback type="invalid">
-                          {errors.Quantity_of_diesel}
-                        </FormControl.Feedback>
+                        <FormControl.Feedback type="invalid">{errors.Quantity_of_diesel}</FormControl.Feedback>
                       </FormGroup>
                     </Row>
                     <Row className='mb-3'>
-                      <FormGroup as={Col} lg="4" controlId="validationCustom04">
+                      <FormGroup as={Col} lg="4">
                         <FormLabel className="labelForm">Previous Reading<span className='text-danger'>*</span></FormLabel>
                         <FormControl
                           placeholder='Enter Previous Reading'
@@ -428,11 +277,9 @@ const FuelFilling = () => {
                           min="0"
                           isInvalid={!!errors.PreviousReading}
                         />
-                        <FormControl.Feedback type="invalid">
-                          {errors.PreviousReading}
-                        </FormControl.Feedback>
+                        <FormControl.Feedback type="invalid">{errors.PreviousReading}</FormControl.Feedback>
                       </FormGroup>
-                      <FormGroup as={Col} lg="4" controlId="validationCustom05">
+                      <FormGroup as={Col} lg="4">
                         <FormLabel className="labelForm">Amount Per Litre<span className='text-danger'>*</span></FormLabel>
                         <FormControl
                           placeholder='Enter Amount/Lt.'
@@ -444,11 +291,9 @@ const FuelFilling = () => {
                           step="0.01"
                           isInvalid={!!errors.Amount_per_Liter}
                         />
-                        <FormControl.Feedback type="invalid">
-                          {errors.Amount_per_Liter}
-                        </FormControl.Feedback>
+                        <FormControl.Feedback type="invalid">{errors.Amount_per_Liter}</FormControl.Feedback>
                       </FormGroup>
-                      <FormGroup as={Col} lg="4" controlId="validationCustom06">
+                      <FormGroup as={Col} lg="4">
                         <FormLabel className="labelForm">New Reading<span className='text-danger'>*</span></FormLabel>
                         <FormControl
                           placeholder='Enter New Reading.'
@@ -459,30 +304,23 @@ const FuelFilling = () => {
                           min={formData.PreviousReading ? parseInt(formData.PreviousReading) + 1 : 0}
                           isInvalid={!!errors.NewReading}
                         />
-                        <FormControl.Feedback type="invalid">
-                          {errors.NewReading}
-                        </FormControl.Feedback>
+                        <FormControl.Feedback type="invalid">{errors.NewReading}</FormControl.Feedback>
                       </FormGroup>
                     </Row>
                     <Row className='mb-3'>
-                      <FormGroup as={Col} lg="4" controlId="validationCustom07">
+                      <FormGroup as={Col} lg="4">
                         <FormLabel className="labelForm">Date<span className='text-danger'>*</span></FormLabel>
                         <DatePicker
                           selected={formData.date}
                           onChange={handleDateChange}
                           className="form-control"
                           dateFormat="dd/MM/yyyy"
-
                         />
-                        {errors.date && (
-                          <div className="invalid-feedback d-block">
-                            {errors.date}
-                          </div>
-                        )}
+                        {errors.date && <div className="invalid-feedback d-block">{errors.date}</div>}
                       </FormGroup>
                     </Row>
-                    <Button type="submit" className='btn btn-primary mt-4'>
-                      Add Fuel Filling
+                    <Button type="submit" variant='success'>
+                      {editingId ? "Update Fuel Filling" : "Add Fuel Filling"}
                     </Button>
                   </Form>
                 </div>
@@ -494,18 +332,9 @@ const FuelFilling = () => {
             <Col>
               <div className="tableSheet">
                 <h2>Fuel Filling Records</h2>
-                {loading ? (
-                  <p>Loading...</p>
-                ) : data.length > 0 ? (
-                  <Table
-                    columns={columns}
-                    data={data}
-                    handleCopy={handleCopy}
-                    handlePrint={handlePrint}
-                  />
-                ) : (
-                  <p>No fuel filling records available</p>
-                )}
+                {loading ? <p>Loading...</p> : data.length > 0 ? (
+                  <Table columns={columns} data={data} handleCopy={handleCopy} handlePrint={handlePrint} />
+                ) : <p>No fuel filling records available</p>}
               </div>
             </Col>
           </Row>

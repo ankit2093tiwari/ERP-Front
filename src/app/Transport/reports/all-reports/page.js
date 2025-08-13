@@ -11,25 +11,25 @@ const Page = () => {
     const cardData = [
         {
             href: "/Transport/reports/all-transportInfo",
-            icon: <Image src="/module/student/studentListwizard.png" className="studentIcon" width={100} height={100} alt="" />,
+            icon: <Image src="/module/student/report.png" className="studentIcon" width={100} height={100} alt="" />,
             title: "All Transport Info",
             description: "Check All Details of Transport",
         },
         {
             href: "/Transport/reports/vehicleFeeInfo",
-            icon: <Image src="/module/student/studentListwizard.png" className="studentIcon" width={100} height={100} alt="" />,
+            icon: <Image src="/module/student/bulkStudent.png" className="studentIcon" width={100} height={100} alt="" />,
             title: "Vehicle Fee Info",
             description: "Check All Details of Transport",
         },
         {
             href: "/Transport/reports/transportUsers",
-            icon: <Image src="/module/student/studentListwizard.png" className="studentIcon" width={100} height={100} alt="" />,
+            icon: <Image src="/module/student/students.png" className="studentIcon" width={100} height={100} alt="" />,
             title: "Transport Users",
             description: "Check All Details of Transport",
         },
         {
             href: "/Transport/reports/all-fuelFilling",
-            icon: <Image src="/module/student/studentListwizard.png" className="studentIcon" width={100} height={100} alt="" />,
+            icon: <Image src="/module/student/idCard.png" className="studentIcon" width={100} height={100} alt="" />,
             title: "All Fuel Filling",
             description: "Check All Details of Transport",
         },

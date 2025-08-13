@@ -220,7 +220,7 @@ const PaymentModeMaster = () => {
                                         </Form.Control.Feedback>
                                     </Col>
                                 </Row>
-                                <Button onClick={handleAdd} className="btn btn-primary mt-3">
+                                <Button onClick={handleAdd} variant="success" className="mt-3">
                                     Add Payment Mode
                                 </Button>
                             </Form>
@@ -250,7 +250,7 @@ const PaymentModeMaster = () => {
                                         />
                                     </Col>
                                 </Row>
-                                <Button onClick={handleUpdate} className="btn btn-success mt-3">
+                                <Button onClick={handleUpdate} variant="success" className="mt-3">
                                     Update Payment Mode
                                 </Button>
                             </Form>

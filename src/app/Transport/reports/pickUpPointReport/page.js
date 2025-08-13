@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import Table from '@/app/component/DataTable';
-import { Container, Row, Col, } from 'react-bootstrap';
+import { Container, Row, Col } from 'react-bootstrap';
 import { copyContent, printContent } from '@/app/utils';
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { getAllStudentVehicles } from '@/Services';
@@ -25,23 +25,24 @@ const StudentVehicle = () => {
     },
     {
       name: 'Pickup Point',
-      selector: row => row.pickUpPoint?.PickupPoint || 'N/A',
+      selector: row => row.pickUpPoint?.location || 'N/A',
       sortable: true,
     },
     {
       name: 'Amount',
-      selector: row => {
-        if (row.Amount) return `₹${row.Amount}`;
-        if (row.pickUpPoint?.Amount) return `₹${row.pickUpPoint.Amount}`;
-        if (row.vehicle_route?.Amount) return `₹${row.vehicle_route.Amount}`;
-        return 'N/A';
-      },
+      selector: row =>
+        row.pickUpPoint?.amount
+          ? `₹${row.pickUpPoint.amount}`
+          : 'N/A',
       sortable: true,
     },
-
     {
       name: 'Student Name',
-      selector: row => row.student ? `${row.student.first_name} ${row.student.last_name}` : 'N/A',
+      selector: row => {
+        if (!row.student) return 'N/A';
+        const { first_name, middle_name, last_name } = row.student;
+        return [first_name, middle_name, last_name].filter(Boolean).join(' ');
+      },
       sortable: true,
     },
     {
@@ -51,15 +52,16 @@ const StudentVehicle = () => {
     },
     {
       name: 'Mobile No',
-      selector: row => row.student?.phone_no || 'N/A',
+      selector: row => row.student?.phone_no || row.student?.father_mobile_no || 'N/A',
       sortable: true,
     },
   ];
+
   const fetchStudentVehicles = async () => {
     setLoading(true);
     try {
-      const response = await getAllStudentVehicles()
-      setData(response.data);
+      const response = await getAllStudentVehicles();
+      setData(response.data || []);
     } catch (err) {
       console.error("Error fetching student vehicles:", err);
       setError(err.response?.data?.message || "Failed to fetch student vehicles");
@@ -67,49 +69,36 @@ const StudentVehicle = () => {
       setLoading(false);
     }
   };
+
   useEffect(() => {
     fetchStudentVehicles();
   }, []);
 
   const handlePrint = () => {
-    const headers = [[
-      "#",
-      "Vehicle No",
-      "Pickup Point",
-      "Amount",
-      "Student Name",
-      "Father Name",
-      "Mobile No"
-    ]];
-
+    const headers = [["#", "Vehicle No", "Pickup Point", "Amount", "Student Name", "Father Name", "Mobile No"]];
     const rows = data.map((row, index) => [
       index + 1,
       row.vehicle_route?.Vehicle_No || "N/A",
-      row.pickUpPoint?.PickupPoint || "N/A",
-      row.Amount || row.pickUpPoint?.Amount || row.vehicle_route?.Amount || "N/A",
-      row.student ? `${row.student.first_name} ${row.student.last_name}` : "N/A",
+      row.pickUpPoint?.location || "N/A",
+      row.pickUpPoint?.amount || "N/A",
+      row.student
+        ? [row.student.first_name, row.student.middle_name, row.student.last_name].filter(Boolean).join(' ')
+        : "N/A",
       row.student?.father_name || "N/A",
-      row.student?.phone_no || "N/A"
+      row.student?.phone_no || row.student?.father_mobile_no || "N/A"
     ]);
-
     printContent(headers, rows);
   };
 
   const handleCopy = () => {
-    const headers = [
-      "#",
-      "Vehicle No",
-      "Pickup Point",
-      "Amount",
-      "Student Name",
-      "Father Name",
-      "Mobile No"
-    ];
-
+    const headers = ["#", "Vehicle No", "Pickup Point", "Amount", "Student Name", "Father Name", "Mobile No"];
     const rows = data.map((row, index) =>
-      `${index + 1}\t${row.vehicle_route?.Vehicle_No || "N/A"}\t${row.pickUpPoint?.PickupPoint || "N/A"}\t${row.Amount || row.pickUpPoint?.Amount || row.vehicle_route?.Amount || "N/A"}\t${row.student ? `${row.student.first_name} ${row.student.last_name}` : "N/A"}\t${row.student?.father_name || "N/A"}\t${row.student?.phone_no || "N/A"}`
+      `${index + 1}\t${row.vehicle_route?.Vehicle_No || "N/A"}\t${row.pickUpPoint?.location || "N/A"}\t${row.pickUpPoint?.amount || "N/A"}\t${
+        row.student
+          ? [row.student.first_name, row.student.middle_name, row.student.last_name].filter(Boolean).join(' ')
+          : "N/A"
+      }\t${row.student?.father_name || "N/A"}\t${row.student?.phone_no || row.student?.father_mobile_no || "N/A"}`
     );
-
     copyContent(headers, rows);
   };
 
@@ -134,11 +123,7 @@ const StudentVehicle = () => {
         <Container>
           <Row>
             <Col>
-              {error && (
-                <div className="alert alert-danger mt-3">
-                  {error}
-                </div>
-              )}
+              {error && <div className="alert alert-danger mt-3">{error}</div>}
             </Col>
           </Row>
 
@@ -146,12 +131,6 @@ const StudentVehicle = () => {
             <Col>
               <div className="tableSheet">
                 <h2>PickUp Point Reports</h2>
-                {
-                  error && (
-                    <p className='text-danger'>{error}</p>
-                  )
-                }
-
                 {loading ? (
                   <p>Loading...</p>
                 ) : data.length > 0 ? (

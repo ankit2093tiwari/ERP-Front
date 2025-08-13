@@ -238,20 +238,21 @@ const FeeSetting = () => {
                   </Col>
                 </Row>
 
-                <div className="">
+                <div className=" d-flex mt-3 gap-2">
                   <Button
-                    variant="outline-secondary"
-                    onClick={() => setIsEditing(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    variant="primary"
+                    variant="success"
                     onClick={handleSubmit}
                     disabled={Object.values(validationErrors).some(Boolean)}
                   >
                     Save Changes
                   </Button>
+                  <Button
+                    variant="danger"
+                    onClick={() => setIsEditing(false)}
+                  >
+                    Cancel
+                  </Button>
+                  
                 </div>
               </Form>
             </div>

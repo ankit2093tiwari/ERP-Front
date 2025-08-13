@@ -588,8 +588,8 @@ const FeeStatement = () => {
                   </Col>
                 </Row>
                 {isEditing ? (
-                  <Button onClick={handleUpdate} className="btn btn-primary mt-3">
-                    Update Fee
+                  <Button onClick={handleUpdate} variant="success" className="mt-3">
+                    Update Fee Structure
                   </Button>
                 ) : (
                   <Button onClick={handleAdd} className="btn btn-primary mt-3">

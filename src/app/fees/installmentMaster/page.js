@@ -201,7 +201,7 @@ const InstallmentMaster = () => {
                     </Form.Control.Feedback>
                   </Col>
                 </Row>
-                <Button onClick={handleAdd} className="btn btn-primary mt-3">
+                <Button onClick={handleAdd} variant="success" className="mt-3">
                   Add Installment
                 </Button>
               </Form>
@@ -236,7 +236,7 @@ const InstallmentMaster = () => {
                     </Form.Control.Feedback>
                   </Col>
                 </Row>
-                <Button onClick={handleUpdate} className="btn btn-primary mt-3">
+                <Button onClick={handleUpdate} variant="success" className="mt-3">
                   Update Installment
                 </Button>
               </Form>
