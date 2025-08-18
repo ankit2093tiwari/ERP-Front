@@ -11,7 +11,7 @@ import { addNewPublisher, deletePublisherById, getAllPublishers, updatePublisher
 import usePagePermission from "@/hooks/usePagePermission";
 
 const Publisher = () => {
-  const {hasEditAccess,hasSubmitAccess}=usePagePermission()
+  const { hasEditAccess, hasSubmitAccess } = usePagePermission()
   const [isEditMode, setIsEditMode] = useState(false);
   const [editId, setEditId] = useState(null);
   const [data, setData] = useState([]);
@@ -153,16 +153,16 @@ const Publisher = () => {
     { name: "Tax Ident No.", selector: (row) => row.taxIdentNo || "N/A", sortable: true },
     { name: "Mobile No.", selector: (row) => row.publisherMobileNo || "N/A", sortable: true },
     { name: "Email", selector: (row) => row.publisherEmail || "N/A", sortable: true },
-    hasEditAccess &&{
+    hasEditAccess && {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-1">
-          <button className="editButton" onClick={() => handleEdit(row._id)}>
+          <Button size="sm" variant="success" onClick={() => handleEdit(row._id)}>
             <FaEdit />
-          </button>
-          <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
+          </Button>
+          <Button size="sm" variant="danger" onClick={() => handleDelete(row._id)}>
             <FaTrashAlt />
-          </button>
+          </Button>
         </div>
       ),
     },
@@ -184,10 +184,10 @@ const Publisher = () => {
       </div>
       <section>
         <Container>
-          {hasSubmitAccess &&(
+          {hasSubmitAccess && (
             <Button onClick={() => setShowAddForm(true)} className="btn-add">
-            <CgAddR /> Add Publisher
-          </Button>
+              <CgAddR /> Add Publisher
+            </Button>
           )}
 
           {showAddForm && (
@@ -289,8 +289,9 @@ const Publisher = () => {
                 </Row>
 
                 <Button
+                  variant="success"
+                  className="mt-3"
                   onClick={isEditMode ? handleUpdate : handleAdd}
-                  className="btn btn-primary mt-3"
                 >
                   {isEditMode ? "Update Publisher" : "Add Publisher"}
                 </Button>

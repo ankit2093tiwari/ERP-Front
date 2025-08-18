@@ -261,7 +261,7 @@ const UpdatePage = () => {
   };
 
   const getStudentData = async (e) => {
-    const selectedStudent = studentListData.find(item => item.registration_id === e.value);
+    const selectedStudent = studentListData.find(item => item.registration_id === e?.value);
     setSelectedOption(e);
 
     if (selectedStudent) {
@@ -886,7 +886,7 @@ const UpdatePage = () => {
                       <Col>
                         <div className='buttons1'>
                           {/* <Button type="button" className='btn btn-primary mt-4'>Preview</Button> */}
-                          {hasEditAccess && <Button type="button" className="btn btn-primary mt-4" onClick={(e) => handleSubmit(e)}>Submit form</Button>}
+                          {hasEditAccess && <Button type="button" variant="success" className="mt-4" onClick={(e) => handleSubmit(e)}>Submit form</Button>}
                         </div>
                       </Col>
                     </Row>

@@ -168,21 +168,21 @@ const GradeMasterPage = () => {
         <div className="d-flex gap-1">
           {editingId === row._id ? (
             <>
-              <button className="editButton" onClick={() => handleSave(row._id)}>
+              <Button size="sm" variant="success" onClick={() => handleSave(row._id)}>
                 <FaSave />
-              </button>
-              <button className="editButton btn-danger" onClick={() => setEditingId(null)}>
+              </Button>
+              <Button size="sm" variant="danger" onClick={() => setEditingId(null)}>
                 <FaTimes />
-              </button>
+              </Button>
             </>
           ) : (
             <>
-              <button className="editButton" onClick={() => handleEdit(row._id, row.grade_name)}>
+              <Button size="sm" variant="success" onClick={() => handleEdit(row._id, row.grade_name)}>
                 <FaEdit />
-              </button>
-              <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
+              </Button>
+              <Button size="sm" variant="danger" onClick={() => handleDelete(row._id)}>
                 <FaTrashAlt />
-              </button>
+              </Button>
             </>
           )}
         </div>

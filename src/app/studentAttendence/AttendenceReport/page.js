@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import {
   Form,
   Row,
@@ -13,7 +12,7 @@ import {
 } from "react-bootstrap";
 import Table from "@/app/component/DataTable";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
-import { BASE_URL, getClasses, getSections } from "@/Services";
+import { getAttendanceReport, getClasses, getSections, updateAttendanceReport } from "@/Services";
 import { toast } from "react-toastify";
 import useSessionId from "@/hooks/useSessionId";
 import usePagePermission from "@/hooks/usePagePermission";
@@ -65,13 +64,11 @@ const AttendanceReport = () => {
   const fetchAttendanceReports = async () => {
     setLoading(true);
     try {
-      const res = await axios.get(
-        `${BASE_URL}/api/attendance?class_name=${selectedClass}&section_name=${selectedSection}&attendance_date=${attendanceDate}`
-      );
+      const res = await getAttendanceReport(selectedClass, selectedSection, attendanceDate)
 
-      if (res.data.success && res.data.data?._id) {
-        setAttendanceId(res.data.data._id); //  Save for update
-        setAttendanceRecords(res.data.data.students || []); //  Save students array
+      if (res.success && res.data?._id) {
+        setAttendanceId(res.data._id); //  Save for update
+        setAttendanceRecords(res.data.students || []); //  Save students array
       } else {
         setAttendanceRecords([]);
         setAttendanceId(null); // Clear attendanceId
@@ -85,8 +82,6 @@ const AttendanceReport = () => {
     }
     setLoading(false);
   };
-
-
 
   const handleClassChange = (e) => {
     const id = e.target.value;
@@ -121,9 +116,9 @@ const AttendanceReport = () => {
         })),
       };
 
-      const res = await axios.put(`${BASE_URL}/api/attendance/update/${attendanceId}`, payload);
+      const res = await updateAttendanceReport(attendanceId,payload)
 
-      if (res.data.success) {
+      if (res.success) {
         toast.success("Attendance updated successfully");
         fetchAttendanceReports(); // Refresh the data
       } else {

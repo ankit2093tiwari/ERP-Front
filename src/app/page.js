@@ -24,10 +24,9 @@ import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { useSelector } from "react-redux";
-import axios from "axios";
-import { BASE_URL, getAllBooksCount, getAllDepartmentsCount, getAllEmployee, getAllImportantSMS, getAllUniqueSubjectCount, getStudentEvaluations, getTotalStudentsCount } from "@/Services";
+import { getAllBooksCount, getAllDepartmentsCount, getAllEmployee, getAllImportantSMS, getAllStudents, getAllUniqueSubjectCount, getStudentEvaluations, getThoughtOfDay, getTotalStudentsCount } from "@/Services";
 import useSessionId from "@/hooks/useSessionId";
-import { set } from "react-hook-form";
+import { all } from "axios";
 
 
 // Dynamically import ReactApexChart with SSR disabled
@@ -50,36 +49,54 @@ const Dashboard = () => {
   const [nonTeachingStaff, setNonTeachingStaff] = useState(0)
   const [notifications, setNotifications] = useState([])
   const [studentEvaluations, setStudentEvaluations] = useState([]);
+  const [allStudents, setAllStudents] = useState([]);
 
+  // Fetch all students data
+  const fetchAllStudents = async () => {
+    const res = await getAllStudents(5)
+    setAllStudents(res.data || []);
+  }
   // Check authentication and fetch data
-  useEffect(() => {
-    // const token = localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
-    if (!token) {
-      router.push('/');
-    } else {
-      fetchStudentData();
-      fetchDashboardData();
-      fetchThoughtOfTheDay();
-      fetchDepartmentCount();
-      fetchBookCount();
-      fetchStaffCount();
-      fetchSubjectCount();
-      fetchNotifications();
-      fetchStudentEvaluations();
-    }
-  }, [router, selectedSessionId, token]);
+ useEffect(() => {
+  if (!token) {
+    router.push('/');
+    return;
+  }
+
+  const fetchAllData = async () => {
+    const results = await Promise.allSettled([
+      fetchStudentData(),
+      fetchDashboardData(),
+      fetchThoughtOfTheDay(),
+      fetchDepartmentCount(),
+      fetchBookCount(),
+      fetchStaffCount(),
+      fetchSubjectCount(),
+      fetchNotifications(),
+      fetchStudentEvaluations(),
+      fetchAllStudents()
+    ]);
+
+    results.forEach((res, index) => {
+      if (res.status === "rejected") {
+        console.error(`API call ${index} failed:`, res.reason);
+      }
+    });
+  };
+
+  fetchAllData();
+}, [router, selectedSessionId, token]);
+
 
   // Fetch thought of the day
   const fetchThoughtOfTheDay = async () => {
     try {
       const today = new Date().toISOString().split('T')[0];
 
-      const response = await axios.get(
-        `${BASE_URL}/api/thoughts?date=${today}`
-      );
+      const response = await getThoughtOfDay(today);
 
-      if (response.data.data && response.data.data.length > 0) {
-        setThoughtOfTheDay(response.data.data[0].thought_name);
+      if (response.data && response.data.length > 0) {
+        setThoughtOfTheDay(response.data[0].thought_name);
       } else {
         setThoughtOfTheDay("No thought for today. Add one to inspire!");
       }
@@ -88,7 +105,6 @@ const Dashboard = () => {
       setThoughtOfTheDay("Error loading today's thought");
     }
   };
-
   // Fetch student count data from API
   const fetchStudentData = async () => {
     try {
@@ -110,24 +126,6 @@ const Dashboard = () => {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  // Simulated API Data for other dashboard items
-  const fetchDashboardData = async () => {
-    const mockData = [
-      { name: "FEES", icon: feeImg, count: 750000, label: "Amount" },
-      { name: "TRANSPORT", icon: busImg, count: 100, label: "Vehicles" },
-      { name: "STOCKS", icon: stocksImg, count: 200, label: "Items" },
-      { name: "PAYROLL", icon: payrollImg, count: 300, label: "Employees" },
-      { name: "LIBRARY", icon: books, count: 5000, label: "Books" },
-      { name: "EXAM", icon: Exam, count: 50, label: "Exams" },
-      { name: "ATTENDANCE", icon: Attendance, count: 95, label: "Percent" },
-      { name: "TIME TABLE", icon: timetable, count: 12, label: "Schedules" },
-      { name: "USERS", icon: User, count: 500, label: "Active" },
-      { name: "WEBSITE", icon: Website, count: 1, label: "Online" },
-      { name: "HOME WORK", icon: HomeWork, count: 150, label: "Tasks" },
-    ];
-    setDashboardData(mockData);
   };
 
   const fetchDepartmentCount = async () => {
@@ -180,23 +178,43 @@ const Dashboard = () => {
       console.error("Error fetching notifications:", error);
     }
   };
- const fetchStudentEvaluations = async () => {
-  try {
-    const res = await getStudentEvaluations(5);
-    const formattedData = res.data.flatMap((eva) =>
-      eva.evaluations
-        .filter((e) => e.eval === "Excellent")
-        .map((student) => ({
-          ...student,
-          className: eva.classId?.class_name || "",
-          sectionName: eva.sectionId?.section_name || "",
-        }))
-    );
-    setStudentEvaluations(formattedData || []);
-  } catch (error) {
-    console.error("Error fetching student evaluations:", error);
-  }
-};
+  const fetchStudentEvaluations = async () => {
+    try {
+      const res = await getStudentEvaluations(5);
+      const formattedData = res.data.flatMap((eva) =>
+        eva.evaluations
+          .filter((e) => e.eval === "Excellent")
+          .map((student) => ({
+            ...student,
+            className: eva.classId?.class_name || "",
+            sectionName: eva.sectionId?.section_name || "",
+          }))
+      );
+      setStudentEvaluations(formattedData || []);
+    } catch (error) {
+      console.error("Error fetching student evaluations:", error);
+    }
+  };
+
+
+  // Simulated API Data for other dashboard items
+  const fetchDashboardData = async () => {
+    const mockData = [
+      { name: "FEES", icon: feeImg, count: 750000, label: "Amount" },
+      { name: "TRANSPORT", icon: busImg, count: 100, label: "Vehicles" },
+      { name: "STOCKS", icon: stocksImg, count: 200, label: "Items" },
+      { name: "PAYROLL", icon: payrollImg, count: 300, label: "Employees" },
+      { name: "LIBRARY", icon: books, count: 5000, label: "Books" },
+      { name: "EXAM", icon: Exam, count: 50, label: "Exams" },
+      { name: "ATTENDANCE", icon: Attendance, count: 95, label: "Percent" },
+      { name: "TIME TABLE", icon: timetable, count: 12, label: "Schedules" },
+      { name: "USERS", icon: User, count: 500, label: "Active" },
+      { name: "WEBSITE", icon: Website, count: 1, label: "Online" },
+      { name: "HOME WORK", icon: HomeWork, count: 150, label: "Tasks" },
+    ];
+    setDashboardData(mockData);
+  };
+
 
 
   // Radial Chart State
@@ -477,60 +495,78 @@ const Dashboard = () => {
               <Col lg={4}>
                 <div className="card card-gray overflow-hidden pt-2 mb-3 shadow-none">
                   <div className="card-header">
-                    <h5 className="fw-normal mb-1 fw-bold text-start">Top Categories  </h5>
+                    <h5 className="fw-normal mb-1 fw-bold text-start">New Admissions</h5>
                   </div>
                   <div className="card-body position-relative z-1 categories-box-wrap text-start">
                     <div className="space-y-5">
-                      <a aria-current="page" href="#" className="d-flex align-items-center justify-content-between">
-                        <div className="d-flex align-items-center gap-3">
-                          <span className="d-inline-flex align-items-center justify-content-center font-normal bg-card overflow-hidden">
-                            <Image role="img" src="/user.webp" width={100} height={100} alt="Web Development" />
-                          </span>
-                          <div>
-                            <p className="pb-2">Web Development <span>40+ Courses</span></p>
-                          </div>
-                        </div>
-                      </a>
-                      <a aria-current="page" href="#" className="d-flex align-items-center justify-content-between">
-                        <div className="d-flex align-items-start gap-3">
-                          <span className="d-inline-flex align-items-center justify-content-center font-normal bg-card overflow-hidden">
-                            <Image role="img" src="/user.webp" width={100} height={100} alt="Graphic Design" />
-                          </span>
-                          <div>
-                            <p className="pb-2">Graphic Design <span>40+ Courses</span></p>
-                          </div>
-                        </div>
-                      </a>
-                      <a aria-current="page" href="#" className="d-flex align-items-center justify-content-between">
-                        <div className="d-flex align-items-center gap-3">
-                          <span className="d-inline-flex align-items-center justify-content-center font-normal bg-card overflow-hidden">
-                            <Image role="img" src="/user.webp" width={100} height={100} alt="UI/UX Design" />
-                          </span>
-                          <div>
-                            <p className="pb-2">UI/UX Design <span>10+ Courses</span></p>
-                          </div>
-                        </div>
-                      </a>
-                      <a aria-current="page" href="#" className="d-flex align-items-center justify-content-between">
-                        <div className="d-flex align-items-center gap-3">
-                          <span className="d-inline-flex align-items-center justify-content-center font-normal bg-card overflow-hidden">
-                            <Image role="img" src="/user.webp" width={100} height={100} alt="3D Animation &amp; Modeling" />
-                          </span>
-                          <div>
-                            <p className="pb-2">3D Animation &amp; Modeling  <span>30+ Courses</span></p>
-                          </div>
-                        </div>
-                      </a>
-                      <a aria-current="page" href="#" className="d-flex align-items-center justify-content-between">
-                        <div className="d-flex align-items-center gap-3">
-                          <span className="d-inline-flex align-items-center justify-content-center font-normal bg-card overflow-hidden">
-                            <Image role="img" src="/user.webp" width={100} height={100} alt="Digital Marketing" />
-                          </span>
-                          <div>
-                            <p className="pb-2">Digital Marketing <span>80+ Courses</span></p>
-                          </div>
-                        </div>
-                      </a>
+                      {allStudents.length > 0 ? (
+                        allStudents?.map((std, index) => (
+                          <a aria-current="page" href="#" className="d-flex align-items-center justify-content-between" key={index}>
+                            <div className="d-flex align-items-center gap-3">
+                              <span className="d-inline-flex align-items-center justify-content-center font-normal bg-card overflow-hidden">
+                                <Image role="img" src="/user.webp" width={100} height={100} alt="Web Development" />
+                              </span>
+                              <div>
+                                <p className="pb-2">{`${std?.first_name || "Unknown"} ${std?.last_name || ""}`}<span>{std?.class_name?.class_name || "Class1"}-{std?.section_name?.section_name || "Section A"}</span></p>
+                              </div>
+                            </div>
+                          </a>
+                        ))
+                      ) : (
+                        <>
+                        {/* <div>No Students Available (Showing Static Records)</div> */}
+                          <a aria-current="page" href="#" className="d-flex align-items-center justify-content-between">
+                            <div className="d-flex align-items-center gap-3">
+                              <span className="d-inline-flex align-items-center justify-content-center font-normal bg-card overflow-hidden">
+                                <Image role="img" src="/user.webp" width={100} height={100} alt="Web Development" />
+                              </span>
+                              <div>
+                                <p className="pb-2">Ram Kumar<span>Class 5 - Section A </span></p>
+                              </div>
+                            </div>
+                          </a>
+                          <a aria-current="page" href="#" className="d-flex align-items-center justify-content-between">
+                            <div className="d-flex align-items-center gap-3">
+                              <span className="d-inline-flex align-items-center justify-content-center font-normal bg-card overflow-hidden">
+                                <Image role="img" src="/user.webp" width={100} height={100} alt="Web Development" />
+                              </span>
+                              <div>
+                                <p className="pb-2">Shivam<span>Class 2 - Section A </span></p>
+                              </div>
+                            </div>
+                          </a>
+                          <a aria-current="page" href="#" className="d-flex align-items-center justify-content-between">
+                            <div className="d-flex align-items-center gap-3">
+                              <span className="d-inline-flex align-items-center justify-content-center font-normal bg-card overflow-hidden">
+                                <Image role="img" src="/user.webp" width={100} height={100} alt="Web Development" />
+                              </span>
+                              <div>
+                                <p className="pb-2">Aman Gupta<span>Class 8 - Section A </span></p>
+                              </div>
+                            </div>
+                          </a>
+                          <a aria-current="page" href="#" className="d-flex align-items-center justify-content-between">
+                            <div className="d-flex align-items-center gap-3">
+                              <span className="d-inline-flex align-items-center justify-content-center font-normal bg-card overflow-hidden">
+                                <Image role="img" src="/user.webp" width={100} height={100} alt="Web Development" />
+                              </span>
+                              <div>
+                                <p className="pb-2">Rajesh Singh<span>Class 2 - Section B </span></p>
+                              </div>
+                            </div>
+                          </a>
+                          <a aria-current="page" href="#" className="d-flex align-items-center justify-content-between">
+                            <div className="d-flex align-items-center gap-3">
+                              <span className="d-inline-flex align-items-center justify-content-center font-normal bg-card overflow-hidden">
+                                <Image role="img" src="/user.webp" width={100} height={100} alt="Web Development" />
+                              </span>
+                              <div>
+                                <p className="pb-2">Nitesh Verma<span>Class 5 - Section C </span></p>
+                              </div>
+                            </div>
+                          </a>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -566,7 +602,7 @@ const Dashboard = () => {
                                     src="/user.webp"
                                   />
                                   <div className="profileTable">
-                                    <h6 className="text-capitalize">{`${studentEval.studentId.first_name} ${studentEval.studentId.last_name}`  || "Unknown"}</h6>
+                                    <h6 className="text-capitalize">{`${studentEval.studentId.first_name} ${studentEval.studentId.last_name}` || "Unknown"}</h6>
                                   </div>
                                 </div>
                               </td>

@@ -241,7 +241,7 @@ const CreateType = () => {
                     )}
                   </Col>
                 </Row>
-                <Button onClick={handleAdd} className="btn btn-primary">
+                <Button onClick={handleAdd} variant="success">
                   Add Type
                 </Button>
               </Form>

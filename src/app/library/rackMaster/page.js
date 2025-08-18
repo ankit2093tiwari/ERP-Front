@@ -239,7 +239,7 @@ const RackAndShelfManager = () => {
                         }}
                       />
                       <Form.Control.Feedback type="invalid">{errors.rackName}</Form.Control.Feedback>
-                      <Button variant="success" className="mt-3 w-100" onClick={handleAddRack}>
+                      <Button variant="success" className="mt-3" onClick={handleAddRack}>
                         {editRackId ? "Update Rack" : "Add Rack"}
                       </Button>
                     </div>
@@ -276,7 +276,7 @@ const RackAndShelfManager = () => {
                         }}
                       />
                       <Form.Control.Feedback type="invalid">{errors.shelfName}</Form.Control.Feedback>
-                      <Button variant="success" className="mt-3 w-100" onClick={handleAddShelf}>
+                      <Button variant="success" className="mt-3" onClick={handleAddShelf}>
                         {editShelfId ? "Update Shelf" : "Add Shelf"}
                       </Button>
                     </div>

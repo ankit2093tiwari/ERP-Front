@@ -173,9 +173,9 @@ const NewBookSuggestion = () => {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-1">
-          <button className="editButton btn-danger" onClick={() => handleDelete(row)}>
+          <Button size="sm" variant="danger" onClick={() => handleDelete(row)}>
             <FaTrashAlt />
-          </button>
+          </Button>
         </div>
       ),
     },
@@ -372,7 +372,7 @@ const NewBookSuggestion = () => {
                   </Col>
                 </Row>
 
-                <Button type="submit" className="btn btn-primary mt-3">
+                <Button type="submit" variant="success" className=" mt-3">
                   Add New Suggestion
                 </Button>
               </Form>

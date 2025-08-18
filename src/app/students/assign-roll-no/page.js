@@ -196,15 +196,18 @@ const fetchStudents = useCallback(async () => {
     {
       name: "Student Name",
       selector: (row) =>
-        `${row.first_name} ${row.middle_name || ""} ${row.last_name}`.trim(),
+        `${row.first_name} ${row.middle_name || ""} ${row.last_name || ""}`.trim(),
+      sortable:true
     },
     {
       name: "Adm No",
       selector: (row) => row.registration_id || "N/A",
+      sortable:true
     },
     {
       name: "Gender",
       selector: (row) => row.gender_name || "N/A",
+      sortable:true
     },
     {
       name: "Roll No",
@@ -234,7 +237,7 @@ const fetchStudents = useCallback(async () => {
     const headers = [["#", "Student Name", "Adm No", "Gender", "Roll No"]];
     const rows = students.map((row, index) => [
       index + 1,
-      `${row.first_name} ${row.middle_name || ""} ${row.last_name}`.trim(),
+      `${row.first_name} ${row.middle_name || ""} ${row.last_name || ""}`.trim(),
       row.registration_id || "N/A",
       row.gender_name || "N/A",
       row.roll_no || "N/A",
@@ -244,7 +247,7 @@ const fetchStudents = useCallback(async () => {
   const handleCopy = () => {
     const headers = ["#", "Student Name", "Adm No", "Gender", "Roll No"];
     const rows = students.map((row, index) =>
-      `${index + 1}\t${`${row.first_name} ${row.middle_name || ""} ${row.last_name}`.trim()}\t${row.registration_id || "N/A"}\t${row.gender_name || "N/A"}\t${row.roll_no || "N/A"}`
+      `${index + 1}\t${`${row.first_name} ${row.middle_name || ""} ${row.last_name || ""}`.trim()}\t${row.registration_id || "N/A"}\t${row.gender_name || "N/A"}\t${row.roll_no || "N/A"}`
     );
     copyContent(headers, rows);
   };

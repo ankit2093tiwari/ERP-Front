@@ -305,7 +305,7 @@ const IssueBook = () => {
                   </Col>
                 </Row>
 
-                <Button type="submit">Issue Book</Button>
+                <Button type="submit" variant="success">Issue Book</Button>
               </Form>
             </div>
           )}

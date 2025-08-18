@@ -171,7 +171,7 @@ export default function Header({ toggleSidebar, onLogout }) {
               </div>
             </Col>
             <Col className="col-md-6">
-              <Navbar expand="lg" className="rightNavbar justify-content-end">
+              <Navbar expand="md" className="rightNavbar justify-content-end">
                 <Navbar.Collapse id="basic-navbar-nav" className="justify-content-end">
 
                   {/* Session Dropdown */}

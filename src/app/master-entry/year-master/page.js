@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import { CgAddR } from "react-icons/cg";
@@ -57,7 +57,7 @@ const SessionMasterPage = () => {
     }
   };
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       const res = await getSessions();
@@ -68,9 +68,9 @@ const SessionMasterPage = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
-  // 🔄 Group by session, not class
+  // Group by session, not class
   const groupClassesBySession = (sessions) => {
     return sessions.map((session) => ({
       _id: session._id,
@@ -243,7 +243,7 @@ const SessionMasterPage = () => {
   useEffect(() => {
     fetchClasses();
     fetchData();
-  }, []);
+  }, [fetchData]);
 
   return (
     <>

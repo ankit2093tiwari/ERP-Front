@@ -23,7 +23,7 @@ import { addNewDesignation, deleteDesignationById, getAllDesignations, updateDes
 import usePagePermission from "@/hooks/usePagePermission";
 
 const DesignationMasterPage = () => {
-  const {hasEditAccess, hasSubmitAccess}=usePagePermission()
+  const { hasEditAccess, hasSubmitAccess } = usePagePermission()
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [buttonLoading, setButtonLoading] = useState(false);
@@ -77,30 +77,28 @@ const DesignationMasterPage = () => {
           row.designation_type || "N/A"
         ),
     },
-    hasEditAccess &&{
+    hasEditAccess && {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-1">
           {editingId === row._id ? (
-            <button
-              className="editButton"
+            <Button size="sm" variant="success"
               onClick={() => handleSave(row._id)}
               disabled={buttonLoading}
             >
               {buttonLoading ? <Spinner size="sm" animation="border" /> : <FaSave />}
-            </button>
+            </Button>
           ) : (
-            <button className="editButton" onClick={() => handleEdit(row)}>
+            <Button size="sm" variant="success" onClick={() => handleEdit(row)}>
               <FaEdit />
-            </button>
+            </Button>
           )}
-          <button
-            className="editButton btn-danger"
+          <Button size="sm" variant="danger"
             onClick={() => handleDelete(row._id)}
             disabled={buttonLoading}
           >
             <FaTrashAlt />
-          </button>
+          </Button>
         </div>
       ),
     },
@@ -251,10 +249,10 @@ const DesignationMasterPage = () => {
 
       <section>
         <Container>
-          {hasSubmitAccess &&(
+          {hasSubmitAccess && (
             <Button onClick={() => setIsPopoverOpen(true)} className="btn-add">
-            <CgAddR /> Add Designation
-          </Button>
+              <CgAddR /> Add Designation
+            </Button>
           )}
 
           {isPopoverOpen && (

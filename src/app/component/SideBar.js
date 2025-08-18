@@ -45,7 +45,7 @@ export default function Sidebar({ isOpen }) {
     // Helper function to check if a link is active
     const isActiveLink = (href) => {
         return pathname === href ||
-            (href !== "/" && pathname.startsWith(href));
+            (href !== "/" && pathname.startsWith(href + "/"));
     };
     // Function to handle accordion toggle
     const handleAccordionToggle = (key) => {
@@ -810,7 +810,7 @@ export default function Sidebar({ isOpen }) {
                         {hasAccess("syllabus") && (
                             <Accordion.Item className="nav-item" eventKey="syllabus">
                                 <Accordion.Header>
-                                    <Link href="/syllabus" className="nav-link">
+                                    <Link href="/syllabus" className={isActiveLink("/syllabus") ? "active-parent" : "nav-link"}>
                                         <span>
                                             <MdOutlineLibraryBooks /> {(isOpen || activeKey) && "Syllabus detail"}
                                         </span>
@@ -821,7 +821,7 @@ export default function Sidebar({ isOpen }) {
                         {hasAccess("homework") && (
                             <Accordion.Item className="nav-item" eventKey="homework">
                                 <Accordion.Header>
-                                    <Link href="/homework" className="nav-link">
+                                    <Link href="/homework" className={isActiveLink("/homework") ? "active-parent" : "nav-link"}>
                                         <span>
                                             <MdOutlineHomeWork /> {(isOpen || activeKey) && "Home Work"}
                                         </span>
@@ -1121,7 +1121,7 @@ export default function Sidebar({ isOpen }) {
                         {hasAccess("dailydairy") && (
                             <Accordion.Item className="nav-item">
                                 <Accordion.Header>
-                                    <Link href="/dailyDairy" className="nav-link">
+                                    <Link href="/dailyDairy" className={isActiveLink("/dailyDairy") ? "active-parent" : "nav-link"}>
                                         <span>
                                             <FaBook /> {(isOpen || activeKey) && "DailyDiary Details"}
                                         </span>
@@ -1132,7 +1132,7 @@ export default function Sidebar({ isOpen }) {
                         {hasAccess('thought') && (
                             <Accordion.Item className="nav-item" eventKey="thought">
                                 <Accordion.Header>
-                                    <Link href="/thought" className="nav-link">
+                                    <Link href="/thought" className={isActiveLink("/thought") ? "active-parent" : "nav-link"}>
                                         <span>
                                             <FaFileAlt /> {(isOpen || activeKey) && "Thought"}
                                         </span>
@@ -1143,7 +1143,7 @@ export default function Sidebar({ isOpen }) {
                         {hasAccess("appoinmentdetails") && (
                             <Accordion.Item className="nav-item" eventKey="appointment">
                                 <Accordion.Header>
-                                    <Link href="/appointment" className="nav-link">
+                                    <Link href="/appointment" className={isActiveLink("/appointment") ? "active-parent" : "nav-link"}>
                                         <span>
                                             <FaCalendarPlus /> {(isOpen || activeKey) && "Appointment Details"}
                                         </span>
@@ -1154,7 +1154,7 @@ export default function Sidebar({ isOpen }) {
                         {hasAccess("complaintdetails") && (
                             <Accordion.Item className="nav-item" eventKey="complaints">
                                 <Accordion.Header>
-                                    <Link href="/complaintdetails" className="nav-link">
+                                    <Link href="/complaintdetails" className={isActiveLink("/complaintdetails") ? "active-parent" : "nav-link"}>
                                         <span>
                                             <FaBug /> {(isOpen || activeKey) && "Complaint Details"}
                                         </span>
@@ -1165,7 +1165,7 @@ export default function Sidebar({ isOpen }) {
                         {hasAccess("importantsms") && (
                             <Accordion.Item className="nav-item" eventKey="importantSMS">
                                 <Accordion.Header>
-                                    <Link href="/importantSMS" className="nav-link">
+                                    <Link href="/importantSMS" className={isActiveLink("/importantSMS") ? "active-parent" : "nav-link"}>
                                         <span>
                                             <FaEnvelope /> {(isOpen || activeKey) && "Important SMS"}
                                         </span>

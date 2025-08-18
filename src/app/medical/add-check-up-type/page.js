@@ -233,7 +233,7 @@ const AddCheckUp = () => {
                     </Form.Control.Feedback>
                   </Col>
                 </Row>
-                <Button onClick={handleSave} className="btn btn-primary">
+                <Button onClick={handleSave} variant="success">
                   {isEditMode ? "Update Check-Up Type" : "Add Check-Up Type"}
                 </Button>
               </Form>

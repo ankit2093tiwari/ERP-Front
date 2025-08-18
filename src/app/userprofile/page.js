@@ -40,7 +40,7 @@ export default function UserProfile() {
             <Card.Body className="p-4">
               <div className="text-center mb-4">
                 <Image
-                  src={user.profile_pic || "/default-avatar.png"}
+                  src={user.profile_pic ? user.profile_pic : "/user4.png"}
                   alt="Profile"
                   width={120}
                   height={120}

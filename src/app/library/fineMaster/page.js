@@ -131,7 +131,7 @@ const FineMaster = () => {
               {hasEditAccess &&(
                 <Row className="mt-3">
                 <Col>
-                  <Button type="submit">
+                  <Button type="submit" variant="success">
                     Update Fine
                   </Button>
                 </Col>

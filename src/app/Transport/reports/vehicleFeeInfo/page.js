@@ -35,15 +35,15 @@ const StudentVehicle = () => {
     },
     {
       name: 'Pickup Point',
-      selector: row => row.pickUpPoint?.PickupPoint || 'N/A',
+      selector: row => row.pickUpPoint?.location || 'N/A',
       sortable: true,
     },
     {
       name: 'Amount',
       selector: row => {
-        if (row.Amount) return `₹${row.Amount}`;
-        if (row.pickUpPoint?.Amount) return `₹${row.pickUpPoint.Amount}`;
-        if (row.vehicle_route?.Amount) return `₹${row.vehicle_route.Amount}`;
+        if (row.amount) return `₹${row.amount}`;
+        if (row.pickUpPoint?.amount) return `₹${row.pickUpPoint.amount}`;
+        if (row.vehicle_route?.amount) return `₹${row.vehicle_route.amount}`;
         return 'N/A';
       },
       sortable: true,

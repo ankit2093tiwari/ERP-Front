@@ -158,15 +158,14 @@ const HolidayMasterPage = () => {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-1">
-          <button className="editButton" onClick={() => handleEdit(row)}>
+          <Button size="sm" variant="success"onClick={() => handleEdit(row)}>
             <FaEdit />
-          </button>
-          <button
-            className="editButton btn-danger"
+          </Button>
+          <Button size="sm" variant="danger"
             onClick={() => handleDelete(row._id)}
           >
             <FaTrashAlt />
-          </button>
+          </Button>
         </div>
       ),
     },
@@ -298,7 +297,7 @@ const HolidayMasterPage = () => {
                   </Col>
                 </Row>
 
-                <Button onClick={handleSubmit} className="btn btn-primary">
+                <Button onClick={handleSubmit} variant="success">
                   {editingId ? "Update Holiday" : "Add Holiday"}
                 </Button>
               </Form>

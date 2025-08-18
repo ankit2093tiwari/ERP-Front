@@ -103,7 +103,7 @@ const QuotationMaster = () => {
       name: 'Actions',
       cell: (row) => (
         <div className="d-flex gap-1">
-          <Button variant="info" size="sm" onClick={() => handlePurchase(row)} style={{ whiteSpace: 'nowrap' }}>
+          <Button variant="success" size="sm" onClick={() => handlePurchase(row)} style={{ whiteSpace: 'nowrap' }}>
             Purchase
           </Button>
           <Button variant="danger" size="sm" onClick={() => handleDelete(row._id)}>
@@ -449,7 +449,7 @@ const QuotationMaster = () => {
                 <Button variant="secondary" onClick={() => setShowPurchaseForm(false)}>
                   Cancel
                 </Button>
-                <Button variant="primary" type="submit">
+                <Button variant="success" type="submit">
                   Create Purchase
                 </Button>
               </div>
@@ -626,7 +626,7 @@ const QuotationMaster = () => {
                     />
                   </FormGroup>
                 </Row>
-                <Button onClick={handleAdd} className="btn btn-primary">
+                <Button variant='success' onClick={handleAdd}>
                   Add Quotation
                 </Button>
               </Form>

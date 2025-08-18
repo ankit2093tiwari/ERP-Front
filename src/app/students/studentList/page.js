@@ -61,13 +61,8 @@ const Studentlist = () => {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [selectedSessionId]);
 
-  useEffect(() => {
-    if (selectedSessionId) {
-      fetchData()
-    }
-  }, [selectedSessionId])
 
   const columns = [
     { name: "#", selector: (row, index) => index + 1, width: "50px" },

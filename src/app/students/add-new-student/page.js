@@ -239,7 +239,9 @@ const AddNewStudentPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!validateForm()) return;
+    if (!validateForm()) {
+      return toast.warn("Please fill all required fileds!")
+    }
 
     try {
       const formData = new FormData();
@@ -294,18 +296,18 @@ const AddNewStudentPage = () => {
                     <Form className={styles.form} onSubmit={handleSubmit}>
                       <Row >
                         <FormGroup as={Col} md="3" controlId="validationCustom01">
-                          <FormLabel className="labelForm">Student name</FormLabel>
+                          <FormLabel className="labelForm">First Name<span className="text-danger">*</span></FormLabel>
                           <FormControl
                             type="text"
                             name="first_name"
                             value={student?.first_name}
                             onChange={handleChange}
-                            placeholder="Student name"
+                            placeholder="Mirst name"
                           />
                           <p className="error"> {studentError.first_name_error}</p>
                         </FormGroup>
                         <FormGroup as={Col} md="3" controlId="validationCustom02">
-                          <FormLabel className="labelForm">Middle name</FormLabel>
+                          <FormLabel className="labelForm">Middle Name</FormLabel>
                           <FormControl
                             type="text"
                             name="middle_name"
@@ -316,7 +318,7 @@ const AddNewStudentPage = () => {
 
                         </FormGroup>
                         <FormGroup as={Col} md="3" controlId="validationCustom03">
-                          <FormLabel className="labelForm">Last name</FormLabel>
+                          <FormLabel className="labelForm">Last Name</FormLabel>
                           <FormControl
                             type="text"
                             name="last_name"
@@ -326,14 +328,6 @@ const AddNewStudentPage = () => {
                           />
 
                         </FormGroup>
-                        {/* <FormGroup as={Col} md="3" className="position-relative ">
-                          <FormLabel className="labelForm">Profile Pic</FormLabel>
-                          <FormControl
-                            type="file"
-                            name="profile_Pic"
-                            onChange={handleChange}
-                          />
-                        </FormGroup> */}
                         <FormGroup as={Col} md="3" className="position-relative">
                           <FormLabel className="labelForm">Profile Pic</FormLabel>
                           <FormControl
@@ -351,7 +345,7 @@ const AddNewStudentPage = () => {
                       </Row>
                       <Row >
                         <FormGroup as={Col} md="3" controlId="validationCustom04">
-                          <FormLabel className="labelForm" >Father Name</FormLabel>
+                          <FormLabel className="labelForm" >Father Name<span className="text-danger">*</span></FormLabel>
                           <FormControl
                             value={student?.father_name}
                             onChange={handleChange}
@@ -372,7 +366,7 @@ const AddNewStudentPage = () => {
                           />
                         </FormGroup>
                         <FormGroup as={Col} md="3" controlId="validationCustom06">
-                          <FormLabel className="labelForm" >Father MobileNo</FormLabel>
+                          <FormLabel className="labelForm" >Father MobileNo<span className="text-danger">*</span></FormLabel>
                           <FormControl
                             value={student?.father_mobile_no}
                             onChange={handleChange}
@@ -383,7 +377,7 @@ const AddNewStudentPage = () => {
                           <p className="error"> {studentError.father_mobile_no_error}</p>
                         </FormGroup>
                         <FormGroup as={Col} md="3" controlId="validationCustom07">
-                          <FormLabel className="labelForm" >Phone Number</FormLabel>
+                          <FormLabel className="labelForm" >Phone Number<span className="text-danger">*</span></FormLabel>
                           <FormControl
                             value={student?.phone_no}
                             onChange={handleChange}
@@ -396,7 +390,7 @@ const AddNewStudentPage = () => {
                       </Row>
                       <Row >
                         <FormGroup as={Col} md="3" controlId="validationCustom08">
-                          <FormLabel className="labelForm">Select Class</FormLabel>
+                          <FormLabel className="labelForm">Select Class<span className="text-danger">*</span></FormLabel>
                           <FormSelect
                             value={student?.class_name}
                             onChange={handleClassChange}
@@ -412,7 +406,7 @@ const AddNewStudentPage = () => {
                           <p className="error">{studentError.class_name_error}</p>
                         </FormGroup>
                         <FormGroup as={Col} md="3" controlId="validationCustom09">
-                          <FormLabel className="labelForm">Select Section</FormLabel>
+                          <FormLabel className="labelForm">Select Section<span className="text-danger">*</span></FormLabel>
                           <FormSelect
                             value={student.section_name}
                             onChange={(e) => {
@@ -438,7 +432,7 @@ const AddNewStudentPage = () => {
                           <p className="error">{studentError?.section_name_error}</p>
                         </FormGroup>
                         <FormGroup as={Col} md="3" controlId="validationCustom10">
-                          <FormLabel className="labelForm">Date Of Birth</FormLabel>
+                          <FormLabel className="labelForm">Date Of Birth<span className="text-danger">*</span></FormLabel>
                           <FormControl
                             value={student?.date_of_birth}
                             onChange={handleChange}
@@ -451,7 +445,7 @@ const AddNewStudentPage = () => {
                         </FormGroup>
 
                         <FormGroup as={Col} md="3" controlId="validationCustom11">
-                          <FormLabel className="labelForm">Gender</FormLabel><br />
+                          <FormLabel className="labelForm">Gender<span className="text-danger">*</span></FormLabel><br />
                           <FormCheck inline>
                             <FormCheck.Input
                               type="radio"
@@ -480,7 +474,7 @@ const AddNewStudentPage = () => {
                       </Row>
                       <Row >
                         <FormGroup as={Col} md="3" controlId="validationCustom08">
-                          <FormLabel className="labelForm">Select Religion</FormLabel>
+                          <FormLabel className="labelForm">Select Religion<span className="text-danger">*</span></FormLabel>
                           <FormSelect
                             value={student?.religion_name}
                             onChange={handleChange}
@@ -550,7 +544,7 @@ const AddNewStudentPage = () => {
                           />
                         </FormGroup>
                         <FormGroup as={Col} md="3" controlId="validationCustom17">
-                          <FormLabel className="labelForm">Aadhar Card No</FormLabel>
+                          <FormLabel className="labelForm">Aadhar Card No<span className="text-danger">*</span></FormLabel>
                           <FormControl
                             value={student?.aadhar_card_no}
                             onChange={handleChange}
@@ -571,7 +565,7 @@ const AddNewStudentPage = () => {
                           />
                         </FormGroup>
                         <FormGroup as={Col} md="3" controlId="validationCustom08">
-                          <FormLabel className="labelForm">Select Caste</FormLabel>
+                          <FormLabel className="labelForm">Select Caste<span className="text-danger">*</span></FormLabel>
                           <FormSelect
                             value={student?.caste_name}
                             onChange={handleChange}
@@ -599,7 +593,7 @@ const AddNewStudentPage = () => {
                           </FormSelect>
                         </FormGroup>
                         <FormGroup as={Col} md="3" controlId="validationCustom21">
-                          <FormLabel className="labelForm">Date Of Admission</FormLabel>
+                          <FormLabel className="labelForm">Date Of Admission<span className="text-danger">*</span></FormLabel>
                           <FormControl
                             value={student?.date_of_admission}
                             onChange={handleChange}
@@ -610,7 +604,7 @@ const AddNewStudentPage = () => {
                           <p className="error"> {studentError.date_of_admission_error}</p>
                         </FormGroup>
                         <FormGroup as={Col} md="3" controlId="validationCustom22">
-                          <FormLabel className="labelForm">Date Of joining</FormLabel>
+                          <FormLabel className="labelForm">Date Of joining<span className="text-danger">*</span></FormLabel>
                           <FormControl
                             value={student?.date_of_joining}
                             onChange={handleChange}
@@ -699,7 +693,7 @@ const AddNewStudentPage = () => {
                           />
                         </FormGroup>
                         <FormGroup as={Col} md="3" controlId="validationCustom29">
-                          <FormLabel className="labelForm">A/C Name</FormLabel>
+                          <FormLabel className="labelForm">A/C Holder Name</FormLabel>
                           <FormControl
                             value={student?.account_Name}
                             onChange={handleChange}
@@ -816,16 +810,6 @@ const AddNewStudentPage = () => {
                             placeholder="City/District"
                           />
                         </FormGroup>
-                        {/* <FormGroup as={Col} md="6" controlId="validationCustom40">
-                          <FormLabel className="labelForm">Pin No</FormLabel>
-                          <FormControl
-                            value={student?.pin_No}
-                            onChange={handleChange}
-                            type="text"
-                            name="pin_No"
-                            placeholder="Pin No."
-                          />
-                        </FormGroup> */}
                         <FormGroup as={Col} md="6" controlId="validationCustom40">
                           <FormLabel className="labelForm">Pin No</FormLabel>
                           <FormControl
@@ -852,7 +836,7 @@ const AddNewStudentPage = () => {
                       <Row>
                         <Col>
                           <div className='buttons1'>
-                            {hasSubmitAccess && <Button type="submit" className="btn btn-primary mt-4">Submit form</Button>}
+                            {hasSubmitAccess && <Button type="submit" variant="success" className="mt-4">Submit form</Button>}
                           </div>
                         </Col>
                       </Row>

@@ -65,33 +65,30 @@ const LeaveMasterPage = () => {
         <div className="d-flex gap-1">
           {editingId === row._id ? (
             <>
-              <button className="editButton" onClick={() => handleSave(row._id)}>
+              <Button size="sm" variant="success" onClick={() => handleSave(row._id)}>
                 <FaSave />
-              </button>
-              <button
-                className="editButton btn-danger"
+              </Button>
+              <Button size="sm" variant="danger"
                 onClick={() => {
                   setEditingId(null);
                   setEditError("");
                 }}
               >
                 <FaTimes />
-              </button>
+              </Button>
             </>
           ) : (
             <>
-              <button
-                className="editButton"
+              <Button size="sm" variant="success"
                 onClick={() => handleEdit(row._id, row.LeaveName)}
               >
                 <FaEdit />
-              </button>
-              <button
-                className="editButton btn-danger"
+              </Button>
+              <Button size="sm" variant="danger"
                 onClick={() => handleDelete(row._id)}
               >
                 <FaTrashAlt />
-              </button>
+              </Button>
             </>
           )}
         </div>

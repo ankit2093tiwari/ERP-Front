@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { FaUndo } from "react-icons/fa";
-import { Container, Row, Col, Form, FormLabel, FormControl, Button } from "react-bootstrap";
+import { Container, Row, Col, Form, FormLabel, FormControl, Button, Spinner } from "react-bootstrap";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { copyContent, printContent } from "@/app/utils";
 import { getAllIssuedBooks, getFineMaster, returnIssueBookById } from "@/Services";
@@ -18,6 +18,7 @@ const ReturnBook = () => {
     ];
 
     const [data, setData] = useState([]);
+    const [loading, setLoading] = useState(false)
     const [issuedBooks, setIssuedBooks] = useState([]);
     const [selectedBookId, setSelectedBookId] = useState("");
     const [selectedBook, setSelectedBook] = useState(null);
@@ -28,10 +29,18 @@ const ReturnBook = () => {
     const [remarks, setRemarks] = useState("");
 
     const fetchIssuedBooks = async () => {
-        const response = await getAllIssuedBooks();
-        const filtered = response?.data?.filter((item) => item.returned === false);
-        setIssuedBooks(filtered);
-        setData(filtered);
+        try {
+            setLoading(true)
+            const response = await getAllIssuedBooks();
+            const filtered = response?.data?.filter((item) => item.returned === false);
+            setIssuedBooks(filtered);
+            setData(filtered);
+        } catch (error) {
+            console.error("failed to fetch issuedBooks!", error)
+        }
+        finally {
+            setLoading(false)
+        }
     };
 
     useEffect(() => {
@@ -191,10 +200,19 @@ const ReturnBook = () => {
                     )}
                     <div className="tableSheet mt-4">
                         <h2>Issued Book Records</h2>
-                        <Table columns={columns}
-                            data={data}
-                            handleCopy={handleCopyIssuedBooks}
-                            handlePrint={handlePrintIssuedBooks} />
+                        {
+                            loading ? (
+                                <div className="text-center py-5">
+                                    <Spinner animation="border" variant="primary" />
+                                </div>
+                            ) : (
+                                <Table columns={columns}
+                                    data={data}
+                                    handleCopy={handleCopyIssuedBooks}
+                                    handlePrint={handlePrintIssuedBooks} />
+                            )
+                        }
+
                     </div>
                 </Container>
             </section>

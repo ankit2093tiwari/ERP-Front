@@ -17,7 +17,7 @@ import { copyContent, printContent } from "@/app/utils";
 import * as Yup from "yup";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { FaEdit, FaTrash } from "react-icons/fa";
+import { FaEdit, FaTrash, FaTrashAlt } from "react-icons/fa";
 import { addNewLibraryVendor, deleteLibraryVendorById, getItemCategories, getLibraryVendors, updateLibraryVendorById } from "@/Services";
 import usePagePermission from "@/hooks/usePagePermission";
 
@@ -158,8 +158,7 @@ const VendorMaster = () => {
         <div className="d-flex gap-1">
           <Button
             size="sm"
-            variant="outline-primary"
-            className="action-btn"
+            variant="success"
             onClick={() => handleEdit(row)}
             title="Edit"
           >
@@ -167,12 +166,11 @@ const VendorMaster = () => {
           </Button>
           <Button
             size="sm"
-            variant="outline-danger"
-            className="action-btn"
+            variant="danger"
             onClick={() => handleDelete(row._id)}
             title="Delete"
           >
-            <FaTrash />
+            <FaTrashAlt />
           </Button>
         </div>
       ),
@@ -340,7 +338,7 @@ const VendorMaster = () => {
                     </Col>
                   ))}
                 </Row>
-                <Button type="submit" className="mt-3">
+                <Button type="submit" variant="success" className="mt-3">
                   {editId ? "Update" : "Add"} Vendor
                 </Button>
               </Form>

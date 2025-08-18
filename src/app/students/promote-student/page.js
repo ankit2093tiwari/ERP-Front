@@ -216,10 +216,8 @@ const PromoteStudentPage = () => {
       name: (
 
         <>
-
+          <input type="checkbox" checked={selectAll} onChange={handleSelectAll} className="me-2"/>
           Select All{" "}
-
-          <input type="checkbox" checked={selectAll} onChange={handleSelectAll} />
 
         </>
 
@@ -255,7 +253,7 @@ const PromoteStudentPage = () => {
 
   const breadcrumbItems = [
 
-    { label: "students", link: "/students/all-module" },
+    { label: "Students", link: "/students/all-module" },
 
     { label: "promote-student", link: "null" }
 

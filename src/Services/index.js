@@ -68,6 +68,10 @@ export const getActiveSession = async () => {
     const response = await axios.get(`${BASE_URL}/api/active-session`);
     return response?.data;
 };
+export const getThoughtOfDay = async (date) => {
+    const response = await axios.get(`${BASE_URL}/api/thoughts?date=${date}`);
+    return response?.data;
+};
 export const addNewSession = async (payload) => {
     const response = await axios.post(`${BASE_URL}/api/create-session`, payload);
     return response?.data;
@@ -288,8 +292,8 @@ export const updateFeeSetting = async (payload) => {
     return response?.data;
 }
 
-export const getAllStudents = async () => {
-    const response = await axios.get(`${BASE_URL}/api/students/search`)
+export const getAllStudents = async (limit=200) => {
+    const response = await axios.get(`${BASE_URL}/api/students/search?limit=${limit}`)
     return response?.data;
 }
 export const getTotalStudentsCount = async () => {
@@ -1315,6 +1319,14 @@ export const createStudentsAttendance = async (payload) => {
 export const getStudentsByClassAndSectionAndDateRange = async (payload) => {
     const response = await axios.post(`${BASE_URL}/api/attendance/monthly-report`, payload)
     return response?.data;
+}
+export const getAttendanceReport=async(classId,sectionId,date)=>{
+    const response=await axios.get(`${BASE_URL}/api/attendance?class_name=${classId}&section_name=${sectionId}&attendance_date=${date}`);
+    return response.data;
+}
+export const updateAttendanceReport=async(attendanceId,payload)=>{
+    const response=await axios.put(`${BASE_URL}/api/attendance/update/${attendanceId}`, payload);
+    return response.data;
 }
 
 export const getAllExamGrades = async () => {

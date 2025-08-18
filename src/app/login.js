@@ -5,6 +5,7 @@ import Image from "next/image";
 import { adminLogin } from "@/Services";
 import { useDispatch } from "react-redux";
 import { setAuthToken } from "@/Redux/Slices/authSlice";
+import { Button, Spinner } from "react-bootstrap";
 
 
 const SpeechRecognition =
@@ -142,13 +143,13 @@ export default function LoginPage({ onLogin }) {
 
           {error && <div className="errorMessage text-danger">{error}</div>}
 
-          <button
+          <Button
             type="submit"
             className="loginButton"
             disabled={isLoading}
           >
-            {isLoading ? "Log In..." : "Log In"}
-          </button>
+            {isLoading ? <Spinner animation="border" variant="light" size="sm" /> : "Log In"}
+          </Button>
         </form>
       </div>
 
