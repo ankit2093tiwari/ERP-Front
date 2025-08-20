@@ -38,6 +38,7 @@ const SubjectMaster = () => {
   const [sectionList, setSectionList] = useState([]);
   const [employeeList, setEmployeeList] = useState([]);
   const [subjectList, setSubjectList] = useState([]);
+  const [groupedSubjects, setGroupedSubjects] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
@@ -58,6 +59,39 @@ const SubjectMaster = () => {
     fetchEmployees();
     fetchSubjects();
   }, [selectedSessionId]);
+
+  // Group subjects by class and section
+  useEffect(() => {
+    if (subjectList.length > 0) {
+      const grouped = {};
+      
+      subjectList.forEach(subject => {
+        const classId = subject.class_name?._id || "no-class";
+        const sectionId = subject.section_name?._id || "no-section";
+        const key = `${classId}-${sectionId}`;
+        
+        if (!grouped[key]) {
+          grouped[key] = {
+            id: key,
+            class_name: subject.class_name,
+            section_name: subject.section_name,
+            subjects: []
+          };
+        }
+        
+        grouped[key].subjects.push({
+          id: subject._id,
+          subject_name: subject.subject_details.subject_name,
+          employee: subject.subject_details.employee,
+          compulsory: subject.subject_details.compulsory
+        });
+      });
+      
+      setGroupedSubjects(Object.values(grouped));
+    } else {
+      setGroupedSubjects([]);
+    }
+  }, [subjectList]);
 
   const fetchClasses = async () => {
     try {
@@ -176,23 +210,53 @@ const SubjectMaster = () => {
   };
 
   const handlePrint = () => {
-    const tableHeaders = [["#", "Class Name", "Section Name", "Subject & Teacher", "Compulsory"]];
-    const tableRows = subjectList.map((row, index) => [
+    const tableHeaders = [["#", "Class Name", "Section Name", "Subjects & Teachers", "Compulsory Subjects"]];
+    const tableRows = groupedSubjects.map((row, index) => [
       index + 1,
       row.class_name?.class_name || "N/A",
       row.section_name?.section_name || "N/A",
-      `${row.subject_details.subject_name} - ${row.subject_details.employee?.employee_name}`,
-      row.subject_details.compulsory ? "Yes" : "No",
+      row.subjects.map(s => `${s.subject_name} - ${s.employee?.employee_name}`).join(", "),
+      row.subjects.filter(s => s.compulsory).map(s => s.subject_name).join(", ") || "None"
     ]);
     printContent(tableHeaders, tableRows);
   };
 
   const handleCopy = () => {
-    const headers = ["#", "Class Name", "Section Name", "Subject & Teacher", "Compulsory"];
-    const rows = subjectList.map((row, index) =>
-      `${index + 1}\t${row.class_name?.class_name || "N/A"}\t${row.section_name?.section_name || "N/A"}\t${row.subject_details.subject_name} - ${row.subject_details.employee?.employee_name}\t${row.subject_details.compulsory ? "Yes" : "No"}`
+    const headers = ["#", "Class Name", "Section Name", "Subjects & Teachers", "Compulsory Subjects"];
+    const rows = groupedSubjects.map((row, index) =>
+      `${index + 1}\t${row.class_name?.class_name || "N/A"}\t${row.section_name?.section_name || "N/A"}\t${row.subjects.map(s => `${s.subject_name} - ${s.employee?.employee_name}`).join(", ")}\t${row.subjects.filter(s => s.compulsory).map(s => s.subject_name).join(", ") || "None"}`
     );
     copyContent(headers, rows);
+  };
+
+  const SubjectCell = ({ subjects }) => {
+    return (
+      <div>
+        {subjects.map((subject, idx) => (
+          <div key={subject.id} className="mb-1">
+            {subject.subject_name} - {subject.employee?.employee_name || "N/A"}
+            {hasEditAccess && (
+              <div className="d-inline-flex ms-2">
+                <Button size="sm" variant="success" className="me-1" onClick={() => handleEditSubject(subject)}>
+                  <FaEdit />
+                </Button>
+                <Button size="sm" variant="danger" onClick={() => handleDelete(subject.id)}>
+                  <FaTrashAlt />
+                </Button>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    );
+  };
+
+  // Helper function to find the full subject object from subjectList
+  const handleEditSubject = (subject) => {
+    const fullSubject = subjectList.find(s => s._id === subject.id);
+    if (fullSubject) {
+      handleEdit(fullSubject);
+    }
   };
 
   const columns = [
@@ -204,35 +268,25 @@ const SubjectMaster = () => {
     {
       name: "Class Name",
       selector: (row) => row.class_name?.class_name || "N/A",
-      sortable:true
+      sortable: true
     },
     {
       name: "Section Name",
       selector: (row) => row.section_name?.section_name || "N/A",
     },
     {
-      name: "Subject & Teacher",
-      selector: (row) =>
-        `${row.subject_details.subject_name} - ${row.subject_details.employee?.employee_name}`,
+      name: "Subjects & Teachers",
+      cell: (row) => <SubjectCell subjects={row.subjects} />,
+      width: "50%",
     },
     {
-      name: "Compulsory",
-      selector: (row) => (row.subject_details.compulsory ? "Yes" : "No"),
+      name: "Compulsory Subjects",
+      selector: (row) => {
+        const compulsorySubjects = row.subjects.filter(s => s.compulsory).map(s => s.subject_name);
+        return compulsorySubjects.length > 0 ? compulsorySubjects.join(", ") : "None";
+      },
     },
-    hasEditAccess && {
-      name: "Actions",
-      cell: (row) => (
-        <div className="d-flex gap-1">
-          <Button size="sm" variant="success" onClick={() => handleEdit(row)}>
-            <FaEdit />
-          </Button>
-          <Button size="sm" variant="danger" onClick={() => handleDelete(row._id)}>
-            <FaTrashAlt />
-          </Button>
-        </div>
-      ),
-    },
-  ].filter(Boolean);
+  ];
 
   const breadcrumbItems = [
     { label: "Master Entry", link: "/master-entry/all-module" },
@@ -366,7 +420,7 @@ const SubjectMaster = () => {
             {loading ? <p>Loading...</p> : (
               <Table
                 columns={columns}
-                data={subjectList}
+                data={groupedSubjects}
                 handleCopy={handleCopy}
                 handlePrint={handlePrint}
               />

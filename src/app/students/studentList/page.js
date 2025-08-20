@@ -10,7 +10,7 @@ import { CgAddR } from "react-icons/cg";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { copyContent, printContent } from "@/app/utils";
 
-import { deleteStudentById, getStudentsData } from "@/Services";
+import { deleteStudentById, getAllStudents } from "@/Services";
 import { toast } from "react-toastify";
 import useSessionId from "@/hooks/useSessionId";
 import usePagePermission from "@/hooks/usePagePermission";
@@ -30,7 +30,7 @@ const Studentlist = () => {
     setLoading(true);
     setError("");
     try {
-      const response = await getStudentsData()
+      const response = await getAllStudents()
       const students = response.data || [];
       // Reverse to show newest first
       setData(students.reverse());
@@ -110,7 +110,7 @@ const Studentlist = () => {
     copyContent(headers, rows);
   };
 
-  const breadcrumbItems = [{ label: "students", link: "/students/all-module" }, { label: "studentList", link: "null" }]
+  const breadcrumbItems = [{ label: "Students", link: "/students/all-module" }, { label: "StudentList", link: "null" }]
 
   return (
     <>
@@ -131,7 +131,7 @@ const Studentlist = () => {
               <CgAddR /> Add New Student
             </Button>}
             {hasEditAccess && <Button onClick={() => router.push("/students/update-student")} className="btn-add">
-              <CgAddR /> Update Student
+               Update Student
             </Button>}
 
           </div>

@@ -292,8 +292,8 @@ export const updateFeeSetting = async (payload) => {
     return response?.data;
 }
 
-export const getAllStudents = async (limit=200) => {
-    const response = await axios.get(`${BASE_URL}/api/students/search?limit=${limit}`)
+export const getAllStudents = async (limit=500 , skip=0) => {
+    const response = await axios.get(`${BASE_URL}/api/students/search?limit=${limit}&skip=${skip}`)
     return response?.data;
 }
 export const getTotalStudentsCount = async () => {

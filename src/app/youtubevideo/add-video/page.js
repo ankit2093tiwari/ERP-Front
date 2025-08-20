@@ -210,7 +210,7 @@ const AddYoutubeVideo = () => {
                             </Row>
                             {
                                 hasSubmitAccess && (
-                                    <Button onClick={handleSubmit} className="btn btn-primary">
+                                    <Button onClick={handleSubmit} variant="success">
                                         Add Video
                                     </Button>
                                 )

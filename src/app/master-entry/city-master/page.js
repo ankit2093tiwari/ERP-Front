@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
-import { FaEdit, FaTrashAlt, FaSave } from "react-icons/fa";
+import { FaEdit, FaTrashAlt, FaSave, FaTimes } from "react-icons/fa";
 import { CgAddR } from "react-icons/cg";
 import {
   Form,
@@ -251,7 +251,7 @@ const StateCityMaster = () => {
               <FaSave />
             </Button>
             <Button size="sm" variant="danger" onClick={() => setEditingState(null)}>
-              Cancel
+              <FaTimes />
             </Button>
           </div>
         ) : (

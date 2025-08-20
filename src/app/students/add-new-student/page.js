@@ -240,7 +240,7 @@ const AddNewStudentPage = () => {
     e.preventDefault();
 
     if (!validateForm()) {
-      return toast.warn("Please fill all required fileds!")
+      return toast.warn("Please fill all required fields!")
     }
 
     try {
