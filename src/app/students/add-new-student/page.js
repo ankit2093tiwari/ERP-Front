@@ -302,7 +302,7 @@ const AddNewStudentPage = () => {
                             name="first_name"
                             value={student?.first_name}
                             onChange={handleChange}
-                            placeholder="Mirst name"
+                            placeholder="First name"
                           />
                           <p className="error"> {studentError.first_name_error}</p>
                         </FormGroup>
