@@ -98,7 +98,7 @@ export default function RootLayout({ children }) {
                   </div>
                 </div>
                 <ToastContainer position="top-right" autoClose={5000} />
-                <SpeechRecognitionProvider />
+                {/* <SpeechRecognitionProvider /> */}
               </>
             ) : (
               <LoginPage onLogin={handleLogin} />

@@ -12,6 +12,7 @@ import { toast } from 'react-toastify';
 import BreadcrumbComp from "@/app/component/Breadcrumb";
 import { getCastes, getSections, getCategories, getClasses, getReligions, getStates, addNewStudent } from "@/Services";
 import usePagePermission from "@/hooks/usePagePermission";
+import SpeechRecognitionProvider from "@/app/component/SpeechRecognitionProvider";
 const AddNewStudentPage = () => {
   const [error, setError] = useState("");
   const { hasViewAccess, hasSubmitAccess } = usePagePermission();
@@ -276,6 +277,7 @@ const AddNewStudentPage = () => {
 
   return (
     <>
+    <SpeechRecognitionProvider />
       <div className="breadcrumbSheet position-relative">
         <Container>
           <Row className="mt-1 mb-1">
