@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import dynamic from "next/dynamic";
 import { useSelector } from "react-redux";
-import { CgAddR } from 'react-icons/cg';
+import { CgAddR } from "react-icons/cg";
 import { FaEdit, FaTrashAlt } from "react-icons/fa";
 import {
   Form,
@@ -44,6 +44,10 @@ const AddUser = () => {
   const [editingId, setEditingId] = useState(null);
   const [selectedModules, setSelectedModules] = useState([]);
   const [selectedActions, setSelectedActions] = useState({ view: false, edit: false, submit: false });
+
+  // Select all checkboxes
+  const [allActionsSelected, setAllActionsSelected] = useState(false);
+  const [allModulesSelected, setAllModulesSelected] = useState(false);
 
   const [formData, setFormData] = useState({
     username: "",
@@ -88,7 +92,6 @@ const AddUser = () => {
     return authorities;
   };
 
-
   const resetForm = () => {
     setFormData({
       username: "",
@@ -100,6 +103,8 @@ const AddUser = () => {
     });
     setSelectedModules([]);
     setSelectedActions({ view: false, edit: false, submit: false });
+    setAllActionsSelected(false);
+    setAllModulesSelected(false);
     setEditingId(null);
   };
 
@@ -132,6 +137,8 @@ const AddUser = () => {
     setEditingId(user._id);
     setSelectedModules(modList);
     setSelectedActions(actionMap);
+    setAllModulesSelected(visibleModules.every(m => modList.includes(m)));
+    setAllActionsSelected(visibleActions.every(act => actionMap[act]));
     setFormData({
       username: user.username || "",
       password: "",
@@ -222,15 +229,44 @@ const AddUser = () => {
     setFormData(prev => ({ ...prev, [name]: type === "file" ? files[0] : value }));
   };
 
+  // Toggle individual actions
   const handleActionChange = (e) => {
     const { name, checked } = e.target;
-    setSelectedActions(prev => ({ ...prev, [name]: checked }));
+    const updated = { ...selectedActions, [name]: checked };
+    setSelectedActions(updated);
+    setAllActionsSelected(visibleActions.every(act => updated[act]));
   };
 
+  // Toggle individual modules
   const handleModuleChange = (mod) => {
-    setSelectedModules(prev =>
-      prev.includes(mod) ? prev.filter(m => m !== mod) : [...prev, mod]
-    );
+    let updated;
+    if (selectedModules.includes(mod)) {
+      updated = selectedModules.filter(m => m !== mod);
+    } else {
+      updated = [...selectedModules, mod];
+    }
+    setSelectedModules(updated);
+    setAllModulesSelected(visibleModules.every(m => updated.includes(m)));
+  };
+
+  // Select all actions
+  const handleSelectAllActions = (checked) => {
+    const newActions = {};
+    visibleActions.forEach(act => {
+      newActions[act] = checked;
+    });
+    setSelectedActions(newActions);
+    setAllActionsSelected(checked);
+  };
+
+  // Select all modules
+  const handleSelectAllModules = (checked) => {
+    if (checked) {
+      setSelectedModules([...visibleModules]);
+    } else {
+      setSelectedModules([]);
+    }
+    setAllModulesSelected(checked);
   };
 
   useEffect(() => { fetchData(); }, []);
@@ -241,19 +277,6 @@ const AddUser = () => {
     { name: "Full Name", selector: row => row.userfullname },
     { name: "User Type", selector: row => row.usertype },
     { name: "Status", selector: row => row.status },
-    // hasEditAccess && {
-    //   name: "Actions",
-    //   cell: (row) => (
-    //     <div className="d-flex gap-1">
-    //       <Button size="sm" variant="success" onClick={() => handleEdit(row)}>
-    //         <FaEdit />
-    //       </Button>
-    //       <Button size="sm" variant="danger" onClick={() => handleDelete(row._id)}>
-    //         <FaTrashAlt />
-    //       </Button>
-    //     </div>
-    //   )
-    // },
   ].filter(Boolean);
 
   const breadcrumbItems = [
@@ -295,11 +318,11 @@ const AddUser = () => {
               <Form className="formSheet">
                 <Row className="mb-3">
                   <Col>
-                    <FormLabel>Username</FormLabel>
+                    <FormLabel>Username<span className="text-danger">*</span></FormLabel>
                     <FormControl name="username" value={formData.username} onChange={handleChange} />
                   </Col>
                   <Col>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel>Password<span className="text-danger">*</span></FormLabel>
                     <FormControl
                       name="password"
                       type="password"
@@ -311,17 +334,17 @@ const AddUser = () => {
                 </Row>
                 <Row className="mb-3">
                   <Col>
-                    <FormLabel>User Type</FormLabel>
+                    <FormLabel>User Type <span className="text-danger">*</span></FormLabel>
                     <FormSelect name="usertype" value={formData.usertype} onChange={handleChange}>
                       <option value="">Select</option>
-                       <option value="admin">Admin</option>
+                      <option value="admin">Admin</option>
                       <option value="fees">Fees</option>
                       <option value="other">Other</option>
                       {/* <option value="superadmin">Superadmin</option> */}
                     </FormSelect>
                   </Col>
                   <Col>
-                    <FormLabel>Status</FormLabel>
+                    <FormLabel>Status <span className="text-danger">*</span></FormLabel>
                     <FormSelect name="status" value={formData.status} onChange={handleChange}>
                       <option value="">Select</option>
                       <option value="active">Active</option>
@@ -331,7 +354,7 @@ const AddUser = () => {
                 </Row>
                 <Row className="mb-3">
                   <Col>
-                    <FormLabel>Full Name</FormLabel>
+                    <FormLabel>Full Name <span className="text-danger">*</span></FormLabel>
                     <FormControl name="userfullname" value={formData.userfullname} onChange={handleChange} />
                   </Col>
                   <Col>
@@ -340,8 +363,17 @@ const AddUser = () => {
                   </Col>
                 </Row>
                 <hr />
-                <h5 className="mt-4">Select Actions</h5>
-                <Row className="mb-3">
+                <h5 className="my-4">Select Actions</h5>
+                <Row className="mb-3 d-flex">
+                  <span className="fw-bold">Select all</span>
+                  <Col lg={2}>
+                    <Form.Check
+                      type="checkbox"
+                      // label="Select All"
+                      checked={allActionsSelected}
+                      onChange={(e) => handleSelectAllActions(e.target.checked)}
+                    />
+                  </Col>
                   {visibleActions.map(act => (
                     <Col lg={2} key={act}>
                       <Form.Check
@@ -354,8 +386,18 @@ const AddUser = () => {
                     </Col>
                   ))}
                 </Row>
-                <h5>Select Modules</h5>
+                <hr />
+                <h5 className="mb-4">Select Modules</h5>
                 <Row>
+                  <span className="fw-bold">Select all</span>
+
+                  <Col lg={3} className="mb-2">
+                    <Form.Check
+                      type="checkbox"
+                      checked={allModulesSelected}
+                      onChange={(e) => handleSelectAllModules(e.target.checked)}
+                    />
+                  </Col>
                   {visibleModules.map(mod => (
                     <Col lg={3} key={mod} className="mb-2">
                       <Form.Check
