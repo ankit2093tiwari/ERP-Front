@@ -1,8 +1,8 @@
 import axios from "axios";
 import { store } from "@/Redux/store";
 
-// export const BASE_URL = 'https://erp-backend-fy3n.onrender.com'
-export const BASE_URL = 'http://localhost:8000'
+export const BASE_URL = 'https://erp-backend-fy3n.onrender.com'
+// export const BASE_URL = 'http://localhost:8000'
 
 axios.interceptors.request.use((config) => {
     const state = store.getState();
