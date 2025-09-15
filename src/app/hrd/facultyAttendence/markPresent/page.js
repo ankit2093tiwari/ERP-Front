@@ -171,7 +171,7 @@ const MarkPresentPage = () => {
               <Row>
                 {hasSubmitAccess && (
                   <Col lg={2} className="d-flex align-items-end">
-                    <Button variant="primary" onClick={handleSubmit}>
+                    <Button variant="success" onClick={handleSubmit}>
                       Submit
                     </Button>
                   </Col>

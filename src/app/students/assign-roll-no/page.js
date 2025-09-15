@@ -321,7 +321,7 @@ const fetchStudents = useCallback(async () => {
               <Row className="mt-3">
                 <Col>
                   {showButtons && !isEditing && hasEditAccess && (
-                    <Button onClick={handleEditRollNo} className="me-2">
+                    <Button onClick={handleEditRollNo} className="me-2" variant="success">
                       Edit Roll Numbers
                     </Button>
                   )}

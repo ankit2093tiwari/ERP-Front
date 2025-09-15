@@ -302,7 +302,7 @@ const DesignationMasterPage = () => {
                 </Row>
                 <Button
                   onClick={handleAdd}
-                  className="btn btn-primary"
+                  variant="success"
                   disabled={buttonLoading}
                 >
                   {buttonLoading ? "Saving..." : "Add Designation"}

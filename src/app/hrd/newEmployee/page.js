@@ -231,12 +231,12 @@ const Employee = () => {
             name: "Actions",
             cell: (row) => (
                 <div className="d-flex gap-1">
-                    <button className="editButton" onClick={() => handleEditEmployee(row)}>
+                    <Button size='sm' variant='success' onClick={() => handleEditEmployee(row)}>
                         <FaEdit />
-                    </button>
-                    <button className="editButton btn-danger" onClick={() => handleDeleteEmployee(row._id)}>
+                    </Button>
+                    <Button size='sm' variant='danger' onClick={() => handleDeleteEmployee(row._id)}>
                         <FaTrashAlt />
-                    </button>
+                    </Button>
                 </div>
             ),
         },
@@ -1119,7 +1119,7 @@ const Employee = () => {
                                                 <div className="buttons1">
                                                     <Button
                                                         type="button"
-                                                        className="btn btn-secondary mt-4"
+                                                        className="btn btn-danger mt-4"
                                                         onClick={() => {
                                                             setIsFormOpen(false);
                                                             resetForm();
@@ -1127,7 +1127,7 @@ const Employee = () => {
                                                     >
                                                         Cancel
                                                     </Button>
-                                                    <Button type="submit" className="btn btn-primary mt-4">
+                                                    <Button type="submit" className="btn btn-success mt-4">
                                                         {editMode ? "Update Employee" : "Add Employee"}
                                                     </Button>
                                                 </div>

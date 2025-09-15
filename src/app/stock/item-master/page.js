@@ -232,12 +232,12 @@ const ItemMaster = () => {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-1">
-          <button className="editButton" onClick={() => openEditForm(row)} title="Edit">
+          <Button variant="success" size="sm" onClick={() => openEditForm(row)} title="Edit">
             <FaEdit />
-          </button>
-          <button className="editButton btn-danger" onClick={() => handleDelete(row._id)} title="Delete">
+          </Button>
+          <Button variant="danger" size="sm" onClick={() => handleDelete(row._id)} title="Delete">
             <FaTrashAlt />
-          </button>
+          </Button>
         </div>
       ),
     });
@@ -390,7 +390,7 @@ const ItemMaster = () => {
                   </Col>
                 </Row>
 
-                <Button type="submit" className="mt-3 btn btn-primary">
+                <Button type="submit" variant="success">
                   {editingItem ? "Update Item" : "Add Item"}
                 </Button>
               </Form>

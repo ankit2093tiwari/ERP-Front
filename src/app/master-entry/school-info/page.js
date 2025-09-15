@@ -206,7 +206,7 @@ const SchoolInfo = () => {
                 <Form onSubmit={handleSubmit} className="formSheet">
                   <Row className="mb-3">
                     <Form.Group as={Col} md="6">
-                      <FormLabel>School Name</FormLabel>
+                      <FormLabel>School Name<span className="text-danger">*</span></FormLabel>
                       <FormControl
                         type="text"
                         name="school_name"
@@ -219,7 +219,7 @@ const SchoolInfo = () => {
                     </Form.Group>
 
                     <Form.Group as={Col} md="6">
-                      <FormLabel>Account Number</FormLabel>
+                      <FormLabel>Account Number<span className="text-danger">*</span></FormLabel>
                       <FormControl
                         type="text"
                         name="account_no"
@@ -239,7 +239,7 @@ const SchoolInfo = () => {
 
                   <Row className="mb-3">
                     <Form.Group as={Col} md="6">
-                      <FormLabel>Phone Number</FormLabel>
+                      <FormLabel>Phone Number<span className="text-danger">*</span></FormLabel>
                       <FormControl
                         type="text"
                         name="phone_no"
@@ -257,7 +257,7 @@ const SchoolInfo = () => {
                     </Form.Group>
 
                     <Form.Group as={Col} md="6">
-                      <FormLabel>Email Address</FormLabel>
+                      <FormLabel>Email Address<span className="text-danger">*</span></FormLabel>
                       <FormControl
                         type="email"
                         name="email_name"
@@ -272,7 +272,7 @@ const SchoolInfo = () => {
 
                   <Row className="mb-3">
                     <Form.Group as={Col} md="6">
-                      <FormLabel>Bank Name</FormLabel>
+                      <FormLabel>Bank Name<span className="text-danger">*</span></FormLabel>
                       <FormControl
                         type="text"
                         name="bank_name"
@@ -285,7 +285,7 @@ const SchoolInfo = () => {
                     </Form.Group>
 
                     <Form.Group as={Col} md="6">
-                      <FormLabel>Branch Name</FormLabel>
+                      <FormLabel>Branch Name<span className="text-danger">*</span></FormLabel>
                       <FormControl
                         type="text"
                         name="branch_name"
@@ -300,7 +300,7 @@ const SchoolInfo = () => {
 
                   <Row className="mb-3">
                     <Form.Group as={Col} md="6">
-                      <FormLabel>IFSC Code</FormLabel>
+                      <FormLabel>IFSC Code<span className="text-danger">*</span></FormLabel>
                       <FormControl
                         type="text"
                         name="ifsc_code"
@@ -327,7 +327,7 @@ const SchoolInfo = () => {
 
                   <Row className="mb-3">
                     <Form.Group as={Col} md="6">
-                      <FormLabel>Address</FormLabel>
+                      <FormLabel>Address<span className="text-danger">*</span></FormLabel>
                       <FormControl
                         as="textarea"
                         rows={3}

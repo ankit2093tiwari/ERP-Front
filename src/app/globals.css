@@ -1357,7 +1357,7 @@ input::-webkit-inner-spin-button {
   border-radius: 4px;
   margin-bottom: 15px;
   font-size: 14px;
-  text-align: center;
+  /* text-align: center; */
 }
 
 .footerLinks {

@@ -33,7 +33,7 @@ const allModules = [
 const allActions = ["view", "edit", "submit"];
 
 const AddUser = () => {
-  const { hasEditAccess, hasSubmitAccess } = usePagePermission();
+  const { hasSubmitAccess } = usePagePermission();
   const { authorities: userAuthorities } = useSelector((state) => state.auth);
 
   const [data, setData] = useState([]);
@@ -120,36 +120,6 @@ const AddUser = () => {
     }
   };
 
-  const handleEdit = (user) => {
-    const modList = [];
-    const actionMap = { view: false, edit: false, submit: false };
-    (user.authorities || []).forEach(({ module, actions }) => {
-      if (allModules.includes(module)) {
-        modList.push(module);
-        actions.forEach(a => {
-          if (allActions.includes(a)) {
-            actionMap[a] = true;
-          }
-        });
-      }
-    });
-
-    setEditingId(user._id);
-    setSelectedModules(modList);
-    setSelectedActions(actionMap);
-    setAllModulesSelected(visibleModules.every(m => modList.includes(m)));
-    setAllActionsSelected(visibleActions.every(act => actionMap[act]));
-    setFormData({
-      username: user.username || "",
-      password: "",
-      usertype: user.usertype || "",
-      status: user.status || "",
-      userfullname: user.userfullname || "",
-      userimg: null,
-    });
-    setIsFormOpen(true);
-  };
-
   const validateForm = () => {
     if (!formData.username.trim()) {
       toast.error("Username is required");
@@ -195,32 +165,14 @@ const AddUser = () => {
     if (formData.userimg) payload.append("userimg", formData.userimg);
 
     try {
-      if (editingId) {
-        await axios.put(`${BASE_URL}/api/update-user/${editingId}`, payload);
-        toast.success("User updated successfully");
-      } else {
-        await axios.post(`${BASE_URL}/api/create-user`, payload);
-        toast.success("User created successfully");
-      }
+      await axios.post(`${BASE_URL}/api/create-user`, payload);
+      toast.success("User created successfully");
       fetchData();
       resetForm();
       setIsFormOpen(false);
     } catch (err) {
       toast.error(err.response?.data?.message || "Failed to save user.");
       setError(err.response?.data?.message || "Failed to save user.");
-    }
-  };
-
-  const handleDelete = async (id) => {
-    if (confirm("Are you sure you want to delete this user?")) {
-      try {
-        await axios.delete(`${BASE_URL}/api/delete-user/${id}`);
-        toast.success("User deleted successfully");
-        fetchData();
-      } catch (err) {
-        toast.error(err.response?.data?.message || "Failed to delete user.");
-        setError(err.response?.data?.message || "Failed to delete user.");
-      }
     }
   };
 

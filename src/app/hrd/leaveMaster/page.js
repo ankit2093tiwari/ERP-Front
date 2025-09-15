@@ -263,7 +263,7 @@ const LeaveMasterPage = () => {
                     )}
                   </Col>
                 </Row>
-                <Button onClick={handleAdd} className="btn btn-primary">
+                <Button onClick={handleAdd} variant="success">
                   Add Leave
                 </Button>
               </Form>

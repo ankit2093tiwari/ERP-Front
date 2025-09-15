@@ -240,7 +240,7 @@ const ReligionMasterPage = () => {
                     )}
                   </Col>
                 </Row>
-                <Button onClick={handleAdd} className="btn btn-primary">
+                <Button onClick={handleAdd} variant="success">
                   Add Religion
                 </Button>
               </Form>
@@ -272,7 +272,7 @@ const ReligionMasterPage = () => {
                     />
                   </Col>
                 </Row>
-                <Button onClick={handleUpdate} className="btn btn-primary">
+                <Button onClick={handleUpdate} variant="success">
                   Update Religion
                 </Button>
               </Form>

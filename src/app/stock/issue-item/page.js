@@ -48,9 +48,9 @@ const ItemIssue = () => {
     hasEditAccess &&{
       name: "Actions",
       cell: (row) => (
-        <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
+        <Button variant="danger" size="sm" onClick={() => handleDelete(row._id)}>
           <FaTrashAlt />
-        </button>
+        </Button>
       ),
     }
   ];
@@ -311,7 +311,7 @@ const handleCopy = () => {
                       </FormGroup>
                     </Row>
 
-                    <Button type="submit">Issue Item</Button>
+                    <Button type="submit" variant='success'>Issue Item</Button>
                   </Form>
                 </div>
               )}

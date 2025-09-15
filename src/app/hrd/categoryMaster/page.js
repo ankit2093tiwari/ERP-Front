@@ -274,7 +274,7 @@ const CategoryMasterPage = () => {
 
                   </Col>
                 </Row>
-                <Button onClick={handleAdd} className="btn btn-primary">
+                <Button onClick={handleAdd} variant="success">
                   Add Category
                 </Button>
               </Form>

@@ -104,12 +104,12 @@ const VendorMaster = () => {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-1">
-          <button className="editButton" onClick={() => handleEdit(row)}>
+          <Button variant="success" size="sm" onClick={() => handleEdit(row)}>
             <FaEdit />
-          </button>
-          <button className="editButton btn-danger" onClick={() => handleDelete(row._id)}>
+          </Button>
+          <Button variant="danger" size="sm" onClick={() => handleDelete(row._id)}>
             <FaTrashAlt />
-          </button>
+          </Button>
         </div>
       ),
     },
@@ -694,7 +694,7 @@ const VendorMaster = () => {
                   </Col>
                 </Row>
 
-                <Button onClick={handleSubmit} className="btn btn-primary mt-3">
+                <Button onClick={handleSubmit} variant="success">
                   {isEditing ? 'Update Vendor' : 'Add Vendor'}
                 </Button>
               </Form>

@@ -14,7 +14,6 @@ import {
   Button,
   Alert,
 } from "react-bootstrap";
-import axios from "axios";
 import Table from "@/app/component/DataTable";
 import { copyContent, printContent } from "@/app/utils";
 import BreadcrumbComp from "@/app/component/Breadcrumb";
@@ -68,33 +67,33 @@ const ItemCategory = () => {
         <div className="d-flex gap-1">
           {editingId === row._id ? (
             <>
-              <button
-                className="editButton"
+              <Button
+                variant="success" size="sm"
                 onClick={() => handleUpdate(row._id)}
               >
                 <FaSave />
-              </button>
-              <button
-                className="editButton btn-danger"
+              </Button>
+              <Button
+                variant="danger" size="sm"
                 onClick={() => handleDelete(row._id)}
               >
                 <FaTrashAlt />
-              </button>
+              </Button>
             </>
           ) : (
             <>
-              <button
-                className="editButton"
+              <Button
+                variant="success" size="sm"
                 onClick={() => handleEdit(row)}
               >
                 <FaEdit />
-              </button>
-              <button
-                className="editButton btn-danger"
+              </Button>
+              <Button
+                variant="danger" size="sm"
                 onClick={() => handleDelete(row._id)}
               >
                 <FaTrashAlt />
-              </button>
+              </Button>
             </>
           )}
         </div>
@@ -284,7 +283,7 @@ const ItemCategory = () => {
 
                   </Col>
                 </Row>
-                <Button onClick={handleAdd} className="btn btn-primary">
+                <Button onClick={handleAdd} variant="success">
                   Add Category
                 </Button>
               </Form>

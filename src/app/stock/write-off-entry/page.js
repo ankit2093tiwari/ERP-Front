@@ -195,7 +195,7 @@ const StockWriteOffEntry = () => {
                     </FormGroup>
                   </Row>
 
-                  <Button type="submit">Write Off</Button>
+                  <Button type="submit" variant='success'>Write Off</Button>
                 </Form>
               </div>
             )}

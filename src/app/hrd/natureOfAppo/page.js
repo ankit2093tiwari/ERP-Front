@@ -244,7 +244,7 @@ const NatureOfAppointmentPage = () => {
                     {error && <div className="text-danger mt-1 small">{error}</div>}
                   </Col>
                 </Row>
-                <Button onClick={handleAdd} className="btn btn-primary">
+                <Button onClick={handleAdd} variant="success">
                   Add Appointment Type
                 </Button>
               </Form>

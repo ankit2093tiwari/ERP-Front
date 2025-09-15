@@ -324,7 +324,7 @@ const StateCityMaster = () => {
               size="sm"
               onClick={() => setEditingCity(null)}
             >
-              Cancel
+              <FaTimes />
             </Button>
           </div>
         ) : (
@@ -421,18 +421,18 @@ const StateCityMaster = () => {
                   </Col>
                 </Row>
                 <div className="d-flex gap-2 mt-3">
-                  <Button variant="primary" onClick={handleAddState}>
+                  <Button variant="success" onClick={handleAddState}>
                     Add State
                   </Button>
                   <Button
-                    variant="primary"
+                    variant="danger"
                     onClick={() => {
                       setIsStateFormOpen(false);
                       setFormData({ ...formData, state_name: "" });
                       setErrors({ ...errors, state_name: "" });
                     }}
                   >
-                    Cancel
+                    <FaTimes />
                   </Button>
                 </div>
               </Form>
@@ -506,11 +506,11 @@ const StateCityMaster = () => {
                   </Col>
                 </Row>
                 <div className="d-flex gap-2 mt-3">
-                  <Button variant="primary" onClick={handleAddCity}>
+                  <Button variant="success" onClick={handleAddCity}>
                     Add City
                   </Button>
                   <Button
-                    variant="primary"
+                    variant="danger"
                     onClick={() => {
                       setIsCityFormOpen(false);
                       setFormData({ ...formData, city_name: "", state_id: "" });

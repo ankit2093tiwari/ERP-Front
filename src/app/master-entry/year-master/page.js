@@ -282,7 +282,7 @@ const SessionMasterPage = () => {
               <Form className="formSheet">
                 <Row className="mb-3">
                   <Col lg={6}>
-                    <FormLabel className="labelForm">Session Name</FormLabel>
+                    <FormLabel className="labelForm">Session Name<span className="text-danger">*</span></FormLabel>
                     <FormControl
                       type="text"
                       value={formData.sessionName}
@@ -295,7 +295,7 @@ const SessionMasterPage = () => {
                     )}
                   </Col>
                   <Col lg={3}>
-                    <FormLabel className="labelForm">Start Date</FormLabel>
+                    <FormLabel className="labelForm">Start Date<span className="text-danger">*</span></FormLabel>
                     <FormControl
                       type="date"
                       value={formData.start_date}
@@ -308,7 +308,7 @@ const SessionMasterPage = () => {
                     )}
                   </Col>
                   <Col lg={3}>
-                    <FormLabel className="labelForm">End Date</FormLabel>
+                    <FormLabel className="labelForm">End Date<span className="text-danger">*</span></FormLabel>
                     <FormControl
                       type="date"
                       value={formData.end_date}
@@ -344,7 +344,7 @@ const SessionMasterPage = () => {
                   </Col>
                 </Row>
 
-                <Button className="mt-3" onClick={handleSubmit}>
+                <Button className="mt-3" onClick={handleSubmit} variant="success">
                   {editingId ? "Update" : "Add"} Session
                 </Button>
               </Form>

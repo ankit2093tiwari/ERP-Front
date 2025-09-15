@@ -226,7 +226,7 @@ const CasteMasterPage = () => {
                     )}
                   </Col>
                 </Row>
-                <Button onClick={handleAdd} className="btn btn-primary">Add Caste</Button>
+                <Button onClick={handleAdd} variant="success">Add Caste</Button>
               </Form>
             </div>
           )}
@@ -267,7 +267,7 @@ const CasteMasterPage = () => {
                     )}
                   </Col>
                 </Row>
-                <Button onClick={handleEditSave} className="btn btn-success">Save Changes</Button>
+                <Button onClick={handleEditSave} variant="success">Save Changes</Button>
               </Form>
             </div>
           )}

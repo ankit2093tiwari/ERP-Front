@@ -407,7 +407,7 @@ const SubjectMaster = () => {
                   </Col>
                 </Row>
 
-                <Button onClick={handleSubmit} className="btn btn-primary">
+                <Button onClick={handleSubmit} variant="success">
                   {isEditing ? "Update Subject" : "Add Subject"}
                 </Button>
               </Form>

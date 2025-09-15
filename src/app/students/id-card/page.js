@@ -367,7 +367,7 @@ const GenerateIdCard = () => {
                 {selectAll ? "Deselect All" : "Select All"}
               </Button>
               <Button
-                variant="primary"
+                variant="success"
                 onClick={handlePreviewPDF}
                 disabled={selectedStudents.length === 0}
               >

@@ -313,7 +313,7 @@ const StudentBulkUpdate = () => {
               {showUpdateButton && hasEditAccess && (
                 <Row>
                   <Col>
-                    <Button className="btn btn-success" onClick={handleUpdateStudents}>
+                    <Button variant="success" onClick={handleUpdateStudents}>
                       Update Students
                     </Button>
                   </Col>

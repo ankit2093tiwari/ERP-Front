@@ -248,7 +248,7 @@ const GradeMasterPage = () => {
                     {error && <div className="text-danger small mt-1">{error}</div>}
                   </Col>
                 </Row>
-                <Button onClick={handleAdd} className="btn btn-primary">
+                <Button onClick={handleAdd} variant="success">
                   Add Grade
                 </Button>
               </Form>

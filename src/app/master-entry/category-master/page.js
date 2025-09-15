@@ -237,11 +237,11 @@ const CategoryMasterPage = () => {
                     {fieldError && <div className="text-danger mt-1">{fieldError}</div>}
                   </Col>
                 </Row>
-                <Button onClick={handleAdd} className="btn btn-primary me-2">
+                <Button onClick={handleAdd} className="me-2" variant="success">
                   Add Category
                 </Button>
                 <Button
-                  variant="secondary"
+                  variant="danger"
                   onClick={() => {
                     setIsAddFormOpen(false);
                     setCategoryName("");
@@ -288,11 +288,11 @@ const CategoryMasterPage = () => {
                     {fieldError && <div className="text-danger mt-1">{fieldError}</div>}
                   </Col>
                 </Row>
-                <Button onClick={handleSave} className="btn btn-primary me-2">
+                <Button onClick={handleSave} className="me-2" variant="success">
                   Update Category
                 </Button>
                 <Button
-                  variant="secondary"
+                  variant="danger"
                   onClick={() => {
                     setIsEditFormOpen(false);
                     setEditingCategory(null);

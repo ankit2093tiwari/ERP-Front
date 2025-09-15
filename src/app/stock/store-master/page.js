@@ -61,33 +61,33 @@ const StoreMaster = () => {
         <div className="d-flex gap-1">
           {editingId === row._id ? (
             <>
-              <button
-                className="editButton"
+              <Button
+                variant="success" size="sm"
                 onClick={() => handleUpdate(row._id)}
               >
                 <FaSave />
-              </button>
-              <button
-                className="editButton btn-danger"
+              </Button>
+              <Button
+                variant="danger" size="sm"
                 onClick={() => handleDelete(row._id)}
               >
                 <FaTrashAlt />
-              </button>
+              </Button>
             </>
           ) : (
             <>
-              <button
-                className="editButton"
+              <Button
+                variant="success" size="sm"
                 onClick={() => handleEdit(row)}
               >
                 <FaEdit />
-              </button>
-              <button
-                className="editButton btn-danger"
+              </Button>
+              <Button
+                variant="danger" size="sm"
                 onClick={() => handleDelete(row._id)}
               >
                 <FaTrashAlt />
-              </button>
+              </Button>
             </>
           )}
         </div>
@@ -274,7 +274,7 @@ const StoreMaster = () => {
 
                   </Col>
                 </Row>
-                <Button onClick={handleAdd} className="btn btn-primary">
+                <Button onClick={handleAdd} variant="success">
                   Add Store
                 </Button>
               </Form>

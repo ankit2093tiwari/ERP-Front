@@ -246,11 +246,11 @@ const DocumentMasterPage = () => {
                     )}
                   </Col>
                 </Row>
-                <Button onClick={handleAdd} className="btn btn-primary me-2">
+                <Button onClick={handleAdd} className="btn me-2" variant="success">
                   Add Document
                 </Button>
                 <Button
-                  variant="secondary"
+                  variant="danger"
                   onClick={() => {
                     setIsAddFormOpen(false);
                     setDocumentName("");

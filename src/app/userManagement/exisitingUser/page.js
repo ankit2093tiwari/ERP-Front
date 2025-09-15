@@ -267,7 +267,7 @@ const ExistingUser = () => {
               <Form className="formSheet">
                 <Row className="mb-3">
                   <Col>
-                    <FormLabel>Username</FormLabel>
+                    <FormLabel>Username <span className="text-danger">*</span></FormLabel>
                     <FormControl
                       name="username"
                       value={formData.username}
@@ -275,7 +275,7 @@ const ExistingUser = () => {
                     />
                   </Col>
                   <Col>
-                    <FormLabel>Password</FormLabel>
+                    <FormLabel>Password </FormLabel>
                     <FormControl
                       name="password"
                       value={formData.password}
@@ -287,7 +287,7 @@ const ExistingUser = () => {
                 </Row>
                 <Row className="mb-3">
                   <Col>
-                    <FormLabel>User Type</FormLabel>
+                    <FormLabel>User Type <span className="text-danger">*</span></FormLabel>
                     <FormSelect
                       name="usertype"
                       value={formData.usertype}
@@ -300,7 +300,7 @@ const ExistingUser = () => {
                     </FormSelect>
                   </Col>
                   <Col>
-                    <FormLabel>Status</FormLabel>
+                    <FormLabel>Status <span className="text-danger">*</span></FormLabel>
                     <FormSelect
                       name="status"
                       value={formData.status}
@@ -314,7 +314,7 @@ const ExistingUser = () => {
                 </Row>
                 <Row className="mb-3">
                   <Col>
-                    <FormLabel>Full Name</FormLabel>
+                    <FormLabel>Full Name <span className="text-danger">*</span></FormLabel>
                     <FormControl
                       name="userfullname"
                       value={formData.userfullname}
@@ -332,7 +332,7 @@ const ExistingUser = () => {
                   </Col>
                 </Row>
 
-                <h5>Authorities</h5>
+                <h5>Authorities <span className="text-danger">*</span></h5>
                 {allowedActions.length > 0 ? (
                   <>
                     <Row className="mb-3">
