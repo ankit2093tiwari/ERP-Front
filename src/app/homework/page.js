@@ -30,6 +30,7 @@ const HomeworkEntryPage = () => {
     const [subjectOptions, setSubjectOptions] = useState([]);
     const [data, setData] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [submitLoading, setSubmitLoading] = useState(false);
     const [formErrors, setFormErrors] = useState({});
     const [isFormOpen, setIsFormOpen] = useState(false);
     const [isEditMode, setIsEditMode] = useState(false);
@@ -138,6 +139,7 @@ const HomeworkEntryPage = () => {
         });
 
         try {
+            setSubmitLoading(true)
             if (isEditMode) {
                 const res = await updateHomeworkById(editId, payload);
                 toast.success(res?.message || 'Homework updated');
@@ -149,6 +151,9 @@ const HomeworkEntryPage = () => {
             resetForm();
         } catch (err) {
             toast.error(err?.response?.data?.message || 'Operation failed');
+        }
+        finally {
+            setSubmitLoading(false)
         }
     };
 
@@ -351,8 +356,8 @@ const HomeworkEntryPage = () => {
                                     </Col>
                                 </Row>
 
-                                <Button className="btn btn-primary" onClick={handleSubmit}>
-                                    {isEditMode ? 'Update Homework' : 'Submit Homework'}
+                                <Button variant='success' onClick={handleSubmit} disabled={submitLoading}>
+                                {submitLoading ? <Spinner animation="border" size="sm" /> : null} {isEditMode ? 'Update Homework' : 'Submit Homework'}
                                 </Button>
                             </Form>
                         </div>

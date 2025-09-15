@@ -29,7 +29,7 @@ export default function Sidebar({ isOpen }) {
             const decoded = jwtDecode(token);
             const type = decoded.data?.usertype
             setUserType(type);
-            const userName = decoded.data?.username;
+            const userName = decoded.data?.fullName || decoded.data?.username || "User Name";
             setUserName(userName);
             setProfilePic(decoded.data?.profile_pic);
 
