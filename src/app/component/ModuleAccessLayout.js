@@ -2,13 +2,14 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
+import { useSelector } from "react-redux";
 
 export default function ModuleAccessLayout({ children, requiredModule }) {
   const router = useRouter();
   const [status, setStatus] = useState("loading");
+  const token = useSelector((state) => state?.auth?.token);
 
   useEffect(() => {
-    const token = localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
     if (!token) {
       router.replace("/login");
       return;
