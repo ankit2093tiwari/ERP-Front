@@ -1,6 +1,5 @@
 body {
   background: #f7f7f7 !important;
-  font-family: 'Nunito', sans-serif;
 }
 
 .container {
@@ -1358,7 +1357,7 @@ input::-webkit-inner-spin-button {
   border-radius: 4px;
   margin-bottom: 15px;
   font-size: 14px;
-  text-align: center;
+  /* text-align: center; */
 }
 
 .footerLinks {
@@ -1475,132 +1474,4 @@ input::-webkit-inner-spin-button {
   top: 100%;
   left: -90px !important;
   margin-top: var(--bs-dropdown-spacer);
-}
-
-
-@media (max-width: 468px) {
-  .sidebar {
-    padding: 5px;
-  }
-
-  .sidebar ul {
-    overflow-x: hidden !important;
-  }
-
-  .sidebar ul ul {
-    margin-left: 10px;
-  }
-
-  .sidebar.closed {
-    min-width: 40px !important;
-    /* overflow: hidden; */
-  }
-
-
-  .accordion-item>.accordion-header .accordion-button svg,
-  .sidebar ul li svg {
-    padding: 6px;
-    width: 25px;
-    height: 25px;
-  }
-
-  .sidebarAccordion .accordion-item>.accordion-header .accordion-button:not(.collapsed) {
-    background: none;
-  }
-
-  .sidebar.closed .sidebar-profile h6 {
-    margin-left: 15px;
-  }
-
-  section {
-    padding: 0;
-  }
-
-  .tableSheet {
-    padding: 20px 10px;
-  }
-
-  .btn-add.btn-primary {
-    font-weight: normal;
-  }
-
-  .dataTableCover {
-    padding: 10px;
-  }
-
-  .header {
-    padding: 5px 0;
-    height: auto;
-  }
-
-  .breadcrumbSheet {
-    padding: 5px 0;
-    font-size: small;
-    margin-bottom: 4px;
-  }
-
-  .dropdown-menu.show {
-    position: absolute;
-    top: 10px;
-    left: 15px !important;
-  }
-
-  .navbar-expand .navbar-nav .dropdown-menu {
-    top: 40px;
-    left: -95px !important;
-  }
-
-  .dashboardCardCard h1 {
-    font-size: 22px;
-  }
-
-  .dashboardCardCard span {
-    font-size: 18px;
-  }
-
-  .Toastify__toast {
-    font-size: 14px;
-    border-radius: 4px;
-    padding: 12px 20px;
-    width: 75% !important;
-  }
-
-  .hamburger {
-    display: none;
-  }
-
-
-  .mobile-toggle-button {
-    margin: 0;
-    padding: 0px 5px;
-    height: 30px !important;
-    /* width: 30px !important; */
-    border-radius: 4px;
-    border: none;
-    background: #6A637E;
-    color: white;
-  }
-
-  .mobile-toggle-button svg {
-    font-size: 15px;
-    margin-bottom: 2px;
-  }
-
-  .mobile-toggle-button.close {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-  }
-
-  .mobile-toggle-button.open {
-    color: #fff;
-    width: 100% !important;
-  }
-
-  .mobile-toggle-button.open svg {
-    color: #fff;
-  }
-
-
-
 }
