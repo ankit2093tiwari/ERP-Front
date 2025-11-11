@@ -1,10 +1,9 @@
-// app/layout.js
 "use client";
-import { Provider } from "react-redux";
+import { Provider, useDispatch, useSelector } from "react-redux";
 import { store, persistor } from "@/Redux/store";
 import { PersistGate } from "redux-persist/integration/react";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import Script from "next/script";
 import Header from "./component/Header";
 import Footer from "./component/Footer";
@@ -15,94 +14,65 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import LoginPage from "./login";
-import SpeechRecognitionProvider from "@/app/component/SpeechRecognitionProvider";
-import "@/Services";
-import axios from "axios";
+import { clearAuth } from "@/Redux/Slices/authSlice";
 
-export default function RootLayout({ children }) {
+function AppContent({ children }) {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
+  const token = useSelector((state) => state?.auth?.token);
+  const dispatch = useDispatch();
   const router = useRouter();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (isMobile) setSidebarOpen(false);
+    else setSidebarOpen(true);
+  }, [pathname, isMobile]);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 468);
+    handleResize();
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const toggleSidebar = () => setSidebarOpen(!isSidebarOpen);
 
-  useEffect(() => {
-    const token = typeof window !== "undefined"
-      ? localStorage.getItem("authToken") || sessionStorage.getItem("authToken")
-      : null;
-
-    if (token) {
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      setIsAuthenticated(true);
-    } else {
-      setIsAuthenticated(false);
-      if (!window.location.pathname.includes("/login")) {
-        router.replace("/login");
-      }
-    }
-
-    setIsLoading(false);
-  }, [router]);
-
-  const handleLogin = (token, rememberMe) => {
-    if (rememberMe) {
-      localStorage.setItem("authToken", token);
-    } else {
-      sessionStorage.setItem("authToken", token);
-    }
-
-    axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-    setIsAuthenticated(true);
-    router.replace("/");
-  };
-
   const handleLogout = () => {
-    if (!confirm("Are you sure to want to logout?")) return
-    localStorage.clear()
-    sessionStorage.removeItem("authToken");
-    setIsAuthenticated(false);
+    if (!confirm("Are you sure to want to logout?")) return;
+    dispatch(clearAuth()); // Redux + persist will clear token/user/authorities
     router.replace("/login");
   };
 
-
-  if (isLoading) {
-    return (
-      <html lang="en">
-        <body>
-          <div className="d-flex justify-content-center align-items-center vh-100">
-            <p>Loading...</p>
-          </div>
-        </body>
-      </html>
-    );
+  if (!token) {
+    return <LoginPage />;
   }
 
   return (
+    <>
+      <div className="layout">
+        <SideBar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
+        <div
+          className={`main-content ${isSidebarOpen ? "with-sidebar" : "full-width"
+            }`}
+        >
+          <Header toggleSidebar={toggleSidebar} onLogout={handleLogout} />
+          <main>{children}</main>
+          <Footer />
+        </div>
+      </div>
+      <ToastContainer position="top-right" autoClose={5000} />
+    </>
+  );
+}
+
+export default function RootLayout({ children }) {
+  return (
     <html lang="en">
       <body>
-        <Script
-          src="https://cdn.jsdelivr.net/npm/react-bootstrap@next/dist/react-bootstrap.min.js"
-          strategy="beforeInteractive"
-        />
         <Provider store={store}>
           <PersistGate loading={null} persistor={persistor}>
-            {isAuthenticated ? (
-              <>
-                <div className="layout">
-                  <SideBar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
-                  <div className={`main-content ${isSidebarOpen ? "with-sidebar" : "full-width"}`}>
-                    <Header toggleSidebar={toggleSidebar} onLogout={handleLogout} />
-                    <main>{children}</main>
-                    <Footer />
-                  </div>
-                </div>
-                <ToastContainer position="top-right" autoClose={5000} />
-                {/* <SpeechRecognitionProvider /> */}
-              </>
-            ) : (
-              <LoginPage onLogin={handleLogin} />
-            )}
+            <AppContent>{children}</AppContent>
           </PersistGate>
         </Provider>
       </body>
